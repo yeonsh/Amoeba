@@ -1,0 +1,564 @@
+.\"	@(#)ail.n	1.6	96/02/15 16:57:59
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, 1989 - May 1990
+	Document: Siebren van der Zee, 1989 - Jun 1990
+	Modified: Siebren van der Zee, July 1990 - syntax change
+		  Gregory J. Sharp, Feb 1996
+.aE
+.bp
+.ta 8 16 24 32 40 48
+.nH 1 "The \*(Am Interface Language (AIL) Reference Manual"
+.nH 2 "Overview"
+.LP
+.kW AIL
+.kW "AIL reference manual"
+AIL is a tool to simplify
+and standardize the generation of RPC interfaces for \*(Am.
+Widespread use of AIL in \*(Am will more or less enforce certain
+conventions, such as the interpretation of header fields and the
+private parts of a capability, that are not enforced by the \*(Am
+kernel.
+.LP
+.kW "stub compiler"
+AIL is a stub compiler that generates the glue between an \*(Am server
+and a client program from an
+.I interface
+specification.
+The outputs it can currently generate are header files
+that client programs should include if they use the corresponding
+interface, client stubs that should be linked with the client program,
+a server mainloop that decodes the \*(Am
+message and calls the corresponding implementation routine for the
+requested remote procedure call and marshaling routines.
+All output is currently written in C.
+It should not be too difficult to modify AIL to generate
+output in any procedural language.
+AIL-generated stubs pass minimal
+information about the architecture of the client, such as the byte order.
+No information about user defined types is passed.
+.LP
+One could also regard AIL as a language in which one can express
+types and calling conventions (i.e., the syntax) of a procedure in a
+language independent way.
+The semantics of a procedure are not expressed in AIL.
+Procedures are grouped in classes, which in turn can inherit
+the procedures of other classes.
+.LP
+After defining procedures, types and their grouping one can generate
+translations into various languages.
+The mechanisms to generate these translations are not described here.
+The fact that AIL is a stub compiler should, according to this view,
+not be mentioned in this document,
+since it results from the fact that it contains translators for this purpose.
+This view was not adopted in this document,
+since it forces the user to read between the lines too much.
+Notwithstanding, the exact documentation of AIL's output
+is in a separate document:  the
+.I "AIL Cookbook" .
+.SH
+Types
+.LP
+Currently, AIL supports all of the C-types, in that it can parse
+and comprehend them, but for some types AIL cannot generate marshaling
+routines automatically.
+They are: void, functions, pointers, enums
+and unions.
+If you insist on passing these, you can tell AIL to
+use your own, handwritten marshaling code.
+The type array has been extended, but a simple C-style array has
+the same meaning as in C.
+Most types have marshaling routines and
+size expressions associated with them.
+If they do not, AIL is
+incapable of generating code to pass it to a remote procedure.
+There is an important difference between the type systems of C and AIL.
+A typedef yields the same type as the type it is built
+from, except for the marshaling and size information.
+Thus,
+to marshal integers differently, make a typedef ``myint'',
+and specify the new marshaling and size information.
+.SH
+Procedures
+.LP
+In this document the word
+.I procedure
+is used to mean the call convention of an operation.
+A procedure syntactically resembles a STD C function prototype.
+.LP
+Usually it has a magic first argument represented as ``*''.
+In this case it defines both client and server stub, or more precisely,
+it defines the format of both the request and reply messages, from
+which the stubs can be generated.
+A number to be used as
+.I h_command
+value is picked from a range that is
+specified together with the class the procedure is defined in.
+.LP
+The client stub is called after the procedure.
+The server stub
+does not need a name, because it is not implemented as a function.
+The third routine associated with a procedure is the
+.I implementation,
+which should be written by every server implementor who wants to
+implement the class in which the procedure is defined.
+The name of
+an implementation is the name of the procedure, prefixed with
+.I impl_ .
+An implementation has the same function prototype as
+the procedure where the type of the first argument, the ``*'' of
+the procedure, is implementation dependent.
+Currently it is always a pointer to a header.
+.LP
+If the ``*'' is absent, AIL still assumes that it describes a function
+that is logically part of the interface.
+An example is the function
+.I dir_home ,
+which does not use
+.I trans ,
+but should obviously be part of the directory interface.
+Other star-less procedures might be handwritten
+wrappers around a client stub.
+Thus, no command numbers or
+implementation routines are associated with these procedures.
+The assumption is that the basic RPC format will have to be published anyway,
+since that is \*(Am's basic communication primitive.
+.SH
+Classes
+.LP
+A class groups together constant, type, marshaling, and procedure definitions.
+It can inherit the constants, types and procedures of other classes.
+Usually an integer range is specified, to allow the definition of
+procedures with the magic first star.
+AIL uses this range to pick a value for the
+.I h_command
+value.
+If the range is absent in the
+class definition, the class still represents a logical grouping of
+procedures, constants and types.
+.br
+The interface is specified in an object-oriented style.
+This eases the development of servers that use standard interfaces.
+Let us suppose there is a class called
+.I std_io
+that holds the read and the write operators.
+A programmer that is building a server that knows about
+reading and writing its object, but also about destroying objects,
+simply defines a class that inherits the
+.I std_io
+class,
+and adds the destroy procedure.
+Of course,
+the programmer will have to provide the implementation of all the operators,
+including the inherited ones, but the old library routines for the read
+and write interface can be used.
+.LP
+AIL implements
+.I multiple
+inheritance.
+This allows the programmer to support an arbitrary
+number of classes, as long as their
+.I h_command
+ranges and the names defined in the classes are disjunct.
+.LP
+For each class AIL can generate a
+.I server-mainloop .
+The mainloop contains a big switch, surrounded by a
+.I getreq
+and a
+.I putrep .
+The cases in the switch are called
+.I "server stubs" .
+The task of a server stub is to get the arguments of a procedure, and
+call the corresponding implementation function, which should be
+supplied by the interface designer.
+The server mainloop contains such a server stub for every procedure that is
+defined or inherited by the class.
+.KS
+.nH 2 "Language Specification"
+.SH
+Scope rules
+.LP
+Identifiers declared within a class
+.I C
+are visible after their declaration, and in classes that inherit the class C.
+There is no concept of qualifiers as in Modula-2.
+This implies that if two separate classes declare identifier
+.I foo ,
+it is impossible to inherit both in another class.
+Anything defined outside a class is defined in a global scope.
+These names are visible in classes that do not redefine the identifier.
+.LP
+The above rules do not apply exactly to union, enum, and structure tags.
+As in C, these always have a global scope.
+They are also the only exception
+to the rule that an identifier cannot be redeclared in the same scope.
+Declarations like:
+.sC
+	typedef struct foo {
+	    struct foo *next;
+	    ...
+	} foo;
+.eC
+are allowed, and define
+.I struct foo
+in the global scope, and
+.I foo
+in the local one \- which may be the global scope.
+.SH
+Syntax specification
+.LP
+Wherever the syntax of C was useful it was decided to stick with it.
+This mainly refers to type-declarations and expressions,
+but some other syntax constructs look C-ish too.
+.nH 3 "Notation used"
+.LP
+The following notation is used in the presentation of the grammar:
+.KE
+.TS
+l l.
+Foo : ...	A rule defining the meaning of Foo
+Foo	(capitalized words) nonterminals in the grammar
+FOO	(all upper case) terminal symbols
+\|'foo'	(quoted strings) literal terminal symbols
+( )	used for grouping
+Foo*	zero or more times Foo
+Foo+	one or more times Foo
+[Foo]	zero or one times Foo
+{Foo DELIM}	one or more times Foo, separated by DELIM if more than one
+Foo | Bar	separates alternatives
+.TE
+.LP
+And here is the actual grammar:
+.TS
+l l l.
+AilSource	:	Definition*
+Definition	:	TypeDefinition
+	|	ClassDefinition
+	|	GenerateClause
+	|	ConstantDefinition
+	|	MarshalDefinition
+.TE
+.TS
+l l l.
+TypeDefinition	:	StructOrUnion [IDENT] '{' StructMember* '}' ';'
+	|	'typedef' BaseType {TypeConstructor [MarshInfo]','} ';'
+.TE
+.TS
+l l l.
+StructOrUnion	:	'struct' | 'union'
+StructMember	:	BaseType {TypeConstructor ','} ';'
+EnumMember	:	IDENT [ '=' ConstantExpression ]
+.TE
+.TS
+l l l.
+BaseType	:	TypeModifier* IntrinsicType
+	|	TypeModifier+
+	|	StructOrUnion IDENT
+	|	StructOrUnion IDENT '{' StructMember* '}'
+	|	'enum' IDENT
+	|	'enum' IDENT '{' {EnumMember ','} '}'
+	|	IDENT
+.TE
+.LP
+.TS
+l l l.
+TypeModifier	:	'long' | 'short' | 'signed' | 'unsigned'
+IntrinsicType	:	'int' | 'float' | 'char' | 'double' | 'void'
+.TE
+.TS
+l l l.
+TypeConstructor	:	IDENT
+	|	'(' TypeConstructor ')'
+	|	'*' TypeConstructor
+	|	TypeConstructor '[' [ActualBound [ ':' MaximumBound] ']'
+	|	TypeConstructor '(' ')'
+.TE
+.TS
+l l l.
+ActualBound	:	Expression
+MaximumBound	:	Expression
+.TE
+.TS
+l l l.
+ClassDefinition	:	'class' IDENT [ClassRange] '{'
+		     (InheritanceList | IncludeList)*
+		     LocalDefinition*
+		'}' ';'
+.TE
+.TS
+l l l.
+ClassRange	:	'[' ConstantExpression '..' ConstantExpression ']'
+InheritanceList	:	'inherit' {IDENT ','} ';'
+IncludeList	:	'include' {STRING ','} ';'
+.TE
+.TS
+l l l.
+LocalDefinition	:	ConstantDefinition
+	|	TypeDefinition
+	|	OperationDefinition
+	|	MarshalDefinition
+	|	RightsDefinition
+ConstantDefinition	:	'const' IDENT '=' ConstantExpression ';'
+	|	'const' IDENT '=' STRING ';'
+.TE
+.TS
+l l l.
+MarshalDefinition	:	'marshal' IDENT MarshInfo ';'
+MarshInfo	:	'with' [ ActualSize [ ':' MaximumSize ] ]
+		[ 'in' [ClientMarshal] ',' [ServerUnmarshal] ]
+		[ 'out' [ClientUnmarshal] ',' [ServerMarshal] ]
+ClientMarshal	:	IDENT
+ClientUnmarshal	:	IDENT
+ServerMarshal	:	IDENT
+ServerUnmarshal	:	IDENT
+.TE
+.LP
+.\" This should be moved to the section on marshaling once I got that.
+The identifiers are supposed to be marshaling routines.
+They are called with a pointer in the transaction buffer,
+and the value they are supposed to marshal.
+They must return a pointer to where they left off.
+Server marshalers might get an extra parameter, indicating
+the architecture of the client.
+Currently, the most realistic
+way to learn the prototype of a marshaler is forcing AIL
+to write code that needs to call the marshaler, regrettably.
+.TS
+l l l.
+ActualSize	:	['const'] Expression
+MaximumSize	:	['const'] Expression
+.TE
+.TS
+l l l.
+RightsDefinition	:	'rights' {RightDef ','}
+RightDef	:	IDENT '=' ConstantExpression
+.TE
+The constant expression must evaluate to a power of two, and
+must not be bigger than 2**8, which reflects the restrictions that
+\*(Am imposes.
+.TS
+l l l.
+OperationDefinition	:	IDENT [Identification] '(' ParameterList ')' [RightsList] ';'
+.TE
+.TS
+l l l.
+Identification	:	'[' ConstantExpression AlternateNumber* ']'
+AlternateNumber	:	',' ConstantExpression
+ParameterList	:	['*' ',']  {Parameter ','}
+RightsList	:	'rights' {IDENT ','}
+.TE
+.TS
+l l l.
+Parameter	:	[AttributePart] [HeaderAddress] ParameterDef [MarshInfo]
+AttributePart	:	['var'] ['in'] ['out']
+HeaderAddress	:	':' IDENT
+ParameterDef	:	BaseType TypeConstructor
+.TE
+.TS
+l l l.
+GenerateClause	:	'generate' [ IDENT ] '{' {Generator ';'} '}' ';'
+Generator	:	IDENT [ '(' {GeneratorArg ','} ')' ]
+GeneratorArg	:	IDENT [':' SimpleType] ['=' Expression]
+.TE
+.TS
+l l l.
+ConstantExpression	:	Expression
+Expression	:	Expression DyadicOptr Expression
+	|	UnaryOptr Expression
+	|	'(' Expression ')'
+	|	FunctionCall
+	|	NUMBER
+	|	IDENT
+.TE
+.ne 10
+.nH 3 "Expressions"
+.LP
+Expressions are modeled after C expressions.
+Some operators are missing.
+The remaining ones are listed below in precedence order:
+.TS
+l l.
+||	denotes logical OR.
+&&	denotes logical AND.
+|	denotes bitwise inclusive OR.
+^	denotes bitwise exclusive OR.
+&	denotes bitwise AND.
+== and !=	denote equal and unequal.
+>, <, >= and <=	test for greater than, smaller than, greater
+	or equal, and smaller or equal respectively.
+<< and >>	are the bitshift operators.
++ and \(mi	denote addition and subtraction respectively.
+*, / and %	denote multiplication, division and modulo.
+.TE
+.LP
+Unary operators, which are all prefix, have the highest precedence.
+They are:
+.IP
+\&``+'', ``\(mi'', ``~'' and ``!'',
+.LP
+which mean nothing, unary minus, bitwise NOT and logical NOT.
+Parentheses can be used to override the precedence rules.
+Primary expressions are constants, identifiers and function calls.
+The identifiers in an expression must refer to an integer constant.
+Effectively, only integer expressions are allowed.
+.nH 3 "Lexical analysis."
+.LP
+Lexical analysis is the same as for C, except for
+the keywords.
+The input source is first preprocessed by the C
+preprocessor, then tokenized.
+The symbol
+.I AIL
+is predefined
+by the preprocessor to facilitate conditional compilation.
+Comments,
+spaces and tabs between tokens are ignored; within tokens they are
+illegal (except in strings, where they are meaningful).
+Comments are placed between /* and */.
+Comments do not nest.
+Comments are not recognized within strings, and vice versa.
+.LP
+The definitions below reflect the tokenization process.
+In the case of ambiguity the rule listed first is used.
+The longest production of a rule is always taken.
+Spaces are significant here!
+.TS
+l l l.
+IDENT	:	Letter [LetterOrOther]*
+LetterOrOther	:	Letter | Digit | '_'
+.TE
+.TS
+l l l.
+NUMBER	:	OctalNumber | HexNumber | DecimalNumber
+OctalNumber	:	'0' Digit+ [Suffix]
+HexNumber	:	'0' ('x' | 'X') HexDigit+ [Suffix]
+HexDigit	:	Digit | LetterAtoF
+DecimalNumber	:	Digit+ [Suffix]
+.TE
+Currently, suffices do not mean a thing, but this will change:
+.TS
+l l l.
+Suffix	:	'l' | 'L' | 'u' | 'U'
+.TE
+.TS
+l l l.
+STRING	:	'"' CharOrEscape* '"'
+CharConstant	:	Quote CharOrEscape Quote
+CharOrEscape	:	any character except \en, \e, or the surrounding quote
+	|	'\en' | '\eb' | '\ef' | '\et' | '\er'
+	|	'\e\e' Digit [Digit [Digit]]
+	|	'\e\e'
+	|	'\e"'
+	|	'\e' Quote
+.TE
+.TS
+l l l.
+Letter	:	'a' | 'b' | ... | 'z' | 'A' | 'B' | ... | 'Z'
+LetterAtoF	:	'a' | 'b' | ... | 'f' | 'A' | 'B' | ... | 'F'
+Digit	:	'0' | '1' | ... | '9'
+Quote	:	the single quote
+DyadicOptr	:	'||' | '&&' | '|' | '&' | '^' | '!=' | '==' |
+		'<=' | '>=' | '<' | '>' | '+' | '\(mi' | '*' | '/' | '%'
+UnaryOptr	:	'+' | '\(mi' | '~' | '!'
+.TE
+.LP
+The keywords are: char, class, const, double, enum, float, generate,
+in, include, inherit, int, long, marshal, out, short, signed, struct,
+typedef, union, unsigned, var, void, with.
+.nH 3 "Types"
+.LP
+The primary types of AIL are int, char, float,
+double and void.
+The meaning of int can be modified using long, short, signed and unsigned.
+Unlike most C implementations, AIL thinks a long long int is
+legal, and will feed this to your C compiler if you use one.
+An int and a long are four byte quantities on the network.
+A short is two bytes.
+For floats and doubles, no network format is defined yet.
+New types can be created by typedef, struct, union
+and enum, which are passed as integers.
+Arrays, pointers and functions are like in C, though neither pointers
+nor functions can be passed to procedures.
+There is an extended array type, which differentiates between an actual
+and a maximum size.
+Currently, the maximum must be constant.
+When transmitting such an array, the actual size is computed,
+and only that part of the array is transmitted.
+.nH 3 "Classes"
+.LP
+A ClassRange defines an integer range from which AIL can pick command values.
+The classes mentioned in an InheritanceList are explicitly inherited.
+Any classes inherited by these classes are implicitly inherited.
+This difference is only relevant to some generators.
+The names defined in the inherited classes are visible in the current class.
+The IncludeList is used to tell AIL which header files must be included
+by the client_interface translation.
+A string starting with ``<'' and ending
+in ``>'' will be translated to an #include <stdio.h> style include, other
+strings are copied as is.
+.nH 3 "Procedures and parameters"
+.LP
+Procedures define the prototype of a client stub.
+The implementation
+may have quite a different prototype, depending on other features of
+AIL you use in the generate clause for the server.
+The parameters to a procedure are identifiers with a type, and have certain
+attributes associated with them.
+The most obscure attribute specifies in which
+field of the \*(Am message header the parameter should travel.
+This attribute is there so that we can specify old client stubs in AIL.
+It is called the
+.I HeaderAddress .
+.LP
+The other attributes define in which direction the parameter values
+travel, and in which way they are passed to both client stub and
+implementation routine.
+They are
+.I in ,
+.I out ,
+and
+.I var .
+.br
+The attribute
+.I var
+specifies that the parameter is passed by
+reference to both client stub and implementation routine.
+.LP
+The attribute
+.I in
+specifies that the parameter must be shipped in
+the request message.
+.br
+Finally the attribute
+.I out
+means it must be shipped in the reply message.
+The attribute
+.I out
+implies
+.I var .
+If neither
+.I in
+nor
+.I out
+is specified,
+.I in
+is assumed.
+In effect, there are four
+possible combinations: in, var-out, var-in, and var-in-out.
+.LP
+The value of an out parameter after a communication failure is
+undefined.
+Its contents might have been overwritten during the
+processing of the reply by the \*(Am kernel.
+.LP
+AlternateNumbers are really a hack.
+Their use is not encouraged, and seldom necessary.
+They introduce numbers that should also be recognized by a server.
+Only the primary number is used in client stubs.
+.\"	Need to write about marshaling, rights, constants

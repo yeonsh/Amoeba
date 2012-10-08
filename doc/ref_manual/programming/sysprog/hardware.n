@@ -1,0 +1,43 @@
+.\"	@(#)hardware.n	1.4	94/04/05 15:12:53
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Hardware Requirements"
+.LP
+.LP
+\*(Am is reasonably portable and currently runs on three architectures:
+.kW "Motorola MC680x0"
+.kW "Intel 80386"
+.kW "SPARCstation"
+The SPARC, the Motorola MC680x0 family and the Intel 80386.
+.LP
+.kW "HP PA-Risc"
+A port to the HP PA-Risc was attempted but documentation was not forthcoming
+from the hardware manufacturer.
+.LP
+.kW Ethernet
+\*(Am uses Ethernet for local-area network communication.
+It has previously run on a token ring but this is no longer supported.
+.kW FDDI
+It is hoped to run it over FDDI networks in the future.
+The Ethernet driver currently supports the lance based systems and there is
+also a driver for the DP8390 chip for the IBM AT clones.
+.LP
+.kW MMU
+\*(Am expects that there be some MMU support but this is not essential.
+Various MMUs are supported.
+.LP
+.kW "floating point"
+Floating point hardware support is available for the supported architectures.
+.LP
+Drivers exist for a large range of uarts,
+timer chips and time of day clocks.
+Various disk/tape interfaces are supported, although not yet in a generic way
+since most of them are heavily dependent on the board design.
+.kW SCSI
+There is a generic high-level SCSI interface requiring a low-level driver
+to talk to the hardware.
+.LP
+For a list of supported hardware configurations see the installation guide.

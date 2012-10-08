@@ -1,0 +1,215 @@
+#	
+#	@(#)Amakefile	1.13	96/03/28 13:07:46
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+
+%if (%not defined(UNIX_VERSION), {
+	echo('You must set the UNIX_VERSION on the command line.');
+	echo('Aborting ...');
+	exit();
+});
+
+# Includes and defines for Sun OS 4.1.1
+
+%if ( ($UNIX_VERSION == sunos4.1.1) %or ($UNIX_VERSION == sunos4.1.2)
+     %or ($UNIX_VERSION == sunos4.1.3) , {
+	%include $SRC_ROOT/unix/flip-driver/Amake.srclist;
+	%include $SRC_ROOT/lib/libc/machdep/generic/memory/Amake.srclist;
+	COMPILER_SET = sun;
+	DRIVERCC = cc;
+	DEFINES = {
+#		-DDEBUG,
+		-DSECURITY,
+		-DSTATISTICS,
+		-DUNIX,
+		-DKERNEL,
+		-D'_VOIDSTAR=void*'
+	};
+	INCLUDES = {
+		-I.,
+		-I$SRC_ROOT/unix/h,
+		-I$SRC_ROOT/unix/flip-driver,
+		-I$SRC_ROOT/h,
+		-I$SRC_ROOT/h/sys,
+		-I$SRC_ROOT/h/machdep/arch/$ARCH,
+		-I$SRC_ROOT/h/machdep/dev,
+		-I$SRC_ROOT/h/toolset/sun,
+	};
+	LOADFLAGS = {};
+	U_FLIP_DRIVER_UNIXDEP = {
+		$U_FLIP_DRIVER_SUNOS411,
+		$L_LIBC_MEMMOVE
+	};
+	AM_DRIVER_SRCS = {
+		$U_FLIP_DRIVER_COMMON,
+		$U_FLIP_DRIVER_UNIXDEP
+	};
+	MACHTYPE = exec(arch, args => -k, stdout => %return);
+	echo('Making UNIX FLIP driver for machine type:' + $MACHTYPE);
+});
+
+
+%if ( ($UNIX_VERSION == sunos5.4) %or ($UNIX_VERSION == sunos5.5) , {
+	%include $SRC_ROOT/unix/sol_flipd/Amake.srclist;
+	%include $SRC_ROOT/unix/sol_flipd/flipd/Amake.srclist;
+	%include $SRC_ROOT/lib/libc/machdep/generic/memory/Amake.srclist;
+	COMPILER_SET = sunpro;
+	DRIVERCC = ../toolset/do_cc;
+	CC = ../toolset/do_cc;
+	EXTRA_CFLAGS = { '-Xa' };
+	DEFINES = {
+#		-DDEBUG,
+		-DSECURITY,
+		-DSTATISTICS,
+		-DUNIX,
+		-DUNIX_STREAMS,
+		-D_KERNEL,
+		-DKERNEL,
+		-D'_VOIDSTAR=void* '
+	};
+	INCLUDES = {
+		-I.,
+		-I$SRC_ROOT/unix/h,
+		-I$SRC_ROOT/unix/flip-driver,
+		-I$SRC_ROOT/unix/sol_flipd,
+		-I$SRC_ROOT/h,
+		-I$SRC_ROOT/h/sys,
+		-I$SRC_ROOT/h/machdep/arch/$ARCH,
+		-I$SRC_ROOT/h/machdep/dev,
+		-I$SRC_ROOT/h/toolset/sun,
+	};
+	LOADFLAGS = { -unix };
+	AM_DRIVER_SRCS = {
+		$U_FLIP_DRIVER_SUNOS_5_4,
+		$L_LIBC_MEMMOVE
+	};
+	MACHTYPE = exec(uname, args => -m, stdout => %return);
+	echo('Making UNIX FLIP driver for machine type:' + $MACHTYPE);
+});
+
+
+%if ( %not defined(UA_LIBRARIES), {
+	UA_LIBRARIES=$CONF_ROOT/lib/amunix/libamunix.a;
+});
+
+%if ( %not defined(EXTRA_CFLAGS), {
+	EXTRA_CFLAGS = {};
+});
+
+CFLAGS = {
+	-O,
+	$DEFINES,
+	$INCLUDES
+};
+
+CTAGSFLAGS = -t;
+
+LINTFLAGS = {
+	-un,
+	$DEFINES,
+	$INCLUDES
+};
+
+
+%include $CONF_ROOT/toolset/generic;
+%include am_driver.amk;
+
+%default flip_dump, flip_stat;
+
+%generic gamoeba.o(targ, src, extradefines)
+{
+    %cluster
+    {
+	%targets $targ[type = program];
+	%sources select($src, C-src-or-incl, %true);
+	%use	 driver_cc-c(program => $DRIVERCC,
+			 unixversion => $UNIX_VERSION,
+			 flags => { $extradefines + $EXTRA_CFLAGS + $CFLAGS } ),
+		 loader(program => ld, flags => -r);
+    };
+};
+
+%if ( $ARCH == mc68000 , {
+    %if ( $MACHTYPE == sun3, {
+	%default amoeba.sun3.o;
+	%instance gamoeba.o(amoeba.sun3.o, $AM_DRIVER_SRCS, '');
+    } , {
+	%if ( $MACHTYPE == sun3x, {
+	    %default amoeba.sun3x.o;
+	    %instance gamoeba.o(amoeba.sun3x.o, $AM_DRIVER_SRCS, '');
+	} , {
+	    echo('Can''t make FLIP driver for arch' + $ARCH +
+			'and machine type' + $MACHTYPE);
+	    exit();
+	});
+    });
+});
+
+%if ( $ARCH == sparc , {
+    %if ( ($UNIX_VERSION == sunos5.4) %or ($UNIX_VERSION == sunos5.5) , {
+	TARGET = flip;
+    }, {
+	TARGET = amoeba. & basename($MACHTYPE, '%') & .o;
+    });
+    MFLAGS = '-D' & basename($MACHTYPE, '%');
+    %default $TARGET;
+    %if ( $MACHTYPE == sun4m %or $MACHTYPE == sun4c %or $MACHTYPE == sun4, {
+	%instance gamoeba.o($TARGET, $AM_DRIVER_SRCS, $MFLAGS);
+    }, {
+	echo('Can''t make FLIP driver for arch' + $ARCH +
+			'and machine type' + $MACHTYPE);
+	exit();
+    });
+});
+
+%cluster
+{
+	%targets flip_dump[type = program];
+	%sources $U_FLCTRL_DUMP;
+	%use	loader(program => $CC, flags => $LOADFLAGS,
+					libraries => $UA_LIBRARIES);
+};
+
+%cluster
+{
+	%targets flip_stat[type = program];
+	%sources $U_FLCTRL_STAT;
+	%use	loader(program => $CC, flags => $LOADFLAGS,
+					libraries => $UA_LIBRARIES);
+};
+
+%cluster
+{
+	%targets lint[type = lint-output];
+	%sources select($AM_DRIVER_SRCS, C-src-or-incl, %true);
+};
+
+%cluster files
+{
+        %do exec(mkfiles, args => $AM_DRIVER_SRCS, stdout => files);
+};
+
+%cluster
+{
+	%targets tags[type = ctags-output];
+	%sources select( $AM_DRIVER_SRCS, C-src-or-incl, %true); 
+};
+
+%if ( defined(U_FLIPD), {
+	%default flipd;
+	%cluster
+	{
+		%targets flipd[type = program];
+		%sources $U_FLIPD;
+		%use cc-c(flags => { -Xa, -O }),
+		     loader(program => $CC, flags => $LOADFLAGS,
+			    libraries => { -lkvm, -lelf });
+	};
+});

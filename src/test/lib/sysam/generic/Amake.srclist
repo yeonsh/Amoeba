@@ -1,0 +1,9 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:43:29
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_SIGNALS = $PWD/Tsignals.c;
+T_STACK = $PWD/Tstack.c;

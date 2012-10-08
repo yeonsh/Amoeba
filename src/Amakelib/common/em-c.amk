@@ -1,0 +1,15 @@
+#	
+#	@(#)em-c.amk	1.2	94/04/06 10:32:55
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# The EM-code to object code converter only makes sense in the ack compilerset.
+# If ".e" sources are provided in other cases, amake will complain it cannot
+# process them, which is just what we want.
+
+%if ($COMPILER_SET == ack, {
+	%include $PWD/../$COMPILER_SET/em-c.amk;
+});
+

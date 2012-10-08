@@ -1,0 +1,108 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:40:31
+#
+#
+#   local:   local (direct) delivery channel transmission
+#
+MODULES =	ch_local qu2lo_send lo_wtmail
+
+OBJECTS =	ch_local.o qu2lo_send.o lo_wtmail.o
+
+SOURCES =	ch_local.c qu2lo_send.c lo_wtmail.c
+
+real-default:	local
+
+install:	$(CHANDIR)/$(MMPREF)local
+
+aminstall:	
+	$(AINSTALL) $(AINSTALLFLAGS) xlocal $(CHANDIR)/$(MMPREF)local
+
+$(CHANDIR)/$(MMPREF)local:	xlocal
+	$(INSTALL) -c -m 04$(PGMPROT) -o root xlocal $(CHANDIR)/$(MMPREF)local
+#	cp xlocal $(CHANDIR)/$(MMPREF)local
+#	-$(CHOWN) root $(CHANDIR)/$(MMPREF)local
+#	-chmod 04$(PGMPROT) $(CHANDIR)/$(MMPREF)local
+	-@ls -ls $(CHANDIR)/$(MMPREF)local
+	-@echo "local installed normally"; echo ""
+
+local:	xlocal
+xlocal:	$(HEAD) $(OBJECTS) $(MMDFLIBS)
+	    $(LD)  $(LDFLAGS) -o $@ $(HEAD) $(OBJECTS) $(MMDFLIBS) $(SYSLIBS)
+
+lint:	;  $(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f xlocal *.o x.c makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+ch_local.o: ch_local.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_local.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_local.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_local.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_local.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_local.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_local.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_local.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+ch_local.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+ch_local.o: /usr/proj/amwork/src/h/posix/time.h
+ch_local.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_local.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_local.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_local.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_local.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_local.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/phs.h
+qu2lo_send.o: qu2lo_send.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/ctype.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/setjmp.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/sys/types.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+qu2lo_send.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/time.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/dirent.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ap.h
+qu2lo_send.o: ../../h/ch.h /usr/proj/amwork/src/h/posix/stdio.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/pwd.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/signal.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/sgtty.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/sys/ioctl.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/termios.h
+qu2lo_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/adr_queue.h
+lo_wtmail.o: lo_wtmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+lo_wtmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/time.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ap.h
+lo_wtmail.o: ../../h/ch.h /usr/proj/amwork/src/h/posix/stdio.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/pwd.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/signal.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/sgtty.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/sys/ioctl.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/termios.h
+lo_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/adr_queue.h
+lo_wtmail.o: ../../h/hdr.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

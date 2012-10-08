@@ -1,0 +1,40 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/27 14:04:19
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Used for debug in unix driver utilities
+K_PKTPRT = {
+	$PWD/pktprt.c
+};
+
+K_FLIP_CONF = {
+	$PWD/flip_conf.c
+};
+
+K_FLIP_SYS = {
+	$PWD/flcache.c,
+	$PWD/flip.c,
+	$PWD/flip.init,
+	$PWD/flip.kstat,
+	$PWD/fragment.c,
+	$PWD/fragment.kstat,
+	$PWD/interface.c,
+	$PWD/interfac-prv.h,
+	$PWD/interfac.init,
+	$PWD/interfac.kstat,
+	$PWD/pktprt.c,
+	$PWD/routtab.c,
+	$PWD/routtab.h,
+	$PWD/routtab.init,
+	$PWD/routtab.kstat,
+	$PWD/switch.c,
+};
+
+K_FLIP_MEASURE = {
+	$PWD/measure.c,
+	$PWD/measure.init,
+	$PWD/measure.kstat,
+};

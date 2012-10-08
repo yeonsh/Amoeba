@@ -1,0 +1,38 @@
+.\"	@(#)gb_repchk.n	1.1	96/02/15 17:21:16
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer
+	Document: E.G. Keizer, 95/10/27
+.aE
+.mT "gb_repchk" A
+initiate group bullet server replication check
+.SH
+Synopsis
+.LP
+.sC L
+gb_repchk [bullet_server]
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Group Bullet Server"
+.I Gb_repchk
+is initiate a replication check on a group bullet server or
+a member of a group bullet server.
+The only argument is the super capability of the server.
+If no capability is specified,
+.I gb_repchk
+uses a default bullet server.
+A check on a group bullet server returns if a check has been
+performed on all members currently up and running.
+A check on a member returns if that member has checked the files
+belonging to that member.
+.SH
+See Also
+.LP
+gbullet(A).

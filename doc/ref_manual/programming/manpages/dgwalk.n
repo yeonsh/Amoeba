@@ -1,0 +1,294 @@
+.\"	@(#)dgwalk.n	1.5	96/02/15 16:48:25
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ed Keizer, January 1991
+	Document: Ed Keizer, January 1991
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "dgwalk" L "libamoeba.a, libkernel.a, libamunix.a"
+routines for examining a directory graph
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/dgwalk.h"
+
+errstat dgwalk(params)
+errstat dgwexpand(path, proc)
+.eC
+.SH
+Description
+.LP
+.kW "directory"
+.kW "directory graph"
+.kW "traverse"
+.kW "SOAP"
+.kW "capability"
+.kW "capset"
+.kW "capability-set"
+.kW "replication"
+.kW "aging"
+.kW "garbage collection"
+.kW "\fIdgwalk\fP"
+.kW "\fIdgwexpand\fP"
+.I Dgwalk
+can be used to find all directory and directory entries that are reachable
+from one or more starting points.
+For each directory found,
+.I dgwalk
+calls a user-supplied function with as parameters one or more capabilities for
+the directory and an indication of the path names under which these
+capabilities can be found.
+.I Dgwexpand
+can then be used to unravel each directory and call a second, user-supplied
+routine for each entry found.
+.I Dgwexpand
+does not recognize the concept of links between entries in directories.
+Each entry is treated as a separate entity.
+.LP
+.I Dgwalk
+can function in two modes:
+.I ad_hoc
+and
+.I all .
+The basic difference between the two modes stems
+from the fact that the \*(Am name server implements a directed graph.
+The consequence is that a certain directory might have multiple paths
+into it with differing rights.
+In
+.I all
+mode
+.I dgwalk
+first tries to obtain all available information on all reachable directories
+and then calls a user-supplied function for every directory found.
+In
+.I ad-hoc
+mode, the default,
+.I dgwalk
+calls the user-supplied function as soon as each directory is found and expects
+a return value from that function indicating whether that directory has been
+satisfactorily dealt with or not.
+If the directory has been satisfactorily dealt with,
+.I dgwalk
+will not call the user-supplied function again for that directory, even
+if a path with more rights is found.
+If the directory has not been satisfactorily dealt with,
+.I dgwalk
+will call the user-supplied function again whenever the directory capability
+is met again.
+For directories not met again
+.I dgwalk
+will call a third user-supplied function,
+thereby indicating that 
+.I dgwalk
+expects that this is the last time a user-supplied function 
+is called for that entry.
+.I Dgwalk
+will keep calling the user-supplied functions for each directory
+not yet satisfactorily dealt with.
+.LP
+It is possible to construct graphs in which certain parts of the graph
+might not be found in ad-hoc mode.
+.sH
+dgwalk
+.LP
+.sC
+errstat
+dgwalk(params)
+dgw_params params;
+.eC
+.kW "\fIdgwalk\fP"
+The parameters to
+.I dgwalk
+are passed in a structure. This structure has the following definition:
+.sC
+.ta 8n 16n 24n 32n 40n
+typedef struct {
+	short	mode;
+	dgw_paths *entry;
+	capset	**servers;
+	int	(*dodir)();
+	int	(*testdir)();
+	int	(*doagain)();
+} dgw_params;
+.eC
+The fields of the parameter structure have the following meaning:
+.IP mode 15
+Zero for
+.I ad-hoc
+mode and
+.cW DGW_ALL
+for
+.I all
+mode.
+.IP entry
+The set of entry points.
+This is a pointer to a list of structures, each describing a separate
+entry point.
+The use of the
+.I dgw_paths
+structure is described below.
+.IP servers
+The set of directory servers to which the search for
+directories is to be restricted.
+If it is
+.cW NULL
+no restriction applies.
+Otherwise
+.I dgwalk
+assumes that this field points to a NULL-terminated array of pointers
+to capability-sets.
+If this list is empty
+.I dgwalk
+will only call the user-supplied function for the entry points.
+.IP testdir
+This routine is called in
+.I all
+mode whenever a new directory is examined during the determination of the graph.
+The return value determines whether this directory should be part of the
+graph
+.cW (DGW_OK) ,
+should not be examined further
+.cW (DGW_STOP)
+or should be
+further examined whenever seen again
+.cW (DGW_AGAIN) .
+When
+.cW DGW_QUIT
+is returned
+.I dgwalk
+will not call any further user-supplied functions and return
+.cW STD_INTR .
+The only parameter to these function calls is a pointer to a sequence of
+one or more paths as described below.
+This entry may be
+.cW NULL .
+.IP dodir
+This routine is called whenever a new directory is met in
+.I ad-hoc
+mode and for each directory found in
+.I all
+mode after determination of the graph.
+In
+.I ad-hoc
+mode the return values have the same meaning as described under
+.I testdir .
+The only recognized return value in
+.I all
+mode is
+.cW DGW_QUIT.
+The only parameter to these function calls is a pointer to a sequence of
+one or more paths as described below.
+.IP doagain
+This function is only called in
+.I ad-hoc
+mode when
+.I dgwalk
+has exhausted its own list of directories to examine.
+It is then called for all directories for which
+.cW DGW_OK
+or
+.cW DGW_STOP
+has not yet been returned by calls to the function specified in the
+.I dodir
+entry.
+In all other aspects it is functionally equal to
+.I dodir .
+.LP
+The functions passed to
+.I dgwalk
+all have one parameter: a list of paths.
+Its type is:
+.cW "(dgw_paths *)" .
+The type
+.I dgw_paths
+has the following definition:
+.sC
+typedef struct {
+	char			*entry;
+	dgw_paths 		*dotdot;
+	capability		cap;
+	dgw_paths		*next;
+	/* Internal */
+	....
+} dgw_paths ;
+.eC
+The first three fields of the structure specify a capability for
+the directory and the way in which it was found.
+The capability
+.I cap
+for this directory was found in the parent directory specified by
+.I dotdot
+under
+.I entry .
+The entry
+.I next
+specifies one further way in which this directory was found.
+.I Dgwalk
+guarantees that no capability is present in this list with rights
+that are a subset of the rights of another capability in the list.
+.sH
+dgwexpand
+.LP
+.sC
+errstat
+dgwexpand(path, proc)
+dgw_paths path;
+void (*proc)();
+.eC
+.kW "\fIdgwexpand\fP"
+.LP
+This function can be called to examine the contents of a directory.
+The directory to be examined is specified by the
+.I path
+parameter that could be passed to
+.I dgwexpand
+by one of the parameter functions of
+.I dgwalk .
+.I Dgwexpand
+simply uses the first path in the list to get the contents of
+the directory and calls
+.I proc
+for each entry found.
+The function specified by
+.I proc
+is called with four parameters:
+.sC
+visit_entry(path, cset, parent_cset, entry)
+	char		*path;
+	capset		*cset;
+	capset		*parent_cset;
+	char		*entry;
+.eC
+.I Cset
+is the capability-set found under
+.I entry
+in the directory specified by
+.I parent_cset .
+.I Path
+gives the string with the full path name that can be used to access the
+entry.
+.mH
+Diagnostics
+.LP
+Both
+.I dgwalk
+and
+.kW "\fIdgwexpand\fP"
+.I dgwexpand
+can return any of the \*(Am error messages.
+If they return
+.cW STD_NOMEM
+there is a fair chance that they ran out of memory, but it
+might also indicate that one of the servers involved ran out of memory.
+.LP
+.SH
+See Also
+.LP
+.I om (A).

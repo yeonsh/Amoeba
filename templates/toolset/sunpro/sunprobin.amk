@@ -1,0 +1,12 @@
+#	
+#	@(#)sunprobin.amk	1.1	96/02/16 15:56:44
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Where can we find the SUNPRO C compiler & support utils?
+SUNPROBIN = /opt/SUNWspro/bin;
+
+# Flags to make this known to the scripts in this directory:
+SUNPROBIN_FLAGS = { -G, $SUNPROBIN };

@@ -1,0 +1,94 @@
+.\"	@(#)x11.n	1.4	96/02/15 16:57:55
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, May 1990
+	Document: Jack Jansen, June 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "x11" L "libamoeba.a"
+the X server interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "server/x11/Xamoeba.h"
+.eC
+.sC L
+errstat x11_reinit(server)
+errstat x11_shutdown(server)
+.eC
+.SH
+Description
+.LP
+.kW "\fIx11_reinit\fP
+.kW "\fIx11_shutdown\fP
+.kW "X windows"
+These routines provide control over X servers to user programs.
+They are not part of the standard X interface provided by
+the X11 libraries.
+.mH
+Functions
+.sH
+x11_reinit
+.LP
+.sC
+errstat
+x11_reinit(server)
+capability *server;
+.eC
+.kW "\fIx11_reinit\fP
+.I X11_reinit
+sends a message to the X server asking it to re-initialize itself.
+As a result all connections are dropped, all windows
+are closed and various resources are released.
+It is commonly used when logging out, or before logging in,
+to ensure a clean display without dangling connections.
+.sH
+x11_shutdown
+.LP
+.sC
+errstat
+x11_shutdown(server)
+capability *server;
+.eC
+.I X11_shutdown
+asks the addressed X server to terminate.
+This results in an orderly shutdown of all connections,
+after which the server exits.
+It is useful when shutting down a workstation.
+.SH
+Diagnostics
+.LP
+Only RPC errors can be returned.
+.SH
+Example
+.LP
+The following code fragment (without any error checking) does a lookup
+of the X server specified on the command line and asks it to terminate.
+.sC
+#include "amoeba.h"
+#include "ampolicy.h"
+#include "server/x11/Xamoeba.h"
+
+main(argc, argv)
+int argc;
+char **argv;
+{
+    capability scap;
+    char sname[100];
+
+    sprintf(sname, "%s/%s", DEF_XSVRDIR, argv[1]);
+    name_lookup(sname, &scap);
+    x11_shutdown(&scap);
+}
+.eC
+.SH
+See Also
+.LP
+X documentation.

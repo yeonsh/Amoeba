@@ -1,0 +1,28 @@
+#! /bin/sh
+#	
+#	@(#)instflipdev	1.2	96/02/27 11:52:24
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+    for j in 0 1 2 3 4 5 6 7 8 9
+    do
+	if [ $i = 0 ]
+	then
+	    rm -f /dev/flip_rpc$j
+	    mknod /dev/flip_rpc$j c $4 $j
+	else
+	    rm -f /dev/flip_rpc$i$j
+	    mknod /dev/flip_rpc$i$j c $4 $i$j
+	fi
+    done
+done
+
+rm -f /dev/flip_ctrl
+mknod /dev/flip_ctrl c $4 128
+
+rm -f /dev/flip_ip
+mknod /dev/flip_ip c $4 144

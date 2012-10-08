@@ -1,0 +1,96 @@
+.\"	@(#)aminstall.n	1.7	96/02/15 17:06:45
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, June 1990
+	Modified: Kees Verstoep
+			- added support for BinTree.am and heterogeneous pools.
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, May 1992
+			- brought up to date with Kees' changes.
+		  Gregory J. Sharp, Nov 1993
+			- made a version that runs under Amoeba.
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "aminstall" A
+install \*(Am utilities from a configuration tree
+.SH
+Synopsis
+.LP
+.sC L
+aminstall [-m] [-u] amoebaroot confroot srcroot arch toolset [machtype]
+.eC
+.SH
+Description
+.LP
+.kW "installation"
+.kW "binaries"
+This command works under \*(Am and on
+.UX
+systems with an \*(Am driver installed.
+It is used to install the \*(Am executables,
+consisting of shell scripts and binaries on an \*(Am file system.
+It expects the standard \*(Am configuration tree and source tree structure.
+It installs both servers and utilities from the configuration tree specified by
+.cW confroot/arch.toolset
+and the scripts from
+.I \*<srcroot\*>/util/scripts .
+They are installed under
+.I \*<amoebaroot\*>/unixroot/bin
+if they are emulations of POSIX programs
+and otherwise under
+.I \*<amoebaroot\*>/util .
+System administration programs are stored in
+.I \*<amoebaroot\*>/admin/bin .
+If the system bootblocks and related utilities are required for a particular
+architecture then the optional
+.I machtype
+argument should be given.
+.mH
+Options
+.LP
+.IP \fB\-m\fP
+Per default this command assumes that the target directories where the
+binaries are to be installed already exist.
+If they do not, then without the
+.B \-m
+flag they are not created.
+Instead a warning is printed.
+With this flag they are created if they do not already exist.
+.IP \fB\-u\fP
+This option is only available under
+.UX .
+Instead of installing the executables under \*(Am
+this option causes the
+.I amoebaroot
+option to be interpreted as a
+.UX
+directory on the current host.
+This is primarily intended for creating distributions.
+.SH
+Example
+.LP
+If the system is installed under the name
+.I /amoeba
+under
+.UX ,
+including the configuration in the directory
+.I conf
+then the following command will install the SPARC binaries compiled with
+the sunpro compiler set.
+It will also install the bootblock utilities for the system.
+.sC L
+aminstall /super /amoeba/conf/amoeba /amoeba/src sparc sunpro sun4
+.eC
+Note that for the Sun 4m and Sun 4c machines the
+.I machtype
+argument is
+.I sun4 .
+.SH
+See Also
+.LP
+amoebatree(A),
+amuinstall(A).

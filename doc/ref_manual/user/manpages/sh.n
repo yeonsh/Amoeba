@@ -1,0 +1,358 @@
+.\"	@(#)sh.n	1.5	96/02/16 11:07:34
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: MINIX
+	Document: Gregory J. Sharp, Sept 1992
+		  - generated from MINIX manpage and the ksh man page
+	Modified: Gregory J. Sharp, Nov 1995 - minor tidy up
+.aE
+.mT "sh" U
+shell
+.SH
+Synopsis
+.LP
+.cW
+sh [-acefiknqstx] [file]
+.R
+.SH
+Description
+.LP
+.kW shell
+.I Sh
+is a command language interpreter.
+It is known as
+.I "the shell" .
+It is derived from the
+.cW MINIX
+shell and is compatible with the
+.UX
+version 7 Bourne shell.
+It implements I/O redirection,
+pipes,
+magic characters,
+background processes,
+shell scripts and most of the other features of the V7 Bourne shell.
+A few of the more common commands are listed in the examples section,
+followed by a short explanation.
+Below is a description of the command syntax and the built-in commands.
+.mH
+Command syntax
+.LP
+The `#' character begins a one-line comment,
+unless the `#' occurs inside a word.
+The tokens `;', `|', `&', `;;', `||', `&&', `(', and `)'
+stand by themselves.
+A \fIword\fP is a sequence of any other non-white space characters,
+which may also contain quoted strings
+(quote characters are `\'', `"', `\`',
+or a matching `${ }' or `$( )' pair).
+A \fIname\fP is an unquoted word made up of letters,
+digits,
+or underscores (`_').
+Any number of white space characters (space and tab)
+may separate words and tokens.
+.LP
+In the following syntax,
+`{ ... }?' indicates an optional thing,
+`{ ... }*' indicates zero or more repetitions,
+`{ ... | ... }' indicates alternatives.
+Finally,
+`\fIchar\fP' is used when character \fIchar\fP is meant literally.
+Keywords are written in bold format.
+.de S
+.br
+\\$1
+.br
+..
+.IP \fIstatement:\fP
+.S "`(' \fIlist\fP `)'"
+.S "`{' \fIlist\fP `;' `}'"
+.S "\fBfor\fP \fIname\fP { \fBin\fP { \fIword\fP }* }? \fBdo\fP \fIlist\fP `;' \fBdone\fP"
+.S "{ \fBwhile\fP | \fBuntil\fP } \fIlist\fP `;' \fBdo\fP \fIlist\fP `;' \fBdone\fP"
+.S "\fBif\fP \fIlist\fP `;' \fBthen\fP \fIlist\fP `;' { \fBelif\fP \fIlist\fP `;' \fBthen\fP \fIlist\fP `;' }* { \fBelse\fP \fIlist\fP `;' }?\fBfi\fP"
+.S "\fBcase\fP \fIname\fP \fBin\fP { \fIword\fP { `|' \fIword\fP }* `)' \fIlist\fP `;;' }* \fBesac\fP"
+.S "\fBfunction\fP \fIname\fP `{' \fIlist\fP `;' `}'"
+.S "\fIname\fP `()' `{' \fIlist\fP `;' `}'"
+.S "\fBtime\fP \fIpipe\fP"
+Redirection may occur at the beginning or end of a statement.
+.IP \fIcommand:\fP
+.S "{ \fIname\fP`='\fIword\fP }* { \fIword\fP }*"
+This creates a temporary assignment to variable \fIname\fP,
+during the executing the second part.
+Redirection may occur anywhere in a command.
+.IP \fIlist:\fP
+.S "\fIcond\fP"
+.S "\fIcond\fP `;' \fIlist\fP"
+.S "\fIcond\fP `&' \fIlist\fP"
+.IP \fIcond:\fP
+.S \fIpipe\fP
+.S "\fIpipe\fP `&&' \fIcond\fP"
+.S "\fIpipe\fP `||' \fIcond\fP"
+.IP \fIpipe:\fP
+.S "\fIstatement\fP { `|' \fIstatement\fP }*"
+.rm S
+.mH
+Shell Variables
+.LP
+The shell defines several variables and allows others to be defined.
+.LP
+The following standard special variables exist and are automatically set
+by the shell:
+.IP "!"
+The process id of the last background process.
+.IP "#"
+The number of arguments available.
+.IP "$"
+The process id of the shell.
+.IP "\-"
+The flags given to the shell when it started or by the last set command.
+.IP "?"
+The value returned by the last foreground command.
+.LP
+In addition any positional arguments are specified by a single digit.
+Positional arguments are assigned using
+.I set .
+Other variables are assigned by
+.sC
+name=value
+.eC
+.LP
+The following variables are used by the shell and may be set by the user
+if they are not read-only.
+.IP IFS 11
+\fIInternal field separator\fP,
+used during substitution and the \fIread\fP command.
+It is normally set to
+.I space ,
+.I tab
+and
+.I newline .
+.IP HOME
+The default directory for the \fIcd\fP command.
+.IP PATH
+The search path for executable commands and \fB.\fP'd files.
+.IP "PS1"
+.IP "PS2"
+PS1 is the primary prompt for interactive shells.
+The prompt $PS2 is printed when a statement is not yet complete,
+after having typed return.
+.IP "SHELL"
+This is the name of the executable for the shell.
+This is typically
+.I /bin/sh
+for this shell.
+It is used for invoking shell command scripts.
+.mH
+Variable Substitution
+.LP
+A variable is substituted for its value by preceding the variable name with
+a dollar symbol.
+.sC
+$\fIvariable\fP
+.eC
+Other constructions may also be used:
+.IP "${\fIvariable\fP}"
+.br
+The value of the variable, if any, is substituted.
+The braces are only required to distinguish the variable name from leading or
+trailing letters, digits or underscores which would otherwise form part of
+the name.
+If 
+.I variable
+is `*' or `@' then all the positional parameters starting from $1 are
+substituted, separated by spaces.
+.LP
+Note that in the following
+.I word
+is not evaluated unless it is used.
+.IP "${\fIvariable\fP\-\fIword\fP}"
+.br
+If
+.I variable
+is set its value is substituted.
+Otherwise
+.I word
+is substituted.
+.IP "${\fIvariable\fP=\fIword\fP}"
+.br
+If
+.I variable
+is not set then
+.I variable
+is set to
+.I word
+and then the value of
+.I variable
+is substituted.
+.IP "${\fIvariable\fP?\fIword\fP}"
+.br
+If 
+.I variable 
+is set then its value is substituted.
+Otherwise
+.I word
+is printed and the shell exits.
+If
+.I word
+is null an error message will be printed.
+.IP "${\fIvariable\fP+\fIword\fP}"
+.br
+If
+.I variable
+is set then substitute
+.I word
+else substitute the null string.
+.mH
+Command Substitution
+.LP
+The shell will substitute commands between two grave accents (\|\(ga\|) with
+the standard output produced by those commands.
+Trailing newline characters are removed from the standard output.
+Only interpretation of backslashes (\|\e) is done before interpretation of the
+command string.
+.LP
+To nest command substitution, the grave accents can be quoted using
+backslashes.
+.mH
+Expressions
+.LP
+Expression may contain alpha-numeric variable identifiers and integer constants
+and may be combined with the following operators:
+== != <= < > >= + - * / % ! ( )
+.mH
+Command execution
+.LP
+After evaluation of keyword assignments and arguments,
+the type of command is determined.
+A command may execute a shell built-in or an executable file.
+.LP
+Any keyword assignments are then performed according to the type of command.
+Assignments in built-in commands marked with a \(dg persist,
+otherwise they are temporary.
+Assignments in executable commands are exported to the sub-process
+executing the command.
+.LP
+There are several built-in commands.
+.IP ":" 10
+Only expansion and assignment are performed.
+This is the default if a command has no arguments.
+.IP ".\ \fIfile\fP"
+Execute the commands in \fIfile\fP without forking.
+The file is searched in the directories of $PATH.
+Passing arguments is not implemented.
+.IP "break [\fIlevels\fP]"
+.IP "cd [\fIpath\fP]"
+Set the working directory to \fIpath\fP.
+A null path means the current directory.
+If \fIpath\fP is missing, the home directory ($\*<HOME\*>) is used.
+If \fIpath\fP is \fB..\fP\|, the shell changes directory to the
+parent directory, as determined from the value of
+.cW _WORK .
+.IP "continue [\fIlevels\fP]"
+.IP "echo ..."
+\fIEcho\fP prints its arguments followed by a newline.
+If the
+.B \-n
+argument is given the newline is not printed.
+.IP "eval \fIcommand ...\fP"
+.IP "exec \fIcommand arg ...\fP"
+.br
+The executable command is executed without forking.
+If no arguments are given,
+any I/\|O redirection is permanent.
+.IP "exit [\fIstatus\fP]"
+.IP "read [\fB\-r\fP] [\fB\-u\fIn\fR] \fIname ...\fP"
+.br
+Read the value of variables specified from standard input.
+The \fB\-u\fP option can be used to specify a different file descriptor.
+The first variable name may be of the form \fIname\fB?\fIprompt\fR.
+.IP "readonly [\fIname ...\fP]"
+.br
+Make the variables specified read-only, i.e.,
+future assignments to them will be refused.
+.de O
+.br
+\t\\$1\ \\$2\t\\$3
+..
+.IP "set [\fB\(+-\fP[\fIa-z\fP]]"
+.br
+Set (\fB\-\fP) or clear (\fB+\fP) a shell option:
+.ta 5n 20n 30n 40n
+.O \-a allexport "all new variable are created with export attribute"
+.O \-e errexit "exit on non-zero status"	\" [incorrect]
+.O \-k keyword "variable assignments are accepted anywhere in command"
+.O \-n noexec "compile input but do not execute (ignored if interactive)"
+.O \-f noglob "do not expand filenames"
+.O \-u nounset "dollar expansion of unset variables is an error"
+.O \-v verbose "echo shell commands on stdout when compiling"
+.O \-h trackall "add command path names to hash table"
+.O \-x xtrace "echo simple commands while executing"
+.if \n(OJ \{
+.O \-m monitor "job control enabled (default for interactive shell)"\}
+.IP "set [\fB\(+-o\fP \fIkeyword\fP] ..."
+.br
+Set (\fB\-\fP) or clear (\fB+\fP) shell option \fIkeyword\fP:
+.de O
+.br
+\t\\$1\t\\$2
+..
+.IP "set [\fB\-\-\fP] \fIarg ...\fP"
+.br
+Set shell arguments.
+.IP "shift [\fInumber\fP]"
+.IP "test \fIexpression\fP"
+.br
+\fITest\f evaluates the \fIexpression\fP and returns zero status if true,
+and non-zero status otherwise.
+It is normally used as the controlling command of the
+\fIif\fP and \fIwhile\fP statements.
+See test(U) for a complete description.
+.IP "trap [\fIhandler\fP] [\fIsignal ...\fP]"
+.IP "umask [\fIvalue\fP]"
+.\".IP "unset [\fB\-f\fP] \fIname ...\fP"
+.IP "wait [\fIprocess-id\fP]"
+.br
+If \fIprocess-id\fP is given,
+wait for the specified process to finish.
+Otherwise wait for any process to finish.
+.SH
+.ne 20
+Examples
+.LP
+.sC L
+.ta 17,17,17,17
+date			# \fRRegular command\fP
+sort <file		# \fRRedirect input\fP
+sort <file1 >file2	# \fRRedirect input and output\fP
+cc file.c 2>error	# \fRRedirect standard error\fP
+a.out >f 2>&1		# \fRCombine standard output and standard error\fP
+sort <file1 >>file2	# \fRAppend output to file2\fP
+sort <file1 >file2 &	# \fRBackground job\fP
+(ls -l; a.out) &	# \fRRun two background commands sequentially\fP
+sort <file | wc		# \fRTwo-process pipeline\fP
+sort <f | uniq | wc	# \fRThree-process pipeline\fP
+ls -l *.c		# \fRList all files ending in .c\fP
+ls -l [a-c]*		# \fRList all files beginning with a, b, or c\fP
+ls -l ?			# \fRList all one-character file names\fP
+ls \e?			# \fRList the file whose name is question mark\fP
+ls '???'		# \fRList the file whose name is three question marks\fP
+v=/usr/ast		# \fRSet shell variable v\fP
+ls -l $v		# \fRUse shell variable v\fP
+PS1='Hi! '			# \fRChange the primary prompt to Hi!\fP
+PS2='More: '			# \fRChange the secondary prompt to More:\fP
+ls -l $HOME			# \fRList the home directory\fP
+echo $PATH			# \fREcho the search path\fP
+if ... then ... else ... fi	# \fRIf statement\fP
+for ... do ... done		# \fRIterate over argument list\fP
+while ... do ... done		# \fRRepeat while condition holds\fP
+case ... esac			# \fRSelect clause based on condition\fP
+echo $?				# \fREcho exit status of previous command\fP
+echo $$				# \fREcho shell's pid\fP
+echo #				# \fREcho number of parameters (shell script)\fP
+echo $2				# \fREcho second parameter (shell script)\fP
+echo $*				# \fREcho all parameters (shell script)\fP
+.eC

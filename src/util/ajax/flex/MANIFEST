@@ -1,0 +1,29 @@
+   File Name		Archive #	Description
+#	
+#	@(#)MANIFEST	1.1	91/04/11 16:46:45
+#
+-----------------------------------------------------------
+ Changes                    1	
+ MANIFEST                   1	This shipping list
+ Makefile                   1	
+ README                     1	
+ Timings                    1	
+ ccl.c                      1	
+ dfa.c                      2	
+ ecs.c                      1	
+ fastskeldef.h              1	
+ flex.1                     3	
+ flex.fastskel              2	
+ flex.skel                  1	
+ flexdef.h                  3	
+ flexskelcom.h              1	
+ flexskeldef.h              1	
+ main.c                     2	
+ misc.c                     2	
+ nfa.c                      3	
+ parse.y                    1	
+ scan.c.dist                4	
+ scan.l                     2	
+ sym.c                      1	
+ tblcmp.c                   5	
+ yylex.c                    1	

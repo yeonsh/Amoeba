@@ -1,0 +1,41 @@
+.\"	@(#)tex.n	1.3	94/04/05 15:25:17
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 2 "Installing \*(Tx"
+.LP
+.kW "\*(Tx"
+\*(Tx is a text formatting system which is freely distributable.
+It can be run on \*(Am hosts with large amounts of memory.
+(\*(Tx programs are very large.)
+If there are no hosts with at least 12 MBytes of memory there is little
+point in compiling and installing \*(Tx.
+.LP
+Only the changes to \*(Tx to make it run under \*(Am are present in the \*(Am
+source tree.
+This is in the directory
+.I src/tex.am .
+It is necessary to obtain the source for \*(Tx to build the software.
+This can be obtained either from your \*(Am distributor or from the Internet.
+The source code should be loaded under the directory
+.I src/tex .
+A symbolic link from
+.I src/tex
+to the actual sources is sufficient under
+.UX .
+.LP
+The \*(Tx binaries are not provided on the distribution tape.
+Organizing the \*(Tx Makefiles to cross-compile for different architectures
+is difficult.
+To build them for a particular architecture it is necessary to install the
+sources under \*(Am and then install the replacement files from
+.I src/tex.am
+over the top of the originals.
+It should then be possible to configure and build the \*(Tx binaries under
+\*(Am .
+Make sure that the only processors in your processor pool are of the target
+architecture!
+Note that compilation of \*(Tx under \*(Am has not yet been tested.
+It is not supported!

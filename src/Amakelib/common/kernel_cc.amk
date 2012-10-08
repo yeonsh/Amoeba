@@ -1,0 +1,32 @@
+#	
+#	@(#)kernel_cc.amk	1.5	94/04/06 10:33:43
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  kernel cc-c tool for Amoeba kernels
+#	The only difference between this and ordinary cc-c is that we accept
+#	.H files.
+#
+%instance deftypesuffix(C-src, '%.c');
+%instance deftypesuffix(C-incl, '%.h');
+%instance deftypesuffix(C-H-incl, '%.H');
+%instance deftypesuffix(loadable, '%.o');
+
+%derive f[C-incl] %when $f ? type == C-incl
+		  %or   $f ? type == C-H-incl;
+
+%if (   $COMPILER_SET == sun
+%or     $COMPILER_SET == sun-1.0
+%or     $COMPILER_SET == sunpro
+%or     $COMPILER_SET == ack
+%or     $COMPILER_SET == ace
+%or     $COMPILER_SET == gnu-2
+%or     $COMPILER_SET == gnu-1.36, {
+        %include $PWD/../$COMPILER_SET/cc-c.amk;
+}, { # last resort
+	%include $PWD/mkdep.amk;
+	%include $PWD/cc-c.common;
+});

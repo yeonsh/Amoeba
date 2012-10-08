@@ -1,0 +1,25 @@
+#	
+#	@(#)ackcpplib.amk	1.2	94/04/06 10:31:10
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Set ACKCPPLIB to the directory where ACK cpp can be found.
+%if (%not defined(ACKCPPLIB), {
+	# use ACKDIR, when present in environment
+	%import ACKDIR;
+	%if ($ACKDIR <> '', {
+		ACKCPPLIB = $ACKDIR/lib;
+	}, {
+		ACKCPPLIB = /usr/local/ambin;
+	});
+});
+
+# Check that ACK cpp is indeed present there.
+# We use the built-in vpath() function for this.
+%if (vpath(cpp, $ACKCPPLIB) == '.', {
+        echo({'Fatal error: there is no ACK cpp in', $ACKCPPLIB});
+	exec(/bin/cat, $PWD/README.ackcpp);
+        exit();
+});

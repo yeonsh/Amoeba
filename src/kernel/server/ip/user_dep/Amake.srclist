@@ -1,0 +1,15 @@
+#	
+#	@(#)Amake.srclist	1.1	91/11/25 13:14:51
+#
+%include $PWD/../amoeba_dep/Amake.srclist;
+
+TCPIP_SRC=
+{
+	$PWD/am_eth.c,
+	$PWD/am_user_glue.c,
+	$PWD/bprintf.c,
+	$PWD/main.c,
+
+	$K_SVR_TEST_TCPIP_AMOEABA_DEP,
+	$K_SVR_TEST_TCPIP_GENERIC,
+};

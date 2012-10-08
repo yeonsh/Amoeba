@@ -1,0 +1,197 @@
+#!/bin/sh
+#	
+#	@(#)installk	1.3	96/02/27 10:20:06
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  installk
+#	Converts an Amoeba kernel as compiled under UNIX or Amoeba to the
+#	correct format for booting under Amoeba.  It then installs it on
+#	Amoeba - either on a boot partition or as a bullet file for reboot(A).
+#	-d implies to disk.  In this case installs a binary on a virtual disk
+#	   partition starting at the block specified.
+#	If there is no -d then it installs it as the specified bullet file.
+#	If the bullet filename is relative then it is installed in the
+#	directory /super/admin/kernel.
+#
+
+PROG=`basename $0`
+USAGE1="$PROG -d blk# compiler arch kernel-file vdisk-name"
+USAGE2="$PROG compiler arch kernel-file bullet-file"
+
+if [ -d /profile/cap ]
+then
+    AMOEBA=true
+else
+    AMOEBA=false
+fi
+
+TO_DISK=false
+#
+#  Parse command line options
+#
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-d) TO_DISK=true
+	    STARTBLK=$2
+	    shift
+	    ;;
+	*)  break
+	    ;;
+	esac
+	shift
+done
+
+if [ $# -ne 4 ]
+then
+	echo "Usage:"
+	echo "      $USAGE1"
+	echo "      $USAGE2"
+	exit 1
+fi
+#
+# The 1st argument must be a compiler
+#
+if $AMOEBA
+then
+    case $1 in
+    gnu|gnu-2|ack|ace)
+	    COMPILER=$1
+	    ;;
+    *)	echo "$PROG: unknown compiler: $1"
+	    echo "only gnu, ack, and ace currently supported"
+	    exit 1
+	    ;;
+    esac
+else
+    case $1 in
+    gnu|gnu-2|ack|sun|sunpro|ace)
+	    COMPILER=$1
+	    ;;
+    *)	echo "$PROG: unknown compiler: $1"
+	    echo "only gnu, ack, sun, sunpro and ace currently supported"
+	    exit 1
+	    ;;
+    esac
+fi
+
+#
+# The 2nd argument must be a supported architecture
+#
+case $2 in
+i80386|mc68000|sparc)
+	ARCH=$2
+	;;
+*)	echo "$PROG: unknown architecture: $2"
+	echo "only i80386, mc68000 and sparc are currently supported"
+	exit 1
+	;;
+esac
+
+#
+# The third argument must be a unix file containing the kernel to install
+#
+
+KERNEL=$3
+if [ ! -f $KERNEL ]
+then
+	echo $PROG: \"$KERNEL\" not a un\*x file
+	exit 1
+fi
+
+TMP1=/tmp/_+DUMM1+_$$
+TMP2=/tmp/_+DUMM2+_$$
+trap "rm -f $TMP1 $TMP2" 0
+
+case $ARCH in
+i80386)
+	case $COMPILER in
+	gnu|gnu-2)
+		kcv_i386 $KERNEL $TMP1
+		;;
+	ack)	# No transformation is required
+		cp $KERNEL $TMP1
+		;;
+	*)	echo "$PROG: unsupported compiler/architecture combination"
+		exit 1
+		;;
+	esac
+	;;
+
+mc68000)
+	case $COMPILER in
+	gnu|gnu-2|sun|ace)
+		cp $KERNEL $TMP2
+		if $AMOEBA
+		then
+			# Can't strip - under Unix we can strip
+			dd if=$TMP2 of=$TMP1 ibs=32 skip=1 
+		else
+			if strip $TMP2 > /dev/null
+			then
+				dd if=$TMP2 of=$TMP1 ibs=32 skip=1 
+			else
+				echo $PROG: strip failed for \"$KERNEL\"
+				exit 1
+			fi
+		fi
+		;;
+	ack)	kcv_ack $KERNEL $TMP2
+		dd if=$TMP2 of=$TMP1 ibs=120 skip=1
+		;;
+	*)	echo "$PROG: unsupported compiler/architecture combination"
+		exit 1
+		;;
+	esac
+	;;
+		
+sparc)
+	case $COMPILER in
+	sun|gnu|gnu-2)
+		cp $KERNEL $TMP1
+		;;
+	sunpro)
+		kcv_elf $KERNEL $TMP1
+		;;
+	*)	echo "$PROG: unsupported compiler/architecture combination"
+		exit 1
+		;;
+	esac
+	;;
+
+*)	echo "$PROG: This should not be able to happen"
+	exit 42
+	;;
+esac
+
+#
+# Once we get to here the kernel should be massaged into a state suitable
+# for installation.  It should be in the file $TMP1.
+#
+# Now distinguish between the disk and the bullet file case.
+#
+if $TO_DISK
+then
+	# Round up to whole number of blocks since dwrite only does whole 
+	# blocks
+	NBLKS=`dd if=$TMP1 of=$TMP2 bs=512 conv=sync 2>&1 | sed '1d
+	s/^\([0-9][0-9]*\).*/\1/'`
+	dwrite -s $STARTBLK -n $NBLKS $4 < $TMP2
+else
+	case "$4" in
+	/*)	INSPATH=$4 ;;
+	*)	INSPATH=/super/admin/kernel/$4 ;;
+	esac
+	del -f $INSPATH
+	if $AMOEBA
+	then
+	    /bin/cp $TMP1 $INSPATH
+	else
+	    tob $TMP1 $INSPATH
+	fi
+fi
+exit 0

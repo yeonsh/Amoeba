@@ -1,0 +1,101 @@
+.\"	@(#)ttn.n	1.5	96/02/16 11:10:01
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg
+	Document: Philip Homburg, Nov 19, 1991
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "ttn" U 
+a simple telnet implementation
+.SH
+Synopsis
+.LP
+.sC L
+ttn [-tcp \fItcp_capability\fP] host [port]
+.eC
+.SH
+Description
+.LP
+.kW "telnet"
+.kW "TCP/IP"
+.I Ttn
+implements the Telnet protocols as described in RFC-854. 
+The implementation is very simple and only a few options are supported.
+Supported options are the ``echo'' option (option 1, as described in RFC-857),
+the ``terminal type'' option (option 24, as described in RFC-930) and the 
+``suppress go ahead'' option (option 3, as described in RFC-858).
+.LP
+The 
+.I host
+option is the name of the IP host to connect to. 
+.kW Internet
+This can be a host number (of the form nn.nn.nn.nn) or a host name.
+The
+.I port
+option specifies the destination TCP port.
+The default is the telnet port (23) but other ports are possible.
+This can be a number or a name of a service in the
+.I /etc/services
+file.
+.mH
+Options
+.LP
+.IP "\fB\-tcp\fP \fItcp_capability\fP
+.br
+This option gives the path name for the TCP server to be used.
+.mH
+Diagnostics
+.LP
+.I Ttn
+writes on
+.I stdout
+where it is connecting to.
+For example,
+.sC
+connecting to 121.97.19.3 23
+.eC
+where the 
+.I 121.97.19.3
+represents the Internet address of the destination and the 
+.I 23
+is the TCP port.
+After a successful connect
+.sC
+connect succeeded !!!!
+.eC
+is written to
+.I stdout .
+.mH
+Environment Variables
+.LP
+.IP \*<TCP_SERVER\*>
+.br
+this environment variable overrides the default path for the tcp capability.
+Note that the command line option has the highest priority, followed by the
+environment variable and the default has the lowest priority.
+.mH
+Files
+.LP
+/etc/services
+.SH
+Examples
+.LP
+.sC
+ttn ski
+.eC
+Telnet to the telnet port of the host
+.I ski .
+.sC
+ttn ski finger
+.eC
+Connect to the finger daemon port of the host
+.I ski .
+.SH
+See Also
+.LP
+ip(A),
+ip(L).

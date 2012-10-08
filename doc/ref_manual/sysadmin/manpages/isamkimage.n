@@ -1,0 +1,46 @@
+.\"	@(#)isamkimage.n	1.4	96/02/15 17:47:40
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, June 1992
+	Document: Leendert van Doorn, June 1992
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "isamkimage" A "i80386/ISA ONLY"
+convert an 80386 kernel image to an ISA bootable image
+.SH
+Synopsis
+.LP
+.sC L
+isamkimage [-v] [-s pad] kernel rom-image
+.eC
+.SH
+Description
+.LP
+.kW "boot"
+.I Isamkimage
+converts a kernel executable image for the Intel 80386
+ISA-based machines into a bootable image.
+This program should only be used in conjunction with the
+RARP/TFTP bootstrap loader PROM.
+.mH
+Options
+.LP
+.IP \fB\-v\fP 0.7i
+This option causes the program to be more verbose than it usually is.
+.IP "\fB\-s\fP pad"
+This option is used to specify the padding size.
+.SH
+Example
+.LP
+.sC L
+isamkimage -v workstation/kernel /super/admin/tftpboot/C01FE745.iX86
+.eC
+.SH
+See Also
+.LP
+isaboot(A),
+tftp(A).

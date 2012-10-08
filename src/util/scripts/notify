@@ -1,0 +1,73 @@
+#!/bin/sh
+#	
+#	@(#)notify	1.2	96/03/19 13:05:42
+#
+#
+#	Notify - send a message to all logged in users in a particular
+#	group of users.  This only works under Amoeba, although you could
+#	write a C version that worked under both UNIX and Amoeba.
+#
+PROG=`basename $0`
+USAGE="Usage: $PROG { -u user | group } message"
+
+if [ $# -lt 2 -o $# -gt 4 ]
+then
+    echo $USAGE
+    exit 1
+fi
+
+USER='*'
+
+case $1 in
+-u)	case $2 in
+	/*) GROUP=`dirname $2`
+	    USER=`basename $2` ;;
+	*)  GROUP=/profile/group/users
+	    USER=$2 ;;
+	esac
+	shift ;;
+/*)	GROUP=$1 ;;
+*)	GROUP=/profile/group/$1 ;;
+esac
+
+if [ $# -ne 2 ]
+then
+    echo $USAGE
+    exit 1
+fi
+
+
+ME=`whoami`
+if [ $? -ne 0 ]
+then
+    echo "$PROG: cannot find your user name"
+    exit 1
+fi
+
+TMPFILE=/tmp/notfy_$$
+trap "rm -f $TMPFILE" 0
+
+echo ""	   > $TMPFILE
+echo "`date '+%a %y/%m/%d %H:%M:%S ::'` Message from" \'$ME\'  >> $TMPFILE
+echo ""	   >> $TMPFILE
+echo "$2"	   >> $TMPFILE
+echo ""	   >> $TMPFILE
+
+if [ ! -d $GROUP ]
+then
+    echo "$PROG:" \'$GROUP\' not found
+    exit 1
+fi
+cd $GROUP
+
+for i in $USER/dev/console
+do
+    if std_info $i > /dev/null 2>&1
+    then
+	echo "Writing to $i"
+	cat $TMPFILE > $i
+    else
+	echo "$i not logged in"
+    fi
+done
+exit 0

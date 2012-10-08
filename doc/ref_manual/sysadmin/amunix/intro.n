@@ -1,0 +1,80 @@
+.\"	@(#)intro.n	1.6	94/04/05 15:16:45
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1991
+.aE
+.cH "\*(Am and UNIX"
+It is possible to install the FLIP network protocol in many versions of
+.UX .
+Although the performance of the network protocol under
+.UX
+is often significantly poorer than with \*(Am,
+it makes it possible to access \*(Am systems from
+.UX
+and vice versa.
+Commands can be started under \*(Am from a
+.UX
+system.
+Furthermore,
+many commands such as
+.I dir (U)
+can be executed under either \*(Am or
+.UX .
+Downloading of \*(Am kernels from
+.UX
+is also possible,
+as is compiling \*(Am binaries under
+.UX
+and installing them on the \*(Am file system.
+.LP
+It is possible to run an \*(Am shell in a
+.UX
+window.
+The shell runs under \*(Am but uses the
+.UX
+window for I/O.
+\*(Am can also communicate with
+.UX
+using TCP/IP.
+This is convenient when it is desired to run a
+.UX
+shell in a window on an \*(Am workstation.
+.LP
+Running commands under
+.UX
+or starting them from
+.UX
+is very useful when porting to a new machine and no other \*(Am machines are
+available.
+It is also useful when it is desired to use compilers which are available under
+.UX
+but not available under \*(Am.
+.LP
+This chapter describes how to install the \*(Am sources under
+.UX ,
+how to build binary configurations for both \*(Am and
+.UX ,
+how to install the \*(Am network protocol in various versions of
+.UX
+and how to install \*(Am binaries from
+.UX
+onto an \*(Am system.
+.SH
+Important
+.LP
+Note that before beginning, the script
+.I amdir (U)
+in the top level directory
+.I bin.scripts
+must be modified as per the instructions for installing \*(Am.
+Furthermore,
+the directory
+.I bin.scripts
+and the appropriate machine subdirectory should be put into your
+.cW PATH
+before attempting to build \*(Am under
+.UX .

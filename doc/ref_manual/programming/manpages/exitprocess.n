@@ -1,0 +1,89 @@
+.\"	@(#)exitprocess.n	1.4	96/02/15 16:49:05
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1988-1989
+	Document: Jack Jansen, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "exitprocess" L "libamoeba.a"
+terminate a process
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/proc.h"
+
+void exitprocess(status)
+int status;
+.eC
+.SH
+Description
+.LP
+.kW "exitprocess"
+.kW "process"
+.kW "termination"
+.kW "exit status"
+.kW "TERM_NORMAL"
+.kW "process descriptor"
+.kW "exit"
+.kW "_exit"
+.I Exitprocess
+terminates the current process.
+The value
+.I status
+is the so-called
+.I "exit status" ,
+and is passed to the parent.
+If the process has more threads the other threads are aborted, just as
+if a
+.kW "\fIpro_stun\fP"
+.I pro_stun
+had been done (see
+.I process (L)).
+As soon as all
+threads have terminated a dummy process descriptor (see
+.I process_d (L))
+is created, consisting only of the fixed length part with no thread map
+and no segment map.
+This process descriptor is sent to the owner, with
+a reason of
+.cW TERM_NORMAL ,
+and the exit status as detail.
+.LP
+When the last thread of a process calls \fIexitthread\fP
+(see
+.I sys_newthread (L))
+or
+.I thread_exit
+(see
+.I thread (L)),
+this call behaves as if \*<exitprocess(0)\*> had been called.
+.mH
+Warnings
+.LP
+Most user programs should call
+.I exit
+(see
+.I ansi_C (L))
+or
+.I _exit
+(see
+.I posix (L)),
+not
+.I exitprocess .
+Those functions do some additional cleanup like properly closing files
+before they terminate the process.
+.SH
+See Also
+.LP
+process(L),
+process_d(L),
+posix(L),
+ansi_C(L),
+sys_newthread(L),
+thread(L).

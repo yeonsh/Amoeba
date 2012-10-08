@@ -1,0 +1,32 @@
+#	
+#	@(#)Amake.srclist	1.1	91/04/11 16:46:15
+#
+U_FLEX = {
+	$PWD/ccl.c,
+	$PWD/dfa.c,
+	$PWD/ecs.c,
+	$PWD/fastskeldef.h,
+	$PWD/flexdef.h,
+	$PWD/flexskelcom.h,
+	$PWD/flexskeldef.h,
+	$PWD/misc.c,
+	$PWD/nfa.c,
+	$PWD/parse.y,
+	$PWD/sym.c,
+	$PWD/tblcmp.c,
+	$PWD/yylex.c
+};
+
+U_FLEX_MAIN = {
+	$PWD/main.c
+};
+
+# scan.dist.c is the generated version of scan.l which you need to build
+# lex for the first time
+U_FIRST_FLEX = {
+	$PWD/scan.dist.c
+};
+
+U_SUBSEQUENT_FLEX = {
+	$PWD/scan.l
+};

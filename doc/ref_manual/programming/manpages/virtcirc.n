@@ -1,0 +1,506 @@
+.\"	@(#)virtcirc.n	1.7	96/02/15 16:57:51
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen (original), 1989
+	Software: Peter Bosch (rewritten), February-March 1990
+	Document: Peter Bosch, March 1990
+	Modified: Leendert van Doorn, February 1992
+		   - vc_warn is no longer obsolete
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "virtcirc" L "libamoeba.a"
+virtual circuits, full-duplex interprocess communication channels
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "semaphore.h"
+#include "vc.h"
+
+int vc_avail(vc, which)
+void vc_close(vc, which)
+struct vc *vc_create(iport, oport, isize, osize)
+int vc_getp(vc, buf, blocking)
+void vc_getpdone(vc, size)
+int vc_putp(vc, buf, blocking)
+void vc_putpdone(vc, size)
+int vc_read(vc, buf, size)
+int vc_readall(vc, buf, size)
+void vc_setsema(vc, sema)
+void vc_warn(vc, which, rtn, arg)
+int vc_write(vc, buf, len)
+.eC
+.SH
+Description
+.LP
+.kW "vc.h"
+.kW "semaphore.h"
+.kW "virtual circuit"
+.kW "full-duplex IPC channel"
+.kW "\fIvc_avail\fP"
+.kW "\fIvc_close\fP"
+.kW "\fIvc_create\fP"
+.kW "\fIvc_getp\fP"
+.kW "\fIvc_getpdone\fP"
+.kW "\fIvc_putp\fP"
+.kW "\fIvc_putpdone\fP"
+.kW "\fIvc_read\fP"
+.kW "\fIvc_readall\fP"
+.kW "\fIvc_setsema\fP"
+.kW "\fIvc_warn\fP"
+.kW "\fIvc_write\fP"
+.kW "input channel"
+.kW "output channel"
+.kW "circular buffer"
+.kW "local get port"
+.kW "put-port"
+.kW "broken connection"
+.kW "closed remote input channel"
+.kW "semaphore"
+The
+.I "virtual circuit"
+module provides a collection of routines to manage virtual circuits.
+Virtual circuits are full-duplex interprocess communication (IPC) channels.
+A virtual circuit consists of an input and an output channel, which
+can be concurrently read or written.
+Virtual circuit users write data to the output channel and read data from the
+input channel.
+A close on an output channel causes an end of file (EOF) to be transmitted.
+This does not flush the current contents of the local output
+and remote input channels.
+A close on an input channel causes a hangup (HUP) to be transmitted and the
+current contents of the local input and remote output channels are flushed.
+.LP
+Internally, the input and output channels consist of a thread and a circular
+buffer.
+The input channel is a client thread which receives data from
+the remote server and writes it to the input circular buffer.
+The output channel is a server thread which reads data from the output
+circular buffer and transmits it to the remote client.
+.LP
+The virtual circuit structure and various other constants (for example,
+.kW "VC_IN"
+.cW VC_IN ,
+.kW "VC_OUT"
+.cW VC_OUT )
+are defined in the header file
+.I vc.h .
+.sH
+vc_create
+.LP
+.sC
+struct vc *
+vc_create(iport, oport, isize, osize)
+port *iport, *oport;
+int isize, osize;
+.eC
+.kW "\fIvc_create\fP"
+.I Vc_create
+creates a virtual circuit.
+It starts an input channel of size
+.I isize
+and an output channel of size
+.I osize .
+The local output channel connects to the remote input channel via the put port
+.I oport .
+The local input channel waits for a remote output channel to connect to the
+local get port
+.I iport.
+.kW "\fIvc_create\fP"
+.I Vc_create
+returns a virtual circuit reference pointer.
+The local and remote
+.I vc_create
+must be called within the time limit of a locate timeout
+(typically 5 secs, see
+.I rpc (L)).
+Otherwise a lost connection will be detected.
+.LP
+A NULL-pointer is returned upon failure (insufficient memory, out of threads).
+.sH
+vc_close
+.LP
+.sC
+void
+vc_close(vc, which)
+struct vc *vc;
+int which;
+.eC
+.kW "\fIvc_close\fP"
+.I Vc_close
+closes one or both channels of the virtual circuit.
+A closed channel may not be read or written any more.
+.I Which
+can either be
+.kW "VC_IN"
+.cW VC_IN ,
+.kW "VC_OUT"
+.cW VC_OUT
+or
+.kW "VC_BOTH"
+.cW VC_BOTH .
+.kW "VC_IN"
+.cW VC_IN
+closes the input channel,
+.kW "VC_OUT"
+.cW VC_OUT
+closes the output channel and
+.kW "VC_BOTH"
+.cW VC_BOTH
+closes both channels.
+To break down a connection completely, both channels of the virtual
+circuit must be closed.
+Closing
+.kW "VC_OUT"
+.cW VC_OUT
+does not flush the contents of the local output and remote input channels.
+Closing
+.kW "VC_IN"
+.cW VC_IN
+does flush the local input and remote output channels.
+By default
+.kW "\fIvc_close\fP"
+.I vc_close
+operates synchronously:
+it waits until the connection is completely broken before returning.
+When
+.kW "VC_ASYNC"
+.cW VC_ASYNC
+is added to the parameter
+.I which ,
+.I vc_close
+operates asynchronously:
+it does not wait until the connections are broken down.
+Once both channels are closed, the virtual
+circuit reference pointer may not be accessed any more.
+.sH
+vc_read, vc_readall
+.LP
+.sC
+int
+vc_read(vc, buf, size)
+struct vc *vc;
+bufptr     buf;
+int        size;
+.eC
+.sC
+int
+vc_readall(vc, buf, size)
+struct vc *vc;
+bufptr     buf;
+int        size;
+.eC
+The routines
+.kW "\fIvc_read\fP"
+.I vc_read
+and
+.kW "\fIvc_readall\fP"
+.I vc_readall
+read
+.I size
+bytes from the input channel into the buffer
+.I buf .
+The routine
+.I vc_read
+reads at least one byte and at most
+.I size
+bytes.
+The routine
+.kW "\fIvc_readall\fP"
+.I vc_readall
+reads exactly
+.I size
+bytes, unless an
+.cW EOF
+is encountered.
+.LP
+.kW "\fIvc_read\fP"
+.I Vc_read
+and
+.I vc_readall
+return the number of bytes read (including zero).
+If an
+.cW EOF
+is encountered, the number of bytes read will be smaller than requested.
+.sH
+vc_write
+.LP
+.sC
+int
+vc_write(vc, buf, size)
+struct vc *vc;
+bufptr     buf;
+int        size;
+.eC
+.kW "\fIvc_write\fP"
+.I Vc_write
+writes
+.I size
+bytes from the buffer
+.I buf
+to the output channel.
+.LP
+.I Vc_write
+returns \(mi1 on failure (i.e., broken connection, closed remote input
+channel).
+Otherwise it returns
+.I size .
+.sH
+vc_getp, vc_getpdone
+.LP
+.sC
+int
+vc_getp(vc, buf, blocking)
+struct vc *vc;
+bufptr    *buf;
+int        blocking;
+
+void vc_getpdone(vc, size)
+struct vc *vc;
+int        size;
+.eC
+.kW "\fIvc_getp\fP"
+.I Vc_getp
+and
+.kW "\fIvc_getpdone\fP"
+.I vc_getpdone
+are the virtual circuit equivalents of the circular buffer routines
+.I cb_getp
+and
+.I cb_getpdone
+(see
+.I circbuf (L)).
+.I Vc_getp
+and
+.I vc_getpdone
+fetch data from the virtual circuit input channel into the buffer
+.I buf .
+.LP
+If an
+.cW EOF
+is encountered,
+.kW "\fIvc_getp\fP"
+.I vc_getp
+returns zero.
+.sH
+vc_putp, vc_putpdone
+.LP
+.sC
+int
+vc_putp(vc, buf, blocking)
+struct vc *vc;
+bufptr    *buf;
+int        blocking;
+
+void vc_putpdone(vc, size)
+struct vc *vc;
+int size;
+.eC
+.kW "\fIvc_putp\fP"
+.I Vc_putp
+and
+.kW "\fIvc_putpdone\fP"
+.I vc_putpdone
+are the virtual circuit equivalents of
+.I cb_putp
+and
+.I cb_putpdone .
+Instead of writing data to a circular buffer, data is written from the buffer
+.I buf
+to the virtual circuit output channel.
+.LP
+.I Vc_putp
+returns \(mi1 upon failure (i.e., broken connection, closed remote input
+channel).
+.sH
+vc_avail
+.LP
+.sC
+int
+vc_avail(vc, which)
+struct vc *vc;
+int which;
+.eC
+.kW "\fIvc_avail\fP"
+.I Vc_avail
+returns the number of bytes immediately available in the input or output
+channel.
+If
+.kW "VC_IN"
+.cW VC_IN
+is selected,
+the number of free bytes in the input channel is returned.
+If
+.kW "VC_OUT"
+.cW VC_OUT
+is selected, the number of free bytes in the output channel is returned.
+.LP
+.I Vc_avail
+returns \(mi1 when the specified channel is closed.
+.sH
+vc_setsema
+.LP
+.sC
+void
+vc_setsema(vc, sema)
+struct vc *vc;
+semaphore *sema;
+.eC
+.kW "\fIvc_setsema\fP"
+.I Vc_setsema
+attaches an external semaphore on the input channel.
+Each time a byte arrives on the input channel or when the input channel is
+closed,
+the semaphore is
+.I upped
+via
+.I sema_up
+(see
+.I semaphore (L)).
+The semaphore is initialized to the number of data bytes available in the
+input channel.
+This routine is the virtual circuit equivalent of
+.I cb_setsema
+(see
+.I circbuf (L)).
+.sH
+vc_warn
+.LP
+.sC
+vc_warn(vc, which, rtn, arg)
+struct vc *vc;
+int which;
+void (*rtn)();
+int arg;
+.eC
+.kW "\fIvc_warn\fP"
+.I Vc_warn
+sets a warning routine for interesting events.
+When the input channel is selected (\fIwhich\fP ==
+.kW "VC_IN"
+.cW VC_IN ),
+the routine
+.I rtn
+will be called whenever the input channel is not empty
+or when the input channel breaks/closes down.
+If the output channel is selected (\fIwhich\fP ==
+.kW "VC_OUT"
+.cW VC_OUT ),
+the routine will be called whenever the output channel state
+changes to empty or when the output channel breaks/closes down.
+.LP
+The specified argument
+.I arg
+will be passed as argument to
+.I rtn .
+.SH
+Example
+.LP
+The following example creates a virtual circuit, the client writes a
+password through the virtual circuit (``Foo''), which is checked by the server,
+and some data is transferred.
+On illegal passwords or failures, the connection
+is directly broken by the server.
+.kW "\fIvc_create\fP"
+.kW "\fIvc_getp\fP"
+.kW "\fIvc_getpdone\fP"
+.kW "\fIvc_readall\fP"
+.kW "VC_BOTH"
+.kW "VC_ASYNC"
+.sC
+#include "amoeba.h"
+#include "vc.h"
+
+some_server(icap, ocap)
+capability *icap, *ocap;
+{	
+    struct vc *vc;
+    char buf[4], *bp;
+    int size;
+
+    /* create the virtual circuit */
+    vc = vc_create(icap, ocap, ISIZE, OSIZE);
+    if (vc == 0)
+	exit(1);
+    
+    /* read 4 bytes */
+    if (vc_readall(vc, buf, 4) != 4) {
+	/* on failures, close down asynchronously */
+	vc_close(vc, VC_BOTH|VC_ASYNC);
+	exit(1);
+    }
+
+    /* Check password */
+    if (strcmp(buf, "Foo")) {
+	/* not ok, close down */
+	vc_close(vc, VC_BOTH|VC_ASYNC);
+	exit(1);
+    }
+
+    /* get a buffer pointer to received data */
+    if ((size = vc_getp(vc, &bp, 1)) == 0) {
+	vc_close(vc, VC_BOTH|VC_ASYNC);
+	exit(1);
+    }
+
+    /* well, do something */
+    do_something(bp, size);
+
+    /* mark the data received */
+    vc_getpdone(vc, size);
+    /* and close down */
+    vc_close(vc, VC_BOTH|VC_ASYNC);
+    exit(0);
+}
+.eC
+.kW "\fIvc_close\fP"
+.kW "\fIvc_create\fP"
+.kW "\fIvc_write\fP"
+.kW "VC_IN"
+.kW "VC_OUT"
+.kW "VC_BOTH"
+.sC
+some_client(icap, ocap)
+capability *icap, *ocap;
+{
+    struct vc *vc;
+    char buf[10];
+
+    /* create the virtual circuit */
+    vc = vc_create(icap, ocap, ISIZE, OSIZE);
+    if (vc == 0)
+	exit(1);
+    
+    /* Close input channel */
+    vc_close(vc, VC_IN);	
+
+    /* Write the password to the server */
+    if (vc_write(vc, "Foo", 4) != 0) {
+	/* close on failures */
+	vc_close(vc, VC_OUT);
+	exit(1);
+    }
+
+    /* write some data to the server */
+    if (vc_write(vc, buf, 10) != 0) {
+	vc_close(vc, VC_OUT);
+	exit(1);
+    }
+
+    /* And close down */	
+    vc_close(vc, VC_BOTH);
+    exit(0);
+}
+.eC
+.SH
+See Also
+.LP
+circbuf(L),
+rpc(L),
+semaphore(L).

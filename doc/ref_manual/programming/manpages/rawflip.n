@@ -1,0 +1,516 @@
+.\"	@(#)rawflip.n	1.5	96/02/16 13:28:58
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren, November 1993
+	Document: Hans van Staveren, November 1993
+	Modified: Gregory J. Sharp, Jan 1994 - added flip_random and
+						flip_oneway doco plus some
+						updates from Saniya.
+		  Gregory J. Sharp, Feb 1996 - added poor example
+.aE
+.mT "rawflip" L "libamoeba.a"
+routines to access FLIP protocol from user level programs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/rawflip.h"
+
+int flip_init(ident, receive, notdeliver)
+int flip_end(ifno)
+int flip_register(ifno, adr)
+int flip_unregister(ifno, ep)
+int flip_broadcast(ifno, pkt, ep, length, hopcnt)
+int flip_unicast(ifno, pkt, flags, dst, ep, length, ltime)
+int flip_multicast(ifno, pkt, flags, dst, ep, length, n, ltime)
+
+void flip_oneway(prv_addr, pub_addr)
+void flip_random(adr)
+void flip_random_reinit()
+.eC
+.SH
+Description
+.LP
+.kW "FLIP"
+.kW "\fIflip_init\fP"
+.kW "\fIflip_end\fP"
+.kW "\fIflip_register\fP"
+.kW "\fIflip_unregister\fP"
+.kW "\fIflip_broadcast\fP"
+.kW "\fIflip_unicast\fP"
+.kW "\fIflip_multicast\fP"
+.kW "\fIflip_oneway\fP"
+.kW "\fIflip_random\fP"
+.kW "\fIflip_random_reinit\fP"
+These routines provide for access to the FLIP network protocol from
+user programs.
+The calls are virtually identical to the ones as described in
+M.F. Kaashoek's thesis,
+.I "Group Communication in Distributed Computer Systems"
+and also to the calls used inside the \*(Am kernel, to ease porting
+code between user mode and kernel mode.
+.LP
+The interface consists of the actual routines for sending and receiving
+messages plus some miscellaneous support routines.
+.mH
+The FLIP Interface
+.sH
+flip_init
+.LP
+.sC
+int
+flip_init(ident, receive, notdeliver)
+long ident;
+int (*receive)();
+int (*notdeliver)();
+.eC
+.LP
+.kW "\fIflip_init\fP"
+.I Flip_init
+initializes a process' use of the FLIP protocol.
+Parameters are
+.I ident ,
+a
+.I long
+passed back during upcalls and the
+.I receive
+and
+.I notdeliver
+functions used for callback from kernel space.
+To be able to do callback the
+.I flip_init
+function does a
+.I thread_newthread
+and all upcalls are done from the forked thread.
+This might be relevant when accessing shared data structures.
+.LP
+It is an error to call
+.I flip_init
+twice without an intervening call to
+.I flip_end .
+.LP
+The
+.I flip_init
+function returns a small integer
+.I ifno
+(interface number) on success or
+.cW FLIP_FAIL
+on failure.
+.sH
+flip_end
+.LP
+.sC
+int
+flip_end(ifno)
+int ifno;
+.eC
+.LP
+.kW "\fIflip_end\fP"
+.I Flip_end
+terminates a process' use of the FLIP protocol for the specified interface
+.I ifno .
+The extra thread created during
+.I flip_init
+will also terminate.
+Returns 0 on success,
+.cW FLIP_FAIL
+on failure.
+.sH
+flip_register
+.LP
+.sC
+int
+flip_register(ifno, adr)
+int ifno;
+adr_p adr;
+.eC
+.LP
+.kW "\fIflip_register\fP"
+.I Flip_register
+registers the address pointed to by
+.I adr
+as an endpoint address for FLIP communication.
+From then on any packet sent to the one-way-encrypted address is given to
+this process using the
+.I receive
+function given to the
+.I flip_init
+function.
+Registering the all zero address indicates willingness to
+receive packets sent out by
+.I flip_broadcast .
+.I Flip_register
+returns a small integer
+.I ep
+(endpoint) on success or
+.cW FLIP_FAIL
+on failure.
+.LP
+Note that repeated FLIP broadcasts with the same source address, message-id
+and offset within a short space of time will not be sent.
+Furthermore, messages sent to different incarnations of a process which reuses
+FLIP addresses may be discarded due to route caching effects.
+Therefore it is important to use a new FLIP source address for each new
+invocation of a process.
+The routine
+.I flip_random
+(described below) is one way to do this.
+.LP
+It is unwise to use the same address both for unicast and multicast.
+Cacheing effects in the kernel will make communication slower in that case.
+It is better to register an address for unicast and to use as a source for all
+messages.
+.sH
+flip_unregister
+.LP
+.sC
+int
+flip_unregister(ifno, ep)
+int ifno;
+int ep;
+.eC
+.LP
+.kW "\fIflip_unregister\fP"
+.I Flip_unregister
+stops FLIP listening to the FLIP address associated with the endpoint
+.I ep .
+Due to the asynchronous nature of the underlying network layer
+there is a possibility that some packets destined for that address
+are still underway and will be delivered through
+.I receive .
+Returns 0 on success,
+.cW FLIP_FAIL
+on failure.
+.sH
+flip_broadcast
+.LP
+.sC
+int
+flip_broadcast(ifno, pkt, ep, length, hopcnt)
+int ifno;
+char * pkt;
+int ep;
+f_size_t length;
+f_hopcnt_t hopcnt;
+.eC
+.LP
+.kW "\fIflip_broadcast\fP"
+.I Flip_broadcast
+broadcasts the packet
+.I pkt
+with length
+.I length
+using the source address associated with
+.I ep .
+The distance the broadcast travels is limited by the
+.I hopcnt
+parameter.
+Note that a hop count of 1 does not imply that the broadcast will go over
+Ethernet.
+For example, the current implementation treats local communication and physical
+shared memory as networks and a hop count of at least 3 is required to send
+something over Ethernet.
+The actual value required should be determined experimentally.
+There is a maximum of 25 hops in the current implementation.
+Returns 0 on successful sending of the message,
+.cW FLIP_NOPACKET
+if no free packets were currently available and
+.cW FLIP_FAIL
+on failure.
+A 0 return value does not imply successful delivery of the message.
+.sH
+flip_unicast
+.LP
+.sC
+int
+flip_unicast(ifno, pkt, flags, dst, ep, length, ltime)
+int ifno;
+char * pkt;
+int flags;
+adr_p dst;                 
+int ep;
+f_size_t length;
+interval ltime;
+.eC
+.LP
+.kW "\fIflip_unicast\fP"
+.I Flip_unicast
+sends a unicast packet
+.I pkt
+with length
+.I length
+to the flip address
+.I dst
+using the source address associated with
+.I ep .
+The locate timeout for finding the destination is set to
+.I ltime
+milliseconds.
+Possible
+.I flags
+which can be bitwise ORed are
+.cW FLIP_INVAL
+to invalidate any existing route cache entry,
+.cW FLIP_SYNC
+to wait for any necessary locate to finish before returning from
+.I flip_unicast ,
+and
+.cW FLIP_SECURITY
+to only route over trusted networks.
+If the destination is not found within the specified timeout,
+or if while sending the packet a routing error occurs,
+the packet is returned through the
+.I notdeliver
+function specified with
+.I flip_init .
+Returns 0 on successful sending of the message,
+.cW FLIP_NOPACKET
+if no free packets were currently available and
+.cW FLIP_FAIL
+on failure.
+A 0 return value does not imply successful delivery of the message.
+.sH
+flip_multicast
+.LP
+.sC
+int
+flip_multicast(ifno, pkt, flags, dst, ep, length, n, ltime)
+int ifno;
+char * pkt;
+int flags;
+adr_p dst;                                 
+int ep;
+f_size_t length;
+int n;
+interval ltime;
+.eC
+.LP
+.kW "\fIflip_multicast\fP"
+.I Flip_multicast
+sends a multicast packet
+.I pkt
+with length
+.I length
+to the flip address
+.I dst
+using the source address associated with
+.I ep .
+The packet will only be sent if at least
+.I n
+recipients are found listening to this address.
+The locate timeout for finding the destination is set to
+.I ltime
+milliseconds.
+.I Flags
+are as in
+.I flip_unicast .
+If the destination is not found within the specified timeout,
+or if while sending the packet a routing error occurs,
+the packet is returned through the
+.I notdeliver
+function specified with
+.I flip_init .
+Returns 0 on successful sending of the message,
+.cW FLIP_NOPACKET
+if no free packets were currently available and
+.cW FLIP_FAIL
+on failure.
+A 0 return value does not imply successful delivery of the message.
+.LP
+.sH
+receive
+.LP
+.sC
+int
+receive(ident, pkt, dstaddr, srcaddr, message-id, offset, length,
+		total, flag)
+long ident;
+char *pkt;
+adr_p dstaddr, srcaddr;
+f_msgcnt_t messid;
+f_size_t offset, length, total;
+int flag;
+.eC
+.LP
+The
+.I receive
+function specified by the user in
+.I flip_init
+is called when a packet arrives for one of the addresses registered
+by calling
+.I flip_register .
+The
+.I ident
+parameter is the same as specified in
+.I flip_init
+at the sender's side.
+The
+.I message-id
+identifies the message.
+It is unique per source address and per message.
+If a message arrives fragmented, all fragments will contain the same
+.I message-id .
+The
+.I offset
+and
+.I length
+identify which part of the message identified by
+.I message-id
+is contained in this packet.
+The total length of the message is
+.I total .
+The user is responsible for reassembly of messages fragmented
+by the network layer.
+The packet
+.I pkt
+points to data that is not available after
+.I receive
+returns, so must be copied to be retained.
+.I Flag
+can contain
+.cW FLIP_UNTRUSTED
+if the packet crossed untrusted networks on the way.
+.sH
+notdeliver
+.LP
+.sC
+int
+notdeliver(ident, pkt, dstaddr, message-id, offset, length,
+		total, flag)
+long ident;
+char *pkt;
+adr_p dstaddr;
+f_msgcnt_t messid;
+f_size_t offset, length, total;
+int flag;
+.eC
+.LP
+The
+.I notdeliver
+function specified by the user in
+.I flip_init
+is called when a message sent by this process is undeliverable.
+Parameters as in
+.I receive .
+.I Flag
+can also contain
+.cW FLIP_NOTHERE
+if the packet was bounced back on the way to the destination because the
+address was not known.
+This is the usual case for
+.I notdeliver .
+.mH
+Miscellaneous Routines
+.LP
+To be able to use the raw FLIP interface it is necessary to have a few support
+routines for creating and encrypting FLIP addresses.
+.sH
+flip_oneway
+.LP
+.sC
+void
+flip_oneway(prv_addr, pub_addr)
+adr_p prv_addr;
+adr_p pub_addr;
+.eC
+.LP
+.kW "\fIflip_oneway\fP"
+.I Flip_oneway
+encrypts the FLIP address pointed to by
+.I prv_addr
+and returns the result in the FLIP address pointed to by
+.I pub_addr .
+.sH
+flip_random
+.LP
+.sC
+void
+flip_random(addr)
+adr_p addr;
+.eC
+.LP
+.kW "\fIflip_random\fP"
+.kW "random number"
+.I Flip_random
+generates a random FLIP address in the struct pointed to by
+.I addr .
+The
+.I space
+for the address is set to 0.
+.sH
+flip_random_reinit
+.LP
+.sC
+void
+flip_random_reinit()
+.eC
+.LP
+.kW "\fIflip_random_reinit\fP"
+.I Flip_random_reinit
+causes the next call to
+.I flip_random
+to get a new seed for the random number generator from the random number
+server.
+The random server is either the one specified by the string environment variable
+.cW RANDOM ,
+if set, or otherwise from the default random number server (see
+.I rnd (L)).
+.SH
+Example
+.LP
+The following example skips huge amounts of detail but gives an indication
+of how things work.
+Any messages that come in will be handled by the
+.I received
+function.
+.sC L
+int ifno;
+int ep;
+addr_t my_address, addr_receiver;
+.sp 0.5v
+static void received(long ident, char *pkt, adr_p dstaddr,
+		adr_p srcaddr, f_msgcnt_t messid, f_size_t offset,
+		f_size_t length, f_size_t total, int flag)
+{
+    /* fill in your receive protocol here */
+}
+.sp 0.5v
+static void notdelivered(long ident, char *pkt,
+		adr_p dstaddr, f_msgcnt_t messid, f_size_t offset,
+		f_size_t length, f_size_t total, int flag);
+{
+    /* fill in your 'not delivered' protocol here */
+}
+.sp 0.5v
+ifno = flip_init(1722, received, notdelivered);
+if (ifno < 0) {
+    /* error ... *./
+}
+.sp 0.5v
+/* Create an address */
+flip_random(&my_address);
+.sp 0.5v
+/* Register an endpoint */
+ep = flip_register(ifno, &my_address);
+.sp 0.5v
+/* Send a point-to-point message.  To get the address of the receiver
+ * you can broadcast it or perhaps get it as a command line argument.
+ */
+while (((res = flip_unicast(ifno, message, 0, &addr_receiver,
+	    ep, buffer_size, 10000)) == FLIP_NOPACKET) && count < 5)
+    count++;
+.sp 0.5v
+/* Clean up */
+flip_unregister(ifno, ep);
+flip_end(ifno);
+.eC
+.SH
+See Also
+.LP
+rnd(A),
+thread(L).

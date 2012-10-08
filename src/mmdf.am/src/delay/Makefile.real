@@ -1,0 +1,73 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:39:46
+#
+#
+#  List Channel
+#
+
+MODULES =	ch_delay qu2ds_send
+
+OBJECTS =	ch_delay.o qu2ds_send.o
+
+SOURCES =	ch_delay.c qu2ds_send.c
+
+real-default:	delay
+
+install:	$(CHANDIR)/delay
+
+aminstall:	
+	$(AINSTALL) $(AINSTALLFLAGS) xdelay $(CHANDIR)/delay
+
+$(CHANDIR)/delay  :   xdelay
+	     cp xdelay $(CHANDIR)/delay
+	    -$(CHOWN) $(MMDFLOGIN) $(CHANDIR)/delay
+	    -chmod 0$(PGMPROT) $(CHANDIR)/delay
+	    -@ls -ls $(CHANDIR)/delay
+	    -@echo "delay channel installed normally"; echo ""
+
+delay:	xdelay
+xdelay:	$(HEAD) $(OBJECTS) $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) $(OBJECTS) $(MMDFLIBS) $(SYSLIBS)
+
+lint:   ;  $(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f xdelay *.o x.c makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+ch_delay.o: ch_delay.c
+
+ch_delay.o: ch_delay.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+ch_delay.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/time.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ch.h
+ch_delay.o: /usr/proj/amwork/src/h/posix/stdio.h
+qu2ds_send.o: qu2ds_send.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/ctype.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/setjmp.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/sys/types.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+qu2ds_send.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/time.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/dirent.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ch.h
+qu2ds_send.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/ap.h ../../h/ns.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

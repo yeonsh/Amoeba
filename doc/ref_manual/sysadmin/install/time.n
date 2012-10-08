@@ -1,0 +1,103 @@
+.\"	@(#)time.n	1.7	96/02/15 17:04:52
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Setting The Time"
+.LP
+.kW "setting the date"
+Earlier in the installation, the time was set but the timezone information
+was not yet present and so the time of day clock was not totally correct.
+Before proceeding further it is a good idea to set the timezone and reset
+the time so that the timestamps on the directory entries bear some
+relationship to the time that the source code and new directory entries were
+actually installed.
+.LP
+The first step is to determine which timezone you are in.
+This is usually based on the country that you are in.
+Assuming that you are still logged in as
+.kW Daemon
+.I Daemon ,
+change directory to
+.I /super/module/time/zoneinfo
+and look at the available countries/regions .
+To do this use the commands:
+.sC
+\fBcd /super/module/time/zoneinfo
+dir \-l\fP
+.eC
+This should print a list of available timezone files and directories.
+.LP
+Find the file that corresponds most closely to your timezone.
+.kW timezone
+If there is no file or directory with the name of the country you are in,
+look for a file with the name of your region.
+For example, if you live in Japan or China the file
+.I asia
+covers your region.
+If you live in the USA, Canada or Mexico then you will need the file
+.I northamerica .
+.LP
+Note that files covering regions begin with a lowercase letter and files
+covering actual timezones for a country begin with an uppercase letter.
+.LP
+You will need to generate the timezone file for your country if it is not
+already present.
+To do this use the command
+.kW "\fIzic\fP"
+.I zic (A).
+For example,
+if you live in Japan type the command:
+.sC
+\fBzic \-d \^.  asia\fP
+.eC
+This will produce several files, one of them called
+.I Japan .
+The next step is to link this file to the file
+.I localtime .
+The way to do this is as follows:
+.sC
+\fBget Japan | put localtime\fP
+.eC
+If you live in a country like the USA or Canada which has many timezones for
+one country the process is slightly more complicated.
+For the USA, Canada or Mexico run the command:
+.sC
+\fBzic \-d \^.  northamerica\fP
+.eC
+However,
+instead of generating a single file for the countries USA, Canada and Mexico
+it generates directories called
+.I Canada ,
+.I Mexico
+and
+.I US .
+In each directory is a set of files,
+one for each timezone in each country.
+Choose the timezone for the part of the country that you are in
+(say
+.I Pacific )
+and make a link from there to the file
+.I localtime
+in the
+.I zoneinfo
+directory.
+For example, for the USA this can be done with the command:
+.sC
+\fBget US/Pacific | put localtime\fP
+.eC
+After this it is necessary to set the time again using the command
+.I date (A).
+Recall that it has the form:
+.sC
+\fBdate  \-s /super/hosts/\fPxxx\fB/tod\fP yyyymmddhhmm[.ss]
+.eC
+where
+.I xxx
+is the name of the host that was given to the
+.I installit
+program.
+.LP
+If you intend to have more than one time of day server,
+you should set each server separately once the other servers are installed.

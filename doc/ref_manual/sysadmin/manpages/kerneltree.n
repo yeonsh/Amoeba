@@ -1,0 +1,147 @@
+.\"	@(#)kerneltree.n	1.6	96/02/15 17:47:48
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "kerneltree" A
+build a configuration tree for \*(Am kernels
+.SH
+Synopsis
+.LP
+.sC L
+kerneltree [-v] conf-root src-root template-root arch mach toolset
+.eC
+.SH
+Description
+.LP
+.kW "amake"
+.kW "configuration"
+.kW "\fIbuild\fP"
+.I Kerneltree
+is used to construct the configuration trees for building \*(Am kernels.
+This program will only function correctly if the
+.kW "\fIamoebatree\fP"
+.I amoebatree (A)
+program has been executed.
+Note that
+.I kerneltree
+does not perform the actual build but merely creates the hierarchy
+with the necessary
+.kW toolset
+.I toolset
+and
+.I Amakefiles
+to build the specified kernels.
+The configuration system has been designed so that versions for different
+architectures can be easily managed and that cross-compilation is
+straight-forward.
+.LP
+The configuration is constructed by cloning a template configuration tree
+which contains the directory structure and necessary
+.I toolset
+and
+.I Amakefiles .
+If the target configuration tree specified does not exist it will be created.
+If it already exists, then it will be brought up to date.
+Note that any parts that are no longer in the template tree will not be deleted.
+If any file in the configuration is different from the corresponding file
+in the templates then the program will enquire as to whether it should
+overwrite the file or not.
+If you respond by typing
+.I q
+then no change will be made and the program will terminate.
+If you answer with
+.I d
+then you will be shown the differences and asked again.
+If you type
+.I y
+the change will be made.
+Any other response will be interpreted as ``do not overwrite but continue''.
+.LP
+The
+.I conf-root
+specifies the place where the configuration should be built.
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+.LP
+The
+.I src-root
+specifies the source code from which the system is to be built.
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+.LP
+The
+.I template-root
+specifies where to get the templates for the
+.I Amakefiles .
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+The
+.I Amakefiles
+will be parameterized with the
+.I conf-root ,
+.I src-root
+and the target architecture for which you are compiling.
+.LP
+The
+.I arch
+argument specifies the target architecture for which you are compiling.
+.LP
+The
+.I mach
+argument specifies the machine for which the \*(Am kernel(s) should be
+constructed.
+For a list of known machines, look at the entries in the directory
+.I templates/kernel
+in the distribution tree.
+.LP
+The
+.I toolset
+argument specifies which compiler, loader, archiver, etc. are to be used
+to build the system.
+Under \*(Am this is typically
+.I ack (U).
+Under
+.UX
+this will be one of the compilers available with the
+.UX
+system.
+All the tools will be placed in a directory in the configuration tree and
+included from there by the
+.I Amakefiles .
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+The verbose option.
+This causes the program to print details of everything it is doing.
+It is very noisy.
+.SH
+Example
+.LP
+.sC L
+kerneltree /amoeba/conf/amoeba /amoeba/src /amoeba/templates \e
+		i80386 ibm_at ack
+.eC
+will create under the directory
+.I /amoeba/conf/amoeba/i80386.ack/kernel/ibm_at
+a tree structure containing all the Amakefiles to build the various
+\*(Am kernels for the i80x86 machines.
+.SH
+See Also
+.LP
+amake(U),
+amoebatree(A),
+build(A).

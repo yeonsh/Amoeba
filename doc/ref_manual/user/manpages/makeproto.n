@@ -1,0 +1,52 @@
+.\"	@(#)makeproto.n	1.4	96/02/16 11:04:07
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep
+	Document: Gregory J. Sharp, 12/02/90
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "makeproto" U
+modifies the output of mkproto to be more useful
+.SH
+Synopsis
+.LP
+.sC L
+makeproto [-n] [-s] [-p] [file] ...
+.eC
+.SH
+Description
+.LP
+.kW "STD C"
+.kW "function prototypes"
+.kW "\fImkproto\fP"
+.I Makeproto
+is a shell script which calls
+.I mkproto
+to generate STD C prototypes for a
+C source file and then modifies the output of
+.I mkproto
+by deleting lines containing the words PRIVATE or LOCAL and converting
+the word PUBLIC to EXTERN.
+The result is generated on standard output.
+If no file name is specified in the command line it reads from standard input.
+The options are those of
+.I mkproto .
+.SH
+Example
+.LP
+.sC
+makeproto foo.c > foo.pro
+.eC
+will generate STD C function prototypes for the routines in
+.I foo.c
+and writes
+them to the file
+.I foo.pro .
+.SH
+See Also
+.LP
+mkproto(U).

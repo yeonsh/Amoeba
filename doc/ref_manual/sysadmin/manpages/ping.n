@@ -1,0 +1,339 @@
+.\"	@(#)ping.n	1.1	96/02/15 17:49:18
+.aU
+.\" Copyright (c) 1985, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)ping.8	8.2 (Berkeley) 12/11/93
+.\"
+	Modified: Gregory J. Sharp, Sept 1994 - converted to Amoeba format
+.aE
+.mT "ping" A
+send \*<ICMP\*> \*<ECHO_REQUEST\*> packets to network hosts
+.SH
+Synopsis
+.LP
+.sC L
+ping [-Rdfnqrv] [-c count] [-i wait] [-l preload] [-p pattern]
+	[-s packetsize] host
+.eC
+.SH
+Description
+.LP
+.I Ping
+uses the
+.cW ICMP
+protocol's mandatory
+.cW ECHO_REQUEST
+datagram to elicit an
+.cW "ICMP ECHO_RESPONSE"
+from a host or gateway.
+.cW ECHO_REQUEST
+datagrams (``pings'') have an IP and
+.cW ICMP
+header,
+followed by a
+.I "struct timeval"
+and then an arbitrary number of ``pad'' bytes used to fill out the packet.
+.LP
+When using
+.I ping
+for fault isolation, it should first be run on the local host, to verify
+that the local network interface is up and running.
+Then, hosts and gateways further and further away should be ``pinged''.
+Round-trip times and packet loss statistics are computed.
+If duplicate packets are received, they are not included in the packet
+loss calculation, although the round trip time of these packets is used
+in calculating the minimum/average/maximum round-trip time numbers.
+When the specified number of packets have been sent (and received) or
+if the program is terminated with a
+.cW SIGINT ,
+a brief summary is displayed.
+.LP
+This program is intended for use in network testing, measurement and
+management.
+Because of the load it can impose on the network, it is unwise to use
+.I ping
+during normal operations or from automated scripts.
+.mH
+Options
+.LP
+.IP "\fB\-c\fP \fIcount\fP"
+.br
+Stop after sending (and receiving)
+.I count
+.cW ECHO_RESPONSE
+packets.
+.IP "\fB\-d\fP"
+This has no effect under \*(Am.
+.\"Set the
+.\".Dv SO_DEBUG
+.\"option on the socket being used.
+.IP "\fB\-f\fP"
+Flood ping.
+Outputs packets as fast as they come back or one hundred times per second,
+whichever is more.
+For every
+.cW ECHO_REQUEST
+sent, a period ``.'' is printed, while for every
+.cW ECHO_REPLY
+received a backspace is printed.
+This provides a rapid display of how many packets are being dropped.
+Only the super-user may use this option.
+.br
+.B NB.
+This can be very hard on a network and should be used with caution.
+.IP "\fB\-i\fP \fIwait\fP"
+.br
+Wait
+.I wait
+seconds between sending each packet.
+The default is to wait for one second between each packet.
+This option is incompatible with the
+.B \-f
+option.
+.IP "\fB\-l\fP \fIpreload\fP"
+.br
+If
+.I preload
+is specified,
+.I ping
+sends
+.I preload
+packets as fast as possible before falling into its normal mode of behavior.
+.IP "\fB\-n\fP"
+Numeric output only.
+No attempt will be made to lookup symbolic names for host addresses.
+.IP "\fB\-p\fP \fIpattern\fP"
+.br
+You may specify up to 16 ``pad'' bytes to fill out the packet you send.
+This is useful for diagnosing data-dependent problems in a network.
+For example,
+.B \-p
+.I ff
+will cause the sent packet to be filled with all ones.
+.IP "\fB\-q\fP"
+Quiet output.
+Nothing is displayed except the summary lines at startup time and
+when finished.
+.IP "\fB\-R\fP"
+Record route.
+Includes the
+.cW RECORD_ROUTE
+option in the
+.cW ECHO_REQUEST
+packet and displays the route buffer on returned packets.
+Note that the IP header is only large enough for nine such routes.
+Many hosts ignore or discard this option.
+.IP "\fB\-r\fP"
+Bypass the normal routing tables and send directly to a host on an attached
+network.
+If the host is not on a directly-attached network, an error is returned.
+This option can be used to ping a local host through an interface
+that has no route through it.
+.\"(e.g., after the interface was dropped by .Xr routed 8 ) .
+.IP "\fB\-s\fP \fIpacketsize\fP"
+.br
+Specifies the number of data bytes to be sent.  
+The default is 56, which translates into 64
+.cW ICMP
+data bytes when combined
+with the 8 bytes of
+.cW ICMP
+header data.
+.IP "\fB\-v\fP"
+Verbose output.
+.cW ICMP
+packets other than
+.cW ECHO_RESPONSE
+that are received are listed.
+.SH
+Protocol Information
+.LP
+.mH
+ICMP Packet Details
+.IP
+An IP header without options is 20 bytes.
+An
+.cW ICMP
+.cW ECHO_REQUEST
+packet contains an additional 8 bytes worth of
+.cW ICMP
+header followed by an arbitrary amount of data.
+When a
+.I packetsize
+is specified, this indicates the size of this extra piece of data (the
+default is 56).
+Thus the amount of data received inside of an IP packet of type
+.cW ICMP
+.cW ECHO_REPLY
+will always be 8 bytes more than the requested data space
+(the
+.cW ICMP
+header).
+.LP
+If the data space is at least eight bytes large,
+.I ping
+uses the first eight bytes of this space to include a timestamp which
+it uses in the computation of round trip times.
+If less than eight bytes of pad are specified, no round trip times are
+given.
+.mH
+Duplicate and Damaged Packets
+.LP
+.I Ping
+will report duplicate and damaged packets.
+Duplicate packets should never occur, and seem to be caused by
+inappropriate link-level retransmissions.
+Duplicates may occur in many situations and are rarely (if ever) a
+good sign, although the presence of low levels of duplicates may not
+always be cause for alarm.
+.LP
+Damaged packets are obviously serious cause for alarm and often
+indicate broken hardware somewhere in the
+.I ping
+packet's path (in the network or in the hosts).
+.mH
+Trying Different Data Patterns
+.LP
+The (inter)network layer should never treat packets differently depending
+on the data contained in the data portion.
+Unfortunately, data-dependent problems have been known to sneak into
+networks and remain undetected for long periods of time.
+In many cases the particular pattern that will have problems is something
+that does not have sufficient ``transitions'', such as all ones or all
+zeros, or a pattern right at the edge, such as almost all zeros.
+It is not necessarily enough to specify a data pattern of all zeros (for
+example) on the command line because the pattern that is of interest is
+at the data link level, and the relationship between what you type and
+what the controllers transmit can be complicated.
+.LP
+This means that if you have a data-dependent problem you will probably
+have to do a lot of testing to find it.
+If you are lucky, you may manage to find a file that either cannot be sent
+across your network or that takes much longer to transfer than other
+similar length files.
+You can then examine this file for repeated patterns that you can test
+using the
+.B \-p
+option of
+.I ping .
+.mH
+TTL Details
+.LP
+The
+.cW TTL
+value of an IP packet represents the maximum number of IP routers
+that the packet can go through before being thrown away.
+In current practice you can expect each router in the Internet to decrement
+the
+.cW TTL
+field by exactly one.
+.LP
+The
+.cW TCP/IP
+specification states that the
+.cW TTL
+field for
+.cW TCP
+packets should be set to 60,
+but many systems use smaller values (4.3
+.cW BSD
+uses 30, 4.2 used
+15).
+.LP
+The maximum possible value of this field is 255, and most
+.UX
+systems set the
+.cW TTL
+field of
+.cW "ICMP ECHO_REQUEST"
+packets to 255.
+This is why you will find you can ``ping'' some hosts, but not reach them
+with
+.kW ttn
+.I ttn (U)
+or
+.I ftp (U).
+.LP
+In normal operation
+.I ping
+prints the TTL value from the packet it receives.
+When a remote system receives a ping packet, it can do one of three things
+with the
+.cW TTL
+field in its response:
+.IP \(bu
+Not change it; this is what Berkeley
+.UX
+systems did before the
+4.3 tahoe release.
+In this case the
+.cW TTL
+value in the received packet will be 255 minus the
+number of routers in the round-trip path.
+.IP \(bu
+Set it to 255; this is what current Berkeley
+.UX
+systems do.
+In this case the
+.cW TTL
+value in the received packet will be 255 minus the
+number of routers in the path
+.I from
+the remote system to the ``pinging'' host.
+.IP \(bu
+Set it to some other value.
+Some machines use the same value for
+.cW ICMP
+packets that they use for
+.cW TCP
+packets, for example either 30 or 60.
+Others may use completely wild values.
+.mH
+Warnings
+.LP
+Many Hosts and Gateways ignore the
+.cW RECORD_ROUTE
+option.
+.LP
+The maximum IP header length is too small for options like
+.cW RECORD_ROUTE
+to
+be completely useful.
+There is not much that that can be done about this, however.
+.LP
+Flood pinging is not recommended in general, and flood pinging the
+broadcast address should only be done under very controlled conditions.
+.SH
+See Also
+.LP
+ifconfig(A),
+ipsvr(A).

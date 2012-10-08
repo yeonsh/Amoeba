@@ -1,0 +1,7 @@
+.\"	@(#)cover.n	1.4	94/04/05 15:14:55
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cO 0 "Release Information For \*(Vs"

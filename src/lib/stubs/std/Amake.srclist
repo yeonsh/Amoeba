@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.5	94/04/07 11:10:50
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_STD = {
+	$PWD/std_age.c,
+	$PWD/std_copy.c,
+	$PWD/std_info.c,
+	$PWD/std_ntouch.c,
+	$PWD/std_restrict.c,
+	$PWD/std_status.c,
+	$PWD/stdcmds.gen[c_gen = {
+		std_destroy.c,
+		std_getpara.c,
+		std_setpara.c,
+		std_touch.c
+	}]
+};

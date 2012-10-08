@@ -1,0 +1,66 @@
+.\"	@(#)killfs.n	1.4	96/02/15 17:47:53
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 12/02/90
+	Modified: Ed Keizer, Nov 1995 - support for gbullet.
+		  Gregory J. Sharp, Jan 1996 - a little support for English
+.aE
+.mT "killfs" A
+destroy a bullet file system
+.SH
+Synopsis
+.LP
+.sC L
+killfs [-r] disk_cap
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Bullet file system"
+.I Killfs
+assumes that the virtual disk specified by
+.I disk_cap
+contains a valid Bullet or Group Bullet file system.
+The superblock of a Bullet file system is on block 0 of the vdisk.
+Without options it destroys the file system by invalidating the superblock.
+If the
+.B \-r
+option is specified it restores the validity of the superblock
+by undoing the previous
+.I killfs
+operation.
+(NB. It cannot restore a file system damaged in any other way.)
+.mH
+Warnings
+.LP
+This is a catastrophic action in that it will eliminate a file system
+(although the effect may not be noticed until the file server is rebooted).
+Therefore it is a bad idea to let just anyone have access to the \*(Bs hosts,
+since they can easily get the virtual disk capability for the \*(Bs from the
+kernel directory.
+.SH
+Example
+.LP
+.sC
+killfs /super/hosts/bullet1/vdisk:02
+.eC
+will annihilate the Bullet file system on the virtual disk
+.I vdisk:02
+of the host
+.I bullet1 .
+.sC
+killfs -r /super/hosts/bullet1/vdisk:02
+.eC
+will restore the file system.
+.SH
+See Also
+.LP
+bullet(A),
+gbullet(A),
+mkfs(A).

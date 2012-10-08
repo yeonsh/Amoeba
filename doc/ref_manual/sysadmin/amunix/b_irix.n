@@ -1,0 +1,177 @@
+.\"	@(#)b_irix.n	1.5	96/02/15 17:00:50
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Jack Jansen, November 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.nH 2 "Adding \*(Am RPC to an Irix 3.3 Kernel"
+.LP
+This procedure has not been tested for many years.
+It is included only for exemplary purposes.
+.nH 3 "Introduction"
+.LP
+.kW Irix
+This document describes how to add an \*(Am driver to a
+Silicon Graphics 4D/25 (also known as a Personal Iris or PI) running
+Irix 3.3 (or 3.3.1).
+Probably the same procedure will work for any other
+system running Irix 3.3, but this has not been tested.
+.LP
+Installing the \*(Am driver under Irix is more difficult than adding
+.kW SunOS
+.kW Ultrix
+it to Ultrix or SunOS, because Irix has no easy way
+to add new protocols to the system.
+For that reason, you will have to modify one binary file to arrange
+that incoming \*(Am packets are handed off to the driver.
+.nH 3 "Building The \*(Am Driver."
+.LP
+The procedure for building the
+.UX
+configuration for \*(Am is described earlier in this chapter.
+Build a configuration tree for machine
+.B mipseb
+using toolset
+.B irix ,
+compile that configuration and finally build the driver.
+The driver is built in
+.I $CONF/mipseb.irix/amoeba-driver .
+The command to use is
+.kW amake
+.sC
+\fBamake -DUNIX_VERSION=irix3.3\fP
+.eC
+.nH 3 "Modifying The Irix Sysgen Files."
+.LP
+Next, you have to modify some files that are used to build your Irix system.
+This has to be done as super-user.
+The first thing to do is to modify the Ethernet packet switch
+to hand \*(Am packets to the \*(Am driver.
+This is done by taking the
+Ethernet driver,
+.I ether.o ,
+from the archive
+.I bsd.a ,
+renaming it to
+.I am_ether.o ,
+and using a binary editor to change the reference to
+.I drain_input
+to
+.I am_dr_input .
+Note that the two names are the same length, so there should not be too much
+difficulty changing this.
+One editor that can edit binary files is
+.I emacs .
+If you have no binary editor it is not too much work to write
+a C program to change the file.
+After changing the name, use
+.I nm
+to check that your change worked.
+.sC
+.B
+cd /usr/sysgen/boot
+ar x bsd.a ether.o
+mv ether.o am_ether.o
+.R
+.fi
+edit
+.I am_ether.o
+and change
+.I drain_input
+to
+.I am_dr_input .
+.nf
+.B
+nm am_ether.o
+.eC
+check that there is an external
+.I am_dr_input
+and no
+.I drain_input .
+.LP
+Now, copy the \*(Am driver you built in the first step to the
+.I boot
+directory:
+.sC
+\fBcp ..../mipseb.irix/amoeba-driver/amoeba.o /usr/sysgen/boot/amoeba.o\fP
+.eC
+.LP
+Next, add two files to the
+.I master.d
+directory identifying the two new files you have just created.
+The file
+.I /usr/sysgen/master.d/amoeba
+will look as follows:
+.sC
+*
+* amoeba - amoeba protocol pseudo-device
+*
+*FLAG   PREFIX  SOFT    #DEV    DEPENDENCIES
+cosp    am      60      -       bsd,am_ether
+
+
+$$$
+.eC
+.LP
+The file
+.I /usr/sysgen/master.d/am_ether
+has the following contents:
+.sC
+* amoeba - amoeba protocol pseudo-device
+*
+*FLAG   PREFIX  SOFT    #DEV    DEPENDENCIES
+x       am      60      -       bsd
+
+
+$$$
+.eC
+The number
+.I 60
+in both files above is the major device number.
+You might have to change this to another number if you have already added
+another third-party device to the system that uses this number.
+The SGI documentation will tell you how to pick another number.
+.LP
+The last file to edit is your system configuration file, normally
+called
+.I /usr/sysgen/system .
+Add the following lines to the end to include the \*(Am driver:
+.sC
+* Include the next two lines to get \*(Am support:
+INCLUDE: am_ether
+INCLUDE: amoeba
+.eC
+.nH 3  "Building And Installing The New Kernel"
+.LP
+Now you can build and install your kernel, and reboot the system to
+try it.
+It is probably wise to keep your old kernel in a safe place,
+so you can use it if the new kernel fails to run:
+.sC
+.B
+make
+cp /unix /unix.old
+lboot -u /unix.install
+sync
+reboot
+.eC
+.LP
+The next thing to do is to create the device special file for the \*(Am
+driver, and to try the driver out.
+.sC
+/etc/mknod /dev/amoeba c 60 0
+chmod 666 /dev/amoeba
+dir
+.eC
+The number
+.I 60
+above is the major device number again, the same
+as used in the previous section.
+.LP
+The kernel is now ready for testing.
+Proceed according to the instructions in the introduction.

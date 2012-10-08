@@ -1,0 +1,58 @@
+#	
+#	@(#)Amake.srclist	1.5	96/02/27 14:27:48
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/../sun4gen/Amake.srclist;
+
+K_DEV_SUN4M_DMA_ETHER = {
+	$PWD/dma2_eth.c,
+	$PWD/dma2_eth.init,
+	$PWD/dma2_eth.stop,
+};
+
+K_DEV_SUN4M_ETHER = {
+	$PWD/sun4m_eth.c,
+	$PWD/sun4m_eth.init,
+	$K_DEV_SUN4M_DMA_ETHER,
+	$K_DEV_GLANCE
+};
+
+K_DEV_SUN4M_IOP = {
+	$PWD/iop_cvt.c,
+	$K_DEV_SUN4GEN_IOP,
+};
+
+K_MACH = {
+	$PWD/sun_putchar.c,
+	$PWD/sun4m.c,
+	$PWD/sun4m.kstat,
+	$PWD/sun4m.init,
+	$PWD/sun4m_auxio.h,
+	$PWD/counter.c,
+	$PWD/counter.init,
+	$K_DEV_SUN4GEN_UART,
+	$K_DEV_SUN4GEN_TOD,
+	$K_DEV_SUN4GEN_OPENPROM,
+	$K_DEV_SUN4GEN_KPARAM,
+};
+
+K_DEV_SUN4M_OFFSET = $PWD/offset.c;
+
+K_DEV_SUN4M_FLOPPY = {
+	$PWD/82077.c,
+	$PWD/82077.h,
+	$PWD/82077.kstat,
+};
+
+K_DEV_SUN4M_SCSI = {
+	$PWD/scsi_dev.c,
+	$PWD/scsi_dev.init,
+	$PWD/scsi_dma.c,
+	$PWD/scsi_dma.h,
+	$K_DEV_SUN4GEN_SCSI
+};
+
+K_DEV_SUN4M_DISKDEP = $PWD/../sun3/diskdep.c;

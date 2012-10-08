@@ -1,0 +1,70 @@
+.\"	@(#)di.n	1.5	94/04/05 15:30:32
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Peter Bosch, April 1990
+	Document: Peter Bosch, April 1990
+.aE
+.mT "di" A
+disk layout of a virtual disk
+.SH
+Synopsis
+.LP
+.sC L
+di disk_cap
+.eC
+.SH
+Description
+.LP
+.kW "virtual disk"
+The utility
+.I di
+shows the disk layout of the virtual disk specified by
+.I disk_cap .
+.I Di
+outputs the disk partition table and when \*(Am partitions are available,
+.I di
+outputs the \*(Am sub-partitions.
+.LP
+.LP
+The disk server used must be able to access the complete disk
+(e.g. by using the bootp:nn virtual disk, see
+.I vdisk (A)).
+Machine specific information may also be printed out about the boot block
+information.
+.SH
+Example
+.LP
+.sC L
+di /profile/hosts/emt/bootp:00
+.eC
+Shows the disk layout of
+.I "/profile/hosts/emt/bootp:00".
+.sC L
+This disk has a SunOS label
+Partition start      end        size         owner
+00 (a)    0x000004fb 0x00202936 (0x0020243c) Amoeba
+		Amoeba partitioning for partition 0:
+		vdisk  start      end        size
+		 001   0x000004fb 0x00000cca (0x000007d0)
+		 002   0x00000ccb 0x00000e5a (0x00000190)
+		 003   0x00000e5b 0x00001a12 (0x00000bb8)
+		 004   0x00001a13 0x00202936 (0x00200f24)
+01 (b)    0x000004fb 0x000004fa (0x00000000) Empty
+02 (c)    0x000004fb 0x000004fa (0x00000000) Empty
+03 (d)    0x000004fb 0x000004fa (0x00000000) Empty
+04 (e)    0x000004fb 0x000004fa (0x00000000) Empty
+05 (f)    0x000004fb 0x000004fa (0x00000000) Empty
+06 (g)    0x000004fb 0x000004fa (0x00000000) Empty
+07 (h)    0x000004fb 0x000004fa (0x00000000) Empty
+.eC
+The disk contains 1 partition.
+This partition is used for \*(Am and is subdivided into 4 vdisks.
+.SH
+See Also
+.LP
+vdisk(A).

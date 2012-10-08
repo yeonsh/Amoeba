@@ -1,0 +1,11 @@
+.\"	@(#)intro.n	1.4	94/04/05 15:59:44
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Manual Pages"
+Below is a collection of the manual pages for the utilities and servers
+in everyday use by users.
+If installed the manual pages should be available on-line using the command
+.I aman (U).

@@ -1,0 +1,33 @@
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+#	
+#	@(#)amoeba.lib_ass	1.2	94/04/05 17:05:20
+#
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# this is in a separate file since head.o needs this separately
+
+%if (%not defined(DEFINES), {
+	DEFINES = {};
+});
+
+%if (%not defined(INCLUDES), {
+	INCLUDES = {};
+});
+
+DEFINES = {
+	-DAMOEBA,
+	$DEFINES
+};
+
+INCLUDES = {
+	$INCLUDES,
+	-I$SRC_ROOT/h/toolset/irix
+};
+
+AS = $PWD/do_as;
+ASFLAGS = {
+	$DEFINES,
+	$INCLUDES
+};

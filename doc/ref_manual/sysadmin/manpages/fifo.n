@@ -1,0 +1,359 @@
+.\"	@(#)fifo.n	1.3	96/02/15 17:19:29
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ron Visser, Apr 93, Kees Verstoep, Jun 93
+	Document: Kees Verstoep, July 93
+	Modified: Gregory J. Sharp, Aug 1995
+		  Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "fifosvr" A
+a first-in first-out file server
+.SH
+Synopsis
+.LP
+.sC L
+fifosvr [-f] [-i] [-n numfifos]
+.eC
+.SH
+Description
+.LP
+.kW "fifo"
+.kW "fifo server"
+The
+.I fifo
+server is used to implement
+.I "named pipes"
+(also called
+.I fifos )
+under \*(Am.
+.kW "pipe"
+Fifos differ from normal pipes in the following two ways:
+.IP "-"
+fifos have an entry in the file system.
+.IP "-"
+fifos can be opened independently by separate programs.
+.LP
+.kW POSIX
+A fifo is created by a call to the POSIX primitive
+.kW mkfifo
+.I mkfifo (U).
+After that,
+further operations can be performed using the general POSIX file primitives
+.I open ,
+.I read ,
+.I write 
+and
+.I close .
+When a fifo is opened,
+the
+.I fifo
+server returns a new capability that can be used for
+further operations on the fifo.
+\*(Am's POSIX emulation library will take care of mapping
+the POSIX primitives onto operations supported by the
+.I fifo
+server.
+.LP
+.kW "garbage collection"
+Because it is possible for the capability of a fifo to be lost,
+the general system of garbage collection is used for the
+.I fifo
+server.
+See also
+.I std_age(A),
+.I bullet (A)
+and
+.I om (A).
+.LP
+Note that fifos will survive crashes of the fifo server.
+.mH
+Options
+.LP
+.IP "\fB\-i\fP"
+This option causes the
+.I fifo
+server to (re)initialize its state.
+It generates a new server port,
+and generates a new,
+clean state file.
+Any fifo object created by a previous instantiation of the fifo server will
+become invalid.
+.LP
+.IP "\fB\-f\fP"
+To prevent accidentally overwriting an existing state file or super capability,
+the
+.I fifo
+server by default refuses to replace them.
+This option can be used to force replacement of an existing
+state file or super capability.
+.LP
+.IP "\fB\-n\fP \fInumfifos\fP"
+.br
+When initializing,
+the
+.I fifo
+server reserves a default amount of object numbers for the fifos
+(typically 500).
+This option can be used to change that number.
+.mH
+Files
+.LP
+.I /profile/cap/fifosvr/default
+\- default server capability.
+.br
+.I /super/module/fifo/state
+\- default fifo state file.
+.SH
+Programming Interface Summary
+.LP
+The programmers' interface consists of commands particular to the
+.I fifo
+server (whose names begin with
+.I fifo_ ),
+general file server commands (whose names begin with
+.I fsq_ ),
+and standard server commands (whose names begin with
+.I std_ ).
+The commands are divided into two categories:
+administrative and user.
+A summary of the commands is presented in the following two tables,
+the first listing the user commands and the second the administrative commands.
+Besides the error conditions shown,
+general RPC errors are also possible.
+.KF
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+User Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+fifo_create:BS_RGT_CREATE:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+T}:T{
+Create a new fifo
+T}
+_
+fifo_open:BS_RGT_MODIFY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+FIFO_BADF
+.br
+FIFO_ENXIO
+T}:T{
+Open a fifo for reading or writing
+T}
+_
+fifo_share:BS_RGT_MODIFY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Increase the usage count for an open fifo
+T}
+_
+fifo_close:BS_RGT_MODIFY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Decrease the usage count for an open fifo
+T}
+_
+fifo_bufsize:BS_RGT_READ:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Return the buffer size used to implement fifos
+T}
+_
+fsq_read:BS_RGT_READ:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+FIFO_AGAIN
+T}:T{
+Read data from an open fifo
+T}
+_
+fsq_write:BS_RGT_MODIFY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+.br
+FIFO_AGAIN
+.br
+FIFO_BADF
+T}:T{
+Write data to an open fifo
+T}
+_
+std_destroy:BS_RGT_DESTROY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Destroy a fifo
+T}
+_
+std_info:BS_RGT_READ:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+T}:T{
+Print standard information for a fifo object:
+a | followed by details of reads and writes
+T}
+_
+std_restrict::T{
+STD_CAPBAD
+T}:T{
+Produce a fifo capability with restricted rights
+T}
+.TE
+.sp 1
+.KE
+.\" .bp
+.KF
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+Administrative Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:BS_RGT_ALL:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+T}:T{
+Start a garbage collection pass
+T}
+_
+std_status:BS_RGT_READ:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+T}:T{
+Print
+.I fifo
+server statistics
+T}
+_
+std_touch::T{
+STD_CAPBAD
+T}:T{
+Reset a fifo's time to live
+T}
+.TE
+.sp 1
+.KE
+.SH
+Administration
+.LP
+In general there is very little administration required for a
+.I fifo
+server once it is running.
+See 
+.I om (A)
+how to incorporate the
+.I fifo
+server in the standard garbage collection process.
+Once installed,
+the
+.I fifo
+server can be brought under
+.I boot
+server control 
+(see
+.I boot (A))
+to keep it up and running.
+.mH
+Installation
+.LP
+The
+.I fifo
+server installations itself when started with the
+.B -i
+option.
+This will generate and install a new server capability
+as well as a new administrative state file,
+containing the check fields for access protection.
+.SH
+Examples
+.LP
+Start the server for the first time (since it publishes its
+super capability in
+.I "/super/cap/fifosvr" ,
+you have to be system administrator to do this):
+.sC
+# fifosvr -i &
+.eC
+.LP
+Subsequently it should be started without the
+.B \-i
+option.
+.LP
+The following creates a fifo,
+performs some operations,
+and deletes it:
+.sC
+$ mkfifo /tmp/fifo
+$ echo foo >/tmp/fifo &
+$ echo bar >/tmp/fifo &
+$ dir -l /tmp/fifo
+/tmp/fifo              Jul 12 14:43  | r = 0; w = 2
+$ cat /tmp/fifo
+bar
+foo
+$ del -f /tmp/fifo
+.eC
+.SH
+See Also
+.LP
+boot(A),
+bullet(A),
+mkfifo(U),
+om(A),
+soap(A),
+std(L),
+std_age(A),
+std_destroy(U),
+std_info(U),
+std_touch(U).

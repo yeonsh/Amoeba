@@ -1,0 +1,62 @@
+#	
+#	@(#)Amake.srclist	1.6	96/02/27 11:11:12
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_LIBC_GCC = $PWD/__main.c;
+L_LIBC_CTYPE = {
+	$PWD/chartab.c,
+	$PWD/is_ctype.c,
+};
+L_LIBC_STRTOL = $PWD/strtol.c;
+L_LIBC_RANDOM = $PWD/random.c;
+L_LIBC_MISC = {
+	$L_LIBC_CTYPE,
+	$L_LIBC_STRTOL,
+	$L_LIBC_RANDOM,
+	$PWD/abort.c,
+	$PWD/assert.c,
+	$PWD/atexit.c,
+	$PWD/atof.c,
+	$PWD/atoi.c,
+	$PWD/atol.c,
+	$PWD/bsearch.c,
+	$PWD/calloc.c,
+	$PWD/clock.c,
+	$PWD/crypt.c,
+        $PWD/div.c,
+	$PWD/ether_aton.c,
+	$PWD/ether_line.c,
+	$PWD/ether_ntoa.c,
+	$PWD/ether_n_host.c,
+	$PWD/ether_hton.c,
+	$PWD/getblk.c,
+	$PWD/getenv.c,
+	$PWD/getopt.c,
+        $PWD/labs.c,
+        $PWD/ldiv.c,
+	$PWD/localeconv.c,
+	$PWD/malloc.c,
+        $PWD/mbtowc.c,
+        $PWD/mbstowcs.c,
+        $PWD/mblen.c,
+	$PWD/putenv.c,
+	$PWD/qsort.c,
+	$PWD/rand.c,
+	$PWD/regex.c,
+	$PWD/setenv.c,
+	$PWD/setlocale.c,
+	$PWD/strcasecmp.c,
+	$PWD/strerror.c,
+	$PWD/strtod.c,
+	$PWD/termcap.c,
+	$PWD/tolower.c,
+	$PWD/toupper.c,
+        $PWD/wctomb.c,
+        $PWD/wcstombs.c,
+
+        $PWD/ansi_compat.h,
+};
+L_LIBC_MALLOC_DEBUG = $PWD/mallocdebug.c;

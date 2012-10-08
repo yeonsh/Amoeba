@@ -1,0 +1,32 @@
+#! /bin/sh
+#	
+#	@(#)amgrep	1.4	94/04/07 14:09:54
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Grep for things in the Amoeba source files:
+
+cd `amdir`
+
+grep_args=""
+while [ $# -gt 0 ] ; do
+	case "$1" in
+	    -[ilnv])	grep_args="$grep_args $1" ;;
+	    -*)		set - badarg; break ;;
+	    *)		break ;;
+	esac
+	shift
+done
+if [ $# -lt 2 ]; then
+	echo >&2 "Usage: $0 [-ilnv] re-pattern Amoeba-file-pattern"
+	exit 1
+fi
+
+grep_prog=`basename $0 | sed 's/am//'`
+
+pattern="$1"
+shift
+
+(amwhereis "$@"; echo /dev/null) | xargs -l5 /bin/$grep_prog $grep_args "$pattern"

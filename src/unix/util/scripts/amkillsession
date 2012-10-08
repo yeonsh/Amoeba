@@ -1,0 +1,29 @@
+#!/bin/sh
+#	
+#	@(#)amkillsession	1.2	94/04/07 14:10:14
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# amkillsession: gracefully shut down the session server.
+
+# Find the machine on which the session server runs
+SES=`aps -su $USER | grep session`
+
+# This gives something of the form "vmesc4 1 R session -a".
+# Use the first two fields (if they exist) to specify the process to stun.
+if [ "$SES" ]
+then
+	set $SES
+	if [ $# -ge 4 ]
+	then
+		stun -m$1 $2
+	fi
+else
+	echo could not find session server for $USER
+fi
+
+# Finally remove the capabilities left by the session server
+del -d /dev/session /dev/null 2>/dev/null

@@ -1,0 +1,17 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 16:00:05
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+H_ARCH_FILES = {
+	$PWD/byteorder.h,
+	$PWD/defarch.h,
+	$PWD/fault.h,
+	$PWD/machdep.h,
+	$PWD/mpx_md.H,
+	$PWD/processor.h,
+	$PWD/syscall_stub.h,
+	$PWD/interrupt.h
+};

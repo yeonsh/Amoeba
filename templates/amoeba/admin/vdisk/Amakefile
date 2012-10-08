@@ -1,0 +1,26 @@
+#	
+#	@(#)Amakefile	1.3	94/04/05 16:29:37
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/vdisk/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+%instance gcluster(di, $U_DI, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(dread, $U_DISK_READ, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(dwrite, $U_DISK_WRITE, $LIB_AMOEBA, $LINT_AMOEBA);

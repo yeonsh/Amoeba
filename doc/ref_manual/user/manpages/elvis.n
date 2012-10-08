@@ -1,0 +1,192 @@
+.\"	@(#)elvis.n	1.5	96/02/15 18:11:32
+.aU
+	Software: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Document: Steve Kirkendall, kirkenda@cs.pdx.edu
+.aE
+.mT "elvis" U
+full screen editor
+.SH
+Synopsis
+.LP
+.sC L
+elvis [flags] [+cmd] [files...]
+vi    [flags] [+cmd] [files...]
+ex    [flags] [+cmd] [files...]
+view  [flags] [+cmd] [files...]
+.eC
+.SH
+Description
+.LP
+.kW "editor"
+.kW "text editor"
+.kW "\fIvi\fP"
+.kW "\fIex\fP"
+.kW "\fIview\fP"
+.I Elvis
+is a text editor which emulates
+.I vi
+and
+.I ex .
+.LP
+On \*(Am,
+.I elvis
+should also be installed under the names
+.I ex ,
+.I vi
+and
+.I view .
+These extra names would normally be links to elvis;
+see the
+.I ln (U)
+command.
+.LP
+When
+.I elvis
+is invoked as
+.I vi ,
+it behaves exactly as though it was invoked as
+.I elvis .
+However,
+if
+.I elvis
+is invoked as
+.I view ,
+then the read-only option is set as though the
+.B \-R
+flag was given.
+If
+.I elvis
+is invoked as
+.I ex ,
+then
+.I elvis
+will start up in the colon command mode instead of the visual command mode,
+as though the
+.B \-e
+flag had been given.
+If
+.I elvis
+is invoked as
+.I edit ,
+then
+.I elvis
+will start up in input mode,
+as though the
+.B \-i
+flag was given.
+.mH
+Options
+.LP
+.IP \fB\-r\fP 12
+To the real
+.I vi ,
+this flag means that a previous edit should be recovered.
+.I Elvis ,
+though,
+has a separate program,
+called
+.I elvrec (U),
+for recovering files.
+When invoked
+with
+.B \-r ,
+.I elvis
+will tell you to run
+.I elvrec .
+.IP \fB\-R\fP
+This sets the ``read-only'' option,
+to prevent accidental overwriting of a file.
+.IP "\fB\-t\fP \fItag\fP"
+This causes
+.I elvis
+to start editing at the given tag.
+.IP "\fB\-m\fP [\fIfile\fP]"
+.I Elvis
+will search through
+.I file
+for something that looks like an error message from a compiler.
+It will then begin editing the source file that caused the error,
+with the cursor sitting on the line where the error was detected.
+If a
+.I file
+is not explicitly named then
+.I errlist
+is assumed.
+.IP \fB\-e\fP
+.I Elvis
+will start up in colon command mode.
+.IP \fB\-v\fP
+.I Elvis
+will start up in visual command mode.
+.IP \fB\-i\fP
+.I Elvis
+will start up in input mode.
+.IP \fB+\fP\fIcommand\fP
+After the first file is loaded
+.I command
+is executed as an
+.I ex
+command.
+A typical example would be
+.sC
+elvis +237 foo
+.eC
+which would cause
+.I elvis
+to start editing
+.I foo
+and then move directly to line 237.
+.mH
+Files
+.LP
+.IP /tmp/elv* 12
+During editing,
+.I elvis
+stores text in a temporary file.
+For \*(Am,
+this file will usually be stored in the
+.I /tmp
+directory,
+and the first three characters will be ``elv''.
+For other systems,
+the temporary files may be stored someplace else;
+see the version-specific section of the documentation.
+.IP tags
+This is the database used by the
+.I :tags
+command and the
+.B \-t
+option.
+It is usually created by the
+.I ctags (U)
+program.
+.mH
+Warnings
+.LP
+There is no LISP support.
+Certain other features are missing, too.
+.LP
+Auto-indent mode is not quite compatible with the real
+.I vi .
+Among other things, 0^D and ^^D are different.
+.LP
+Long lines are displayed differently.
+The real
+.I vi
+wraps long lines onto multiple rows of the screen,
+but
+.I elvis
+scrolls sideways.
+.SH
+See Also
+.LP
+ctags(U),
+ref(U),
+elvprsv(U).
+elvrec(U).
+.\" A Clone of Vi/Ex, the complete elvis documentation.
+.\" Many other people have worked to port \fIelvis\fP
+.\" to various operating systems.
+.\" To see who deserves credit, run the \fI:version\fP command
+.\" from within \fIelvis\fP,
+.\" or look in the system-specific section of the complete documentation.

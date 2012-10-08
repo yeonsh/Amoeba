@@ -1,0 +1,36 @@
+#!/bin/sh
+#	
+#	@(#)amrename	1.2	94/04/07 14:10:30
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# Rename a file, directory or other object in the Amoeba directory graph.
+# There are no restrictions on the relationship between the oldname and
+# the new name.  The new name must not currently exist:
+#
+if [ $# -ne 2 ] ; then
+	echo 1>&2 "Usage: $0 oldname newname"
+	exit 2
+fi
+if dir "$2" >/dev/null 2>&1 ; then
+	echo 1>&2 "$0: $2 already exists"
+	exit 1
+fi
+if dir "$1" >/dev/null 2>&1 ; then
+	:
+else
+	echo 1>&2 "$0: $1 not found"
+	exit 1
+fi
+
+get "$1" | put "$2"
+if dir "$2" >/dev/null 2>&1 ; then
+	del -d "$1"
+else
+	echo 1>&2 "$0: Failed to create $2"
+	exit 1
+fi

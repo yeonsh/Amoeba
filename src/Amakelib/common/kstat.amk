@@ -1,0 +1,42 @@
+#	
+#	@(#)kstat.amk	1.3	94/04/06 10:33:49
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# tool that generates a C source file from a list of "kstat" description
+# files
+#
+
+%if (%not defined(KSTAT), {
+	KSTAT = $PWD/gen-kstat;
+});
+
+%if (%not defined(KSTAT_FLAGS), {
+	KSTAT_FLAGS = $DEFINES;
+});
+
+%if (%not defined(KSTAT_OUT), {
+	KSTAT_OUT = kstat_gen.c;
+});
+
+%include $PWD/cpplib.amk;
+
+%instance deftypesuffix(kstat-src, '%.kstat');
+
+# The files generated from a kstat description can be used as input for lint:
+%derive f[generates-C-src] %when $f ? type == kstat-src;
+
+%tool gen-kstat (
+    kstat_files:  %in %list [type = kstat-src];
+    kstat_out:    %out      [type = C-src]	=> $KSTAT_OUT;
+    program:      %in       [type = command]    => $KSTAT;
+    flags:        %string %list                 => $KSTAT_FLAGS;
+)
+{
+    exec($program, args => '-C' + $CPPLIB + '-o' + $kstat_out +
+			   $flags + $kstat_files);
+};
+

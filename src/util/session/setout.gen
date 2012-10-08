@@ -1,0 +1,15 @@
+/*	@(#)setout.gen	1.1	96/02/27 13:14:49 */
+/*
+ * Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+ * The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in
+ * the top level of the Amoeba distribution.
+ */
+
+/* Generate client stubs for session server */
+
+#include "sessvr.cls"
+
+generate sessvr {
+	client_stubs(ses_setout);
+};

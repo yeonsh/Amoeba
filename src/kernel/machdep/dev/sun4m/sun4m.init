@@ -1,0 +1,11 @@
+/*	@(#)sun4m.init	1.1	94/05/17 11:21:37 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+*/
+
+MMU init_auxioreg
+init_auxioreg switch_off_led
+switch_off_led INTERRUPTS
+THREADS switch_on_led

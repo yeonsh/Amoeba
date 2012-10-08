@@ -1,0 +1,39 @@
+#	
+#	@(#)assembler.amk	1.4	94/04/06 10:31:51
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  Assembler tool
+#	Because Amoeba sometimes accepts .S files as assembler source we
+#	accept them here, but the user had better provide an assembler
+#	that know what to do with them.
+#
+%instance deftypesuffix(assem-ssrc, '%.s');
+%instance deftypesuffix(assem-Ssrc, '%.S');
+
+%if (%not defined(AS), {
+	AS = as;
+});
+
+%if (%not defined(ASFLAGS), {
+	ASFLAGS = {};
+});
+
+%derive f[assem-source]  %when (get($f, type) == assem-ssrc)
+			%or (get($f, type) == assem-Ssrc);
+
+%if (   $COMPILER_SET == sun
+%or     $COMPILER_SET == sun-1.0
+%or     $COMPILER_SET == sunpro
+%or     $COMPILER_SET == ack
+%or     $COMPILER_SET == ace
+%or     $COMPILER_SET == gnu-2
+%or     $COMPILER_SET == gnu-1.36, {
+    %include $PWD/assem_dep.amk;
+}, {
+    %include $PWD/mkdep.amk;
+    %include $PWD/assem.common;
+});

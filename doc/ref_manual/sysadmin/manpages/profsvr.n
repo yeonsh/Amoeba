@@ -1,0 +1,87 @@
+.\"	@(#)profsvr.n	1.4	96/02/15 17:50:46
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg 1991?
+	Document: Gregory J. Sharp, May 1992
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "profsvr" A
+kernel profiling server
+.SH
+Synopsis
+.LP
+Built into the kernel.
+.br
+Add
+.sC
+-DPROFILE
+.eC
+to the defines and
+.sC
+$K_SVR_PROFILE,
+.eC
+to the source list of the kernel
+.I Amakefile .
+.SH
+Description
+.LP
+The profile server runs inside the \*(Am kernel.
+It is used to obtain stack traces of the kernel which can be analyzed by
+.I profile (A).
+The analysis shows the time spent in the various functions in the kernel.
+This is useful for finding the performance bottlenecks in the kernel.
+.LP
+An example of how to add a profile server to an
+.I Amakefile
+can be found in the template directory
+.I templates/kernel/force30/pool .
+.LP
+The profile server can only deal with one client at a time.
+If two people attempt to obtain profile information from the same kernel
+at the same time,
+one of them will almost certainly get a
+.I "not now"
+error.
+.mH
+Warnings
+.LP
+There is no support for the profile server in Sun 3 kernels.
+.SH
+Programming Interface Summary
+.LP
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+Administrative Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_info:NONE:T{
+RPC error
+T}:T{
+Print server id
+T}
+_
+sys_profile:SYS_RGT_CONTROL:T{
+RPC error
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Get stack traces
+T}
+_
+.TE
+.SH
+See Also
+.LP
+profile(A).

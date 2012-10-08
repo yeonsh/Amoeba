@@ -1,0 +1,3 @@
+.\"	@(#)See_also_idx.n	1.1	96/03/20 13:27:51
+ANSI C,  \fIsee\fP STD C
+ISO C,  \fIsee\fP STD C

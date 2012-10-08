@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:35:42
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+#
+T_BULLET_BULLET = {
+	$PWD/Tbullet.h,
+	$PWD/Tbullet.c,
+	$PWD/tb_read.c,
+	$PWD/tb_create.c,
+	$PWD/tb_modify.c,
+	$PWD/tb_delete.c,
+	$PWD/tb_insert.c,
+	$PWD/tb_combi.c,
+	$PWD/tb_reject.c
+};
+T_BULLET_BULLETC = $PWD/Tbulletc.c;
+T_BULLET_BULLET1 = $PWD/Tbullet1.c;
+T_BULLET_RESTRICT = $PWD/Trestrict.c;

@@ -1,0 +1,1070 @@
+.\"	@(#)rpc.n	1.6	96/02/15 16:54:51
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.EQ
+delim @@
+.EN
+.ds - \|\l'1m\(mi'\|
+.aU
+	Software: Robbert van Renesse and almost everybody else
+	Document: Sape J. Mullender, March 1990
+	Modified: Greg Sharp, April, May 1990 - style conformance
+		  Greg Sharp, Nov 1991 - notes about FLIP
+		  Ed Keizer, July 1992 - major cleanup
+		  Gregory J. Sharp, Feb 1996 - minor cleanup :-)
+.aE
+.mT "rpc" L "libamoeba.a, libkernel.a, libamunix.a"
+the interface stubs for remote procedure calls
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+
+bufsize  trans(request_hdr, request_buf, request_size,
+		    reply_hdr, reply_buf, reply_size);
+bufsize  getreq(hdr, buf, size);
+void     putrep(hdr, buf, size);
+interval timeout(length);
+.eC
+.SH
+Description
+.LP
+.kW "communication"
+.kW "interprocess communication"
+.kW "message"
+.kW "message transaction"
+.kW "port"
+.kW "reply"
+.kW "request"
+.kW "signature"
+.kW "transaction"
+.kW "\fIputrep\fP"
+.kW "\fIgetreq\fP"
+.kW "\fItimeout\fP"
+.kW "\fItrans\fP"
+.kW RPC
+The three calls
+.I getreq ,
+.I putrep ,
+and
+.I trans
+form
+the remote procedure call (RPC) interface for interprocess communication.
+All point to point communication is,
+at the lowest accessible level, structured along the
+client/server model; that is, a client thread sends a
+request message to a service, one of the threads in one of the
+server processes gets the request, carries it out and returns a
+reply message to the client.
+There is also the possibility for group communication.
+This is described in
+.I grp (L).
+See also
+.I rawflip (L).
+.LP
+For historical reasons, a remote operation (a request followed by a
+reply) is called a
+.I "message transaction"
+or just a
+.I transaction .
+A client thread invokes a transaction by a call to
+.kW "\fItrans\fP"
+.I trans .
+A server thread receives a request via a call to
+.kW "\fIgetreq\fP"
+.I getreq
+and returns a reply by calling
+.kW "\fIputrep\fP"
+.I putrep .
+.I Trans ,
+.I getreq ,
+and
+.I putrep
+are blocking; that is,
+a
+.kW "\fItrans\fP"
+.I trans
+suspends a thread until the request is sent, carried out
+and a reply is received;
+.kW "\fIgetreq\fP"
+.I getreq
+suspends a thread until a request
+has been received and
+.kW RPC
+.kW "\fIputrep\fP"
+.I putrep
+suspends a thread until the reply has
+been received by the appropriate client thread's kernel.
+.LP
+A request or reply message is described to the transaction system calls
+by means of three parameters: a pointer to a
+.I header ,
+a pointer to a
+.I buffer
+and the
+.I size
+of that buffer.
+The
+.I header
+is a fixed-length data structure,
+containing addressing information, status information, an operation
+code and some parameters.
+The
+.I buffer
+is an 8-bit-character array
+whose
+.I size
+may vary from 0 to @roman "30000" sub roman "decimal"@
+bytes.
+The parameters of
+.kW RPC
+.kW "\fIgetreq\fP"
+.I getreq
+specify where in memory the header and buffer of the request
+are to be received.
+The parameters of
+.kW "\fIputrep\fP"
+.I putrep
+specify the reply
+to be sent and the parameters of
+.kW "\fItrans\fP"
+.I trans
+specify the request to be
+sent and where in memory the reply is to be received.
+.LP
+The following sections explain the port- and capability-based
+addressing mechanism used to specify services and objects,
+the exact structure of request and reply messages,
+the three system calls
+and the failure semantics of RPCs.
+.mH
+Ports and Capabilities
+.LP
+.kW RPC
+.kW capability
+.kW port
+Each object is both identified and protected by a
+.I capability .
+Capabilities have the set of operations that the holder may carry out
+on the object coded into them and they contain enough redundancy and
+cryptographic protection to make it infeasible to guess an object's
+capability.
+Objects are implemented by server processes that manage them.
+Capabilities have the identity of the object's server encoded
+into them (the Service Port) so that, given a capability, the system
+can find a server process that manages the corresponding object.
+The structure of capabilities and ports is defined in the standard include file
+.I amoeba.h :
+.TS
+center;
+lw(1.5i) lw(1i) lw(0.4i) lw(1.5i)
+| c | c | c | c |.
+48	24	8	48 bits
+_
+Port	Object	Rights	Random
+_
+.TE
+.sC
+#define PORTSIZE 6
+
+typedef struct {
+	int8	_portbytes[PORTSIZE];
+} port;
+
+typedef struct {
+	int8	prv_object[3];
+	uint8	prv_rights;
+	port	prv_random;
+} private;
+
+typedef struct {
+	port	cap_port;
+	private	cap_priv;
+} capability;
+.eC
+.LP
+A server thread identifies itself to the system by giving its
+.I port
+in the header of the
+.kW "\fIgetreq\fP"
+.I getreq
+system call.
+The port that it gives must be the
+.kW "get-port"
+.kW RPC
+.I get-port ,
+also called the
+.I "private port" ,
+(see
+.kW "\fIpriv2pub\fP"
+.I priv2pub (L)
+for more details).
+A client
+identifies the object of its transaction\*- and with it the service
+that manages that object\*- by giving the object's capability in the
+.I port
+and
+.I private
+fields of the request header.
+The port that the client has is the
+.kW "put-port"
+.I put-port
+and this is also the port returned in the header of the
+.kW "\fIgetreq\fP"
+.I getreq
+call when a message arrives.
+This is illustrated in the example below.
+.LP
+Both client and server thus specify a port and this port is used by the
+system to bring client and server together.
+To prevent other processes from impersonating a particular server,
+a port has two appearances called
+.kW "get-port"
+.kW RPC
+get-port and put-port.
+.kW "put-port"
+A server needs to specify a get-port when it does a
+.kW "\fIgetreq\fP"
+.I getreq
+call and a client
+has to specify a put-port (as part of the capability) when it makes a
+.kW "\fItrans\fP"
+.I trans
+call.
+Get-port and
+.kW "put-port"
+put-port are related via a
+.kW "one-way function"
+one-way function,
+.I F ,
+which transforms a
+.kW "get-port"
+get-port into a
+.kW "put-port"
+put-port.
+The function was chosen so that it is `impossible' to compute a
+get-port from a put-port.
+The library function
+.kW "\fIpriv2pub\fP"
+.I priv2pub
+.kW "one-way function"
+does the one-way function transformation.
+The system guarantees that a client's request
+message containing put-port
+.I P
+in its capability will only be
+delivered to a server thread which specified get-port
+.I G
+in its
+.kW RPC
+.kW "\fIgetreq\fP"
+.I getreq
+call, where
+.I P
+=
+.I F
+(\fIG\fP).
+.mH
+Message Structure
+.LP
+Both request and reply messages consist of two parts, a header and a buffer.
+A message with an empty buffer is a
+.I header-only
+message.
+The header has a fixed length and a fixed layout:
+.sC
+typedef	uint16	command;
+typedef	uint16	bufsize;
+
+typedef	struct {
+	port	h_port;		/*  6 bytes */
+	port	h_signature;	/*  6 bytes */
+	private	h_priv;		/* 10 bytes */
+	command	h_command;	/*  2 bytes */
+	int32	h_offset;	/*  4 bytes */
+	bufsize	h_size;		/*  2 bytes */
+	uint16	h_extra;	/*  2 bytes, total 32 bytes */
+} header;
+
+#define	h_status h_command	/* alias: reply status */
+.eC
+The meaning of the fields is as follows:
+.IP "h_port" 2.5c
+The port field contains the port-part of the capability of the object
+on which the request should be carried out. The port field is
+interpreted only in
+.I trans
+and
+.I getreq .
+With
+.I trans
+it contains the put-port of the service
+for which the request is intended.
+When calling
+.I getreq
+it contains the get-port of the service offered.
+When
+.I getreq
+returns it contains the put-port sent by the client.
+In replies, the contents of this
+field are passed from server to client uninterpreted.
+.IP "h_signature" 2.5c
+This field is reserved for future use, possibly connected with security.
+.\"A client can enter a get-port in the signature field.
+.\"The operating
+.\"system will convert this field to a put-port by the application of
+.\".kW "\fIpriv2pub\fP"
+.\".I priv2pub .
+.\"The signature field is intended to be used as a
+.\"digital signature with which clients can authenticate themselves to a
+.\"service.
+.\"The signature field is only converted in requests.
+.\".kW RPC
+.\".IP "h_priv" 2.5c
+.\"This contains the private part of the capability whose port part was in
+.\"the port field.
+.\"This field is not interpreted by the operating system,
+.\"but is intended to be interpreted by server processes.
+.IP "h_command" 2.5c
+This field is normally used in requests to hold an operation code
+which specifies which operation to carry out.
+In replies, it usually conveys the result of the operation back
+to the client (e.g., an error status).
+The field is not interpreted by the operating system.
+.IP "h_offset" 2.5c
+The name of this field was inspired by the use of transactions for
+reading and writing file objects.
+In the standard file read/write
+interface, it is used to specify offsets into a file.
+This 32-bit field may, however,
+be used as the application programmer sees fit.
+It is not interpreted by the operating system.
+.IP "h_size" 2.5c
+.IP "h_extra" 2.5c
+These fields can be used to communicate arbitrary 16-bit quantities
+between client and server.
+They are not interpreted by the operating system.
+.LP
+Request and reply messages consist of a header and optionally a
+buffer.
+The size of the buffer may be between 0 and
+@roman "30000" sub roman "decimal"@
+bytes.
+Requests and replies, or buffers in which requests and
+replies are to be received, are specified via three parameters, the
+address of the header, the address of the buffer, and the size of the
+buffer.
+The address of the header must always point to a valid area in
+memory (that is, an area that is mapped in readable or read/writable,
+depending on whether it is used for sending or receiving).
+If the
+length of the buffer is zero, the buffer address is ignored.
+If the length of the buffer is non-zero, the buffer address must point to
+an area of memory of that length, wholly contained in a single memory segment.
+In other words, buffers may not straddle segment boundaries.
+The segment in which a buffer lies must be readable or
+read/writable depending on whether it is used for sending or receiving
+a message.
+.LP
+When a request or reply is received that is larger than the available
+buffer, no error code is returned.
+The number of bytes actually received in the buffer is returned.
+Truncation can only be detected if the
+.I h_size
+field is used to transmit the length of the buffer sent.
+If this is done properly, an example test for truncation is:
+.kW "\fIgetreq\fP"
+.sC
+if (ERR_STATUS(stat = getreq(&hdr, &buf, cnt))) {
+	/* error */
+	...
+}
+if (stat != hdr.h_size) {
+	/* truncation */
+	...
+}
+.eC
+.LP
+Programmers are strongly encouraged to use the
+.I h_size
+field to communicate the true length of a message buffer to the receiver.
+.sH
+getreq
+.LP
+.kW "\fIgetreq\fP"
+.kW RPC
+.sC
+bufsize
+getreq(hdr, buf, size)
+header *hdr;
+bufptr buf;
+bufsize size;
+.eC
+A server thread uses
+.I getreq
+to receive a request from a client.
+After processing the request, it must return a reply by a call on
+.kW "\fIputrep\fP"
+.I putrep ,
+or forward the request to another server using
+.I grp_forward
+(see
+.I grp (L)).
+A server thread may carry out only one request at a time.
+Successful
+.kW "\fIgetreq\fP"
+.I getreq
+and
+.I putrep
+calls must therefore alternate.
+A server thread may always,
+even while serving (that is, after
+.I getreq
+and before
+.kW RPC
+.kW "\fIputrep\fP"
+.I putrep ),
+use
+.kW "\fItrans\fP"
+.I trans
+calls to have operations carried out by other servers.
+.LP
+A server thread must provide the
+get-port on which it receives in the
+.I h_port
+field of the header parameter.
+The code for receiving a request thus becomes:
+.kW "\fIgetreq\fP"
+.sC
+header.h_port = server_get_port;
+status = getreq(&header, buf, size);
+.eC
+.I Getreq
+blocks a thread until a request is received (or until the
+thread is alerted by a signal).
+The returned value,
+.I status ,
+contains the number of bytes in the
+buffer when the call is successful, or a negative error code.
+If the request attempted to pass more than
+.I size
+bytes, the message placed in the area pointed to by
+.I buf
+is truncated to
+.I size .
+Errors are discussed in the next section.
+.LP
+Upon successful completion, the
+header pointed to by
+.I hdr
+contains a copy of the header given in the corresponding
+.kW "\fItrans\fP"
+.I trans
+call of a client.
+Therefore the
+.I h_port
+field will contain the put-port which was used by the client.
+A subsequent call to
+.I getreq
+must be sure to reinitialize
+.I h_port
+to the get-port.
+.sH
+putrep
+.LP
+.sC
+void
+putrep(hdr, buf, size)
+header *hdr;
+bufptr buf;
+bufsize size;
+.eC
+After processing a request, a server must return a reply using
+.kW RPC
+.kW "\fIputrep\fP"
+.I putrep .
+All the fields (including the
+.I h_signature
+field)
+of the header pointed to by
+.I hdr
+are sent to the client unmodified.
+As a matter of convention, the
+.I h_command
+field is used as a
+.I status
+field
+and is, in fact, referred to as
+.I h_status .
+It is important that all paths through the server actually set an error
+status rather than returning the original command code.
+.LP
+It is the conventional wisdom to allocate command and error-status
+codes centrally in order to prevent strange things from happening when
+one mistakes one type of object or server for another.
+It also simplifies object inheritance using AIL.
+Currently the central allocation makes use of the files
+.I cmdreg.h
+and
+.I stderr.h .
+.LP
+.kW RPC
+Every request must be accompanied by a reply.
+It is therefore a programming error to call
+.kW "\fIgetreq\fP"
+.I getreq
+when a call to
+.kW "\fIputrep\fP"
+.I putrep
+can legally be made (and vice versa).
+The blocking nature of
+.kW "\fItrans\fP"
+.I trans
+automatically prevents a client thread from being involved
+in more than one transaction.
+As a consequence, a thread can be
+involved in at most two transactions at a time: once as a server and
+once as a client.
+.sH
+trans
+.LP
+.sC
+bufsize
+trans(request_hdr, request_buf, request_size,
+	reply_hdr, reply_buf, reply_size)
+header *request_hdr;
+bufptr request_buf;
+bufsize request_size;
+header *reply_hdr;
+bufptr reply_buf;
+bufsize reply_size;
+.eC
+.kW "\fItrans\fP"
+.I Trans
+attempts to deliver a request to a server and passes back the server's reply.
+.I Trans
+blocks until the transaction has either failed or a reply is received.
+.I Trans
+takes six parameters, three to specify the request to be
+sent to the server and three to specify the memory
+locations to place the reply.
+The request header pointed to by
+.I request_hdr
+must contain the
+.kW RPC
+put-port of the service to be called in the
+.I h_port
+field.
+The system guarantees not to deliver a request to a server that has not
+specified the associated
+get-port in the
+.I h_port
+field of its
+.kW "\fIgetreq\fP"
+.I getreq
+call.
+Note that there is only a negative guarantee.
+The system cannot guarantee to deliver a request; it can merely make an effort.
+The system does guarantee, however, that a request will be received at most
+once and by no more than one server.
+.I Trans
+has
+.B at-most-once
+semantics.
+.LP
+When a
+.I trans
+fails,
+the contents of the reply header
+and reply buffer are undefined and may have been changed.
+The contents of the request header and request buffer are
+guaranteed to be unchanged,
+unless they overlap the reply header or reply buffer.
+It is common practice to use the same header and buffer for request
+and reply in one transaction.
+.LP
+The other fields in the header, except possibly
+.I h_signature ,
+are not interpreted by the system.
+But again, convention dictates the use of the
+.I h_private
+field for the
+private part of the capability of the object to which the request refers
+(the port part is in the
+.I h_port
+field), the
+.I h_command
+field
+for a unique request code, the
+.I h_status
+field for a unique error
+reply code, and the
+.I h_size
+field for the size of request and reply.
+The value returned by
+.I trans
+contains the number of bytes in the
+buffer when the call is successful, or a negative error code.
+If the reply attempted to pass more than
+.I reply_size
+bytes, the message placed in the area pointed to by
+.I reply_buf
+is truncated to
+.I reply_size .
+.sH
+timeout
+.kW RPC
+.LP
+.sC
+interval
+timeout(length)
+interval length;
+.eC
+.LP
+Before a request can be delivered by the system, the client's
+kernel must know where to send the request.
+It must
+.I locate
+a server.
+Details of the locate mechanism are not relevant here,
+but what is relevant is that there is a minimum time that the kernel
+will spend trying to locate a suitable server.
+This per-thread locate timeout can be modified by the
+.kW "\fItimeout\fP"
+.I timeout
+system call.
+Its argument
+.I length
+is the new minimum timeout in milliseconds.
+It returns the previous value of the timeout.
+The default timeout is system dependent; it is typically 5 seconds.
+It is not a good idea to set the timeout below 2 seconds
+(\fIlength\fP\|=\|2000) since it may
+result in locate failures even though the server is actually available.
+.mH
+Error Codes and Failure Semantics
+.LP
+All three calls,
+.kW "\fIgetreq\fP"
+.I getreq ,
+.kW "\fIputrep\fP"
+.I putrep
+and
+.kW "\fItrans\fP"
+.I trans
+can fail in
+a number of ways.
+A distinction must be made between programming errors and failures.
+An error is caused by faults in the program,
+for instance,
+calling
+.kW "\fIgetreq\fP"
+.I getreq
+when a
+.kW "\fIputrep\fP"
+.I putrep
+is
+still due.
+A failure is caused by events beyond the control of the
+programmer: server crashes, network failures, etc.
+.LP
+Errors are caused by program bugs.
+A program with an error in it should be debugged.
+Errors, therefore, cause an exception,
+which, when not fielded by the program, causes the program to abort.
+When they are fielded, an interrupt routine is called to handle the
+error.
+In addition, the system calls also return a negative error code.
+Under \*(Am the exception is \*<EXC_SYS\*>.
+Under
+.UX
+the exception generated is \*<SIGSYS\*>.
+.kW RPC
+.LP
+All failures cause
+.kW "\fItrans\fP"
+.I trans
+and
+.kW "\fIgetreq\fP"
+.I getreq
+to return a negative error code.
+The include file
+.I stderr.h
+provides the mapping
+between the error codes and the names used in programs.
+The table
+below gives an overview of the errors and failures, in which calls they
+can occur (T for
+.I trans ,
+G for
+.kW "\fIgetreq\fP"
+.I getreq
+and P for
+.kW "\fIputrep\fP"
+.I putrep ),
+the code returned on
+.I getreq
+or
+.kW "\fItrans\fP"
+.I trans
+(\fIputrep\fP
+does not return a value), and whether an exception is raised
+when an error occurs.
+.TS
+center, box;
+cI | cI | cI 1 s 1 s | cI
+lp-2 | c | lp-2 1 lp-2 1 lp-2 | l.
+Value returned	T{
+Exception
+T}	T{
+Which
+.br
+call
+T}	Error description
+=
+RPC_NOTFOUND		T			Server not found
+_
+RPC_ABORTED		T	G		Signal received while blocked
+_
+RPC_FAILURE		T			Server or network failure
+_
+RPC_FAILURE	*	T	G	P	Buffer length > 30000
+_
+RPC_FAILURE	*		G		Getreq while serving
+_
+RPC_BADADDRESS	*	T	G	P	Use of invalid pointers	
+_
+RPC_BADPORT		T	G		Use of a NULL-port
+_
+	*			P	Putrep while not serving
+_
+RPC_TRYAGAIN		T			Out of resources
+.TE
+.IP "Server not found" 2m
+.br
+When locating a server fails, the
+.cW RPC_NOTFOUND
+error code is returned on
+.kW "\fItrans\fP"
+.kW RPC
+.I trans
+calls.
+The reason can be that the server is
+not yet ready, or that there is no server at all.
+In any case, the request will not have been delivered anywhere.
+When this error code is
+returned, it is sometimes sensible to wait a few seconds and try once more.
+The server may have called
+.I getreq
+in the meantime.
+.IP "Signal received while blocked" 2m
+.br
+If a thread has indicated interest in a signal and that signal is
+raised while the thread is in a
+.kW "\fIgetreq\fP"
+.I getreq
+or
+.kW "\fItrans\fP"
+the locate stage of a
+.I trans
+call, the
+call is broken off and
+.cW RPC_ABORTED
+is returned.
+No useful information should be expected in the receive header and buffer.
+Threads can be aborted in system calls as a consequence of debugging.
+For servers, a sensible action following an
+.cW RPC_ABORTED
+error code is to restart the
+.kW "\fIgetreq\fP"
+.I getreq
+or
+.kW "\fItrans\fP"
+.I trans
+operation.
+.IP "Server or network failure" 2m
+.br
+When a request has been sent and no reply is received and the server's
+kernel does not respond to ``are-you-alive?'' pings,
+.cW RPC_FAILURE
+is returned.
+The server may or may not have carried
+out the request; the server may even have sent a reply, but then it
+has not been received.
+.kW RPC
+The course to take when this failure happens
+depends very much on the semantics of the attempted operation.
+.IP "Buffer length > 30000" 2m
+.br
+The buffer length is an unsigned integer.
+It can not be less than zero.
+If it is larger than the maximum size of a request or reply, an
+exception is raised and
+.cW RPC_FAILURE
+is returned if the exception is handled.
+.kW "\fIputrep\fP"
+.IP "Getreq while serving, putrep while not serving" 2m
+.br
+Programming errors, so an exception is raised.
+Putrep does not return a value,
+so when the exception is caught no error code is returned.
+.IP "Use of invalid pointers" 2m
+.br
+Using pointers to headers or buffers wholly or partially in
+non-existent memory, to receive headers or buffers in read-only memory,
+or to buffers straddling segment boundaries, an exception is raised.
+If the exception is caught,
+.I trans
+and
+.kW "\fIgetreq\fP"
+.I getreq
+additionally return
+.cW RPC_BADADDRESS .
+.br
+.ne 3
+.IP "Use of a NULL-port" 2m
+.br
+When you forget to fill in the
+.I h_port
+field on
+.I getreq
+or
+.kW "\fItrans\fP"
+.I trans ,
+the system returns a
+.kW RPC
+.cW RPC_BADPORT
+failure.
+This is
+not an exception, because ports are often filled in with values
+retrieved from remote sources such as the directory server.
+It seemed
+unreasonable to ask application programmers to write code to check for
+NULL-ports when the system has to check for them anyway.
+.IP "Out of resources"
+.br
+This error can only occur under
+.UX
+or
+UNIX-like systems.
+It is used when the \*(Am driver could not get access to
+enough resources to send the message.
+It is guaranteed that the request has not reached any server.
+If enough resources are freed the request can be safely repeated.
+.LP
+Two helpful macros are available for manipulating returned status codes:
+.cW ERR_STATUS
+and
+.cW ERR_CONVERT .
+They provide the proper casts from the 16-bit unsigned integers to signed
+integers for testing the sign bit.
+The macros are defined in
+.I amoeba.h .
+.kW RPC
+.SH
+Signals
+.LP
+The previous section specified that when a
+.I trans
+is blocked and a signal is received while the system is still trying
+to locate the server,
+.I trans
+will return the error code
+.cW RPC_ABORTED .
+When the location of the server is known and the RPC has been sent to
+the server and no reply has been received as yet,
+the reaction of the system to signals to be caught is altogether different.
+In this case signals are propagated to the server.
+Thus the server will receive the signal and can choose to react accordingly.
+It can, as per default, ignore the signal or catch it.
+If the server ignores the signal the signal
+will have no effect in both server and client.
+If the server handles the signal it can choose its own way of
+reacting, for example by returning an error reply with
+.I putrep .
+If the server itself catches signals and is waiting
+for a reply to a
+.I trans
+the signal will again be propagated.
+.LP
+Signals can abort calls to
+.I getreq ,
+but can not abort calls to
+.I putrep .
+See also
+.I signals (L).
+.SH
+Example
+.LP
+The example below shows the typical server main loop for a very simple
+file server and a sample of client code for calling that server for a
+read operation and a write operation.
+Its is assumed that the client's capability
+.kW "put-port"
+has the put-port associated with the server's get-port.
+.sC L
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+
+/* Server threads typically sit in an endless loop
+ * fielding and carrying out client requests
+ */
+for (;;) {
+    /* Put the server's get-port in the header.  When the request
+     * arrives, it will be replaced by the put-port of the client's
+     * request.
+     */
+.eC
+.sC L
+    hdr.h_port = getport;
+    size = getreq(&hdr, buf, 100);
+    /* Check for errors.  */
+    if (ERR_STATUS(size)) {
+	/* The macro ERR_CONVERT casts the 16-bit
+	 * unsigned into an ordinary signed int.
+	 */
+	if (ERR_CONVERT(size) == RPC_ABORTED) {
+	    /* When debugging a program, signals are used to
+	     * checkpoint it. These abort getreq calls. When
+	     * this happens, just try again.
+	     */
+	    continue;
+	}
+	/* Other errors are bad */
+	fprintf(stderr, "Getreq error (%s)\en",
+		    err_why(ERR_CONVERT(size)));
+	exit(-1);
+    }
+    /* Control gets here when a request is successfully received.
+     * Dispatch to the implementation routines for the different
+     * request types.
+     */
+    switch (hdr.h_command) {
+    case F_READ:
+	/* Read implementation code goes here For the example,
+	 * simulate the result of a successful read operation.
+	 */
+	size = hdr.h_size = 100;
+	hdr.h_status = STD_OK;
+	break;
+    case F_WRITE:
+	/* Same for write */
+	size = hdr.h_size = 0;
+	hdr.h_status = STD_OK;
+	break;
+    default:
+	/* Not a legal request type, return
+	 * an error code
+	 */
+	hdr.h_status = STD_COMBAD;
+    }
+    /* Return a reply. No error codes are returned */
+    putrep(&hdr, buf, size);
+}
+.eC
+.kW RPC
+Below is the client code for calling the server to do a read and then
+a write operation.
+.kW "\fItrans\fP"
+.sC L
+#include "amoeba.h"
+#include "stderr.h"
+
+/* Set transaction timeout to 30 seconds */
+timeout(30000);
+
+/* Fill in transaction header */
+hdr.h_port = cap.cap_port;	/* Server port */
+hdr.h_priv = cap.cap_priv;	/* Rest of file cap */
+hdr.h_command = F_READ;
+hdr.h_size = 100;		/* Read 100 bytes .. */
+hdr.h_offset = 0;		/* .. from beginning of file */
+
+/* Call the server; request buffer is empty,
+ * reply buffer is large enough to hold requested bytes
+ */
+size = trans(&hdr, NILBUF, 0, &hdr, buf, 100);
+
+/* Size holds positive number of bytes read or
+ * negative error code.
+ */
+if (ERR_STATUS(size)) hdr.h_status = size;
+
+/* Even if the transaction succeeds, the server may
+ * return an error code of its own. Convention is that
+ * the only success code is STD_OK (zero).
+ */
+if (hdr.h_status != STD_OK) {
+	/* Print an error message. The macro ERR_CONVERT
+	 * casts the error code into an int. The function
+	 * err_why converts standard error codes into a
+	 * string.
+	 */
+	fprintf(stderr, "1st trans failed (%s)\en",
+		err_why(ERR_CONVERT(hdr.h_status)));
+	exit(-1);
+}
+/* The server returns number of bytes read in hdr.h_size.
+ * If the reply is truncated, or if the server is faulty
+ * the number of bytes received may not correspond to what
+ * the server claims was sent.
+ */
+.eC
+.sC L
+if (size != hdr.h_size) {
+	/* In the case of file read, the client may be
+	 * assumed not to ask for more than the buffer
+	 * can hold, so this code is only reached if
+	 * the server is faulty.
+	 */
+	fprintf(stderr, "message truncated\en");
+	exit(-1);
+}
+
+/* Read trans succeeded, try a write trans.
+ * Again, fill in header fields. Never trust what
+ * server left intact.
+ */
+hdr.h_port = cap.cap_port;
+hdr.h_priv = cap.cap_priv;
+hdr.h_command = F_WRITE;
+hdr.h_size = 100;
+hdr.h_offset = 0;
+
+/* This time, request buffer is not empty */
+size = trans(&hdr, buf, 100, &hdr, NILBUF, 0);
+
+/* Size returned should be zero (empty reply buffer) */
+if (ERR_CONVERT(size) != 0) hdr.h_status = size;
+if (hdr.h_status != STD_OK) {
+	fprintf(stderr, "2nd trans failed (%s)\en",
+		err_why(ERR_CONVERT(hdr.h_status)));
+	exit(-1);
+}
+.eC
+.kW RPC
+.SH
+See Also
+.LP
+.\" .IP "amoeba.h" 2.5c
+.\" Standard types and the macros for handling trans
+.\" and getreq errors.
+.\" .IP "cmdreg.h" 2.5c
+.\" Standard operation and error code ranges.
+.\" .IP "stdcom.h" 2.5c
+.\" Standard operation codes used by almost every service.
+.\" .IP "stderr.h" 2.5c
+.\" Standard error codes used by almost every service.
+error(L),
+grp(L),
+priv2pub(L),
+signals(L).
+.EQ
+delim off
+.EN

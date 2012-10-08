@@ -1,0 +1,239 @@
+.\"	@(#)exec_fndhost.n	1.5	96/02/15 16:49:01
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, Mike Condict, 1988-1990, Kees Verstoep 1991
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "exec_findhost" L "libamoeba, libamunix.a"
+find a suitable pool processor (host) to execute a process
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+#include "exec_fndhost.h"
+
+errstat exec_findhost (
+    process_d      *pd,
+    capability     *procsvr_ret
+);
+
+errstat exec_multi_findhost (
+    capability     *runsvr_pool,
+    capability     *pooldir,
+    process_d      *pd_array[],
+    int             npd,
+    int            *pd_chosen,
+    capability     *procsvr_ret,
+    char            hostname[PD_HOSTNAME]
+);
+.eC
+.SH
+Description
+.LP
+.kW "\fIexec_findhost\fP"
+.kW "\fIexec_multi_findhost\fP"
+.kW "exec_fndhost.h"
+.kW "process descriptor"
+.kW "host name"
+.kW "processor pool"
+.kW "process"
+.kW "execute"
+.kW "architecture"
+.kW "process server"
+.kW "pool directory"
+.kW "load balancing"
+.kW "FPE_BADARCH"
+.kW "FPE_NOPOOLDIR"
+.kW "FPE_BADPOOLDIR"
+.kW "FPE_NONE"
+.kW "\fIexec_file\fP"
+.I Exec_findhost
+finds a pool processor suitable for executing the specified process
+descriptor (see
+.I process (L)
+and
+.I process_d (L)).
+It is passed a process descriptor so it can use the architecture and
+required memory space to decide which processors are suitable.
+.LP
+.I Exec_multi_findhost
+is available for supporting
+.I heterogeneous
+process startup
+(i.e.,
+executing a program without prescribing the architecture
+on which it is to be run).
+Also,
+it gives the caller more control over its operation by making
+.kW "run server"
+it possible to specify a non-default run server or pool directory.
+.LP
+.I Exec_multi_findhost
+(and
+.kW "\fIexec_findhost\fP"
+.I exec_findhost ,
+which is implied whenever
+.I exec_multi_findhost
+is mentioned here)
+uses two strategies to find a suitable host.
+If possible,
+.kW "run server"
+the run server (see
+.I run (A))
+is asked for a suitable host.
+.kW "run server"
+The run server performs load balancing for all users and all pool
+processors,
+so it can assign the most suitable host for the process
+(given what little it knows about the process)
+and distribute processes evenly over the available hosts.
+This takes at most two transactions: one to look up the capability of
+the run server (which is cached for future use),
+and one to ask the run server for a host.
+.LP
+.kW "run server"
+If the run server's capability cannot be found,
+or if it does not respond in a timely fashion,
+.I exec_multi_findhost
+scans the pool directory to find a running host
+that has the architecture of one of the process descriptors provided.
+When called multiple times in the same process,
+a host will be chosen in a round-robin fashion.
+The first host is chosen at random to avoid the problem
+that every process
+(for example,
+a forked copy of the shell doing the actual command execution!)
+starts executing commands on exactly the same machine.
+.LP
+The arguments of
+.I exec_multi_findhost
+are:
+.IP \fIrunsvr_pool\fP 14
+Alternative run server pool (see
+.I run (A)).
+When this is a NULL-pointer (which is the normal case)
+.kW "RUN_SERVER environment variable"
+the
+.cW RUN_SERVER
+environment variable,
+when available,
+is used to look it up.
+.kW "run server"
+Otherwise
+.cW DEF_RUNSVR_POOL ,
+as defined in
+.I ampolicy.h
+(typically
+.I /profile/pool/.run ),
+is used.
+.IP \fIpooldir\fP
+When the run server cannot be found,
+or does not respond quickly enough,
+a host is selected from a
+.I "pool directory" .
+This is a directory containing subdirectories for each supported
+architecture; each subdirectory contains capabilities for the
+processors that form the processor pool for that architecture.
+The parameter
+.I pooldir
+can be used to specify an alternative pool directory.
+If this is a NULL-pointer (which it normally should be),
+.cW POOL_DIR
+is used, defined in
+.I ampolicy.h
+(typically
+.I /profile/pool ).
+.IP "\fIpd_array, npd\fP"
+An array of pointers to process descriptors having
+.I npd
+(>= 1) entries.
+(In order to get sensible results,
+the process descriptors should be architectural variants of the same program.
+A common way to obtain this,
+is to read the binaries from a directory using
+.I pd_read_multiple
+(see
+.I pd_read (L)).)
+.IP \fIpd_chosen\fP
+Returns the index into
+.I pd_array
+of the process descriptor to be run on the selected host.
+.IP \fIprocsvr_ret\fP
+Returns the capability for the process server on the selected host.
+.IP \fIhostname_ret\fP
+The name of the selected host
+(truncated, if needed)
+is returned in this buffer.
+.LP
+.I Exec_findhost
+just calls
+.I exec_multi_findhost
+with its single
+.I pd
+argument,
+.kW "run server"
+and uses the default run server and pool directory
+(see the example section below).
+.eR
+.ta 20n
+FPE_BADARCH	Cannot determine architecture
+FPE_NOPOOLDIR	Cannot find pool directory
+FPE_BADPOOLDIR	Cannot open pool directory
+FPE_NONE	No suitable processor in pool directory
+.DE
+These constants are defined in
+.I exec_fndhost.h .
+.mH
+Warning
+.LP
+Even when
+.I exec_multi_findhost
+thinks that a host is suitable,
+attempts to execute the given process on that host may fail
+for a variety of reasons
+(e.g., memory fragmentation being the most frequent cause,
+or processes on the host might have allocated
+extra memory in the meantime).
+.SH
+Example
+.LP
+The following function implements the functionality of
+.kW "\fIexec_findhost\fP"
+.I exec_findhost
+using
+.I exec_multi_findhost .
+.sC L
+errstat
+findhost(pd, procsvr_ret)
+process_d  *pd;
+capability *procsvr_ret;
+{
+    char hostbuf[PD_HOSTNAME];
+    int	 pd_chosen;
+
+    return exec_multi_findhost (
+	   (capability *)NULL, /* default run server      */
+	   (capability *)NULL, /* default pool directory  */
+	   &pd,                /* proc. desc. ptr array   */
+	   1,                  /* of length 1             */
+	   &pd_chosen,         /* pd chosen will be 0     */
+	   procsvr_ret,        /* process server selected */
+	   hostbuf             /* hostname (not used)     */
+       );
+}
+.eC
+.SH
+See Also
+.LP
+exec_file(L),
+process(L),
+process_d(L),
+run(A).

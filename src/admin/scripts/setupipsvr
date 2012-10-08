@@ -1,0 +1,46 @@
+#!/bin/sh
+#	
+#	@(#)setupipsvr	1.1	96/02/27 10:20:59
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: $0 hostname"
+	exit 1
+fi
+
+PATH=:/bin:/super/util:/super/admin/bin
+IPINFO=/etc/ipinfo
+
+HOST=$1
+
+if [ ! -f $IPINFO ]
+then
+    echo "$0: \"$IPINFO\" not found"
+    exit 1
+fi
+
+ENTRY=`grep "^$HOST\>" $IPINFO`
+
+set -- $ENTRY
+if [ $# -lt 3 ]
+then
+    echo "$0: invalid or non-existent $IPINFO file entry for host $HOST"
+    exit 1
+fi
+
+if ifconfig -h $2 -n $3 /super/hosts/$1/ip/ip
+then
+    # We don't mark the job as done unless ifconfig succeeded.
+    if get /super/admin/module/ipsvr/$1 > /dev/null 2>&1
+    then
+	getdelput /super/hosts/$1/ip/ip /super/admin/module/ipsvr/$1
+    else
+    	std_restrict /super/hosts/$1/ip/ip FF /super/admin/module/ipsvr/$1
+    fi
+    exit 0
+fi
+exit 1

@@ -1,0 +1,609 @@
+.\"	@(#)soap.n	1.7	96/02/15 17:52:05
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse, 1989
+	Modified: Hans van Staveren, 1990
+		  Guido van Rossum, 1990
+		  Gregory J. Sharp, 1990
+		  Michael Condict, 1990
+		  Kees Verstoep, 1991, 1992
+	Document: Gregory J. Sharp &
+		  Michael Condict, July 1990
+	Modified: Kees Verstoep 1992
+		  Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "soap" A
+the \*(Am directory server
+.SH
+Synopsis
+.LP
+.sC L
+soap [-F] [-k max_kbytes] [-n] [-s nthreads] [0|1]
+.eC
+.SH
+Description
+.LP
+.FS
+\(dg The name
+.I soap
+is an acronym derived from
+.I "in Search Of A Problem" .
+.FE
+.I Soap \(dg
+is the \*(Am directory server.
+.kW "SOAP"
+.kW "name server"
+.kW "directory server"
+It is the naming service for all objects in \*(Am.
+.kW ASCII
+It provides a mapping from an ASCII string to a set of capabilities.
+.kW "capability-set"
+The capability-set contains the capabilities for various copies of the same
+object.
+.LP
+The server can be run in duplicate so that there are two copies of the program
+maintaining the data.
+They communicate with each other via a private port and use a special protocol
+to maintain data consistency.
+If one of the servers goes down the other will continue alone and bring its
+partner up to date when it is restarted.
+(Therefore, it is also clear that the server can be run without a partner.)
+When two instances of the server are working together they are said to be in
+.I "2 copy mode" .
+When there is only one instance of the server running (either by design or
+due to the failure of one server) then the server is in
+.I "1 copy mode" .
+The command line parameter is either 0 or 1.
+This tells the server which position it holds in a duplicated server.
+If you are only running a single server then you should start it as server 0.
+In general server 0 performs certain tasks in preference to server 1,
+although, in the absence of server 0, server 1 will assume these
+responsibilities.
+.LP
+It is possible to duplicate the data used by
+.I soap ,
+either in single or duplicated server mode.
+.I Soap
+has two sets of data.
+On a separate disk partition it keeps details of directories.
+There is one such partition needed for each partner.
+Thus, with two partners this data will be replicated.
+Then for each directory it keeps a bullet file describing the entries in the
+directories.
+It has a provision for duplicating the bullet files.
+If there are two \*(Bss then they can be used to duplicate the bullet files.
+The capabilities for the file servers can be given at installation time or
+added or modified later using the
+.I chbul (A)
+command.
+.LP
+Part of the data consistency protocol involves keeping sequence numbers so that
+the most up to date version of the data is represented by the highest
+sequence number.
+This also has implications for the recovery mechanism.
+If a soap server goes down while in
+.I "2 copy mode"
+it will need to contact the other server (which is likely
+to have a higher sequence number) during initialization
+in order to get all directories consistent again.
+If the other one is unavailable during recovery,
+the server can only wait and try again later.
+.LP
+If a replicated \*(Ss that is trying to make a directory modification
+is not able to reach its partner right away,
+it will retry sending the intention for about 30 seconds.
+If it still fails,
+it will assume the other side has crashed,
+and switch over to
+.I "1 copy mode" .
+The server may then safely assume it has the most up-to-date directory state,
+so if it goes down later on as well,
+it can recover without waiting for the other side to become available.
+.LP
+Note: the protocol used works as long as there is no network partition
+between the two replicas.
+To handle this situation as well,
+at least three replicas would be required.
+.mH
+Options
+.LP
+The \*(Ss recognizes the following command line options:
+.IP "\fB\-F\fP" 8
+This forces a switch to one copy mode if the \*(Ss cannot
+reach its partner during startup.
+The option should
+.I only
+be given if the other server is unable to start up properly,
+e.g. because vital data has been overwritten.
+.IP "\fB\-k\fP max_kbytes"
+.br
+.I Soap
+usually cannot keep all the directories in core at the same time,
+so it implements a cache of directories.
+The maximum size of this cache can be limited to
+.I max_kbytes
+using the
+.B \-k
+option.
+The default value is 400.
+.IP "\fB\-n\fP"
+By default,
+during recovery the \*(Ss tries to read in all its directories,
+to make sure all directory replicas are valid and consistent.
+This time-consuming procedure is skipped when the
+.B \-n
+option is given.
+.IP "\fB\-s\fP nthreads"
+.br
+The default number of threads handling directory operations is 6.
+The
+.B \-s
+option can be used to force a different number of server threads.
+.mH
+Diagnostics
+.LP
+All diagnostics from
+.I soap
+are prefixed with
+.cW "SOAP x:"
+where
+.I x
+is the server number (either 0 or 1).
+When
+.I soap
+starts up it prints (in this example server 0)
+.sC
+SOAP 0: initializing
+SOAP 0: Bullet 0 is up
+.eC
+If it is using two \*(Bss then it will also print
+.sC
+SOAP 0: Bullet 1 is up
+.eC
+and then details about its cache of directories.
+These are of the form
+.sC
+SOAP 0: cache_init: \fImessage\fP
+.eC
+Where
+.I message
+describes some characteristic of the directory cache.
+Then it prints
+.sC
+SOAP 0: using n copy mode
+.eC
+where
+.I n
+is either 1 or 2.
+If it says that it is in 2 copy mode then it may be out of date with respect to
+the other server and have to synchronize with it.
+In that case it prints
+.sC
+SOAP 0: need help from the other side
+.eC
+followed by
+.sC
+SOAP 0: initialized after help from the other side
+.eC
+If there was no recovery to do
+it will print
+.sC
+SOAP 0: our seq_nrs are the same; no recovery necessary
+.eC
+Once it is initialized it will print
+.sC
+SOAP 0: 6 threads started
+.eC
+.LP
+At this point
+.I soap
+is running and ready to accept commands.
+If the server is duplicated the partner will print the message
+.sC
+SOAP 1: other side is back
+.eC
+.LP
+Similarly,
+if a server detects the absence of its partner (due to crash, reboot or
+hardware failure of some sort) it will print
+.sC
+SOAP 1: other side seems to have crashed
+.eC
+If one of the \*(Bss in use by
+.I soap
+goes down and then comes back up then
+.I soap
+will print
+.sC
+SOAP 0: Bullet n is back up
+.eC
+where
+.I n
+refers to the number of the \*(Bs as
+.I soap
+numbers them.
+.LP
+During the course of starting up
+.I soap
+may detect bad data on its virtual disk or in its bullet files.
+In this case it will print details of what the problem was and how it corrected
+it.
+.mH
+Environment Variables
+.LP
+.cW SOAP_SUPER
+must be set in the capability environment and
+specifies the capability for the disk with the server's directory
+information.
+.LP
+.cW TOD
+is a capability environment variable which specifies the time of day server
+that
+.I soap
+should use.
+If it is not set then
+.I soap
+will attempt to use the default time of day server.
+However,
+to do this it will have to do a name lookup for the default.
+This means that there must be another \*(Ss running.
+For reliability, therefore, this variable should always be given in the
+environment.
+.LP
+.cW RANDOM
+is a capability environment variable that specifies which random server
+that
+.I soap
+should use.
+Like
+.cW TOD ,
+this should always be specified in case there is no other \*(Ss running.
+.mH
+Files
+.LP
+.I Soap
+keeps the directories in bullet files.
+It ensures that they are touched and kept consistent.
+If given two \*(Bss,
+.I soap
+will also ensure that the files are correctly duplicated and regularly
+.kW "garbage collection"
+.kW touch
+touched so that they are not garbage collected.
+If
+.I soap
+is run in two copy mode then each will show a preference for the \*(Bs that
+corresponds to its copy.
+This spreads the load evenly over the \*(Bss.
+.mH
+Warnings
+.LP
+A lot has been done to make the server robust in the face of errors in its
+data files, but it is still possible that it can get inconsistencies in the
+data that it cannot recover from.
+In that case you will have to pick the server you think has the best picture of
+the world and copy its super file to that of its partner.
+(Make a backup of the original first of course,
+by dumping it to a bullet file.)
+.SH
+Programming Interface Summary
+.LP
+Besides the standard server commands
+.I soap
+accepts a large number of specialized directory commands.
+They are summarized in the tables below.
+For more details of these commands see
+.I std (L)
+and
+.I soap (L).
+.LP
+In the following table all routines have the following errors in common.
+The table shows only the additional errors particular to each command.
+.IP "\*<RPC_*\*>" 16
+a generic RPC failure
+.IP "\*<STD_ARGBAD\*>"
+name too long, etc.
+.IP "\*<STD_CAPBAD\*>"
+capability has wrong random check field
+.IP "\*<STD_DENIED\*>"
+capability lacks rights the operation requires
+.IP "\*<STD_NOSPACE\*>"
+lack of space at the \*(Ss
+.IP "\*<SP_UNAVAIL\*>"
+equivalent to \*<RPC_NOTFOUND\*>
+.IP "\*<SP_UNREACH\*>"
+capability refers to nonexisting directory
+.eC
+.TS
+tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+Soap Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+sp_append:SP_MODRGT:STD_EXISTS:T{
+Adds an entry to a directory.
+T}
+_
+sp_chmod:SP_MODRGT:STD_NOTFOUND:T{
+Changes the column masks on a directory entry.
+T}
+_
+sp_create:READ::T{
+Creates a new directory object
+but does not enter it into another directory.
+T}
+_
+sp_delete:SP_MODRGT:STD_NOTFOUND:T{
+Deletes a directory entry
+(not a directory).
+T}
+_
+sp_getmasks:READ:STD_NOTFOUND:T{
+Returns the current column masks on a directory entry.
+T}
+_
+sp_install:SP_MODRGT:SP_CLASH:T{
+Atomically update a set of directory entries
+(all in the same soap server).
+T}
+_
+sp_lookup:READ:STD_NOTFOUND:T{
+Returns the capability-set for a single directory entry.
+T}
+_
+sp_replace:SP_MODRGT:STD_NOTFOUND:T{
+Atomically replaces a single directory entry's capability-set.
+T}
+_
+sp_setlookup:READ:STD_NOTFOUND:T{
+Returns the capability-sets for several specified entries.
+T}
+_
+sp_list:READ::T{
+Returns all the names and masks in a directory.
+T}
+_
+.TE
+.bp
+.LP
+.TS
+tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+Standard Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:SUPERCAP:T{
+STD_NOTNOW
+.br
+STD_DENIED
+.br
+STD_CAPBAD
+T}:T{
+Decrements the time-to-live field of all directories,
+and removes the unused directories.
+T}
+_
+std_destroy:SP_MODRGT:T{
+SP_NOTEMPTY
+.br
+STD_DENIED
+.br
+STD_CAPBAD
+T}:T{
+Destroys the specified directory,
+which must be empty.
+T}
+_
+std_info:READ:T{
+STD_DENIED
+.br
+STD_CAPBAD
+T}:T{
+Returns string of the form "/dw1234"
+telling the rights in the directory capability.
+T}
+_
+std_restrict::T{
+STD_CAPBAD
+T}:T{
+Returns a directory capability with restricted rights.
+T}
+_
+std_status:::T{
+Returns an ASCII string of statistics about Soap.
+T}
+_
+std_touch:READ:T{
+STD_DENIED
+.br
+STD_CAPBAD
+T}:T{
+Resets the time-to-live field of the directory
+and touches the bullet files storing it.
+T}
+_
+.TE
+.SH
+Administration
+.LP
+.sH
+Installation
+.LP
+The program
+.I makesuper (A),
+which creates the super files and the first directory,
+is used for this.
+With
+.I makesuper
+one also determines whether the server will initially use multiple bullet files
+(by specifying multiple \*(Bss instead of just one) and whether the server
+will be duplicated or always run in single copy mode.
+The correct way to use
+.I makesuper
+is described in the installation guide.
+.sH
+Maintenance
+.LP
+In general most errors in data files used by
+.I soap
+are automatically repaired.
+When they are not,
+.I sp_fix (A)
+can be used to manually delete bad directories (specified by their object
+number,
+the same number printed by
+.I soap
+in the error messages complaining about the directory).
+This is necessary when
+.I soap
+reports errors in reading directories,
+and the errors do not go away when
+.I soap
+is restarted.
+.LP
+If you modify the \*(Ss then the new version can be installed without any
+down time if the server is duplicated.
+Simply install the new server in the appropriate place and then kill one of
+the servers (say server 1).
+Restart the new version in its place.
+Once the new version has recovered and started serving,
+kill the other partner (server 0) and start the new version in its place.
+(Of course,
+this will only work if you do not change the protocol that the servers use
+to communicate with each other.)
+.LP
+It is possible to change the bullet servers used by
+.I soap
+with the command
+.I chbul (A).
+By giving a null capability to
+.I chbul
+it will stop it using a second bullet server at all.
+After you have run
+.I chbul
+it is important to let the \*(Ss have time
+to migrate its files to the new server.
+It migrates at most 11 files per minute at present.
+You can follow the progress of this using the
+.I monitor (U)
+command on the private
+port of server 0 (usually found in
+.I /super/cap/soapsvr/soap0 ).
+.SH
+Example
+.LP
+Normally
+.I soap
+will be started by the boot server
+(see
+.I boot (A)).
+There is an example of how this is done in the standard boot file of the
+distribution.
+If however it is necessary to start it from
+.UX ,
+the following command will start server 1 on machine
+.I host
+if another \*(Ss is already running.
+Of course, you must select the correct disk partition for this server!
+.sC L
+ax -c -m host -C SOAP_SUPER=/super/hosts/host/vdisk:02 \e
+              -C TOD=/super/cap/todsvr/default         \e
+	      -C RANDOM=/super/cap/randomsvr/default   \e
+              /super/admin/bin/soap 1 &
+.eC
+.SH
+File Formats
+.LP
+There are two file formats used by
+.I soap .
+One is for its super file and the other for the bullet files that hold the
+actual directory contents.
+For maximum flexibility,
+both formats are written in a byte order independent way.
+.LP
+The super file consists of a super block (block 0 of the disk) followed by
+an array of capability pairs.
+The super block structure is defined in
+.I h/server/soap/super.h
+and consists of a magic number followed by the following information:
+.IP \(bu
+the private capabilities for the two \*(Sss,
+.IP \(bu
+the public capability that both servers listen to
+.IP \(bu
+the current sequence number (used in 2 copy mode to determine
+which server has the most up-to-date information)
+.IP \(bu
+the last known copy mode
+.IP \(bu
+the number of blocks of capability data following the super block.
+.IP \(bu
+an intentions list consisting of directory updates that
+were accepted,
+but still need to be installed in the super table.
+At present there is room for 11 intentions.
+.LP
+The rest of the super file is a list of capability pairs.
+The first pair is the set of capabilities for the actual bullet servers to use.
+(No directory can have object number 0.)
+The subsequent pairs are the capabilities for the bullet files
+containing the directory data.
+.LP
+The format of the bullet files used to store the actual directory data is
+defined in the file
+.I h/server/soap/soapsvr.h
+and is as follows:
+It consists of a
+.I "struct sp_dir
+which contains a sequence number,
+which is used by
+.I starch (U),
+the number of rows, the number of columns and the name of
+the columns plus the check field for the directory object.
+This is followed by a number of
+.I sp_row
+structs (as many as described in the
+.I sp_dir
+struct).
+Each row consists of an character string which is the name of the entry
+followed by the creation time and a capability-set.
+Appended to each row is also a set of rights masks, one for each column
+in the directory.
+.SH
+See Also
+.LP
+chbul(A),
+chm(U),
+del(U),
+dir(U),
+get(U),
+makesuper(A),
+mkd(U),
+monitor(U),
+put(U),
+soap(L),
+sp_dir(L),
+sp_mask(L),
+sp_mkdir(L),
+std(L),
+std_age(A),
+std_info(U),
+std_restrict(U),
+std_status(U),
+std_touch(U),
+vdisk(A).

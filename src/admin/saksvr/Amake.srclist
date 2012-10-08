@@ -1,0 +1,17 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:52:46
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+S_SAK = {
+	$PWD/sak.c,
+	$PWD/do_req.c,
+	$PWD/handle_jobs.c,
+	$PWD/handle_req.c,
+	$PWD/handle_work.c,
+	$PWD/schedule.c,
+	$PWD/pool.c,
+	$PWD/sak_exec.c
+};

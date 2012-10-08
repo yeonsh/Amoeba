@@ -1,0 +1,36 @@
+.\"	@(#)mmdf.n	1.3	96/02/15 17:04:26
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 2 "Installing MMDF II"
+.LP
+.kW "MMDF II"
+MMDF is an electronic mail transport system plus user interface programs.
+MMDF is an acronym for Multi-channel Mail Delivery Facility.
+.kW TCP/IP
+.kW "electronic mail"
+The mail system can send mail to other \*(Am users, and if the TCP/IP server
+is present, mail can be sent to and received from sites on the Internet.
+.LP
+Only the changes to MMDF to make it run under \*(Am are present in the \*(Am
+source tree.
+This is in the directory
+.I src/mmdf.am .
+It is necessary to obtain the source for MMDF II to build the software.
+There may be restrictions on the availability of the source.
+It can be obtained either from your \*(Am distributor or from the Internet.
+The source code should be loaded under the directory
+.I src/mmdf .
+A symbolic link from
+.I src/mmdf
+to the actual sources is sufficient under
+.UX .
+.LP
+Note that compilation of MMDF under \*(Am has not yet been tested.
+The MMDF binaries are not normally provided on the distribution tape.
+See
+.I buildmmdf (A)
+and the chapter on building the system for details of how to compile and
+install MMDF.

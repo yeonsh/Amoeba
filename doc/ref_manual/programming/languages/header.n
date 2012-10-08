@@ -1,0 +1,56 @@
+.\"	@(#)header.n	1.6	96/02/15 16:46:14
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Programming Languages"
+.LP
+.kW "programming languages"
+This section describes the various programming languages available under \*(Am.
+.LP
+The Amsterdam Compiler Kit (ACK) provides much of the language support for
+\*(Am.
+.kW "STD C"
+.kW "Modula-2"
+.kW Pascal
+.kW BASIC
+.kW FORTRAN
+Several languages are currently provided: STD C, Pascal, BASIC, FORTRAN 77
+and Modula-2.
+The target architectures currently supported by the compiler
+under \*(Am are the MC680x0 family and the Intel 80386.
+.LP
+Details of how to invoke these compilers are provided in the User Guide.
+See
+.I ack (U),
+.I cc (U),
+.I f\^77 (U),
+.I m2 (U)
+and
+.I pascal (U)
+for further details.
+In addition an archiver, name list and sizing program are provided.
+See
+.I aal (U),
+.I anm (U)
+and
+.I size (U)
+for details.
+.LP
+The internal details of ACK,
+including the link editor and information about descriptions files for front
+and back-ends is rather esoteric and irrelevant to most programmers.
+However for completeness there is a description of the structure of the
+compiler kit and the manual pages for the linker and description files.
+Also included is a specification of the conformance of the STD C,
+Pascal and Modula 2 compilers.
+.LP
+.kW GNU
+In addition to ACK the GNU C Compiler is available under \*(Am for all
+supported architectures.
+It is freely available but does not form part of the distribution.
+For details of its use see the separate GNU documentation for the compiler.
+The command
+.I f2c (U)
+can be used as a preprocessor for the GNU C compiler to compile Fortran 77.

@@ -1,0 +1,25 @@
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+#	
+#	@(#)lib.generic	1.2	94/04/05 17:05:56
+#
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+LINTLIBNAME = llib-l$LIBNAME.ln;
+
+LINT_LIB_FLAG = '-o ';
+
+%default lib$LIBNAME.a, $LINTLIBNAME;
+
+%cluster
+{
+	%targets lib$LIBNAME.a[type = archive];
+	%sources $SOURCEFILES;
+};
+
+%cluster
+{
+	%targets $LINTLIBNAME[type = lint-library];
+        %sources select($SOURCEFILES, lint-source, %true);
+};

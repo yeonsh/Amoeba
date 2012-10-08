@@ -1,0 +1,131 @@
+.\"	@(#)syssvr.n	1.6	96/02/15 17:52:22
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Sept 1991
+	Document: Gregory J. Sharp, Nov 1991
+	Modified: Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "syssvr" A
+the kernel system server
+.SH
+Synopsis
+.LP
+Built into the kernel.
+.SH
+Description
+.LP
+.kW "system server"
+The
+.I syssvr
+is a special server in the kernel that accepts system commands such as
+.I kstat (A)
+and
+.I reboot (A).
+If no printbuf server is present
+(see
+.I printbufsvr (A))
+then it also provides a primitive
+.I printbuf
+interface.
+.LP
+At initialization time the
+.I syssvr
+publishes its capability in the kernel directory under the name
+.I sys .
+If it is present in a boot ROM then a
+.I std_info (U)
+command on the
+.I sys
+capability will return the string ``bootstrap kernel''.
+For a normal kernel it will return ``system server''.
+.SH
+Programming Interface Summary
+.LP
+The actual functions available in the system server vary with the compile-time
+flags used to compile it.
+Below is the set of commands accepted when it is fully configured.
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+Available Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_info:NONE:T{
+RPC error
+T}:T{
+Print identifying string.
+T}
+_
+std_restrict:NONE:T{
+RPC error
+T}:T{
+Restrict the rights in a capability.
+T}
+_
+std_getparams:NONE:T{
+RPC error
+T}:T{
+Currently a noop.
+T}
+_
+std_setparams:NONE:T{
+RPC error
+T}:T{
+Currently a noop.
+T}
+_
+sys_boot:SYS_RGT_BOOT:T{
+RPC error
+.br
+STD_DENIED
+T}:T{
+Reboot with new kernel.
+T}
+_
+sys_printbuf:SYS_RGT_READ:T{
+RPC error
+.br
+STD_DENIED
+T}:T{
+.kW "console buffer"
+Return console buffer contents.
+T}
+_
+sys_kstat:SYS_RGT_READ:T{
+RPC error
+.br
+STD_ARGBAD
+.br
+STD_DENIED
+T}:T{
+Return selected kernel statistics.
+T}
+_
+.TE
+Note that there are plans to implement
+.I std_setparams
+and
+.I std_getparams
+so that various network and other parameters can be set interactively.
+.SH
+Administration
+.LP
+The only administration required is the decision as to whether or not a kernel
+should have a
+.I syssvr .
+In almost all cases it is a good idea.
+The only exception is when a very small kernel is required, such as for a
+boot ROM.
+.SH
+See Also
+.LP
+printbufsvr(A).

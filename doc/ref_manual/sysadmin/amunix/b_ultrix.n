@@ -1,0 +1,246 @@
+.\"	@(#)b_ultrix.n	1.7	96/02/15 17:01:15
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Jack Jansen, 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.ne 9
+.nH 2 "Adding \*(Am RPC to an Ultrix kernel"
+.LP
+This procedure has not been tested for many years.
+It is included only for exemplary purposes.
+.nH 3 "Requirements"
+.LP
+.kW RPC
+.kW Ultrix
+To add \*(Am RPC to your Ultrix kernel you need a binary license
+for Ultrix, at least release 2.2.
+It is also possible to add an \*(Am pseudo-device to older versions of
+Ultrix, but you will need a source license for this.
+This driver has not been tested with \*(Am 5.0 but the \*(Am 4.0 driver
+worked using these installation instructions so there is some hope that
+it might work.
+.LP
+Adding the driver has been tested on a MicroVax 2000 and a MicroVax II
+under Ultrix 2.2
+. \" and on a DECstation 3100 under Ultrix 3.?
+but there is little reason to believe that it will not work with
+other machines or intermediate releases of Ultrix.
+.LP
+It is probably a good idea to get some feeling for what happens during
+kernel configuration, so if you have never configured a kernel before
+you should try a standard configuration first.
+See the system administrators manual for details.
+.nH 3 "Adding the driver to a binary only system"
+.LP
+Even if you have a source license it is probably a good idea to
+try to follow this path first, since it will change the fewest source
+files.
+It is probably prudent to store copies of these files away
+in a safe place, so you will be able to revert to your originals
+in case you do something disastrous.
+The following files are going to need changes:
+.sC
+.I
+conf/files
+vax/conf.c
+data/uipc_domain_data.c
+data/if_to_proto_data.c
+h/socket.h
+.eC
+.nH 3 "Setting things up."
+.LP
+We assume here that you have already loaded the \*(Am driver
+distribution.
+If not, do so now.
+A reasonable place to put it is probably
+.I /usr/src/sys/amunix .
+.LP
+Next, copy the files named above to a safe place.
+.nH 3 "Modifying your system files."
+.LP
+As stated before, some of the files in your Ultrix distribution
+will need a few changes.
+We will describe them file by file here.
+.SH
+conf/files
+.LP
+This file contains the names of all sources used to build a unix kernel.
+Add a line
+.sC
+amunix/amoeba.c       optional amoeba Binary
+.eC
+to the end.
+Note that there is no such file, actually, but that does not
+matter since we are building from binary anyway.
+.SH
+vax/conf.c
+.LP
+This file lists all devices that can be supported by Ultrix.
+Add the following lines at a convenient point:
+.sC
+#ifdef AMOEBA
+extern int     amioctl();
+#else
+#define amioctl nodev
+#endif AMOEBA
+.eC
+Also, add the following lines to the bottom of the initialization
+of the
+.cW cdevsw
+array:
+.sC
+nulldev,    nulldev,    nodev,      nodev,      /*\fINN\fP*/
+amioctl,    nodev,      nodev,      0,
+seltrue,    nodev,      0,
+.eC
+Replace the \fINN\fP by a number one higher than that of the previous
+entry.
+(It is 54 when the driver is added to a virgin Ultrix 2.2 distribution).
+If you are not running 2.2 but some other version you will have to find out
+what the fields in a
+.cW cdevsw
+entry are, and what to put in them.
+.I Nulldev
+or
+.I nodev
+is a reasonable value for pointers to functions,
+0 for most other things, probably.
+.SH
+data/uipc_domain_data.c
+.LP
+This file lists all communication domains recognized by the networking
+code.
+Add the following lines to the routine
+.I domaininit() ,
+somewhere before the
+.I for
+loop (in virgin 2.2, it will be right after the code with
+.I ADDDOMAIN(dli)
+in it):
+.sC
+#ifdef AMOEBA
+	ADDDOMAIN(amoeba);
+#endif
+.eC
+.SH
+data/if_to_proto_data.c
+.LP
+This file contains the initializes a table that will map ethernet
+protocol numbers to address families and domains.
+There is a comment saying that ``The DLI entry should be last ...''.
+The following lines should be inserted before that comment:
+.sC
+#ifdef AMOEBA
+#include "../amunix/am_tp.h"
+#define ETHER_AMOEBA \e
+        { ETHERTYPE_AMOEBA,      AF_AMOEBA,     0,             0}
+#else AMOEBA
+#define ETHER_AMOEBA    IFNULL
+#endif AMOEBA
+.eC
+Also, the entry
+.I ETHER_AMOEBA
+should be added to the initialization of
+.cW if_family[]
+array, just before
+.I ETHER_DLI .
+.SH
+h/socket.h
+.LP
+The last file to change is
+.I socket.h ,
+to define the \*(Am address family number.
+The actual number used is unimportant.
+It is only used internally.
+Before the line defining
+.I AF_MAX
+add a line defining
+.I IAF_AMOEBA .
+Use the old value of
+.I AF_MAX ,
+and increment
+.I AF_MAX
+by one.
+.nH 3 "Building the driver."
+.LP
+Building the driver is fairly simple.
+First, edit the
+.I Makefile
+to see whether it is setup to compile for your version of Ultrix.
+Drivers for various kinds of unixen are made from the same Makefile,
+so you might have to comment out some lines.
+There are two blocks where you have to customize something: the definitions
+at the top and the rule for compiling C sources a little below that.
+.LP
+Now, typing
+.sC
+\fBmake\fP
+.eC
+should result in the file
+.I amoeba.o ,
+that should be copied to
+.I /usr/src/sys/BINARY.vax/amoeba.o ,
+where the Ultrix
+.I make
+will find it later on.
+.LP
+Also, the program
+.I flip_stat
+should have been built.
+This program can be used to peek at some of the data structures of the \*(Am
+driver.
+.nH 3 "Building a kernel."
+.LP
+First, you have to make a configuration file.
+For instance, if your old configuration file is called
+.I /usr/sys/conf/HOST
+you copy that file to
+.I /usr/sys/conf/AMHOST ,
+and edit the new configuration file to add the following two lines:
+.sC
+options		AMOEBA
+pseudo-device	amoeba
+.eC
+Somewhere near the end is probably a good idea.
+.LP
+Next, you make the directory
+.I /usr/sys/AMHOST .
+Then in the directory
+.I /usr/sys/conf
+run
+.sC
+.B
+/etc/config AMHOST
+.eC
+Now change to
+.I /usr/sys/AMHOST
+and run the commands
+.sC
+.B
+make depend
+make
+.eC
+Hopefully, this will build a
+.UX
+kernel with \*(Am support.
+.LP
+Boot the new kernel (be sure to save the old
+.I /vmunix
+somewhere in case something went wrong), and make the device entry, with
+.sC
+.B
+/etc/mknod /dev/amoeba c \fINN\fP 0
+.eC
+replacing the
+.I NN
+by the same number you entered into
+.I conf.c .
+.LP
+Now, you are ready for testing.
+Proceed according to the instructions in the introduction.

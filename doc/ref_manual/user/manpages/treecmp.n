@@ -1,0 +1,74 @@
+.\"	@(#)treecmp.n	1.2	94/04/05 16:12:57
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Andy Tanenbaum, (Minix)
+	Document: Gregory J. Sharp, April 1992
+.aE
+.mT "treecmp" U
+recursively compare two directory trees
+.SH
+Synopsis
+.LP
+.sC L
+treecmp [-v] dir1 dir2
+.eC
+.SH
+Description
+.LP
+.kW "file comparison"
+This program recursively compares the two directory trees
+.I dir1
+and
+.I dir2
+and reports any differences.
+If the command line arguments refer to files rather than directories
+then it will report any differences between the two files,
+although
+.kW "\fIdiff\fP"
+.I diff
+or
+.kW "\fIcmp\fP"
+.I cmp
+may be better suited to this purpose.
+It can be used, for example, when a project consists of a large number
+of files and directories.
+When a new release (i.e., a new tree) has been prepared,
+the old and new tree can be compared to give a list of what has changed.
+.LP
+The algorithm used is that the first tree is recursively
+descended and for each file or directory found, the corresponding one in
+the other tree checked.
+The two arguments are not completely symmetric because the first tree is
+descended, not the second one, but reversing the arguments will still detect
+all the differences, only they will be printed in a different order.
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+Verbose mode.
+It prints the names of directories as it enters them.
+.mH
+Warnings
+.LP
+This program may not handle cycles in the directory graph.
+It is only likely to work properly when applied to directory (sub)graphs
+with a tree structure.
+.LP
+It will also be confused by objects other than directories and files.
+Objects of unknown type will be reported with the message
+.sC
+Unknown file type nnn
+.eC
+where
+.I nnn
+is the octal representation of the files type.
+.SH
+See Also
+.LP
+cdiff(U),
+cmp(U),
+diff(U).

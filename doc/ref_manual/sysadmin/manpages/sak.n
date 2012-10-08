@@ -1,0 +1,323 @@
+.\"	@(#)sak.n	1.6	96/02/15 17:51:47
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Maarten Huisjes, August 1990
+	Document: Maarten Huisjes, August 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "sak" A
+the Swiss Army Knife server
+.SH
+Synopsis
+.LP
+sak [-I] [-W] [-w name] [-r] [-p dir] [-c name] [-n #threads]
+    working-directory
+.SH
+Description
+.LP
+.kW "Swiss Army Knife server"
+The
+.I "Swiss army knife"
+(\fIsak\fP)
+server provides a mechanism for execution of transactions at a later date.
+A file containing details of a transaction and the environment required for
+its execution are submitted to the server along with a
+.I schedule
+describing under what condition(s) the transaction should be executed.
+At present, schedules are restricted to conditions based on time.
+The
+.I sak
+server assumes that all schedules are specified relative to the timezone of
+the server.
+Besides the standard server commands (see
+.I std (L))
+it provides two other commands:
+one to submit jobs and one to list jobs.
+.LP
+Because there is not yet a suitable
+.I exec
+server there is also a special thread in the server that accepts
+a command to execute a program.
+This thread is normally accessed by submitting a special job using the
+.I "submit-job"
+command which does a transaction with the special thread.
+See
+.I sak (L)
+for details of how to do this.
+.LP
+The
+.I sak
+server guarantees 0 or 1 executions of a transaction.
+If the server notices that a job was not run at the correct time,
+the client can specify if a job needs to be discarded or executed immediately.
+Return data from executed transactions are discarded.
+A return status can be optionally reported.
+.mH
+Options
+.LP
+.IP "\fB\-I\fP"
+Install the server and start running.
+This option should be used the first time the server is run and thereafter
+omitted.
+.IP "\fB\-W\fP"
+Enable the special
+.I exec
+server so that the
+.I sak
+server can execute programs at a particular time.
+.IP "\fB\-c\fP \fIname\fP"
+.br
+Publish the transaction server capability under
+.I name .
+.IP "\fB\-n\fP \fI#threads\fP"
+.br
+Use
+.I #threads
+server threads.
+.IP "\fB\-p\fP \fIdir\fP"
+.br
+Publish the server capability in the directory
+.I dir .
+.IP "\fB\-r\fP"
+Republish the server capability.
+.IP "\fB\-w\fP \fIname\fP"
+.br
+Publish the exec server capability under
+.I name .
+.LP
+The
+.I "working-directory"
+command line argument is used as the work directory.
+Here it looks for the
+.I jobs
+and
+.I trans
+directories and checks for existing jobs.
+In this directory there has to be a masterfile (named
+.I sak_masterfile )
+so it can restart with the old server capability
+(unless the
+.B \-I
+flag is specified).
+.SH
+Programming Interface Summary
+.LP
+The programming interface consists of commands particular to the server
+(whose names begin with
+.I sak_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+A summary of the supported commands is presented in the following two tables.
+For a complete description of the interface routines see
+.I sak (L)
+and
+.I std (L).
+.ne 20
+.TS H
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+Standard Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+.TH
+std_age:T{
+OWNERRIGHTS in server cap
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_COMBAD on job cap
+T}:T{
+.kW "garbage collection"
+Start garbage collection pass.
+T}
+_
+std_info::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Returns name of the sak job.
+T}
+_
+std_restrict::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Returns a capability with restricted rights.
+T}
+_
+std_touch::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Reset life-time of the job.
+T}
+_
+std_destroy:OWNERRIGHTS:T{
+RPC error
+.br
+STD_DENIED
+.br
+STD_CAPBAD
+.br
+STD_COMBAD on server cap
+T}:T{
+Cancel the job.
+T}
+_
+.TE
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+SAK Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+sak_list_job:OWNERRIGHTS:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_COMBAD on server cap
+.br
+STD_NOMEM
+T}:T{
+Return schedule and options of the job.
+T}
+_
+sak_submit_job::T{
+RPC error
+.br
+SAK_TOOLATE
+.br
+STD_CAPBAD
+.br
+STD_SYSERR
+.br
+STD_ARGBAD
+.br
+STD_NOMEM
+.br
+STD_COMBAD on job cap
+T}:T{
+Submit new job.
+T}
+_
+.TE
+.SH
+Administration
+.LP
+Administration is trivial.
+The server can be started in two ways.
+The first time it will have to be started in install mode,
+i.e., with the
+.B \-I
+flag.
+After that it can be restarted and will continue where the previous server
+left off.
+No administration is needed once the server is running.
+.mH
+Installation
+.LP
+If the server is started with the
+.B \-I
+flag it will try to install a new server in the specified directory.
+This directory should be empty and inaccessible to normal users.
+Here it will create two directories named
+.I jobs
+and
+.I trans .
+All job and transaction files are stored in these directories.
+Next a masterfile named
+.I sak_masterfile
+is created.
+The masterfile is needed to resume a server after it has died.
+The default place for the server capability to be installed is
+.I /super/cap/saksvr/default .
+This can be modified using the
+.B \-p
+.I directory
+and
+.B \-c
+.I name
+options.
+Before starting operation, the server will make sure that no old server
+is running.
+.LP
+Once installed the server can be stopped and restarted at any time.
+It will read the masterfile, look for jobs in the jobs directory and continue
+operation.
+It assumes the server capability is still in place.
+If by accident the server capability was deleted or corrupted,
+it can be reinstalled using the
+.B \-r
+option.
+.mH
+Notes
+.LP
+The
+.I sak
+server can only execute transactions.
+Since there does not exist a transaction to execute a command directly, the
+.I sak
+server provides an additional service to execute a command specified by an
+argument list,
+string environment list and capability environment list.
+The service is provided by a special thread within the
+.I sak
+server and is completely transparent to the rest of the server.
+This thread accepts requests on a separate port.
+Only one type of request is allowed:
+.cW SAK_EXEC_FILE.
+The buffer should contain a NULL-terminated argument list, a NULL-terminated
+string environment list and a NULL-terminated capability environment list.
+This can be used in combination with the normal
+.I sak
+server to execute files instead of transactions.
+For further details see
+.I sak (L).
+.LP
+The server will only provide the exec service if
+.B \-W
+is specified on the command line.
+Since this service uses a separate port, its server capability is installed in
+.I /super/cap/saksvr/execdefault 
+at installation time.
+This can be modified using the
+.B \-p
+.I directory
+and
+.B \-w
+.I name
+options.
+.\" -w sets the name of the at/cron service capability (similar to -c)
+.SH
+See Also
+.LP
+.kW "cron"
+.kW "at"
+at(U),
+cronsubmit(U),
+sak(L),
+std(L).

@@ -1,0 +1,8 @@
+#	
+#	@(#)Amake.srclist	1.1	93/10/08 14:27:43
+#
+T_DHRYSTONE = $PWD/dhrystone.c;
+T_DHRYSTONE2 = {
+	$PWD/dhry_1.c,
+	$PWD/dhry_2.c
+};

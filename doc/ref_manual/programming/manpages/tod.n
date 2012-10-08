@@ -1,0 +1,216 @@
+.\"	@(#)tod.n	1.7	96/02/15 16:57:14
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, December 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "tod" L "libamoeba.a, libamunix.a"
+the Time-Of-Day server interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/tod.h"
+
+errstat tod_defcap()
+void tod_setcap(tod_cap)
+errstat tod_gettime(sec, msec, tz, dst)
+errstat tod_settime(sec, msec)
+.eC
+.SH
+Description
+.LP
+.kW "\fItod_defcap\fP"
+.kW "\fItod_setcap\fP"
+.kW "\fItod_gettime\fP"
+.kW "\fItod_settime\fP"
+.kW "time"
+.kW "time of day"
+.kW timing
+.kW date
+This module provides the interface to the time of day service.
+There may be more than one time of day server on an \*(Am network and
+it is possible to select a particular server, or simply use the default
+server when getting or setting the time.
+.mH
+Functions
+.LP
+.sH
+tod_defcap
+.LP
+.sC
+errstat
+tod_defcap()
+.eC
+.kW "\fItod_defcap\fP"
+This routine is used to set the time of day server to be used by calls
+to get or set the time.
+It finds the capability for a time-of-day server as follows.
+It uses the
+.kW "TOD environment variable"
+.cW TOD
+capability environment variable if it exists.
+Otherwise it looks up
+.cW DEF_TODSVR
+as defined in
+.I ampolicy.h
+(which is typically
+.I /profile/cap/todsvr/default ).
+The capability is stored in static data inside the module.
+Be careful when trying to use multiple time of day servers.
+.LP
+The function returns
+.cW STD_OK
+if it successfully looked up the capability in the directory server.
+Otherwise it returns the error status from the directory server look-up.
+.sH
+tod_setcap
+.LP
+.sC
+void
+tod_setcap(tod_cap)
+capability *tod_cap;
+.eC
+.kW "\fItod_setcap\fP"
+.LP
+.I Tod_setcap
+sets to
+.I tod_cap
+the pointer to the capability for the time of day server to be used
+in subsequent calls to
+.kW "\fItod_gettime\fP"
+.I tod_gettime
+and
+.kW "\fItod_settime\fP"
+.I tod_settime .
+The address of the capability is stored in static data inside the module.
+Be careful when trying to use multiple time of day servers.
+.sH
+tod_gettime
+.LP
+.sC
+errstat
+tod_gettime(sec, msec, tz, dst)
+long *sec;
+int *msec;
+int *tz;
+int *dst;
+.eC
+.kW "\fItod_gettime\fP"
+.I Tod_gettime
+gets the time from the time-of-day server.
+It fills the long integer pointed to by
+.I sec
+with the number of seconds since the epoch, January 1, 1970,
+and the integer pointed to by
+.I msec
+with the number of milliseconds since the value in
+.I sec .
+The integer pointed to by
+.I tz
+is filled in with the local time zone, measured in minutes of
+time westward from Greenwich.
+The integer pointed to by
+.I dst
+is filled in with a non-zero value if Daylight Saving time is in effect.
+.LP
+.kW "\fItod_gettime\fP"
+.I Tod_gettime
+calls
+.kW "\fItod_defcap\fP"
+.I tod_defcap
+if it has not already been called, so it is not necessary to explicitly call
+.I tod_defcap
+or
+.kW "\fItod_setcap\fP"
+.I tod_setcap
+before
+.I tod_gettime .
+.rR
+None
+.eR
+\*<RPC\*> errors	if the server is not available.
+.DE
+.sH
+tod_settime
+.LP
+.sC
+errstat
+tod_settime(sec, msec)
+long sec;
+int msec;
+.eC
+.kW "\fItod_settime\fP"
+.I Tod_settime
+sets the time of the time-of-day server as selected by either
+.kW "\fItod_defcap\fP"
+.I tod_defcap
+or
+.kW "\fItod_setcap\fP"
+.I tod_setcap .
+.LP
+.kW "\fItod_settime\fP"
+.I Tod_settime
+calls
+.kW "\fItod_defcap\fP"
+.I tod_defcap
+if it has not already been called, so it is not necessary to explicitly call
+.I tod_defcap
+or
+.I tod_setcap
+before
+.kW "\fItod_settime\fP"
+.I tod_settime .
+.rR
+All rights bits must be on.
+.eR
+\*<STD_DENIED\*>	if any rights are not on.
+\*<STD_CAPBAD\*>	if the capability is invalid.
+\*<RPC\*> errors	if the server is not available.
+.DE
+.mH
+Environment Variables
+.LP
+.kW "TOD environment variable"
+.cW TOD
+\- environment capability for a tod server.
+.mH
+Warnings
+.LP
+.kW "clock"
+The granularity of the clock is server dependent.
+Time values are truncated as opposed to rounded.
+.LP
+If the capability whose address is handed to
+.kW "\fItod_setcap\fP"
+.I tod_setcap
+is overwritten,
+the new value will be used in subsequent calls to
+.kW "\fItod_gettime\fP"
+.I tod_gettime
+and
+.kW "\fItod_settime\fP"
+.I tod_settime .
+.LP
+If
+.kW "\fItod_gettime\fP"
+.I tod_gettime
+or
+.kW "\fItod_settime\fP"
+.I tod_settime
+fails, it undoes the effect of any
+previous
+.kW "\fItod_setcap\fP"
+.I tod_setcap .
+.SH
+See Also
+.LP
+date(U),
+ctime(L),
+posix(L),
+rpc(L).

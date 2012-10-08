@@ -1,0 +1,11 @@
+#!/bin/sh
+#	
+#	@(#)who	1.2	94/04/07 16:02:07
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+aps -sa | \
+sed '/ -*sessio[n] /!d
+     s/^\([^ ][^ ]*  *\)[0-9][0-9]* . \([^ ][^ ]*  *\)\(.*\)/\2\1\3/'

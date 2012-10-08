@@ -1,0 +1,235 @@
+#!/bin/sh
+#	
+#	@(#)newuser	1.9	96/03/19 13:07:38
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	Script to add a new user's home directory to soap server
+#	Arguments
+#	1. username: name of user's directory in /super/users.
+#	2. o|g|go: this selects what rights to the public directories
+#	   the new user will get.
+#	    go = group + other, g = group, o = other,
+#	3. -b bulletsvr: must be relative to /super/cap/bulletsvr.
+#	4  -g group: the new user can be added to one or more groups.
+#	   Use a separate -g option for each group.  Groups must be
+#	   relative to /super/group.
+#	5. -p pooldir: specifies the processor pool the new user will get.
+#	   It must be relative to /super/pools.
+#	6. -u unixroot: specifies that unix emulation directories are to
+#	   be added.  default: /super/unixroot.  -n suppresses.
+#
+PROG=`basename $0`
+USAGE="Usage: $PROG username o|g|go -b bulletsvr -g group1 [-g group2 ...] -p pooldir [-u unixroot | -n]"
+SPMASK=0xff:2:4
+export SPMASK
+
+if [ $# -lt 8 ]
+then
+	echo $USAGE
+	exit 1
+fi
+
+case `std_info /super 2> /dev/null` in
+/dw1234)
+	;;
+*)	echo $PROG: you need /super to make a new user.
+	exit 1
+	;;
+esac
+
+#
+# See if the new user exists already (in a way that works both under Un*x
+# and Amoeba). If so then don't proceed.
+#
+UNAME=$1
+HOMEDIR=/super/users/$UNAME
+if (std_info $HOMEDIR > /dev/null 2>&1)
+then
+	echo $PROG: \'$HOMEDIR\' already exists.
+	exit 1
+fi
+
+shift
+RESTRICT_MASK=$1
+
+case $RESTRICT_MASK in
+g)	RESTRICT_MASK=02 ;;
+o)	RESTRICT_MASK=04 ;;
+og|go)	RESTRICT_MASK=06 ;;
+*)	echo $PROG: invalid restriction mask \'$RESTRICT_MASK\'.
+	echo $USAGE
+	exit 1 ;;
+esac
+
+# Command to copy a file on Amoeba, that works both under Un*x and Amoeba:
+COPY="ax /bin/cp"
+
+#
+# Now process the rest of the arguments
+#
+UNIXROOT=/super/unixroot
+GROUPS=
+UDONE=false
+
+shift
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-b)	shift
+		BULLETSVR=$1
+		;;
+	-g)	shift
+		GROUPS="$1 $GROUPS"
+		;;
+	-n) 	if $UDONE				# no unixroot
+		then
+			echo $USAGE
+			exit 1
+		fi
+		UDONE=true
+		UNIXROOT=
+		;;
+	-p)	shift
+		POOLDIR=$1
+		;;
+	-u)	shift
+		if [ $UDONE = true -o $# -le 0 ]
+		then
+			echo $USAGE
+			exit 1
+		fi
+		UDONE=true
+		case $1 in
+		-)	UNIXROOT=/super/unixroot;;	# default
+		*)	UNIXROOT=$1;;
+		esac
+		;;
+	*)	echo $USAGE
+		exit 1
+		;;
+	esac
+	shift
+done
+	
+#
+# You must give the -b, -p and at least one -g option
+#
+if [ -z "$BULLETSVR" -o -z "$GROUPS" -o -z "$POOLDIR" ]
+then
+	echo $USAGE
+	exit 1
+fi
+
+BULLETSVR=/super/cap/bulletsvr/$BULLETSVR
+case `std_info $BULLETSVR 2>/dev/null` in
+"bullet server")	;;
+*)	echo $PROG: \'$BULLETSVR\' doesn\'t seem to be a bullet server cap.
+	exit 1
+esac
+
+POOLDIR=/super/pools/$POOLDIR
+if (dir -d $POOLDIR > /dev/null 2>&1)
+then	:
+else
+	echo $PROG: pool directory \'$POOLDIR\' not found.
+	exit 1
+fi
+
+echo "$PROG: making directories now."
+
+#
+# Let's get on and make it all
+#
+mkd $HOMEDIR
+mkd $HOMEDIR/home
+mkd $HOMEDIR/dev
+mkd $HOMEDIR/profile
+mkd $HOMEDIR/tmp
+
+#
+#  Set up profile directory
+#
+std_restrict /super/module $RESTRICT_MASK $HOMEDIR/profile/module
+std_restrict /super/util $RESTRICT_MASK $HOMEDIR/profile/util
+std_restrict /super/hosts $RESTRICT_MASK $HOMEDIR/profile/hosts
+
+#
+#  Fill in the /profile/group entries with caps with group rights only
+#  for those groups specified on the command line.
+#
+mkd $HOMEDIR/profile/group
+for g in $GROUPS
+do
+	case $g in
+	users)	echo $PROG: group \'users\' is restricted.
+		;;
+	*)	SRC=/super/group/$g
+		if (std_info $SRC > /dev/null 2>&1)
+		then
+			std_restrict $SRC 0E $HOMEDIR/profile/group/$g
+			get $HOMEDIR | put /super/group/$g/$UNAME
+		else
+			echo $PROG: warning group \'$g\' not found.
+		fi
+		;;
+	esac
+done
+std_restrict /super/group/users 0C $HOMEDIR/profile/group/users
+
+mkd $HOMEDIR/profile/reserve
+mkd $HOMEDIR/profile/cap
+mkd $HOMEDIR/profile/cap/bulletsvr
+std_restrict $BULLETSVR 0xF $HOMEDIR/profile/cap/bulletsvr/default
+chm ff:f:f $HOMEDIR/profile/cap/bulletsvr/default
+
+CAPLIST=`dir /super/cap`
+for i in $CAPLIST
+do
+	case $i in
+	bulletsvr)	# we've already done it.
+	    ;;
+	x11svr)		# needs to be modifiable.
+	    std_restrict /super/cap/$i 7F $HOMEDIR/profile/cap/$i
+	    ;;
+	soapsvr)	# don't copy this one.
+	    ;;
+	*)  std_restrict /super/cap/$i $RESTRICT_MASK $HOMEDIR/profile/cap/$i
+	    ;;
+	esac
+done
+
+#
+#  Set up pool directory
+#
+std_restrict $POOLDIR $RESTRICT_MASK $HOMEDIR/profile/pool
+
+#
+#  Unix emulation directories
+#
+if [ -n $UNIXROOT ]
+then
+	std_restrict $UNIXROOT/bin $RESTRICT_MASK $HOMEDIR/bin
+	std_restrict $UNIXROOT/etc $RESTRICT_MASK $HOMEDIR/etc
+	case `std_info $UNIXROOT/lib 2> /dev/null` in
+	/*)	std_restrict $UNIXROOT/lib $RESTRICT_MASK $HOMEDIR/lib ;;
+	esac
+	std_restrict $UNIXROOT/usr $RESTRICT_MASK $HOMEDIR/usr
+
+	# copy .profile
+	$COPY /super/admin/profile $HOMEDIR/home/.profile
+	chm ff:0:0 $HOMEDIR/home/.profile
+fi
+
+#
+# Copy the default Environ file and initialise password under Amoeba.
+# Note: chpw is only available under Amoeba, so we have to use ax for this.
+#
+$COPY /super/admin/Environ $HOMEDIR/Environ
+chm ff:0:0 $HOMEDIR/Environ
+echo Initialising password for $UNAME
+ax /super/util/chpw $HOMEDIR/Environ
+
+exit 0

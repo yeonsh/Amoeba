@@ -1,0 +1,77 @@
+#!/bin/sh
+#	
+#	@(#)gen-kstat	1.4	96/02/15 15:58:58
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# tool that generates a C source file from a list of "kstat" description
+# files
+#
+
+PROG=$0
+FILES=""
+CPPFLAGS=""
+CPPLIB=/lib
+OUTFILE=gen_kstat.c
+
+while [ $# -gt 0 ]
+do
+        case $1 in
+        -o)
+                shift
+                OUTFILE=$1
+                shift
+                ;;
+	-C)
+		shift
+		CPPLIB=$1
+		shift
+		;;
+	-D*)
+		CPPFLAGS="$CPPFLAGS $1"
+		shift
+		;;
+        -*)
+		echo "flag $1 ignored" 2>&1
+                shift
+                ;;
+        *)
+                FILES="$FILES $1"
+                shift
+                ;;
+        esac
+done
+
+if cat $FILES|
+	$CPPLIB/cpp -P $CPPFLAGS|
+	sed '/^$/d'|
+	sort >/tmp/gk$$ &&
+	uniq -d </tmp/gk$$ >/tmp/same.$$ &&
+	diff /tmp/same.$$ /dev/null
+then
+(
+	echo '#ifndef SMALL_KERNEL'
+	echo '#include "amoeba.h"'
+	echo '#include "global.h"'
+	echo '#include "table.h"'
+	echo '#include "systask/systask.h"'
+	echo ''
+	while read char func descr rights
+	do
+		echo extern int $func'();'
+	done </tmp/gk$$
+	echo ''
+	echo 'struct dumptab dumptab[] = {'
+	sed 's/\([0-9a-zA-Z]\)[ 	]*\([0-9a-zA-Z_]*\)[	 ]*\(".*"\)[ 	]*\(.*\)/	'\''\1'\'',	\2,	\3,	\4,/'</tmp/gk$$;
+	echo '	0'
+	echo '};'
+	echo '#endif'
+)>$OUTFILE
+else
+	echo 'Could not build kstat table'
+	echo 'Probably two subsystems claim the same letter'
+fi
+rm -f /tmp/same.$$ /tmp/gk$$

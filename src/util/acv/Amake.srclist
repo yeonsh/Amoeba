@@ -1,0 +1,37 @@
+#	
+#	@(#)Amake.srclist	1.5	96/02/27 13:26:39
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_ACV = {
+	$PWD/ackgetinfo.c,
+	$PWD/acv.c,
+	$PWD/getinfo.c,
+	$PWD/unixgetinfo.c,
+	$PWD/aout386info.c,
+	$PWD/elfgetinfo.c,
+
+	$PWD/mc68000.c,
+	$PWD/i80386.c,
+	$PWD/sparc.c,
+
+	$PWD/acv.h,
+};
+
+U_KCV_i386 = {
+	$PWD/kcv_i386.c,
+	$PWD/kcv_common.c,
+	$PWD/getinfo.c,
+	$PWD/aout386info.c,
+	$PWD/acv.h,
+};
+
+U_KCV_ELF = {
+	$PWD/kcv_elf.c,
+	$PWD/kcv_common.c,
+	$PWD/getinfo.c,
+	$PWD/elfgetinfo.c,
+	$PWD/acv.h,
+};

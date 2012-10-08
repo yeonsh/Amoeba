@@ -1,0 +1,109 @@
+.\"	@(#)makepool.n	1.4	94/04/05 16:02:15
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, June 1991
+	Document: Kees Verstoep, July 1991
+.aE
+.mT makepool U
+let the run server control a new pool directory
+.SH
+Synopsis
+.sC L
+makepool [-s path] [-p path] pooldir
+.eC
+.SH
+Description
+.LP
+.kW "run server"
+.kW "processor pool"
+.kW "processor selection"
+.I Makepool
+asks the run server to manage the processor pool directory
+.I pooldir ,
+by asking it to create a new run object corresponding to
+.I pooldir .
+The directory
+.I pooldir
+should contain subdirectories named
+.I arch ,
+containing the capabilities for hosts having architecture
+.I arch .
+.LP
+Future operations on the capability of the new run object
+(for example,
+.I exec_findhost
+which asks for the ``best'' host to execute a given process descriptor)
+will let the run server choose among the hosts
+in the corresponding pool directory.
+See
+.I run (A)
+for an overview of the operations available.
+.LP
+If a pool directory managed by a run server is modified (i.e.,
+when hosts or architecture directories are added or removed)
+this should be made known to the run server by issuing a
+.I std_touch (U)
+command on the corresponding run capability.
+.mH
+Options
+.LP
+.IP "\fB\-s\fP path" 10
+Can be used to specify a non default run server to be used.
+The default used is
+.cW DEF_RUNSERVER
+from
+.I ampolicy.h
+(typically this will be
+.I /profile/cap/runsvr/default ).
+.IP "\fB\-p\fP path"
+Specifies an alternative name under which to install the
+capability for the new run object.
+The default is ``\fIpooldir\*</.run\*>\fR'',
+where
+.I pooldir
+is the pool directory given as argument to
+.I makepool .
+.LP
+To avoid confusion,
+it is best to store the run capability in the corresponding pool directory.
+Furthermore,
+it is advisable to let the last component of the run object's name
+contain a dot.
+Programs scanning pool directories (e.g.,
+.I aps )
+avoid doing (illegal) operations on objects with such a name.
+.mH
+Diagnostics
+.LP
+These are all self explanatory.
+Possible causes for failure are inability or refusal of the run server
+to create a new object,
+or an error while trying to install the new run capability
+(to avoid erroneously throwing away a still valid capability,
+.I makepool
+only tries to append it to the publishing directory).
+.SH
+Example
+.LP
+The command
+.sC
+makepool /super/pool
+.eC
+creates a new run object for the public pool.
+The capability is stored in
+.I /super/pool/.run .
+Requests to this run object will normally be issued to
+the run object
+.I /profile/pool/.run ,
+which is the same,
+but lacks a few administrative rights.
+.SH
+See Also
+.LP
+exec_findhost(L),
+run(A),
+std_touch(L).

@@ -1,0 +1,9 @@
+/*	@(#)iop.init	1.1	94/05/31 13:02:34 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+initmm iop_initdev
+iop_initdev MMU

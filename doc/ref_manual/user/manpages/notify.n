@@ -1,0 +1,122 @@
+.\"	@(#)notify.n	1.2	96/03/19 13:09:38
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Aug 1994
+	Document: Gregory J. Sharp, Aug 1994
+	Modified: Gregory J. Sharp, Nov 1995 - minor touch ups.
+		  Gregory J. Sharp, Mar 1996 - path name change.
+.aE
+.mT "notify" U
+send a message to logged in users
+.SH
+Synopsis
+.LP
+.sC L
+notify group message
+notify -u user message
+.eC
+.SH
+Description
+.LP
+.I Notify
+is used to send a
+.I message
+to one or more logged-in users.
+The string
+.sC
+Writing to \fIuser\fP/dev/console
+.eC
+is printed for each user that received the message.
+The
+.I message
+must be a single argument, so it should be between quotes if it contains
+white-space or characters special to the shell.
+.LP
+If sending to a group, the name of the group can either be an absolute
+path name or a name relative to
+.I /profile/group .
+The
+.I group
+must be a directory containing the capabilities for the home
+directories of the group members.
+All members of the group who are currently logged in will receive the
+message unless they have restricted access to their
+.I /dev/console
+entry.
+.LP
+If sending to a single user then the
+.B \-u
+option should be used.
+The subsequent argument is then interpreted as the name of a user.
+If the
+.I user
+name is not an absolute path name it is interpreted as a name relative to
+.I /profile/group/users .
+.mH
+Diagnostics
+.LP
+.IP "\*<cannot find your user name\*>"
+.br
+The current user's login directory was not found in
+.I /profile/group/users .
+.IP "\fIuser\fP\*</dev/console not logged in\*>"
+.br
+There was either no
+.I /dev/console
+entry for
+.I user
+or it was not responding.
+This message normally only appears when the
+.B \-u
+option was used and the user was not logged in.
+.mH
+Files
+.LP
+.IP \fI/dev/console\fP
+\-
+.I notify
+writes to this device to print its message.
+.IP \fI/profile/group\fP
+\- this directory contains the groups to which messages can be sent.
+.mH
+Warnings
+.LP
+It is possible for other people to write on your session server's console
+window.
+The default is all the people in the groups you are in.
+To restrict access use
+.I chm (U)
+to restrict access to
+.I /dev/console .
+This is best done in your login profile since the
+.I /dev/console
+entry is remade with default permissions whenever you start a new
+.I session (U).
+.SH
+Examples
+.LP
+.sC
+notify staff "the coffee is ready"
+.eC
+will send the message ``the coffee is ready'' to the group
+.I staff .
+.sC
+notify -u sergio "please come to my office"
+.eC
+will send the message ``please come to my office'' to the user with the
+login name
+.I sergio .
+.sC
+notify /super/users "system going down in 10 minutes"
+.eC
+This message can only be sent by a super-user and sends the message
+``system going down in 10 minutes'' to all logged on users.
+.SH
+See Also
+.LP
+sess_setout(U),
+session(U).

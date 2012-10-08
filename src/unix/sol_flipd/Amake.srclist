@@ -1,0 +1,33 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 11:49:08
+#
+%include $SRC_ROOT/kernel/protocol/flip/Amake.srclist;
+
+#K_FLIP_RPC = $K_FLIP_RPC \ $SRC_ROOT/kernel/protocol/flip/rpc/flrpc.c;
+#K_FLIP_RPC = $K_FLIP_RPC + $SRC_ROOT/unix/sol_flipd/flrpc.c;
+
+%include $SRC_ROOT/kernel/protocol/generic/Amake.srclist;
+%include $SRC_ROOT/kernel/sys/Amake.srclist;
+%include $SRC_ROOT/lib/libam/crypt/Amake.srclist;
+%include $SRC_ROOT/lib/libam/flip/Amake.srclist;
+
+U_FLIP_DRIVER_SUNOS_5_4 = {
+	$K_UPACKET,
+	$K_FLIP_SYS,
+	$K_FLIP_CONF,
+	$K_FLIP_RPC,
+	$K_SYS_SWEEPER,
+	$L_AM_DES,
+	$PWD/ux_int.c,
+	$PWD/ux_glue.c,
+	$PWD/ux_rpc_int.c,
+	$PWD/ux_ctrl_int.c,
+	$PWD/flipether.c,
+	$L_AM_FLIPONEWAY,
+	$L_AM_CRYPT,
+	$PWD/vdflip.c,
+	$PWD/netconf.c
+};
+
+U_FLCTRL_STAT = $PWD/../flip-driver/flip_stat.c;
+U_FLCTRL_DUMP = $PWD/../flip-driver/flip_dump.c;

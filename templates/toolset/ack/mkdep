@@ -1,0 +1,56 @@
+#!/bin/sh
+#	
+#	@(#)mkdep	1.2	94/04/05 17:00:47
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+PATH=/bin:/usr/bin
+
+CPP=/lib/cpp
+
+DEFS=
+INCLUDES=
+FILES=
+AmakeDeps=false  # generate make-like dependencies
+
+for i
+do
+	case $i in
+	-D*)
+		DEFS="$DEFS $i"
+		;;
+	-U*)
+		DEFS="$DEFS $i"
+		;;
+	-I*)
+		INCLUDES="$INCLUDES $i"
+		;;
+	-*)
+		;;
+	*.[Ssc])
+		FILES="$FILES $i"
+		;;
+	*)
+		echo "$i: unknown filename suffix" >&2 
+		exit 1
+	esac
+done
+
+# FILES is just one file in the Amake case
+
+    $CPP $DEFS $INCLUDES $FILES |
+    sed '
+	1d
+	/^# 1 /!d
+	s/^# 1 "\(.*\)".*$/\1/
+    '
+
+# the sed command  does the following:
+# (1) delete first line, containing a trivial dependency we don't need, namely
+#     the source file
+# (2) delete all non-preprocessor lines from the output
+# (3) retain only the names of the include files
+
+exit 0

@@ -1,0 +1,226 @@
+.\"	@(#)upgrade.n	1.8	96/03/20 12:00:10
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Upgrading an \*(Am Distribution"
+.LP
+For those sites that already have an \*(Am system running it may be possible
+to upgrade to a new release without running the entire installation process.
+Check the release notes to see if a simple upgrade from your current version
+to the new version is possible.
+If in doubt contact your \*(Am distributor.
+.LP
+All that needs to be updated during most upgrades is the system binaries,
+sources and kernels.
+Occasionally it may be necessary to install a new directory server or boot
+server but this can usually be done without difficulty.
+It is vital that there is no damage to the directory
+.I /super/admin/bootinfo
+under \*(Am since it contains details of how the system should be started
+and maintained.
+The same is true for the directories
+.I /super/hosts ,
+.I /super/pool
+and
+.I /super/users .
+.LP
+.B NB.
+When upgrading, unless otherwise specified in the release notes, perform
+the upgrade in the order of the following sections.
+Otherwise things may go wrong and it may even become necessary to install
+from the coldstart.
+Also note that if a new directory server and boot server must be installed
+the system should not be rebooted until after that has taken place.
+.nH 2 "Installing the Binaries"
+.LP
+If you have a FLIP driver installed in a
+.UX
+system from which you can copy files to \*(Am then the
+upgrade process is relatively simple.
+First make sure that nobody is logged in to \*(Am since the new binaries may
+not be compatible with the old and may therefore cause difficulties for users.
+.LP
+Copy the tar file for your architecture (eg., sun4/tapefile.2 or
+ibm_at/BinTree.am).
+Untar the ibm_at version on
+.UX
+under the directory
+.I \(gaamdir\(ga/BinTree.am .
+Untar the Sun version on
+.UX
+under the directory
+.I \(gaamdir\(ga/BinTree.am/super .
+.LP
+If X windows and/or MMDF are to be installed then untar the X and MMDF tar
+files in
+.I \(gaamdir\(ga/BinTree.am/super/module .
+.LP
+To install the system binaries and manuals the following commands under
+.UX
+will copy them from the
+.I BinTree.am
+tree to \*(Am.
+.sC
+.B
+cd \(gaamdir\(ga/BinTree.am/super
+W=/super
+tar cf - admin/bin util unixroot/bin \e
+	module/x11 module/amoeba/lib | \e
+	ax -E _WORK=$W -C WORK=$W /bin/tar xvf -
+.cW
+.eC
+.LP
+MMDF is a little more difficult since it mixes site dependent files with
+binaries.
+Preserve the mmdftailor file and any local scripts and lists and
+then use a similar command to the one above to install the MMDF binaries.
+.nH 2 "Installing the Source Code"
+.LP
+Once all the binaries have been installed the sources can be installed from
+.UX
+to \*(Am.
+Note that the current source code is read-only and that various directories
+and files may have been deleted in the new sources.
+Therefore it is a good idea to delete or move the existing source tree.
+The old sources can be deleted using:
+.sC
+.B
+del -d /super/module/amoeba/doc
+del -d /super/module/amoeba/src
+del -d /super/module/amoeba/templates
+.cW
+.eC
+or if they are to be saved by:
+.sC
+.B
+mv /super/module/amoeba/doc /super/module/amoeba/doc.old
+mv /super/module/amoeba/src /super/module/amoeba/src.old
+mv /super/module/amoeba/templates /super/module/amoeba/templates.old
+.cW
+.eC
+The new source tree can then be installed using:
+.sC
+.B
+W=/super/module/amoeba
+zcat SRC.tar.Z | ax -E _WORK=$W -C WORK=$W /bin/tar xvf -
+.cW
+.eC
+.nH 2 "Installing the Kernels"
+.LP
+First transfer the kernels from
+.UX
+to \*(Am:
+.sC
+.B
+cd \(gaamdir\(ga/BinTree.am/super/admin
+W=/super/admin
+tar cf - kernel | ax -E _WORK=$W -C WORK=$W /bin/tar xvf -
+.cW
+.eC
+Next, login to \*(Am as someone with the ``super'' capability, such as
+.I Daemon .
+If any hosts are booted using TFTP then go to the directory
+.I /super/admin/tftpboot
+and update the relevant TFTP links.
+This is best done with
+.I getdelput (U).
+For example:
+.sC
+.B
+cd /super/admin/tftpboot
+getdelput ../kernel/sun4.workst 84563123.SUN4C
+.cW
+.eC
+.LP
+The next step is to update the kernel booted from disk.
+This should be done using
+.I mkbootpartn (A).
+Note that the Sun kernels in
+.I /super/admin/kernel
+are already stripped and converted to the form in which they boot.
+(This was done using
+.I installk (A)).
+The i80386 kernels need to be converted to a different form before being
+suitable for booting via TFTP.
+See
+.I tftp (A)
+and
+.I isamkimage (A)
+for details.
+.LP
+If the name server and or boot server need to be upgraded then
+do
+.B not
+reboot the file server or the hosts where the boot server and soap server
+run.
+(Usually they all run on the same host.)
+Otherwise it should be safe to reboot the system now.
+If for some reason the bootstrap of the file server fails then make a tape
+or floppy under
+.UX
+from which to boot.
+This can be used to restart the system and correct the problem(s).
+.nH 2 "Installing the New Soap and Boot Servers"
+.LP
+It is not always necessary to replace the
+.I soap (A)
+server or
+.I boot (A)
+server binary.
+If it is not done correctly it can have potentially catastrophic effects
+so only do this when necessary.
+.LP
+When installing the new servers do not delete the old servers until the
+new ones are installed and running.
+Make a copy of the current Bootfile and save it on a
+.UX
+hosts so that it can be restored if anything goes wrong.
+.LP
+In the following substitute for
+.cW <arch>
+the architecture (for example, mc68000 or i80386)
+of the host where the soap and boot servers will run.
+Also, substitute for
+.cW <host>
+the host where the boot server is running.
+.sC
+.B
+cd /super/admin/bootinfo
+cp /super/admin/bin/boot/pd.<arch> boot
+cp /super/admin/bin/soap/pd.<arch> soap
+c2a soap
+.cW
+.eC
+edit the bootfile and replace the capability on the 
+.sC
+.B
+cap SOAPBINARY = .... ;
+.cW
+.eC
+line with the capability produced by the command
+.cW "c2a soap" .
+It is very important not to leave out the semicolon on the end of the line.
+Once this has been done then the bootfile should be installed.
+.sC
+.B
+iboot -b boot -f bootfile /super/hosts/<host>/vdisk:02
+boot_reinit /super/cap/bootsvr/<host>
+.cW
+.eC
+should report success. 
+If not then correct the bootfile and run
+.I iboot
+and
+.I boot_reinit
+again.
+Once
+.I boot_reinit
+completes successfully reboot the file server and then
+the installation is complete.
+.B N.B.
+Do not stop or reboot the host where the boot server or soap server is
+running until the
+.I boot_reinit
+has succeeded.

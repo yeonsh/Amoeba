@@ -1,0 +1,14 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 16:04:56
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_SOAP_CHM = $PWD/chm.c;
+U_SOAP_DEL = $PWD/del.c;
+U_SOAP_DIR = $PWD/dir.c;
+U_SOAP_GET = $PWD/get.c;
+U_SOAP_GETDELPUT = $PWD/getdelput.c;
+U_SOAP_MKD = $PWD/mkd.c;
+U_SOAP_PUT = $PWD/put.c;

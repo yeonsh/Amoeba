@@ -1,0 +1,117 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 14:41:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# The following files are actually generated from other files .. 
+U_JOVE_GENERATED = {
+	$PWD/keys.c,
+	$PWD/rectune.h,
+	$PWD/tune.c,
+};
+
+U_JOVE = {
+	$U_JOVE_GENERATED,
+	$PWD/abbrev.c,
+	$PWD/argcount.c,
+	$PWD/argcount.h,
+	$PWD/ask.c,
+	$PWD/buf.c,
+	$PWD/buf.h,
+	$PWD/c.c,
+	$PWD/case.c,
+	$PWD/chars.h,
+	$PWD/ctype.c,
+	$PWD/ctype.h,
+	$PWD/dataobj.h,
+	$PWD/delete.c,
+	$PWD/disp.c,
+	$PWD/disp.h,
+	$PWD/extend.c,
+	$PWD/externs.h,
+	$PWD/fmt.c,
+	$PWD/fp.c,
+	$PWD/fp.h,
+	$PWD/funcdefs.c,
+	$PWD/insert.c,
+	$PWD/io.c,
+	$PWD/io.h,
+	# $PWD/iproc-pipes.c,
+	# $PWD/iproc-ptys.c,
+	$PWD/iproc.c,
+	$PWD/iproc.h,
+	$PWD/jove.c,
+	$PWD/jove.h,
+	$PWD/keymaps.c,
+	$PWD/keymaps.h,
+	$PWD/list.c,
+	$PWD/list.h,
+	$PWD/mac.h,
+	$PWD/macros.c,
+	$PWD/marks.c,
+	$PWD/misc.c,
+	$PWD/move.c,
+	$PWD/paragraph.c,
+	$PWD/proc.c,
+	$PWD/re.c,
+	$PWD/re.h,
+	$PWD/re1.c,
+	$PWD/rec.c,
+	$PWD/rec.h,
+	$PWD/scandir.c,
+	$PWD/scandir.h,
+	$PWD/screen.c,
+	$PWD/screen.h,
+	$PWD/style.h,
+	$PWD/sysdep.h,
+	$PWD/temp.h,
+	$PWD/term.c,
+	$PWD/termcap.h,
+	$PWD/ttystate.h,
+	$PWD/tune.h,
+	$PWD/util.c,
+	$PWD/util.h,
+	$PWD/vars.c,
+	$PWD/vars.h,
+	$PWD/version.c,
+	$PWD/wait.h,
+	$PWD/wind.c,
+	$PWD/wind.h,
+};
+
+# PC specific sources:
+U_JOVE_PC = {
+	$PWD/pcscr.c,
+	$PWD/getch.c,
+};
+
+# Mac specific sources:
+U_JOVE_MAC = {
+	$PWD/mac.c,
+};
+
+U_JOVE_TEACH = {
+	$PWD/teachjove.c,
+};
+
+U_JOVE_RECOVER = {
+	$PWD/recover.c,
+};
+
+U_JOVE_KBD = {
+	$PWD/kbd.c,
+};
+
+U_JOVE_PORTSVR = {
+	$PWD/portsrv.c,
+};
+
+U_JOVE_MACVERT = {
+	$PWD/macvert.c,
+};
+
+U_JOVE_SETMAPS = {
+	$PWD/setmaps.c,
+};

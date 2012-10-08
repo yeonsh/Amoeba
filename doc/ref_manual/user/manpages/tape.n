@@ -1,0 +1,175 @@
+.\"	@(#)tape.n	1.6	96/02/16 11:09:21
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Pater Bosch
+	Document: Gregory J. Sharp
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "tape" U
+a general purpose utility for manipulating tapes.
+.SH
+Synopsis
+.LP
+.sC L
+tape [-f tape_cap] subcommand
+\fRsubcommands:\fP
+    read [-r record_size] [-c count] [-v] [-b buffer_count]
+    write [-r record_size] [-c count] [-v] [-b buffer_count]
+    erase
+    fskip [-c file_skip_count]
+    rskip [-c record_skip_count]
+    load
+    unload
+    rewind [-w]
+    status
+.eC
+.SH
+Description
+.LP
+.kW "tape server"
+.I Tape
+is a single utility for sending commands to the tape server (see
+.I tape (A)).
+The possible tape commands and options are described below.
+.mH
+Options
+.LP
+.IP "\-\fBf\fP \fItape_cap\fP"
+.br
+This option forces the tape unit specified by
+.I tape_cap
+to be used.
+If this option is not present it uses the capability specified by the
+string environment variable
+.cW TAPE ,
+or if this is not present the tape unit specified by the variable
+.cW DEF_TAPESVR
+in the include file
+.I ampolicy.h
+(typically
+.I /profile/cap/tapesvr/default .)
+.mH
+Subcommands
+.LP
+There are several subcommands with various options and they are described below.
+The
+.B read
+and
+.B write
+commands accept several parameters.
+The default tape record size is 512 bytes but the
+.B \-r
+option can be used to select another record size.
+The number of records to be read or written is specified with the
+.B \-c
+option.
+The default count is infinity, which will cause the command to read the
+entire tape or until an EOF marker is encountered.
+The
+.B \-v
+option switches on verbose mode.
+This causes lots of extra detail to be printed.
+The
+.B \-b
+option specifies the number of buffers to use for buffering the
+tape I/O.
+This is useful when trying to get the tape to stream.
+.IP "\fBread\fP [-r record_size] [-c count] [-v] [-b buffer_count]"
+.br
+The
+.B read
+subcommand extracts data from the specified tape and then writes it to
+.I stdout .
+.IP "\fBwrite\fP [-r record_size] [-c count] [-v] [-b buffer_count]"
+.br
+The
+.B write
+subcommand reads data from
+.I stdin
+and writes it to the tape.
+.IP \fBerase\fP
+.br
+This command will erase the data from the current position to the end of the
+tape.
+.IP "\fBfskip\fP [-c file_skip_count]"
+.ne 3
+.br
+This command causes the tape to wind forward until the start of the next
+file on the tape.
+It will skip
+.I file_skip_count
+files if the
+.B \-c
+option is given.
+If there are no more files on the tape it winds forward until the end of the
+tape.
+.IP "\fBrskip\fP [-c record_skip_count]"
+.br
+This command causes the tape to wind forward until the start of the next
+record on the tape.
+It will skip
+.I record_skip_count
+records if the
+.B \-c
+option is given.
+If there are no more records on the tape it winds forward until the end of the
+tape. 
+Some tape controllers skip the EOF tape record as well.
+This makes the tape file position invalid.
+.IP \fBload\fP
+.br
+On tapes with automatic loading this command will load the tape mounted in
+the unit.
+For all tapes it then positions the tape at the start of medium.
+.IP \fBunload\fP
+.br
+This brings the tape to the point where it can be removed from the drive.
+Some drives will also eject the tape.
+.IP "\fBrewind\fP [-w]"
+.br
+This command rewinds the tape to the start of medium.
+If the
+.B \-w
+flag is given,
+the command will not return until the tape is rewound.
+Otherwise it returns immediately without waiting for the command to complete.
+.IP \fBstatus\fP
+.br
+This command prints the current status of the tape unit.
+This usually includes the type of the tape unit and the current record and
+file position.
+.mH
+Diagnostics
+.LP
+In general the error messages suggest what has gone wrong, how many records
+have been read or written, where relevant,
+and the error code returned by the tape unit.
+.mH
+Environment Variables
+.LP
+.cW TAPE
+is a string environment variable which will override the default system
+tape unit defined in the file
+.I ampolicy.h .
+It will not override the
+.B \-f
+option, if present.
+.SH
+Example
+.LP
+To read the current file from the default tape unit and store it in the file
+.I foo
+use the command:
+.sC
+tape read > foo
+.eC
+.SH
+See Also
+.LP
+tape(A),
+tape(L).

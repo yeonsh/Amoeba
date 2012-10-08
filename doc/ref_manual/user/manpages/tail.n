@@ -1,0 +1,57 @@
+.\"	@(#)tail.n	1.4	96/02/16 11:09:16
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "tail" U
+print the last few lines of a file
+.SH
+Synopsis
+.LP
+.cW
+tail [-n] [file]
+.SH
+Description
+.LP
+The last few lines of one file are printed.
+The default count is 10 lines.
+The default file is
+.I stdin .
+If more than one
+.I file
+argument is given only the first is used.
+The rest are ignored.
+.mH
+Options
+.LP
+.IP \fB\-n\fP
+Print the last
+.I n
+lines of the input.
+The default is 10.
+.SH
+Examples
+.LP
+.sC
+tail -6
+.eC
+Print last 6 lines of
+.I stdin .
+.sC
+tail -1 file1 file2
+.eC
+Print last line of
+.I file1 .
+The second file,
+.I file2 ,
+is ignored.
+.SH
+See Also
+.LP
+head(U).

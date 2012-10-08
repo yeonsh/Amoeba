@@ -1,0 +1,27 @@
+#	
+#	@(#)mkdep.amk	1.2	94/04/06 10:34:58
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#                               m k d e p
+%if (%not defined(_mkdep_done_), {
+_mkdep_done_=1;
+
+%if (%not defined(MKDEP), {
+    MKDEP = /usr/local/lib/amake/ack_mkdep;
+});
+
+%tool mkdep (
+    src:    %in		 [type = C-src];
+    flags:  %string %list; # no default, to avoid automatic invocation!
+    deps:   %out	 [type = text];
+    incl:   %in %list 	 [C-incl]		=> %computed $deps;
+    prog:   %in		 [type = command]	=> $MKDEP;
+)
+{
+    exec($prog, args => $flags + $src, stdout => $deps);
+};
+
+});

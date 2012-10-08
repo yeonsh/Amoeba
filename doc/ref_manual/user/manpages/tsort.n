@@ -1,0 +1,25 @@
+.\"	@(#)tsort.n	1.5	96/02/16 11:09:54
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995, the example was totally bogus
+.aE
+.mT "tsort" U
+topological sort
+.SH
+Synopsis
+.LP
+.sC L
+tsort file
+.eC
+.SH
+Description
+.LP
+.I Tsort
+accepts a file of lines containing ordered pairs and builds a total
+ordering from the partial orderings.

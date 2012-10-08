@@ -1,0 +1,90 @@
+.\"	@(#)sess_setout.n	1.1	96/02/16 11:07:23
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Aug 1994
+	Document: Gregory J. Sharp, Aug 1994
+	Modified: Gregory J. Sharp, Oct 1995
+.aE
+.mT "sess_setout" U
+change the \fIstdout\fP and \fIstderr\fP of the current session server
+.SH
+Synopsis
+.LP
+.sC L
+sess_setout new-stdout
+.eC
+.kW "session server"
+.SH
+Description
+.LP
+.I Sess_setout
+changes the capability for
+.kW "stdout"
+.kW "stderr"
+.I stdout
+and
+.I stderr
+to
+.I new-stdout
+for the current
+.I session (U)
+server.
+This also changes the capability stored in
+.kW "/dev/console"
+.I /dev/console .
+The capability
+.I new-stdout
+must refer to either a file or a tty device.
+The name
+.kW "/dev/tty"
+.I /dev/tty
+is recognized as special and changes the
+.I session
+server's
+.I stdout
+to be the current tty.
+.LP
+This program is useful for debugging the
+.I session
+server and for redirecting the
+.I session
+server's output to a console window when using X windows.
+.mH
+Diagnostics
+.LP
+.cW "no session svr available" :
+means that the capability environment variable
+.cW _SESSION
+was not present.
+.mH
+Environment Variables
+.LP
+.cW _SESSION
+\- the session server's capability.
+It must be present in the capability environment.
+.mH
+Files
+.LP
+.I /dev/console
+This is updated by this command.
+It is used by the
+.I notify (U)
+command to send messages to users who are currently logged in.
+.SH
+Example
+.LP
+.sC L
+sess_setout /dev/tty
+.eC
+causes the
+.I session
+server to print further output on the current tty\^/window.
+.SH
+See Also
+.LP
+notify(U),
+session(U).

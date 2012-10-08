@@ -1,0 +1,33 @@
+#	
+#	@(#)cxx-c.amk	1.1	94/04/06 10:36:18
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  c++ tool for gcc; uses built-in dependecy generator
+#
+
+#%instance deftypesuffix(dependents, '%.d');
+
+%instance deftypesuffix(Cxx-src, '%.cc');
+
+%if (%not defined(CXXFLAGS), {
+	CXXFLAGS = {};
+});
+
+%tool cxx-c (
+    src:      %in         [type = Cxx-src];
+    object:   %out        [type = loadable]         => match($src);
+    flags:    %string %list                         => $CXXFLAGS + $CFLAGS;
+    objflags: %string %list                         =>
+                if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:  %in         [type = command]          => $CC;
+    deps:     %out        [type = dependents]       => match($src);
+    incl:     %in %list   [C-incl, implicit]        => %computed $deps;
+)
+{
+    exec($program, args => '-c' + $flags + $objflags + $src);
+};
+

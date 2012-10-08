@@ -1,0 +1,64 @@
+#	
+#	@(#)lint.amk	1.2	94/04/06 10:34:02
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(LINT), {
+	LINT = lint;
+});
+
+%if (%not defined(LINTFLAGS), {
+	LINTFLAGS = {};
+});
+
+%if (%not defined(LINTLIBS), {
+	LINTLIBS = {};
+});
+
+# A lint cluster should only contain C-sources, C-includes and files from
+# which these two classes can be generated. To make this easy to specify,
+# the attribute lint-source is introduced. The sources of a lint cluster
+# can then be specified by selecting only those files having this attribute.
+# The attribute `generates-C-src' should be derivable for all files from
+# which C-sources (or C-includes) can be generated.
+%derive f[lint-source]	%when $f ? type == C-src
+			%or   $f ? C-incl == %true
+			%or   $f ? generates-C-src == %true;
+
+%tool lint-tool (
+    srcs:	%in %list	[type = C-src];
+    incl:       %in %list       [C-incl, included]      => {};
+    result:	%out		[type = lint-output];
+    flags:	%string %list				=> $LINTFLAGS;
+    lintlibs:	%in %list	[type = lint-library]	=> $LINTLIBS;
+    program:	%in		[type = command]	=> $LINT;
+)
+{
+    if (%not exec($program, args => $flags + $srcs + $lintlibs,
+			    stdout => $result, stderr => $result),
+	echo('Lint failed!')	# but we do want to know what it has reported 
+    );
+    exec(cat, args => $result);
+};
+
+
+%if (%not defined(LINT_LIB_FLAG), {
+	LINT_LIB_FLAG = '-C';
+});
+
+%tool lintlib-tool (
+    srcs:	%in %list	[type = C-src];
+    incl:       %in %list       [C-incl, included]      => {};
+    result:	%out		[type = lint-library];
+    flags:	%string %list				=> $LINTFLAGS;
+    asmlibs:	%in %list	[type = C-src]		=> $LINTLIBS;
+    program:	%in		[type = command]	=> $LINT;
+)
+{
+    exec($program,
+	    args => $LINT_LIB_FLAG basename($result, 'llib-l%.ln')
+			+ $flags + $srcs + $asmlibs,
+			stdout => %diag, stderr => %diag);
+};

@@ -1,0 +1,233 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:43:48
+#
+#
+#	Makefile for snd
+#
+OBJS	= s_main.o s_arginit.o s_gather.o s_input.o s_onint.o s_drfile.o \
+	  s_post.o s_do.o s_get.o s_tailor.o alias.o version.o
+
+SOURCES	= s_main.c s_arginit.c s_gather.c s_input.c s_onint.c s_drfile.c \
+	  s_post.c s_do.c s_get.c s_tailor.c alias.c version.c
+
+MODULES	= s_main s_arginit s_gather s_input s_onint s_drfile \
+	  s_post s_do s_get s_tailor alias version
+
+real-default:	xsnd
+
+xsnd: $(HEAD) $(OBJS) $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) $(OBJS) $(MMDFLIBS) $(SYSLIBS)
+
+install:	$(BINDIR)/snd
+
+aminstall:	
+	$(AINSTALL) $(AINSTALLFLAGS) xsnd $(BINDIR)/snd
+
+$(BINDIR)/snd:	xsnd
+	cp xsnd $(BINDIR)/snd
+	-$(CHOWN) $(MMDFLOGIN) $(BINDIR)/snd
+	-chmod $(PGMPROT) $(BINDIR)/snd
+
+version.o: $(SOURCES) $(MMDFLIBS) ../../VERSION
+	./mkversion
+	$(CC) $(CFLAGS) -c version.c
+
+lint:
+	$(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f *.o xsnd core tags
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+s_main.o: s_main.c ././s.h ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_main.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_main.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_main.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_main.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_main.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_main.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_main.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_main.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_main.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_main.o: /usr/proj/amwork/src/h/posix/signal.h
+s_main.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_main.o: ./././s_tailor.h
+s_arginit.o: s_arginit.c ././s.h ../../h/util.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+s_arginit.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/time.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/signal.h
+s_arginit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_arginit.o: ./././s_tailor.h ././s_externs.h
+s_gather.o: s_gather.c ././s.h ../../h/util.h
+s_gather.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_gather.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_gather.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_gather.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_gather.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_gather.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+s_gather.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+s_gather.o: /usr/proj/amwork/src/h/posix/time.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_gather.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_gather.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_gather.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_gather.o: /usr/proj/amwork/src/h/posix/signal.h
+s_gather.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_gather.o: ./././s_tailor.h ././s_externs.h
+s_input.o: s_input.c ././s.h ../../h/util.h
+s_input.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_input.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_input.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_input.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_input.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_input.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_input.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_input.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_input.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_input.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_input.o: /usr/proj/amwork/src/h/posix/signal.h
+s_input.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_input.o: ./././s_tailor.h ././s_externs.h
+s_onint.o: s_onint.c ././s.h ../../h/util.h
+s_onint.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_onint.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_onint.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_onint.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_onint.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_onint.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_onint.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_onint.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_onint.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_onint.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_onint.o: /usr/proj/amwork/src/h/posix/signal.h
+s_onint.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_onint.o: ./././s_tailor.h ././s_externs.h
+s_drfile.o: s_drfile.c ././s.h ../../h/util.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+s_drfile.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/time.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/signal.h
+s_drfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_drfile.o: ./././s_tailor.h ././s_externs.h
+s_post.o: s_post.c ././s.h ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_post.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_post.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_post.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_post.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_post.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_post.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_post.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_post.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_post.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_post.o: /usr/proj/amwork/src/h/posix/signal.h
+s_post.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_post.o: ./././s_tailor.h ././s_externs.h
+s_do.o: s_do.c ././s.h ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_do.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_do.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_do.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_do.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_do.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_do.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_do.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_do.o: /usr/proj/amwork/src/h/posix/stdio.h /usr/proj/amwork/src/h/posix/pwd.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_do.o: /usr/proj/amwork/src/h/posix/signal.h
+s_do.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_do.o: ./././s_tailor.h ././s_externs.h
+s_get.o: s_get.c /usr/proj/amwork/src/h/posix/stdio.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h ././s.h ../../h/util.h
+s_get.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_get.o: /usr/proj/amwork/src/h/posix/ctype.h
+s_get.o: /usr/proj/amwork/src/h/posix/setjmp.h
+s_get.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_get.o: /usr/proj/amwork/src/h/posix/sys/types.h
+s_get.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+s_get.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_get.o: /usr/proj/amwork/src/h/posix/dirent.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+s_get.o: /usr/proj/amwork/src/h/posix/stdio.h
+s_get.o: /usr/proj/amwork/src/h/posix/pwd.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+s_get.o: /usr/proj/amwork/src/h/posix/signal.h
+s_get.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+s_get.o: ./././s_tailor.h ././s_externs.h
+s_tailor.o: s_tailor.c
+alias.o: alias.c /usr/proj/amwork/src/h/posix/stdio.h
+alias.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/../h/util.h
+alias.o: /usr/proj/amwork/src/h/posix/stdio.h
+alias.o: /usr/proj/amwork/src/h/posix/ctype.h
+alias.o: /usr/proj/amwork/src/h/posix/setjmp.h
+alias.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+alias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+alias.o: /usr/proj/amwork/src/h/posix/sys/types.h
+alias.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/../h/mmdf.h
+alias.o: ../../h/../h/ll_log.h ../../h/../h/util.h ../../h/../h/conf.h
+alias.o: /usr/proj/amwork/src/h/posix/time.h
+alias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+alias.o: /usr/proj/amwork/src/h/posix/dirent.h
+alias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+version.o: version.c
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

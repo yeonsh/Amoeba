@@ -1,0 +1,36 @@
+flex vs. lex timings for a C tokenizer which includes keywords:
+#	
+#	@(#)Timings	1.1	91/04/11 16:47:15
+#
+
+Generation times:
+
+	lex	    83.0 secs
+	flex	     3.9
+	flex -cfe    7.1	# uncompressed table, equivalence classes
+	flex -cf    15.0	# uncompressed table, no equivalence classes
+
+Scanner object file sizes:
+
+	lex	   41.0K bytes
+	flex	    9.4K
+	flex -cfe  49.6K
+	flex -cf  126.5K
+
+Running times on a 28,088 line input (685K characters):
+
+	lex	   29.8 secs
+	flex	   19.3
+	flex -cfe   9.0
+	flex -cf    7.8
+
+The timings were made on a Sun 3/60.  All times are user + system CPU time,
+and don't include hashing of identifiers.
+
+Summary:
+
+    For about the same sized scanner, you get a factor of 3 in performance.
+    For a 30% faster scanner, you get a scanner 1/4th the size, and it's
+	generated in 1/20th the time.
+    For a scanner that's 3 times larger, you get a factor of 3.8 in
+	performance.

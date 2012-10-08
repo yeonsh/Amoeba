@@ -1,0 +1,3 @@
+/*	@(#)bullet.init	1.1	96/02/27 14:07:03 */
+THREADS gbullet_init_all
+initvirdisk gbullet_init_all

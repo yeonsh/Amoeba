@@ -1,0 +1,81 @@
+.\"	@(#)Tam_signals.n	1.4	94/04/05 15:27:42
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel, March 1991.
+	Document: Berend Jan Beugel, August 1991.
+.aE
+.kW "test program"
+.kW "signals"
+.kW "lightweight"
+.kW "threads"
+.mT "Tam_signals" T
+test lightweight signals between threads in \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+Tam_signals [-vgb]
+.eC
+.SH
+Description
+.LP
+.I Tam_signals
+tests lightweight signals between threads in \*(Am processes.
+Two threads exchange signals and verify the results.
+.LP
+The test also verifies the error code that should be returned when a
+handler is installed for an illegal signal 0.
+Normally, only failed test cases are reported.
+.mH
+Options
+.RS
+.IP \fB\-v\fP
+verbose: report the test's progress including successful test cases.
+.IP \fB\-g\fP
+good cases only: use valid parameters only.
+.IP \fB\-b\fP
+bad case only: use invalid parameter (signal 0) only.
+.RE
+.mH
+Diagnostics
+.LP
+Failed test cases are reported by printing the file name and line number
+of the source file
+where the message was generated, the main test routine where the failure
+was discovered, the function that caused the failure, an extra
+code for easier reference in the source file and a phrase that describes
+the failure.
+A header mentions the name of the test and a trailer tells how many failures
+were reported altogether.
+.LP
+In verbose mode the name of the current test routine and
+functions that were executed successfully are also reported.
+On exit the program returns the total number of failures.
+.mH
+Warnings
+.LP
+Test cases that fail may influence the results of subsequent cases
+because it may not be possible to recover completely from the failure.
+Exceptions are not fully tested because recovery from exceptions is
+generally not possible.
+.LP
+Do not confuse this test program with the program for testing heavyweight
+POSIX-style signals
+.I Tsignal .
+.SH
+Example
+.LP
+Test lightweight signals and display a trace of the test's progress:
+.sC
+Tam_signals -v
+.eC
+.SH
+See Also
+.LP
+signals(L),
+thread(L),
+Tsuite(T).

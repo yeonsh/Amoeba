@@ -1,0 +1,9 @@
+PKG="VUCSflipu"
+#	
+#	@(#)pkginfo	1.1	96/02/27 11:49:30
+#
+NAME="cs.vu.nl FLIP driver (usr)"
+CATEGORY=system
+ARCH=all
+CLASSES=none
+DESC="cs.vu.nl Amoeba FLIP driver"

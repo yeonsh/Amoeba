@@ -1,0 +1,20 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:44:26
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+FIFO_GEN = $PWD/fifosvr.gen [c_gen = { ml_fifo_svr.c }];
+
+S_FIFO = {
+	$FIFO_GEN,
+	$PWD/fifo_main.c,
+	$PWD/fifo_impl.c,
+	$PWD/fifo_std.c,
+	$PWD/fifo_impl.h,
+	$PWD/fifo_main.h,
+	$PWD/fifo_std.h,
+	$PWD/fifo_svr.h,
+	$PWD/fifosvr.h,
+};

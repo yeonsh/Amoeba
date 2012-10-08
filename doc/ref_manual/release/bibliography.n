@@ -1,0 +1,12 @@
+.\"	@(#)bibliography.n	1.2	94/04/05 15:14:40
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Bibliography"
+.LP
+This bibliography contains a list of all of the published papers about \*(Am
+In addition to this there is a small collection of unpublished technical
+reports,
+some of which have been submitted for publication.

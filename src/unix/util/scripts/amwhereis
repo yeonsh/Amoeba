@@ -1,0 +1,91 @@
+#!/bin/sh
+#	
+#	@(#)amwhereis	1.4	94/04/07 14:11:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Primitive locator for Amoeba source files.  Uses the contents of previously
+# compiled lists of all source and/or conf files.  Is only as good as that
+# file.  Recompiles the lists whenever they are more than 2 days old, or when
+# user says -m (make).
+#
+ROOT=`amdir`
+AMWHERE=$ROOT/lib/whereis
+SRC_FILES=$AMWHERE/src-files
+XSRC_FILES=$AMWHERE/Xsrc-files
+CONF_FILES=$AMWHERE/conf-files
+DOC_FILES=$AMWHERE/doc-files
+MKWHEREIS=`echo $0 | sed 's/amwhereis/makewhereis/'`
+
+output_abs_path=""
+use_conf=""
+use_doc=""
+use_X_also=""
+output_dir_only=""
+remake=""
+while [ $# -gt 0 ] ; do
+	case "$1" in
+	    -a) output_abs_path=TRUE ;;
+	    -c) use_conf=TRUE ;;
+	    -d) use_doc=TRUE ;;
+	    -D) output_dir_only=TRUE ;;
+	    -m) remake=TRUE ;;
+	    -X) use_X_also=TRUE ;;
+	    -*) echo >&2 "Usage: $0 [ -acDmrX ] pattern" ; exit 2 ;;
+	     *) break ;;
+	esac
+	shift
+done
+
+export SRC_FILES XSRC_FILES CONF_FILES DOC_FILES  # For makewhereis
+export use_x_also remake		  	  # For makewhereis
+$MKWHEREIS "$@" &	# Invoke background process to update the
+			# lists of files, if warranted.
+FILES=""
+if [ T$use_doc = TTRUE ] ; then
+	FILES="$FILES $DOC_FILES"
+else
+	case "$*" in
+		*.n\ *|*.n)
+			FILES="$FILES $DOC_FILES" ;;
+	esac
+fi
+if [ T$use_conf = TTRUE ] ; then
+	FILES="$FILES $CONF_FILES"
+else
+	case "$*" in
+		*.[ao]\ *|*.[ao])
+			FILES="$FILES $CONF_FILES" ;;
+		*[a-zA-Z0-9_][a-zA-Z0-9]\ *|*[a-zA-Z0-9_][a-zA-Z0-9])
+			FILES="$FILES $CONF_FILES" ;;
+	esac
+fi
+if [ "X$FILES" = X ] ; then
+	FILES="$FILES $SRC_FILES"
+else
+	case "$*" in
+		*.[cghHlsSy]\ *|*.[cghHlsSy])
+			FILES="$FILES $SRC_FILES" ;;
+	esac
+fi
+if [ T$use_X_also = TTRUE ] ; then
+	FILES="$FILES $XSRC_FILES"
+fi
+#echo >&2 "FILES=$FILES"
+
+for pattern do
+	if [ "T$output_abs_path" = TTRUE ] ; then
+		prefix_am_root='s?^?'$ROOT'/?'
+	else
+		prefix_am_root='$q'	# Make sed be a no-op filter
+	fi
+	if [ "$output_dir_only" ]; then
+		for file in `cat $FILES | grep "$pattern"\$` ; do
+			dirname $file | sed "$prefix_am_root"
+		done
+	else
+		cat $FILES | grep "$pattern"\$ | sed "$prefix_am_root"
+	fi
+done

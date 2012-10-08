@@ -1,0 +1,153 @@
+.\"	@(#)sun4m_timer.n	1.1	96/02/15 16:56:38
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep
+	Document: Gregory J. Sharp, Mar 1995
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "sun4m_timer" L "libamoeba.a (sparc)"
+microsecond resolution timer on the sun4m machines
+.SH
+Synopsis
+.LP
+.sC L
+#include "machdep/dev/sun4m_timer.h"
+
+errstat sun4m_timer_init(hostname)
+long sun4m_timer_diff(start, stop)
+struct sun4m_timer_regs * sun4m_timer_getptr()
+uint32 sun4m_timer_micro()
+.eC
+.kW "\fIsun4m_timer_init\fP"
+.kW "\fIsun4m_timer_diff\fP"
+.kW "\fIsun4m_timer_getptr\fP"
+.kW "\fIsun4m_timer_micro\fP"
+.SH
+Description
+.LP
+The timer resolution provided by
+.I sys_milli (L)
+varies from milliseconds to deciseconds, depending on the architecture
+on which it is executed.
+The SPARCstations\(TM of the type
+.cW sun4m
+provide a microsecond resolution timer which can be accessed by user programs.
+If the timer is present on a host, its capability is published under the
+name
+.I usertimer
+in the kernel directory of the host where it is available.
+Programs running on that host can map the timer into their address space,
+thus avoiding the time delays due to system call overhead.
+.sH
+sun4m_timer_init
+.LP
+.sC
+errstat
+sun4m_timer_init(hostname)
+char * hostname;
+.eC
+.kW "\fIsun4m_timer_init\fP"
+.I Sun4m_timer_init
+attempts to map the user timer capability from the kernel running on the host
+.I hostname
+into the address space of the current process.
+It is mapped read/write.
+If
+.I hostname
+is the NULL-pointer then it uses the name in the string environment variable
+.cW AX_HOST .
+If this is not defined the error
+.cW STD_ARGBAD
+is returned.
+.kW AX_HOST
+.cW AX_HOST
+is defined in the string environment by the programs
+.kW ax
+.I ax (U)
+and
+.kW gax
+.I gax (U).
+.LP
+The process must be running on the host with the specified name.
+Otherwise it is not possible to map in the segment.
+The
+.I usertimer
+can be mapped in by multiple processes at the same time.
+Therefore it advisable to let the timer run freely,
+though it is possible to write the timer registers, in principle.
+.eR
+\*<STD_ARGBAD\*>:	No valid hostname specified.
+\*<STD_NOMEM\*>:	no free virtual address space to map in timer segment.
+errors from host_lookup.
+errors from dir_lookup.
+errors from seg_map.
+.DE
+.sH
+sun4m_timer_diff
+.LP
+.sC
+long
+sun4m_timer_diff(start, stop)
+union sun4m_timer * start;
+union sun4m_timer * stop;
+.eC
+.kW "\fIsun4m_timer_diff\fP"
+.I Sun4m_timer_diff
+converts the time difference
+.cW stop\^\-\^start
+into microseconds.
+.eR
+None.
+.DE
+.sH
+sun4m_timer_getptr
+.LP
+.sC
+struct sun4m_timer_regs *
+sun4m_timer_getptr()
+.eC
+.kW "\fIsun4m_timer_getptr\fP"
+.I Sun4m_timer_getptr
+returns a pointer to the mapped-in timer registers.
+If the registers are not mapped in it returns NULL.
+.eR
+None.
+.DE
+.sH
+sun4m_timer_micro
+.LP
+.sC
+uint32
+sun4m_timer_micro()
+.eC
+.kW "\fIsun4m_timer_micro\fP"
+.I Sun4m_timer_micro
+reads the current timer and returns the time in microseconds.
+.eR
+.fi
+If the timer registers are not mapped in, calling this function will
+cause an exception.
+.nf
+.DE
+.mH
+Warnings
+.LP
+If more than one process maps in the
+.I usertimer
+and one or them modifies the behavior of the timer then the other will
+not obtain meaningful timing information.
+.SH
+Example
+.LP
+An example of the use of these routines can be found in the
+.I test
+suite for \*(Am, in the file
+.I src/test/performance/cpu/timertest.c .
+.SH
+See Also
+.LP
+sys_milli(L).

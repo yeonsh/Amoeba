@@ -1,0 +1,230 @@
+.\"	@(#)b_am_utils.n	1.9	96/02/15 17:01:32
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.nH 1 "Building the \*(Am Utilities"
+.LP
+This section describes the configuration and installation of the native
+\*(Am utilities,
+both user and administrative.
+In the examples below binaries for the
+.I i80386
+architecture will be built using the ACK compiler.
+Other architectures and compiler sets can be substituted.
+If after reading this you are uncertain about how to proceed,
+the script
+.kW "\fImakeconf\fP"
+.I makeconf (A)
+gives an example of how to build an entire system from
+scratch, including the
+.UX
+utilities.
+.LP
+.kW "configuration"
+Begin by constructing a tree in which the configuration is to be built.
+This is done with the command
+.kW "\fIamoebatree\fP"
+.I amoebatree (A).
+For example,
+suppose that your \*(Am distribution is installed in the directory
+.I /amoeba
+and you want to build your configurations for native \*(Am in the
+directory
+.I /amoeba/conf/amoeba .
+The command
+.I amdir (U)
+must return the string
+.I /amoeba
+in this case.
+(Note that under \*(Am it is customary to let it point at
+.I /profile/module/amoeba .)
+Make the directory
+.I /amoeba/conf
+if it does not already exist and then run the command
+.sC
+\fBamoebatree conf/amoeba src templates i80386 ack\fP
+.eC
+This says that the configuration is to be for the
+.I i80386
+.kW ACK
+architecture and to be build using the ACK (Amsterdam Compiler Kit) compiler
+set.
+Since the path names were relative it prepends the output of
+.I amdir
+to them.
+Therefore this command will make the directories
+.I /amoeba/conf/amoeba
+and
+.I /amoeba/conf/amoeba/i80386.ack
+if they do not already exist and then proceed to build a clone of the tree
+.I /amoeba/templates/amoeba
+under it.
+(If the configuration already exists it will go through the configuration
+adding any missing directories and interactively enquiring if it should
+update any files that are different from the template version.)
+.LP
+Once this process is complete it is possible to build the various libraries
+and utilities.
+Change directory to the configuration
+(in the above example
+.I /amoeba/conf/amoeba/i80386.ack )
+and type the command
+.kW "\fIbuild\fP"
+.sC
+\fBbuild > build.out 2>&1\fP
+.eC
+This will take some time to complete.
+Note that the simplest way to check for errors is
+.sC L
+\fBchkbuild build.out\fP
+.eC
+(see
+.I chkbuild (A)).
+.nH 2 "Building X Windows"
+.LP
+.kW "X windows"
+If X windows is required then first build the \*(Am utilities as described
+above.
+The file
+.I src/X11R6.am/xc/config/cf/Amoeba.cf
+contains some configuration defaults which must be adjusted for the local
+system.
+The variables
+.cW AmoebaTop ,
+.cW AmoebaBin
+and
+.cW AmoebaConf
+need to be overridden with the correct local values.
+Once that is done then run the following command to build the X server
+and clients:
+.kW "\fIbuildX\fP"
+.sC L
+\fBbuildX /amoeba/conf/amoeba /amoeba/src i80386 ack > buildX.out 2>&1\fP
+.eC
+If the contributed software should also be built then the
+.B \-c
+option should be given to
+.I buildX .
+See
+.I build (A)
+for more details.
+This command may take as long as 8 hours to complete on slow systems.
+It can take as much as 2 hours on a moderately fast system.
+Inspect the output file to ensure that the build completed successfully.
+To install the binaries produced, change directory to
+.I /amoeba/conf/amoeba/i80386.ack/X11R6/xc
+and type the command
+.sC
+\fBmake install\fP
+.eC
+.LP
+See the release notes to determine which version and what patch level of
+the X sources are required to compile X for \*(Am.
+.LP
+.B NB.
+It is not possible to build the X Windows system under
+.UX
+for the Sun 3 with the
+.I sun
+toolset at present.
+If hardware floating point is used then it probably can be built with
+judicious editing of the X configuration files.
+It should build correctly for the Sun 3 with the
+.I ack
+toolset under both
+.UX
+and \*(Am.
+.nH 2 "Building MMDF II"
+.LP
+.kW "MMDF II"
+Before the binaries for MMDF II can be made it is necessary to make an \*(Am
+configuration as described above.
+The libraries
+.kW Ajax
+.I libajax.a
+and
+.I libamoeba.a
+are used in linking the MMDF binaries.
+Once these libraries are present the next step is to run the command
+.kW "\fIbuildmmdf\fP"
+.I buildmmdf .
+This is a trivial shell script and it should be called as follows:
+.sC
+\fBcd \(gaamdir\(ga/\fIconf\fP/amoeba
+buildmmdf \fIconf src arch toolset\fP > buildM.out 2>&1\fP
+.eC
+where
+.I amdir (U)
+provides the root of the \*(Am distribution tree,
+.I conf
+is the name of the configuration directory where the binaries should be made,
+.I src
+is the name of the source directory where the
+.I mmdf
+and
+.I mmdf.am directories are to be found,
+.I arch
+is one of the standard architectures such as
+.I sparc
+or
+.I i80386
+and
+.I toolset
+specifies which compilers to use,
+for example,
+.I sunpro
+or
+.I ack .
+This will make a configuration tree in
+.DS
+.I \(gaamdir\(ga/\*<conf\*>/amoeba/\*<arch.toolset\*>/mmdf .
+.DE
+It assumes that the sources can be found in
+.I \(gaamdir\(ga/\*<src\*>/mmdf
+and
+.I \(gaamdir\(ga/\*<src\*>/mmdf.am .
+The process of making all the binaries for MMDF takes some considerable
+time.
+When the build completes inspect the file
+.I buildM.out
+to ensure that the compilation proceeded correctly.
+If it is desired to recompile a particular subdirectory of the configuration
+then go to that directory and type
+.sC
+\fBgen\fP
+.eC
+Typing
+.I make
+will not work except at the top levels of the configuration tree.
+.LP
+If the binaries have compiled satisfactorily then they can be installed
+by changing to the top level configuration directory and typing the command
+.sC
+\fBmake aminstall\fP
+.eC
+This installs the system binaries in
+.I /super/module/mmdf .
+The user utilities such as
+.I msg
+and
+.I send
+are installed in
+.I /super/util .
+.LP
+To install a particular binary then go to the directory where it was made and
+type
+.sC
+\fBgen aminstall\fP
+.eC
+.LP
+For details of how to configure MMDF see the MMDF documentation in
+.I src/mmdf/doc .
+This is a non-trivial exercise and involves correctly setting up the
+.I mmdftailor
+file.

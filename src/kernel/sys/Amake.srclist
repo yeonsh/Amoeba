@@ -1,0 +1,44 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/27 14:21:51
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_SYS_SWEEPER = {
+	$PWD/sweeper.c,
+	$PWD/sweeper.kstat
+};
+
+K_SYS = {
+	$PWD/global.init,
+	$PWD/global.stop,
+	$PWD/system.kstat,
+	$PWD/assert.c,
+	$PWD/kips.c,
+	$PWD/kips.init,
+	$PWD/kparam.c,
+	$PWD/kparam.init,
+	$PWD/main.c,
+	$PWD/main.kstat,
+	$PWD/main.init,
+	$PWD/malloc.c,
+	$PWD/mpx.c,
+	$PWD/mpx.init,
+	$PWD/printf.c,
+	$PWD/random.c,
+	$PWD/random.init,
+	$PWD/random.kstat,
+	$PWD/seg.c,
+	$PWD/seg.init,
+	$PWD/task.c,
+	$PWD/taskswitch.S,
+	$PWD/thread.c,
+	$PWD/printbuf.c,
+	$PWD/printbuf.init,
+	$K_SYS_SWEEPER
+};
+
+K_SYS_LINTLIB = {
+	$PWD/lintlib.c
+};

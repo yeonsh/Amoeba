@@ -1,0 +1,86 @@
+.\"	@(#)flip_ctrl.n	1.6	96/02/15 17:19:33
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Philip Homburg, Frans Kaashoek
+        Document: Frans Kaashoek, Jan 1992
+	Modified: Gregory J. Sharp, Oct 1993 -	merged the two programs that
+						did Amoeba and Unix separately
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "flip_ctrl" A
+control status of a FLIP network
+.SH
+Synopsis
+.LP
+.sC L
+flip_ctrl [-d <delay>] [-l <loss>] [-o <on>] [-t <trusted>] machine ntw
+
+UNIX ONLY:
+flip_ctrl [-d <delay>] [-l <loss>] [-o <on>] [-t <trusted>] ntw
+.eC
+.SH
+Description
+.LP
+.kW "FLIP driver control"
+.I Flip_ctrl
+is used to manage the state of the FLIP network
+.I ntw.
+See the description of the options below for details of what can be managed.
+Under \*(Am the
+.I machine
+argument must be specified along with the FLIP network.
+Under
+.UX
+if the
+.I machine
+argument is given then it specifies the \*(Am host to be altered.
+If the
+.I machine
+argument is not present the status of the FLIP network in the
+.UX
+kernel on which
+.I flip_ctrl
+is executed is changed.
+.LP
+Note that only \*(Am kernels and
+.UX
+FLIP drivers compiled with the
+.cW FLNETCONTROL
+option will accept this command.
+.mH
+Options
+.LP
+.IP "\fB\-d\fP delay" 10
+Artificially increases the delay of network
+.I ntw.
+Not implemented yet.
+.IP "\fB\-l\fP loss"
+Increases artificially the loss rate of network
+.I ntw.
+.IP "\fB\-o\fP on"
+Switches network
+.I ntw
+on or off.
+.IP "\fB\-t\fP trusted"
+Switches network
+.I ntw
+to trusted or non-trusted.
+.mH
+Warnings
+.LP
+Only use
+.I flip_ctrl
+if you know what you are doing.
+The machine whose FLIP networks are changed may become unreachable and have
+to be rebooted.
+.eC
+.SH
+See Also
+.LP
+kstat(A),
+flip_dump(A),
+flip_stat(A).

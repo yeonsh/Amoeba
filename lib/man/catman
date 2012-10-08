@@ -1,0 +1,91 @@
+#!/bin/sh
+#	
+#	@(#)catman	1.2	93/12/20 10:38:18
+#
+#
+#	generate the filenames and keywords databases for aman and also
+#	(re)generate any out of date catable manpages.
+#
+MANDIR=`amdir`/lib/man
+SRCDIR=`amdir`/doc/ref_manual
+MACROS=$SRCDIR/am_macros
+keywords=$MANDIR/keywords
+filenames=$MANDIR/filenames
+macros=/tmp/macr.$$
+sedscr=/tmp/seds.$$
+curline=/tmp/curl.$$
+curout=/tmp/curo.$$
+fileout=/tmp/file.$$
+trap "rm -f $macros $sedscr $curline $curout $fileout" 0
+(   grep '^\.ds' `amdir`/doc/ref_manual/am_macros
+    echo '.ta 14'
+    echo '.de mT'
+    echo '\\$1(\\$2)	- '
+    echo '..'
+) > $macros
+echo '/^\.mT/{
+N
+p
+}' >$sedscr
+>$fileout
+cd $SRCDIR
+#
+# Make sure that the target directories exist!
+#
+for dir in */manpages
+do
+    component=`expr $dir : '\([^/]*\)'`
+    if [ ! -d $MANDIR/$component ]
+    then
+	echo creating $MANDIR/$component
+	mkdir $MANDIR/$component
+    fi
+    if [ ! -d $MANDIR/$dir ]
+    then
+	echo creating $MANDIR/$dir
+	mkdir $MANDIR/$dir
+    fi
+    #
+    # Make the mandesc file for xman
+    #
+    if [ ! -f $MANDIR/$component/mandesc ]
+    then
+	echo creating $MANDIR/$component/mandesc
+	# Convert 1st character to upper case :-)
+	hd=`echo $component | sed -e 's/^\(.\).*/\1/'`
+	tl=`echo $component | sed -e 's/^.//'`
+	j=`echo $hd | tr [a-z] [A-Z]`
+	cat > $MANDIR/$component/mandesc << %%
+no default sections
+n$j$tl
+%%
+    fi
+done
+
+#
+# Generate catable manpages and whereis database
+#
+for file in */manpages/*.n
+do
+    # Generate the catable version of the man page if it is out of date
+    set gibberish `find $file -newer $MANDIR/$file -print 2>&1`
+    case $# in
+    1)  # it is up to date
+	;;
+    *)  eqn $MACROS $file | tbl | nroff -ms -rk1 | col > $MANDIR/$file
+	echo updating $file
+	;;
+    esac
+
+    # Generate the filename and keywords database entries for this file
+    sed -n -f $sedscr $file > $curline
+    if [ -s $curline ]
+    then
+	nroff $macros $curline|head -1>$curout
+	echo `sed 's/).*/)/' $curout` $file >> $fileout
+	grep '^\.kW ' $file |
+	    sed -e 's/^\.kW //' -e 's/"//g' -e 's/\\f.//g' \
+		-e 's/$/	'"`sed 's:/:\\\\/:g' $curout`"/
+    fi
+done | sort -u -o $keywords
+sort $fileout -o $filenames

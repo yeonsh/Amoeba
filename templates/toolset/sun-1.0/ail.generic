@@ -1,0 +1,35 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)ail.generic	1.2	94/04/05 17:10:43
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Ail-generic; do not put more than 1 ailsource
+# in $src until Kees has upgraded Amake! (get's first argument)
+
+%generic ailprog(targ, src, libs, llibs)
+{
+    ail_source = select($src, Ail_gen, %true);
+    ail_generated = get($ail_source, c_gen) + get($ail_source, h_gen);
+    rest_source = $src \ select($src, Ail_gen, %true);
+
+    # Somehow this needs to come first
+    %instance gcluster($targ, $ail_generated + $rest_source, $libs, $llibs);
+
+    %cluster
+    {
+	%targets get($ail_source, c_gen) + get($ail_source, h_gen) +
+	    get($ail_source, dummy_gen);
+	%sources $ail_source;
+    };
+};
+
+%generic bare_ail(src)
+{
+    %cluster
+    {
+	%targets get($src, c_gen) + get($src, h_gen) + get($src, dummy_gen);
+	%sources $src;
+    };
+};

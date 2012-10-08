@@ -1,0 +1,15 @@
+/*	@(#)dma.init	1.2	94/04/06 09:18:36 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+/*
+ * dma.init
+ *
+ * The DMA driver must be initialized before the network since some
+ * ethernet driver might want to use it.
+ */
+MMU dma_init
+dma_init ETH_INIT

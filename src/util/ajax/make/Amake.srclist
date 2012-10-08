@@ -1,0 +1,13 @@
+#	
+#	@(#)Amake.srclist	1.1	91/04/12 09:13:59
+#
+U_MAKE = {
+	$PWD/check.c,
+	$PWD/input.c,
+	$PWD/macro.c,
+	$PWD/main.c,
+	$PWD/make.c,
+	$PWD/reader.c,
+	$PWD/rules.c,
+	$PWD/h.h,
+};

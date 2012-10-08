@@ -1,0 +1,56 @@
+#	
+#	@(#)version_ld.amk	1.2	94/04/06 10:35:20
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# This is a loader tools but with the extra feature that it generates a
+# version.c file just before doing the load and adds it to the load.
+# This is used primarily by amoeba kernels and is not a standard tool.
+#
+# For convenience, use cc as default loader since it knows which options
+# to provide `ld' with.
+#
+%if (%not defined(LD), {
+	LD = $CC;
+});
+
+%if (%not defined(LDFLAGS), {
+	LDFLAGS = {};
+});
+
+%if (%not defined(LDHEAD), {
+	LDHEAD = {};
+});
+
+%if (%not defined(LIBRARIES), {
+	LIBRARIES = {};
+});
+
+%if (%not defined(MKVERSION), {
+	MKVERSION = makeversion;
+});
+
+%if (%not defined(VERSIONFILE), {
+	VERSIONFILE = version.o;
+});
+
+%export CC;
+
+%tool v_loader (
+    object_files: %in %list [type = loadable];
+    head:	  %in %list [type = head_file]	    => $LDHEAD;
+    libraries:    %in %list [type = library]	    => $LIBRARIES;
+    executable:   %out	    [type = version-program];
+    program:	  %in	    [type = command]	    => $LD;
+    strip:        %boolean			    => %false;
+    flags:	  %string %list			    => $LDFLAGS;
+    makeversion:  %in	    [type = command]	    => $MKVERSION;
+)
+{
+    exec($makeversion, args => $VERSIONFILE);
+    exec($program,
+	 args => '-o' + $executable + $flags + if ($strip, {'-s'}, {}) +
+		 $head + $object_files + $VERSIONFILE + $libraries);
+};

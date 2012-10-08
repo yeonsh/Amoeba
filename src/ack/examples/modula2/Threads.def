@@ -1,0 +1,27 @@
+/*	@(#)Threads.def	1.2	94/04/06 11:10:44 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+(*$Foreign language module *)
+(*$U+ allow for underscores in identifiers *)
+
+DEFINITION MODULE Threads;
+
+  FROM SYSTEM IMPORT    ADDRESS;
+
+  TYPE IntFunc = PROCEDURE(): INTEGER;
+
+  PROCEDURE thread_newthread(func:	IntFunc;
+			     stsize:	INTEGER;
+			     param:	ADDRESS;
+			     psize:	INTEGER);
+
+  PROCEDURE thread_alloc(VAR index:	INTEGER;
+			 size:		INTEGER): ADDRESS;
+
+  PROCEDURE thread_exit();
+
+END Threads.

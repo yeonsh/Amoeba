@@ -1,0 +1,37 @@
+#				c c - c
+#	
+#	@(#)cc-c.common	1.2	94/04/06 10:32:11
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+
+%if (%not defined(CC), { CC = cc; });
+%if (%not defined(CFLAGS), { CFLAGS = {}; });
+
+%instance deftypesuffix(dependents, '%.d');
+
+# Note: this new "common cc-c tool" executes the seperate dependency
+# generation program *after* the C-compilation has been done.
+# Apart from being more efficient, this has the advantage of a much smaller
+# statefile. Furthermore, it only generates the dependency list when the
+# compilation itself succeeds.
+
+%tool cc-c (
+    src:      %in         [type = C-src];
+    object:   %out        [type = loadable]         => match($src);
+    flags:    %string %list                         => $CFLAGS;
+    objflags: %string %list                	    =>
+		if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:  %in         [type = command]	    => $CC;
+
+    # dependency generation support:
+    mkdep:    %in         [type = command]	    => $MKDEP;
+    deps:     %out        [type = dependents]	    => match($src);
+    incl:     %in %list   [C-incl, implicit]	    => %computed $deps;
+)
+{
+    exec($program, args => '-c' + $flags + $objflags + $src);
+    exec($mkdep, args => $flags + $objflags + $src, stdout => $deps);
+};

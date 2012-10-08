@@ -1,0 +1,76 @@
+.\"	@(#)tob.n	1.5	96/02/16 11:09:49
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, 1989
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT tob U "UNIX ONLY"
+copy a
+.UX
+file to an \*(Am \*(Bs
+.SH
+Synopsis
+.LP
+.sC L
+tob [-n] unix-name amoeba-name [fileserver]
+.eC
+.SH
+Description
+.LP
+.kW "UNIX"
+.kW "Bullet Server"
+.kW "remote file transfer"
+.kW "file"
+.I Tob
+is a command which runs only under
+.UX
+with an \*(Am driver.
+It reads the file
+.I unix-name
+from the
+.UX
+system and stores it on an \*(Am \*(Bs
+under the name
+.I amoeba-name
+in the \*(Am directory service.
+This name must not exist already.
+.LP
+The optional third parameter specifies the path name in the
+\*(Am directory server for the capability of a particular \*(Bs
+to use.
+If the third parameter is omitted then the default \*(Bs is used.
+.mH
+Options
+.LP
+The
+.B \-n
+option requests that the capabilities for the Bullet file and optional
+fileserver not be stored or looked up in the \*(Am directory server.
+Instead they should be stored or looked up in
+.UX
+files with the specified name(s).
+This feature is for bootstrapping a system when no directory server is
+available.
+.SH
+Example
+.LP
+.sC
+tob /etc/termcap /home/mytermcap
+.eC
+will copy the
+.UX
+file
+.I /etc/termcap
+to the default \*(Bs and store under the name
+.I /home/mytermcap
+under \*(Am.
+.SH
+See Also
+.LP
+bullet(A),
+fromb(U).

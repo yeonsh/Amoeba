@@ -1,0 +1,45 @@
+.\"	@(#)ref.n	1.2	92/05/15 17:09:03
+.aU
+	Software: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Document: Steve Kirkendall, kirkenda@cs.pdx.edu
+.aE
+.mT "ref" U
+display a C function header
+.SH
+Synopsis
+.LP
+.sC L
+ref function_name
+.eC
+.SH
+Description
+.LP
+.kW "editor"
+.I Ref
+is a program which looks up the function header of a
+particular function in any of a series of reference files.
+These reference files are produced by the
+.I ctags (U)
+program.
+.LP
+.I Ref
+.kW "\fIelvis\fP"
+is used by
+.I elvis '
+shift-K command.
+.mH
+Files
+.LP
+The list of files checked includes
+.DS
+.I
+./refs
+/usr/src/lib/refs
+../lib/refs
+/usr/local/lib/refs
+.R
+.DE
+.SH
+See Also
+.LP
+ctags(U).

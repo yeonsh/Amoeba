@@ -1,0 +1,95 @@
+.\"	@(#)newsoapgraph.n	1.6	96/02/15 17:48:49
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Modified: Gregory J. Sharp, Sept 1994 - new directory graph structure
+						to support security.
+	Document: Gregory Sharp, 13/02/90
+	Modified: Gregory J. Sharp, Sept 1994
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "newsoapgraph" A
+generate a standard soap directory structure
+.SH
+Synopsis
+.LP
+.sC L
+newsoapgraph username
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "create SOAP graph"
+.kW "installation"
+.I Newsoapgraph
+is a command script used to create the standard directory structure.
+It is only sensible for it to be done immediately after the creation of
+the first soap directory (see
+.I makesuper (A)).
+The initial directory will be the creator's home directory and is known as /.
+(NB. all users see their home directory as having the name /.)
+.I Newsoapgraph
+will create the super directory under it.
+This is the capability that gives all rights to the entire directory graph and
+should be protected.
+Thereafter the directory
+.I /super/users
+is created and then the initial directory
+is entered as
+.I /super/users/ username.
+This is the first of many cycles in the directory graph.
+Thereafter several subdirectories of
+.I /super
+are generated.
+Users typically get access to a subset of these via the
+.I /profile
+directory.
+.mH
+Diagnostics
+.LP
+Diagnostics are those of
+.I mkd ,
+.I chm ,
+.I std_restrict,
+.I put
+and
+.I get .
+There should not be any, however.
+.mH
+Environment Variables
+.LP
+The environment variable
+.cW SPMASK
+influences the behavior of
+.I put
+and
+.I mkd
+but
+.I newsoapgraph
+explicitly sets the value of
+.cW SPMASK
+for the duration of the command to ensure
+the correct protection for the directories that it creates.
+.SH
+Example
+.LP
+.sC
+newsoapgraph peter
+.eC
+will create a new soap directory graph and register the initial directory
+under the name
+.I /super/users/peter .
+.SH
+See Also
+.LP
+chm(U),
+get(U),
+makesuper(A),
+mkd(U),
+put(U),
+std_restrict(U).

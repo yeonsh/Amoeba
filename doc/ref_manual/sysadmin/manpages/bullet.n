@@ -1,0 +1,824 @@
+.\"	@(#)bullet.n	1.12	96/02/15 17:07:27
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Jan 1989 - Feb 1990
+	Document: Gregory J. Sharp, Feb 1990
+	Modified: Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "bullet" A
+a high performance immutable file server
+.SH
+Synopsis
+.LP
+.sC L
+bullet [-c capability] [-i numinodes] [-m memsize]
+		[-t nthread] [vdiskname]
+.br
+.I or
+.br
+built into the kernel (no options)
+
+.I "Unix Only:"
+.br
+ubullet [-c filename] [-i numinodes] [-m memsize] [vdiskname]
+.eC
+.SH
+Description
+.LP
+.kW "immutable"
+.kW "Bullet file"
+.kW "contiguous"
+.kW "atomic commit"
+The \*(Bs implements a high speed immutable file service under \*(Am.
+High performance is achieved using a large buffer cache to reduce secondary
+storage access and by taking advantage of the fact that files are immutable to
+store them contiguously,
+both in the cache and on secondary storage.
+The \*(Bs uses the virtual disk server (see
+.I vdisk (A))
+to read and write the disk.
+.LP
+The \*(Bs can be run either as a user mode program or in the kernel of
+the machine with the virtual disk to be used by the server.
+When run in the kernel, the information needed to start the server is deduced
+dynamically.
+When run as a user program, the information can be given as command line
+options.
+For more details see the section
+.I "User Mode Bullet Server"
+below.
+Functionally the user mode and kernel mode
+\*(Bss are identical.
+They differ primarily in the manner and location of starting them.
+.LP
+It is also possible to run the \*(Bs under
+.UX
+using the program
+.I ubullet .
+However the functionality is severely restricted.
+The performance is also relatively poor.
+For more details see the section
+.I "Unix Bullet Server"
+below.
+.LP
+Bullet files are identified by capability only.
+A directory server is used to implement a mapping between
+.kW ASCII
+ASCII file names and capabilities.
+.LP
+There are three primary operations that can be performed using the \*(Bs:
+.I "Create file" ,
+.I "Read file" ,
+and
+.I "Destroy file" .
+.R
+The complete set of operations are described in the
+.I "Programming Interface Summary"
+below.
+.LP
+A file may be created incrementally in the \*(Bs's buffer cache but it remains
+.I uncommitted
+until the file is complete.
+Uncommitted files can be either modified or destroyed.
+Modification is done
+using the \*(Bs's editing operations:
+.I b_insert ,
+.I b_modify
+and
+.I b_delete .
+Along with
+.I std_destroy ,
+these are the only operations permitted on uncommitted files.
+For all other purposes they do not exist.
+Once
+.I committed ,
+files are immutable; they can only be read or destroyed.
+The
+.I commit
+operation is atomic.
+When committing a file it is possible to specify that you wish to block until
+the file has been written to disk,
+or return immediately and let the file be written to disk later.
+The latter always occurs within
+.cW BS_SWEEP_TIME
+milliseconds (see
+.I bullet.h ).
+This is typically set to one minute.
+.LP
+Because it is possible for the capability for a file to be lost,
+.kW "garbage collection"
+there is a system of garbage collection to throw away files that have not
+been
+.I touched
+within a certain time period.
+A file is
+.I touched
+by being accessed or by using the special command
+.I std_touch
+described below.
+.kW "garbage collection"
+More details of garbage collection are given in the
+.I Administration
+section below.
+.LP
+It is possible that a client dies while creating a file,
+leaving an uncommitted file in the buffer cache.
+To prevent malicious or accidental filling of the buffer cache with files
+that will never be committed there is a short time out on uncommitted files.
+If no modification command is received within
+.cW BS_CACHE_TIMEOUT
+seconds (typically set to ten minutes) the file is destroyed.
+.SH
+The User Mode Bullet Server
+.LP
+The performance of the user mode \*(Bs is marginally slower than that of the
+kernel mode version but the difference is negligible for most purposes.
+The primary difference between the user and kernel mode servers is the manner
+of starting them.
+The kernel mode version is started when the kernel is booted and determines
+which disk and how much memory it should use on the basis of the resources
+that are present.
+The user mode version must be told which virtual disk to use.
+This can be done with a path name for the virtual disk on the command line
+(for example,
+.I /super/hosts/foo/vdisk:09 )
+or by setting the string environment variable
+.cW BULLET_VDISK
+to be the name of the virtual disk.
+The user mode server need not run on the same host as the virtual disk server
+that it uses (as is the case with the kernel mode server), but the best
+performance is obtained that way.
+.mH
+Options
+.LP
+.IP "\fB\-c\fP \fIcapability\fP"
+.br
+This option tells the server where to publish its capability.
+The default is
+.I /super/cap/ubulletsvr/default .
+.IP "\fB\-i\fP \fInuminodes\fP"
+.br
+This tells the server to load only the first
+.I numinodes
+inodes into the cache.
+Any files whose inode number is higher than
+.I numinodes
+will not be accessible.
+The effect of this is to reduce the amount of memory taken up by the in-core
+inode table.
+This is only intended for use in the coldstart process.
+It should not be used for normal operation.
+Note that when this option is used a small warning will be printed before
+the initialization notice telling the number of inodes that will be cached.
+.IP "\fB\-m\fP \fImemsize\fP"
+.br
+This option tells the server how much memory to allocate for its buffer cache.
+The default is two megabytes.
+.IP "\fB\-t\fP \fInthread\fP"
+.br
+This option sets the number of threads accepting requests from clients to be
+.I nthread .
+The default is ten (10).
+.SH
+The UNIX Bullet Server
+.LP
+It is possible to run the \*(Bs on a
+.UX
+system which has the \*(Am network driver installed.
+Note that since \*(Am programs running under
+.UX
+are not multithreaded there can be no sweeper task.
+This means that files committed without safety will not be written to disk.
+In addition the performance is poor due to the poor network performance and
+the fact that there is only one thread to service client requests.
+However, sometimes it is still convenient to run the \*(Bs under
+.UX
+if no \*(Am machine is available with sufficient memory for the task.
+The
+.UX
+\*(Bs will still communicate with the virtual disk system in the usual way and
+so a machine with a disk and virtual disk server is required unless
+the virtual disk server also runs under
+.UX
+(see
+.I vdisk (A)).
+.LP
+As with the user mode server under \*(Am, it is necessary to provide the
+capability for the virtual disk that the server is to use.
+This can be done with either the optional command line argument or the
+string environment variable
+.cW BULLET_VDISK .
+This can refer to a soap capability or the name of a
+.UX
+file which contains the required capability.
+.mH
+Options
+.LP
+.IP "\fB\-c\fP \fIfilename\fP"
+.br
+This option tells the server where to publish its capability.
+In this case it is a
+.UX
+file name in which the capability for the server is stored.
+The default file name is
+.I bullcap .
+(Note that this is relative to the current directory!)
+The routine
+.I host_lookup
+is capable of accessing this information under
+.UX
+(see
+.I host_lookup (L)).
+.IP "\fB\-i\fP \fInuminodes\fP"
+.br
+This tells the server to load only the first
+.I numinodes
+inodes into the cache.
+Any files whose inode number is higher than
+.I numinodes
+will not be accessible.
+The effect of this is to reduce the amount of memory taken up by the in-core
+inode table.
+This is only intended for use in the coldstart process.
+It should not be used for normal operation.
+Note that when this option is used a small warning will be printed before
+the initialization notice telling the number of inodes that will be cached.
+.IP "\fB\-m\fP \fImemsize\fP"
+.br
+This option tells the server how much memory to allocate for its buffer cache.
+The default is two megabytes.
+.SH
+Programming Interface Summary
+.LP
+The programmers' interface consists of commands particular to the \*(Bs
+(whose names begin with
+.I b_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+The commands are divided into two categories:
+administrative and user.
+A summary of the commands is presented in the following two tables,
+the first listing the user commands and the second the administrative commands.
+The interface is described in detail in the library section of the manual
+(see
+.I bullet (L)
+and
+.I std (L)).
+.bp
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+User Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_copy:T{
+BS_RGT_CREATE in servercap
+.br
+BS_RGT_READ in filecap
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+T}:T{
+Replicate a committed Bullet file
+T}
+_
+std_destroy:BS_RGT_DESTROY:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Destroy a Bullet file
+T}
+_
+std_info:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Print standard information for a Bullet object
+T}
+_
+std_restrict::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Produce a Bullet capability with restricted rights
+T}
+_
+b_read:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOMEM
+T}:T{
+Read a file
+T}
+_
+b_size:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Get the size of a file
+T}
+_
+b_create:T{
+BS_RGT_CREATE
+.br
+BS_RGT_READ in
+.br
+compare cap
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+T}:T{
+Create a file, optionally committing it
+T}
+_
+b_modify:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+T}:T{
+Overwrite part of the data of an uncommitted file
+T}
+_
+b_insert:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+T}:T{
+Insert data into an uncommitted file
+T}
+_
+b_delete:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+T}:T{
+Delete data from an uncommitted file
+T}
+.TE
+.bp
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+Administrative Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+.kW "garbage collection"
+Start a garbage collection pass
+T}
+_
+std_status:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Print \*(Bs statistics
+T}
+_
+std_touch::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Reset a Bullet file's time to live
+T}
+_
+std_ntouch::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Reset a set of Bullet file's time to live
+T}
+_
+b_disk_compact:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Eliminate disk fragmentation
+T}
+_
+b_fsck:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Do file system check
+T}
+_
+b_sync:none:T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+flush committed files to disk
+T}
+_
+.TE
+.SH
+Administration
+.LP
+In general there is very little administration required for a \*(Bs once it
+is running.
+Installation is non-trivial and is described first.
+.mH
+Installation
+.LP
+At present the \*(Bs runs as a kernel thread.
+The references to a \*(Bs kernel should be taken to mean a kernel that
+automatically starts a \*(Bs,
+either as a kernel thread or as a user-mode process.
+.LP
+To start a \*(Bs you need an \*(Am system with a disk and a large amount of
+core memory.
+At least 2 Mbytes is required and 12 Mbytes or more gives good performance.
+The first step is to label the disk (see
+.I disklabel (A)).
+The next step is to create an empty file system on a virtual disk.
+This is done using the
+.I mkfs (A)
+command.
+It requires an \*(Am kernel running the virtual disk server.
+You can boot a standard \*(Bs kernel at this point since the \*(Bs will
+print a warning message and then go into a quiescent state or exit if it finds
+no Bullet file system on any of the virtual disks.
+Note that a virtual disk may comprise more than one physical partition and
+may even span several physical disks (see
+.I vdisk (A)
+for more details).
+If the initial
+.I mkfs
+is not satisfactory a subsequent one may be performed on the same virtual disk
+without problems.
+If you place the file system on the wrong virtual disk you should run
+.I killfs (A)
+on the unwanted Bullet file system since the \*(Bs can only run on one virtual
+disk and the kernel version takes the first virtual disk with a valid Bullet
+file system that it finds on the disk system.
+.LP
+Once the
+.I mkfs
+is complete, an \*(Am kernel containing a \*(Bs should be (re)booted.
+.LP
+When it comes up it should print a message of the form:
+.sC
+BULLET SERVER INITIALIZATION
+
+Buffer cache size = 0xA0A000 bytes
+Largest possible file size = 0x911000 bytes
+63743 inodes free, 0 inodes used
+317638 disk blocks free, 997 disk blocks used
+.eC
+Note that the
+.I
+Largest possible file size
+.R
+reflects the space available in the cache for storing files and not necessarily
+the largest file that it is possible to create,
+which is almost certainly smaller.
+Note that even though no files have been created,
+disk blocks are being used for inodes.
+.LP
+Once it is running and the directory server is running the system administrator
+should copy the \*(Bs's super capability to the directory
+.I /super/cap/bulletsvr/ host_name.
+Typically this directory entry should have column masks
+.cW 0xFF:0x0F:0x0F
+(see
+.I chm (U)).
+Also ensure that the \*(Bs chosen as the default is installed under the
+name
+.cW DEF_BULLETSVR
+as defined in
+.I ampolicy.h
+(this is typically
+.I /profile/cap/bulletsvr/default
+but should be installed via the pathway
+.I /super/cap/bulletsvr/default )
+and should have the same column masks as the other \*(Bs capabilities.
+.LP
+See elsewhere in the
+.I "System Administration Guide
+for further information about initial installation of \*(Am.
+.mH
+Day to day running
+.LP
+Each time the \*(Bs is started it begins with a file system consistency check.
+If it finds bad files it throws them away and prints a warning on the console.
+Except in the case of overlapping files this is always the correct solution.
+At some stage it will become more friendly and possibly allow interactive
+maintenance of a damaged file system when there are overlapping files.
+.LP
+The
+.I bstatus (A)
+command can be used to examine the current state of the file server.
+It reports usage of resources and commands.
+It can be useful for determining usage patterns for tuning the \*(Bs.
+.kW "disk usage"
+It also reports the disk block and inode usage.
+.LP
+It is possible for the \*(Bs's cache to become full,
+primarily due to uncommitted files.
+Committed files are deleted from the cache on a least-recently-used basis if
+the server runs short of cache space.
+Cache compaction may also be resorted to if deleting committed files does
+not provide enough space.
+If this also fails to yield sufficient space then the operation will fail.
+If there are too many occurrences of this then it is probably necessary to
+increase the main memory capacity of the file server host.
+Restarting the \*(Bs may also help with the problem but will trash any
+uncommitted files in the cache.
+.LP
+Cache slots may also be in short supply.
+It will attempt to throw out the least recently used file which is committed.
+As a last resort it may even toss out the least recently modified uncommitted
+file,
+but it will print a warning on the console if it does this.
+If this warning is ever seen then it is almost certainly worth reducing
+the
+.cW AVERAGE_FILE_SIZE
+(a tunable constant in
+.I bullet.h )
+to increase the number of cache slots available.
+.LP
+It is possible that after some time your \*(Bs virtual disk may fill up.
+There are several possibilities for dealing with this:
+.IP i)
+Run the
+.I bdkcomp (A)
+command.
+This will eliminate disk fragmentation.
+It is really a stop-gap solution.
+.IP ii)
+It is possible to add a second physical disk to the machine and (using the
+.I disklabel (A)
+program) extend the virtual disk of the \*(Bs to use partitions on the
+new disk.
+However it will be necessary to edit the \*(Bs's superblock so that it sees
+that its virtual disk has grown larger.
+.IP
+Buying a larger disk and transferring everything to the new disk is also
+possible.
+.IP iii)
+Get a second \*(Bs machine.
+.LP
+If for some reason it is desired to shutdown a \*(Bs the command
+.I bsync (A)
+will cause any uncommitted files that are not yet on disk to be written to
+disk.
+.mH
+Garbage Collection
+.LP
+.kW "garbage collection"
+To prevent the disk being filled up with files for which no one has the
+capability,
+the
+.I std_age
+command causes the life-time of a file to be decremented.
+If the life-time reaches zero then the file is deleted.
+The
+.I std_touch
+command or any access to the file resets the life-time to the maximum value
+of
+.cW MAX_LIFETIME
+(which is typically 24 - see
+.I inode.h ).
+The rate at which
+.I std_age
+is called is determined by the
+.I om (A)
+server which first does an
+.I std_touch
+command on all the objects in the directory tree and then sends the
+.I std_age
+command to all the servers registered with it.
+It is important that the rate at which this is done be set to a reasonable
+value by the system administrator.
+Otherwise the disk will fill up with junk if the rate is too slow
+or the files not registered with the directory server may be garbage collected
+against the wishes of their owners.
+.LP
+If it is clear that the disk is full of junk then one way to recover the lost
+disk space is to execute several
+.I std_age (A)
+commands in succession (but always fewer than
+.cW MAX_LIFETIME )
+and then run
+.I om
+to do one or two rounds of touching and aging to clear away unreachable files.
+The touching of files before the last aging is essential.
+Otherwise all the files may de deleted!
+.mH
+Tuning your \*(Bs
+.LP
+There are some tunable constants for the \*(Bs which can be found in the
+include file
+.I bullet.h .
+They come preset to values which are considered reasonable but it may be
+necessary to adjust them for your site.
+.LP
+.cW BS_SWEEP_TIME
+is the time in milliseconds between each sweep of the
+.I bullet_sweeper
+thread in the \*(Bs.
+This thread has three functions:
+The first is to decrement the uncommitted file timeout for any uncommitted
+files.
+If the timeout for a file reaches zero the file is deleted.
+The second function is to write to disk any files which have been committed
+but not yet written to disk.
+The third function is to determine if the \*(Bs has been idle for a long
+period and if so to attempt compaction of the buffer cache.
+Compacting the buffer cache can be an expensive operation and is thus only
+attempted in idle periods.
+.LP
+This timeout should not be made too short or the \*(Bs will spend most of the
+time in the sweeper.
+The default is 60000 (1 minute).
+.LP
+.cW BS_LOAD_BASE
+is the number of sweep times over which the \*(Bs's load is averaged to
+determine idleness.
+When idle the \*(Bs will perform cache compaction.
+The default is 2 minutes.
+.LP
+.cW BS_CACHE_TIMEOUT
+is the uncommitted file timeout.
+That is,
+the longest period that an uncommitted file will continue to exist without
+a modify operation being performed on it.
+It is a multiple of the
+.cW BS_SWEEP_TIME
+\- so the timeout will be (\*<BS_CACHE_TIMEOUT\*> *
+.cW BS_SWEEP_TIME )
+milliseconds.
+.LP
+If this timeout is made too short then people will not be able to create
+files.
+If the timeout is too long then the \*(Bs's cache can be become congested.
+The default is 10, which in combination with the default sweep time gives a
+ten minute timeout.
+.LP
+.cW BS_REQBUFSZ
+is the size of the \*(Bs's request buffer size.
+This reflects the amount of throughput that can be achieved using the
+\*(Bs.
+.LP
+This should be made as large as practically possible,
+but bear in mind that the \*(Bs allocates buffers of this size from the
+buffer cache.
+The default is tuned to the Ethernet and limited by the current maximum
+transaction size to 29768 bytes.
+.LP
+When the \*(Bs starts it tries to allocate the largest buffer cache possible
+from the available memory.
+However,
+because the kernel may need to allocate memory and because it may be
+desirable to run user processes on the same host as the
+\*(Bs it is necessary to leave some memory in reserve.
+.cW BS_MEM_RESERVE
+bytes are subtracted from the size of the largest available piece of memory
+before it allocates its buffer cache.
+.LP
+It is important to bear in mind that the directory server is normally started
+on the same machine as the \*(Bs since it too needs access to a disk.
+Therefore bear its memory requirements in mind when setting this figure.
+The default is tuned to the \*(Ss and is set at 0x280000 bytes.
+It can be defined in the
+.I Amakefile
+as some other value and will override the value in
+.I bullet.h .
+.LP
+.cW AVERAGE_FILE_SIZE
+influences the number of inodes created in the file system by
+.I mkfs (A)
+and the number of cache slots used in the \*(Bs.
+The cache slots take up space in cache memory and reduce the space available
+for data.
+The larger the average file size, the fewer the inodes and cache slots.
+The default setting is 16K bytes.
+This is based on experience with the \*(Bs.
+For specialized applications such as data bases where memory usage is
+important this constant should be tuned to the application.
+.LP
+.cW BS_MIN_CACHE_SLOTS
+sets a lower limit on the number of cache slots the server can have.
+It is currently set at 1024.
+The system can function with less than this but performance will be poor.
+.LP
+.cW BS_MIN_MEMORY
+sets the minimum amount of cache memory which a \*(Bs insists on having
+before it will run.
+The default is 3 Mbytes.
+Anything less than 8 Mbytes will cause heavy thrashing and should
+be avoided.
+Memory is cheap, after all.
+.SH
+See Also
+.LP
+bdkcomp(A),
+bfsck(A),
+bsize(U),
+bstatus(A),
+bsync(A),
+disklabel(A),
+fromb(U),
+killfs(A),
+mkfs(A),
+om(A),
+printbuf(A),
+soap(A),
+std(L),
+std_age(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_touch(U),
+Tbullet(T),
+tob(U),
+vdisk(A).

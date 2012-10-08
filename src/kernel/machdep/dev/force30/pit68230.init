@@ -1,0 +1,15 @@
+/*	@(#)pit68230.init	1.3	94/04/06 09:06:33 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+MMU inittimer
+initinterrupts inittimer
+inittimer CLOCK
+inittimer THREADS
+#if PROFILE
+MMU init_prof_timer
+init_prof_timer THREADS
+#endif /* PROFILE */

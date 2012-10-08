@@ -1,0 +1,208 @@
+#!/bin/sh
+#	
+#	@(#)kerneltree	1.8	96/02/27 10:20:15
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	Make kernel configuration directories, enquire when not
+#	sure what to make.
+#
+# Author: Greg Sharp
+#
+CFROOT=Amake
+CFNAME=Amakefile
+PROG=`basename $0`
+USAGE="Usage: $PROG [-v] config-root source-root template-root arch mach toolset"
+ECHO=:
+#
+# Assuming that makesubtree is in the same directory as this script, use $0 to
+# generate a makesubtree command.
+#
+MYDIRNAME=`expr $0 : '\(.*\)/.*'`
+if [ X$MYDIRNAME != X ]
+then
+	MYDIRNAME="$MYDIRNAME/"
+fi
+case $MYDIRNAME in
+/*)	;;
+*)	MYDIRNAME=`pwd`/$MYDIRNAME ;;
+esac
+MAKESUBTREE=${MYDIRNAME}makesubtree
+#
+# Work out which system we're on - if amoeba then we need a different chmod
+#
+if [ -d /profile/group ]
+then
+	CHMOD="chm ff:2:2"
+else
+	CHMOD="chmod ug+w"
+fi
+#
+# Set umask.
+#
+. ${MYDIRNAME}localumask
+
+while [ $# -gt 0 ]
+do
+	case "$1" in
+	-v)     ECHO=echo
+		;;
+	*)      break
+		;;
+	esac
+	shift
+done
+if [ $# -ne 6 ]
+then
+	echo $USAGE
+	exit 1
+fi
+#
+# Get the parameters
+#
+tree_root=`amdir`
+# Under Amoeba is amdir starts with /profile then it probably isn't
+# a writable directory so we convert it to /super if it exists
+#
+case $tree_root in
+/profile/*)
+    if [ -d /super ]
+    then
+	tree_root=`echo $tree_root | sed 's/profile/super/'`
+    fi
+    ;;
+esac
+
+case $1 in
+/*)	CONF_ROOT=$1 ;;
+*)	CONF_ROOT=$tree_root/$1 ;;
+esac
+
+case $2 in
+/*)	SRC_ROOT=$2 ;;
+*)	SRC_ROOT=$tree_root/$2 ;;
+esac
+
+case $3 in
+/*)	TEMPLATE_ROOT=$3 ;;
+*)	TEMPLATE_ROOT=$tree_root/$3 ;;
+esac
+
+ARCH=$4
+MACH=$5
+TOOLSET=$6
+ARCHDIR=$4.$6
+#
+if echo 'a\c' | grep 'c' > /dev/null ; then
+	E_PRE='-n'	# We have BSD-like echo command.
+	E_SUF=''
+else
+	E_PRE=''	# We have System V-like echo command.
+	E_SUF='\c'
+fi
+#
+#
+# default to sun3 templates if there are no templates for the specified
+# machine.
+#
+if [ -d $TEMPLATE_ROOT/kernel/$MACH ]
+then
+	TEMPLATE=$TEMPLATE_ROOT/kernel/$MACH
+else
+	echo "No kernel templates for machine $MACH"
+	echo $E_PRE "Install the sun3 versions? [yn] " $E_SUF
+	read answer
+	if [ X$answer = "Xy" ]
+	then
+		TEMPLATE=$TEMPLATE_ROOT/kernel/sun3
+	else
+		echo Exiting without creating directories.
+		exit 1
+	fi
+fi
+KERNELROOT=$CONF_ROOT/$ARCHDIR/kernel
+#
+# Generate kernel directories for bullet servers, pool processors, etc. and
+# put templates in these directories for conf.c, map.h, diskconf.c and
+# configuration files so beginners have enough hints on how to proceed.
+#
+for dir in $KERNELROOT $KERNELROOT/$MACH
+do
+	if [ ! -d $dir ]
+	then
+		$ECHO creating directory: $dir
+		mkdir $dir
+	else
+		$ECHO $dir: already exists
+	fi
+done
+KERNELROOT=$KERNELROOT/$MACH
+#
+$ECHO "Creating specialised kernel directories."
+UEXIT=42
+cd $TEMPLATE
+for dir in *
+do
+	if [ $dir != RCS -a $dir != SCCS -a -d $dir ]
+	then
+		if [ ! -d $KERNELROOT/$dir ]
+		then
+			$ECHO creating directory: $KERNELROOT/$dir
+			mkdir $KERNELROOT/$dir
+		else
+			$ECHO $KERNELROOT/$dir: already exists
+		fi
+		(
+		 cd $dir
+		 ECHO=$ECHO CHMOD=$CHMOD UEXIT=$UEXIT \
+		 E_PRE=$E_PRE E_SUF=$E_SUF \
+		    $MAKESUBTREE . $KERNELROOT/$dir $CONF_ROOT $SRC_ROOT $ARCH $TOOLSET
+		)
+		if [ $? = $UEXIT ] # someone typed 'q'
+		then
+		    exit $UEXIT
+		fi
+	fi
+done
+# copy common files from top level to sub directories
+for file in *
+do
+    if [ -f $file -a $file != Markfile ]
+    then
+	for dir in *
+	do
+	    if [ $dir != RCS -a $dir != SCCS -a -d $dir ]
+	    then
+		newfile=$KERNELROOT/$dir/$file
+		if [ ! -f $newfile ]
+		then
+		    answer=y
+		elif cmp -s $file $newfile
+		then
+		    $ECHO $newfile is up to date
+		    answer=n
+		else
+		    answer=d
+		    while [ x$answer != xy -a x$answer != xn -a x$answer != q ]
+		    do
+			echo "$newfile: file already exists but is different."
+			echo $E_PRE "Overwrite existing version? [nydq] " $E_SUF
+			read answer
+			if [ x$answer = xd ]; then
+			    diff $newfile $file
+			fi
+		    done
+		fi
+		case X$answer in
+		Xy)	rm -f $newfile
+			$ECHO creating/updating $KERNELROOT/$dir/$file
+			cp $file $newfile ;;
+		Xq)	exit 0 ;;
+		esac
+	    fi
+	done
+    fi
+done
+exit 0

@@ -1,0 +1,36 @@
+#	
+#	@(#)Amake.srclist	1.1	91/04/12 14:56:36
+#
+U_YAP = {
+	$PWD/assert.c,
+	$PWD/assert.h,
+	$PWD/commands.c,
+	$PWD/commands.h,
+	$PWD/display.c,
+	$PWD/display.h,
+	$PWD/getcomm.c,
+	$PWD/getcomm.h,
+	$PWD/getline.c,
+	$PWD/getline.h,
+	$PWD/help.c,
+	$PWD/help.h,
+	$PWD/in_all.h,
+	$PWD/keys.c,
+	$PWD/keys.h,
+	$PWD/machine.c,
+	$PWD/machine.h,
+	$PWD/main.c,
+	$PWD/main.h,
+	$PWD/options.c,
+	$PWD/options.h,
+	$PWD/output.c,
+	$PWD/output.h,
+	$PWD/pattern.c,
+	$PWD/pattern.h,
+	$PWD/process.c,
+	$PWD/process.h,
+	$PWD/prompt.c,
+	$PWD/prompt.h,
+	$PWD/term.c,
+	$PWD/term.h
+};

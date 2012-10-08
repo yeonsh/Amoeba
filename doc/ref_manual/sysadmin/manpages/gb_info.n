@@ -1,0 +1,134 @@
+.\"	@(#)gb_info.n	1.1	96/02/15 17:21:09
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer
+	Document: E.G. Keizer, 95/10/27
+.aE
+.mT "gb_info" A
+group bullet server information
+.SH
+Synopsis
+.LP
+.sC L
+gb_info [-v] [-g] [-s path] [-b path] [-l path] diskcap
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Group Bullet Server"
+.I Gb_info
+is used to fetch information from the super block of member of a group bullet
+server.
+It can be used to print information on standard output or store capabilities
+on a directory server.
+The information is read from the super block of the file system stored
+in
+.I diskcap .
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+print information like: number of inodes, disk size and get capabilities.
+.IP "\fB\-s\fP path"
+put the super capability for the group bullet server in
+.I path .
+Normally
+.I gb_info
+stores the
+.I put
+capability.
+If
+.B \-g
+is also specified,
+.I gb_info
+stores the
+.I get
+capability .
+.IP "\fB\-b\fP path"
+put the super capability for the member of the group bullet server in
+.I path .
+Normally
+.I gb_info
+stores the
+.I put
+capability.
+If
+.B \-g
+is also specified,
+.I gb_info
+stores the
+.I get
+capability .
+.IP "\fB\-l\fP path"
+put the capability for the log server for this member of the group
+bullet server in
+.I path .
+Normally
+.I gb_info
+stores the
+.I put
+capability.
+If
+.B \-g
+is also specified,
+.I gb_info
+stores the
+.I get
+capability .
+Log capabilities are present in the superblock, but have no function
+in the present implementation of the group bullet server.
+.IP \fB\-g\fP
+Store the
+.I get
+instead of the
+.I put
+capability.
+Can only be used in combination with \fB\-s\fP, \fB\-b\fP and \fB\-l\fP.
+.SH
+Example
+.LP
+.sC
+gb_info -v -l /super/cap/bulletsvr/gb-prime /super/hosts/torro/vdisk:01
+.eC
+will put the
+.I put
+capability for the group bullet server in
+.cW gb_prime
+and print
+.sC
+Superblock information:
+Version                     1
+Server #                    0
+Default rep. count          1
+Log 2 of Block size        10
+Number of blocks          999
+Number of inodes           64
+Highest inode block         2
+Group capability          8A:FD:4B:DB:FC:25/0(FF)/55:A8:B:53:53:C3
+Super capability          EA:5A:81:F0:2D:22/0(FF)/BB:80:76:3E:B0:D7
+Storage server capability 98:9C:28:72:E0:73/0(FF)/99:4D:5D:32:BA:8D
+File port                 B5:39:DD:6C:41:7D
+Log capability            0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+Sequence number             0
+  0:   active AD:BA:B2:C7:34:62/0(FF)/99:4D:5D:32:BA:8D
+  1:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  2:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  3:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  4:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  5:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  6:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+  7:     none 0:0:0:0:0:0/0(0)/0:0:0:0:0:0
+.eC
+and then proceed to write 1867 blocks of empty inodes to the disk,
+followed by the superblock.
+.SH
+See Also
+.LP
+gbullet(A),
+gb_mkfs(A),
+gb_info(A).

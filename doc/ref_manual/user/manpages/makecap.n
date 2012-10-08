@@ -1,0 +1,97 @@
+.\"	@(#)makecap.n	1.7	96/02/16 11:04:02
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, April 1990
+	Modified: Gregory J. Sharp, November 1990
+		  - total rewrite to make it behave a little more like the man
+		    page.
+		  Kees Verstoep, January 1992: added -p putcap option.
+	Document: Siebren van der Zee, April 1990
+	Modified: Gregory J. Sharp, December 1990
+		  - man page bore no relation to the software.  Modified the
+		    man page as well as the software.
+		  Gregory J. Sharp, Nov 1995
+.aE
+.mT "makecap" U
+create a random capability
+.SH
+Synopsis
+.LP
+.sC L
+makecap [-r rights] [-o objectnumber] [-p putcapname] [getcapname]
+.eC
+.SH
+Description
+.LP
+.kW "makecap"
+.kW "random capability"
+.I Makecap
+is used to create a random
+.I get
+capability.
+The server port and the check word in the capability are chosen at random,
+and it is extremely unlikely that the capability points to any existing
+object.
+The new capability can be stored in the directory server under the name
+.I getcapname .
+If the
+.I getcapname
+argument is not present or is ``\-'',
+then it writes the capability on standard output.
+.mH
+Options
+.IP "\fB\-o\fP \fIobjectnumber\fP"
+.br
+With the
+.B \-o
+option, one can specify the object number in the capability.
+By default, this is zero.
+.IP "\fB\-p\fP \fIputcapname\fP"
+.br
+When the
+.B \-p
+option is supplied,
+.I makecap
+also stores the corresponding
+.I put
+capability in the directory server,
+under the name specified.
+.IP "\fB\-r\fP \fIrights\fP"
+.br
+With the
+.B \-r
+option, one can specify the rights bits in the capabilities.
+By default, the capability has all rights bits set.
+.LP
+The default base for
+.I objectnumber
+and
+.I rights
+is decimal, but prefixing the number with a ``0x'' will
+change the base to hexadecimal.
+If invalid number specifications are given they will be interpreted as 0.
+.mH
+Diagnostics
+.LP
+If either the rights or the object number are out of range,
+.I makecap
+reports a failure in the function
+.I prv_encode .
+Other error messages should be self-explanatory.
+.SH
+Example
+.LP
+To create a random capability ``foo'', type:
+.sC
+makecap foo
+.eC
+.SH
+See Also
+.LP
+prv_encode(L),
+uniqport(L).

@@ -1,0 +1,28 @@
+#	
+#	@(#)Amakefile	1.2	94/04/05 17:18:58
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/test/performance/Amake.srclist;
+
+%include $CONF_ROOT/toolset/unix.defines;
+
+INCLUDES = {
+	$UNIX_INCLUDE,
+	-I$SRC_ROOT/h
+};
+
+%include $CONF_ROOT/toolset/unix.bin;
+
+%instance gcluster(Tpclient, $T_PCLIENT, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(Tpserver, $T_PSERVER, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(Tpcomp, $T_PCOMP, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(Trpc_client, $T_RPC_CLIENT, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(Trpc_server, $T_RPC_SERVER, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(Trpc_comp, $T_RPC_COMP, $LIB_AMUNIX, $LINT_AMUNIX);

@@ -1,0 +1,90 @@
+: This is a shar archive.  Extract with sh, not csh.
+#	
+#	@(#)convutils.shar	1.1	91/11/18 16:24:35
+#
+: This archive ends with exit, so do not worry about trailing junk.
+echo 'Extracting Fperm'
+sed 's/^X//' > Fperm << '+ END-OF-FILE Fperm'
+X40,8,48,16,56,24,64,32,39,7,47,15,55,23,63,31,
+X38,6,46,14,54,22,62,30,37,5,45,13,53,21,61,29,
+X36,4,44,12,52,20,60,28,35,3,43,11,51,19,59,27,
+X34,2,42,10,50,18,58,26,33,1,41,9,49,17,57,25
++ END-OF-FILE Fperm
+chmod 'u=rw,g=rw,o=r' 'Fperm'
+echo 'SENT: -rw-rw-r--  1 sater         186 Sep 10 14:43 Fperm'
+echo -n 'RCVD: '
+/bin/ls -l Fperm
+echo 'Extracting Iperm'
+sed 's/^X//' > Iperm << '+ END-OF-FILE Iperm'
+X58,50,42,34,26,18,10,2,60,52,44,36,28,20,12,4,
+X62,54,46,38,30,22,14,6,64,56,48,40,32,24,16,8,
+X57,49,41,33,25,17,9,1,59,51,43,35,27,19,11,3,
+X61,53,45,37,29,21,13,5,63,55,47,39,31,23,15,7
++ END-OF-FILE Iperm
+chmod 'u=rw,g=rw,o=r' 'Iperm'
+echo 'SENT: -rw-rw-r--  1 sater         186 Sep 10 14:38 Iperm'
+echo -n 'RCVD: '
+/bin/ls -l Iperm
+echo 'Extracting nanostore.c'
+sed 's/^X//' > nanostore.c << '+ END-OF-FILE nanostore.c'
+X#include "stdio.h"
+X
+Xunsigned long table[1024] = {
+X#include "spe-table.h"
+X};
+X
+Xunsigned long nanostore[100];	/* We need only 47 */
+Xint npresent;
+X
+Xmain() {
+X	int orig, nano;
+X
+X	printf("unsigned char spe_nano_index[1024] = {\n");
+X	for(orig=0;orig<1024;orig++) {
+X		for (nano=0;nano<npresent;nano++)
+X			if (nanostore[nano]==table[orig])
+X				break;
+X		if (nano==npresent)
+X			nanostore[npresent++] = table[orig];
+X		printf("%d,%c", nano, orig%16==15 ? '\n' : ' ');
+X	}
+X	printf("};\n\nunsigned long spe_nano_store[%d] = {\n", npresent);
+X	for(nano=0;nano<npresent;nano++)
+X		printf("\t0x%lx,\n", nanostore[nano]);
+X	printf("};\n");
+X}
++ END-OF-FILE nanostore.c
+chmod 'u=rw,g=rw,o=r' 'nanostore.c'
+echo 'SENT: -rw-rw-r--  1 sater         617 Sep 10 10:05 nanostore.c'
+echo -n 'RCVD: '
+/bin/ls -l nanostore.c
+echo 'Extracting perms.c'
+sed 's/^X//' > perms.c << '+ END-OF-FILE perms.c'
+X#include "stdio.h"
+X
+Xunsigned char Iperm[64] = {
+X#include "Iperm"
+X};
+X
+Xunsigned char Fperm[64] = {
+X#include "Fperm"
+X};
+X
+Xmain() {
+X	int i;
+X
+X	printf("unsigned char des_Iperm[64] = {\n");
+X	for (i=0;i<64;i++)
+X		printf("%d,%c", Iperm[i]-1, i%16==15 ? '\n' : ' ');
+X	printf("};\n");
+X	printf("unsigned char des_Fperm[64] = {\n");
+X	for (i=0;i<64;i++)
+X		printf("%d,%c", Fperm[i]-1, i%16==15 ? '\n' : ' ');
+X	printf("};\n");
+X}
++ END-OF-FILE perms.c
+chmod 'u=rw,g=rw,o=r' 'perms.c'
+echo 'SENT: -rw-rw-r--  1 sater         412 Sep 11 09:38 perms.c'
+echo -n 'RCVD: '
+/bin/ls -l perms.c
+exit 0

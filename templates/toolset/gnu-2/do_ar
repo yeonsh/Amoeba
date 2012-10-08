@@ -1,0 +1,43 @@
+#!/bin/sh
+#	
+#	@(#)do_ar	1.2	94/04/05 17:02:31
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+GNUBIN=
+ARGS=
+ARCH=i80386
+
+# Parse options
+while [ $# -gt 0 ]
+do
+        case $1 in
+	-G)		GNUBIN=$2; shift;;
+        -mam_i80386)	ARCH=i80386  ;;
+        -mam_mc68000)	ARCH=mc68000 ;;
+        -mam_sparc)	ARCH=sparc   ;;
+        -mam_*)		echo "architecture $1 not supported" >&2; exit 1 ;;
+        *)		ARGS="$ARGS $1" ;;
+        esac
+        shift
+done
+
+# If not specified, use default for GNUBIN.
+if [ "X$GNUBIN" = X ]
+then
+	GNUBIN=`amdir`/bin.`arch`/gnu
+fi
+
+# Specify GNUTARGET to get the right output format:
+case $ARCH in
+i80386)		GNUTARGET=a.out-i386;;
+mc68000|sparc)	GNUTARGET=a.out-sunos-big;;
+esac
+export GNUTARGET
+
+$GNUBIN/ar $ARGS
+exitval=$?
+
+exit $exitval

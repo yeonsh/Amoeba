@@ -1,0 +1,17 @@
+#	
+#	@(#)Amake.srclist	1.1	94/02/09 13:23:48
+#
+U_GPROF = {
+	$PWD/gprof.c,
+	$PWD/arcs.c,
+	$PWD/dfn.c,
+	$PWD/lookup.c,
+	$PWD/i386.c,
+	$PWD/hertz.c,
+	$PWD/printgprof.c,
+	$PWD/printlist.c,
+	$PWD/gprof.h,
+	$PWD/i386.h,
+	$PWD/pathnames.h,
+	$PWD/sun.h,
+};

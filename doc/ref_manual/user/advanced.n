@@ -1,0 +1,300 @@
+.\"	@(#)advanced.n	1.8	96/02/15 17:55:29
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, 14 November 1990
+.aE
+.cH "Advanced Users"
+.nH 1 "The Pool Processors"
+.LP
+The \*(Am pool processors are usually allocated dynamically as needed.
+.kW "processor pool"
+A special server (called the
+.kW "run server"
+.I run (A)
+server) knows about the set of pool processors available to each user.
+It allocates processors for a user only from his pool.
+This consists of the processors in the subdirectories of
+.I /profile/pool .
+The
+.I run
+server regularly collects information about the amount of free memory and the
+CPU load of each pool processor.
+It uses this to select the best processor to run a process on.
+If the
+.I run
+.kW "processor selection"
+server has not been running then the processor selected will be on the basis of
+round-robin through the processors in
+.I /profile/pool .
+This is particularly slow since the attempt to use the
+.I run
+server must time-out before it resorts to the round-robin strategy.
+If command startup seems very slow then the run server may not be present.
+If the run server crashed then it is not possibly for non-privileged users to
+execute processes until the run server is restarted.
+.LP
+It is possible to have more than one subdirectory in
+.I /profile/pool .
+For each architecture in the pool there should be a subdirectory with the
+name of the architecture.
+If the run server is aware of all the pool (sub)directories,
+all the machines in all the subdirectories will form the processor pool for
+that user.
+.LP
+Since it is not normally necessary to know where processes are running the
+user is not told.
+The command
+.I aps (U)
+.kW "\fIaps\fP"
+is used to find out which processes are running and what their status is.
+Privileged users can also find out where processes are running by using the
+.B \-s
+option.
+The user name that
+.I aps
+prints with each process is merely a comment added when the process is started.
+It is not to be taken at face value since it is not really possible to
+determine the true owner.
+.LP
+While logged in, all users have a
+.I session (U)
+server.
+It provides support for pipes and process management.
+It also provides a way of keeping track of processes.
+It stores the capability of each process that the user starts in the directory
+.I /dev/proc .
+To find out what processes you are running (that the session server knows
+about) it is sufficient to use the command
+.sC
+dir -l /dev/proc
+.eC
+It is possible to have orphan processes not attached to your session server.
+The command
+.sC
+aps -av
+.eC
+can be used to see if you have any orphan processes.
+The
+.cW OWNER
+column of
+.I aps
+will show ``no owner'' or ``not found'' for orphan processes.
+.LP
+The command
+.I stun (U)
+.kW "\fIstun\fP"
+.kW "\fIkill\fP"
+is used to kill processes that are not accessible by the interrupt
+character from the owner's terminal.
+It is much more powerful that the
+.I kill (U)
+command in the POSIX emulation.
+To kill a process it is sufficient to find out its process identifier
+using
+.I aps (U)
+or
+.I dir (U)
+and then the command
+.sC
+stun /dev/proc/\fIpid\fP
+.eC
+(where
+.I pid
+is the process identifier) will stun it.
+If this leaves the process hanging then the command
+.sC
+stun -s -1 /dev/proc/\fIpid\fP
+.eC
+will normally cause it to be cleaned up.
+If a process is an orphan then you may not have sufficient rights to kill
+it.
+The system administrator may have to kill it for you.
+.nH 1 "Electronic Mail" nobp
+.LP
+The electronic mail system MMDF II is delivered with \*(Am.
+.kW "MMDF II"
+.kW "electronic mail"
+This provides the possibility to send and receive electronic mail.
+Mail messages are sent using the command
+.I send
+and incoming mail is read using the command
+.I msg .
+Before the mail system can be used to send mail the system administrator must
+configure the mail system.
+.kW "TCP/IP"
+.kW Internet
+If electronic mail is to be sent to sites on the Internet then the TCP/IP
+server must be installed and configured and a physical network connection made
+to the Internet.
+Most university sites can simply connect \*(Am to the local
+.UX
+network.
+.nH 1 "The POSIX Emulation" nobp
+.LP
+\*(Am provides versions of many of the utilities normally available under
+.UX .
+.kW "POSIX"
+.kW "POSIX emulation"
+These are normally found in
+.I /bin .
+Native \*(Am utilities are normally found in
+.I /profile/util .
+In some cases there are POSIX emulation utilities with the same functionality
+as native \*(Am utilities but they are provided for people familiar with
+.UX
+to simplify getting started.
+.LP
+To implement things like shared file descriptors between processes,
+pipe-lines and
+.I /dev/tty
+there is a server known as the session server (see
+.kW "session server"
+.I session (U)).
+Usually this is started when your login shell is started.
+Only one is needed per user and the user is not normally aware of its
+presence.
+However, if a user starts a lot of processes that want to do a lot of I/O
+then the session server is a potential performance bottleneck.
+.LP
+At first glance \*(Am's
+POSIX emulation gives the illusion that you are using a truly
+.UX -like
+system.
+It is exactly that.
+An illusion!
+There are several aspects of \*(Am which are subtly incompatible with the
+usual
+.UX
+environment.
+It is important to understand these differences to avoid making costly and
+unpleasant mistakes.
+.kW SOAP
+Most of these relate to incompatibilities due to the Soap Directory Server
+.kW \*(Bs
+and the immutable files of the Bullet File Server.
+.kW ASCII
+Note that the ASCII name of an object is not in the same server as the object.
+A server identifies objects using capabilities, not names.
+For example,
+files may be stored in the \*(Bs,
+while ASCII names for files are stored in the Soap Directory Server.
+Under
+.UX
+the file service and the name service are tightly intertwined.
+This difference between
+.UX
+and \*(Am is necessary
+since the name server provides names for more object types than just files.
+.LP
+One major difference to bear in mind is that the directory structure
+is an arbitrary directed graph with cycles.
+Therefore commands such as
+.sC
+rm -rf foo
+.eC
+.kW "\fIrm\fP"
+are dangerous if the directory
+.I foo
+has a subgraph containing cycles,
+or worse yet contains a link to some point in the graph which leads back to
+.I foo .
+.LP
+The next major difference concerns links.
+There are no symbolic links in the Soap Directory Server.
+The only kind of links are hard links but they have different semantics
+from those of POSIX hard links.
+.kW "\fIln\fP"
+The directory server stores \fB(\fPname, capability-set\fB)\fP pairs.
+This means that if you store the capability for an object under a the
+name
+.I jack
+and then run the command
+.sC
+ln jack jill
+.eC
+then the directory server stores the capability in two places.
+It does not keep link counts.
+If the capability
+.I jack
+is now replaced with a new capability (because somebody made a new version of
+the object
+.I jack ),
+the entry for
+.I jill
+will still have the original capability that it stored when the
+.I ln
+command was run.
+Thus the link is broken.
+These semantics are important to bear in mind when deleting objects.
+If the command
+.sC
+del -f jack
+.eC
+is executed it will tell the server to destroy the object
+.I jack .
+The server will simply comply and destroy the object (assuming that the
+.kW capability
+capability has sufficient rights),
+regardless of whether or not anyone else holds the capability for this object.
+There are no link counts anywhere so the object vanishes.
+Any capabilities still referring to the object will be invalid.
+.LP
+The \*(Bs implements immutable files.
+.kW "Bullet Server"
+That is,
+once a Bullet file has been created it cannot be changed.
+If a file is edited,
+then the file is first copied,
+then modified and an entirely new file is created.
+The new file has a different capability from the original.
+This new capability is normally stored under the same name as the original
+file and the original file is deleted.
+For the reasons given above,
+this results in breaking any links to a file whenever it is modified.
+Note that directories are mutable.
+Changing a directory's contents does not change the capability for the
+directory.
+.LP
+These differences will normally not be a problem unless the POSIX
+semantics for links are required.
+One way to achieve these semantics is to make a directory in which the
+capability for the object is stored.
+Then make a link to the directory.
+Now if the capability for the object is changed, the links to the directory
+will not have changed and so the change will appear in the linked directories.
+.LP
+Since capabilities are used for protection of objects,
+\*(Am does not have or need the POSIX equivalent of user ids or group ids.
+The emulation library returns group id 1 and user id based on the object number
+in the capability for the directory
+.I / .
+See
+.I posix (L)
+for more details.
+.LP
+POSIX only knows about one type of object, namely the
+.I file .
+Since \*(Am knows about many more types of objects,
+programs such as
+.I ls (U)
+can get confused about what protection modes and file types to use
+for some objects,
+since they try to interpret everything as a file or directory.
+In particular,
+if a capability for an object that no longer exists, or whose server is down,
+is stored in a directory then
+.kW "\fIls\fP"
+.I ls
+will sometimes describe this directory entry as being for a character special
+device.
+.kW "\fIdir\fP"
+Use the native \*(Am command
+.I dir (U)
+to get accurate information about the state of the objects in a directory
+.LP
+In general these differences between POSIX
+and \*(Am should not present many problems as long as they are kept in mind.

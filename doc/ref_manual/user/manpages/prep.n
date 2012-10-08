@@ -1,0 +1,41 @@
+.\"	@(#)prep.n	1.4	94/04/05 16:07:16
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "prep" U
+prepare a text file for statistical analysis
+.SH
+Synopsis
+.LP
+.sC L
+prep [file]
+.eC
+.SH
+Description
+.LP
+.I Prep
+strips off most of the
+.I troff/nroff
+commands from a text file and then outputs all the words,
+one word per line,
+in the order they occur in the file.
+This file can then be sorted and compared to a dictionary
+(as a spelling checker),
+or used for statistical analysis.
+.LP
+If the
+.I file
+argument is not present it reads from
+.I stdin .
+.SH
+Example
+.LP
+.sC
+prep infile > outfile
+.eC

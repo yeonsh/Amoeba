@@ -1,0 +1,18 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 11:00:25
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_DIRECT = {
+	$PWD/dir_append.c,
+	$PWD/dir_breakp.c,
+	$PWD/dir_create.c,
+	$PWD/dir_delete.c,
+	$PWD/dir_list.c,
+	$PWD/dir_lookup.c,
+	$PWD/dir_origin.c,
+	$PWD/dir_replace.c,
+	$PWD/dir_spcompat.c
+};

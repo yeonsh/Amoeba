@@ -1,0 +1,91 @@
+.\"	@(#)Tsignal.n	1.3	94/04/05 15:28:05
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel, April 5, 1991.
+	Document: Berend Jan Beugel, August 1, 1991.
+.aE
+.kW "test program"
+.kW "signal"
+.kW "POSIX"
+.mT "Tsignal" T
+test POSIX-style signal catching
+.SH
+Synopsis
+.LP
+.sC L
+Tsignal [-vgb]
+.eC
+.SH
+Description
+.LP
+.I Tsignal
+tests POSIX-style signal catching with the
+.I signal
+library function.
+After the main parent process has installed a handler for a signal with
+.I signal ,
+a child process is told to generate a signal for the parent.
+The parent goes to sleep while waiting for the signal to arrive.
+.LP
+The test also verifies the error codes that should be returned when
+handlers are installed for non-existent signals or signals that cannot be
+caught such as
+.cW SIGKILL .
+Normally, only failed test cases are reported.
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+verbose: report the test's progress including successful test cases.
+.IP \fB\-g\fP
+good cases only: perform valid operations only.
+.IP \fB\-b\fP
+bad cases only: perform invalid operations only.
+.mH
+Diagnostics
+.LP
+Failed test cases are reported by printing the file name and line number
+of the source file
+where the message was generated, the main test routine where the failure
+was discovered, the function that caused the failure, an extra
+code for easier reference in the source file and a phrase that describes
+the failure.
+A header mentions the name of the test and a trailer tells how many failures
+were reported altogether.
+.LP
+In verbose mode the name of the current test routine and
+functions that were executed successfully are also reported.
+On exit the program returns the total number of failures.
+.mH
+Warnings
+.LP
+Test cases that fail may influence the results of subsequent cases
+because it may not be possible to recover completely from the failure.
+The program really only tests the
+.I signal
+library function.
+The
+.I kill
+library function is not extensively tested.
+.LP
+Do not confuse this test program with the program for testing lightweight
+signals between threads in \*(Am processes
+.I Tam_signals .
+.SH
+Example
+.LP
+Test the
+.I signal
+function and display a trace of the test's progress:
+.sC
+Tsignal -v
+.eC
+.SH
+See Also
+.LP
+posix(L),
+Tsuite(T).

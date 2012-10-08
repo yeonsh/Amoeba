@@ -1,0 +1,229 @@
+.\"	@(#)ar.n	1.7	96/02/15 16:47:42
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren, 1989,
+		  ar_to* by Siebren van der Zee Apr 1990
+	Document: Siebren van der Zee, March-April 1990
+	Modified: Gregory j. Sharp, December 1990 - to give some information
+						    and to conform to stds.
+		  Gregory j. Sharp, Feb 1996
+.aE
+.mT "ar" L "libamoeba.a, libamunix.a"
+ASCII representations of common \*(Am types
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/ar.h"
+
+char * ar_cap(cap_p)
+char * ar_port(port_p)
+char * ar_priv(priv_p)
+
+char * ar_tocap(s, cap_p)
+char * ar_toport(s, port_p)
+char * ar_topriv(s, priv_p)
+.eC
+.SH
+Description
+.LP
+.kW "ASCII"
+.kW "capability"
+.kW "port"
+.kW "private"
+.kW "\fIar_cap\fP"
+.kW "\fIar_port\fP"
+.kW "\fIar_priv\fP"
+.kW "\fIar_tocap\fP"
+.kW "\fIar_toport\fP"
+.kW "\fIar_topriv\fP"
+To aid in debugging a set of routines has been provided to produce
+human-readable representations of capabilities and various subparts thereof.
+.LP
+The first three functions return a pointer to a string containing the ASCII
+representation of the bytes in a
+.I capability ,
+.I port
+and
+.I private
+(see
+.I rpc (L)),
+respectively.
+Note that the string is in static data and subsequent calls by other threads
+or the same thread will overwrite the contents of the string.
+Each routine has its own static data so there are no interactions between the
+individual routines.
+.LP
+The latter three functions convert a string of the format returned by the first
+three routines to a capability,
+port and private,
+respectively.
+The
+.I ar_to
+functions assign to the capability, port or private, pointed
+to by the second parameter.
+They return a pointer to the character beyond the last character of the string.
+If the string is supposed to contain no extra characters,
+you should check that the returned pointer points to a NUL character.
+.LP
+If the string passed to an
+.I ar_to
+function is illegal, NULL is returned.
+.LP
+The format used is explained below.
+.ne 9
+.mH
+Functions
+.LP
+.sH
+ar_port
+.LP
+.sC
+char *
+ar_port(port_p)
+port *port_p;
+.eC
+.I Ar_port
+returns a pointer to a string with the six bytes in the port represented as
+.I x:x:x:x:x:x ,
+where
+.I x
+is the value of a byte in hexadecimal.
+.sH
+ar_priv
+.LP
+.sC
+char *
+ar_priv(p)
+private *p;
+.eC
+.I Ar_priv
+uses the format
+.I D(X)/x:x:x:x:x:x ,
+where
+.I D
+is the object number in decimal,
+.I X
+is the rights in hexadecimal,
+and
+.I x
+is a byte from the check field, in hexadecimal.
+.sH
+ar_cap
+.LP
+.sC
+char *
+ar_cap(cap_p)
+capability *cap_p;
+.eC
+The format used by
+.I ar_cap
+is the concatenation of the formats of
+.I ar_port
+and
+.I ar_priv
+respectively, separated by a slash.
+That is,
+.I x:x:x:x:x:x/D(X)/x:x:x:x:x:x .
+.sH
+ar_tocap
+.LP
+.sC
+char *
+ar_tocap(s, cap_p)
+char *s;
+capability *cap_p;
+.eC
+.I Ar_tocap
+takes a string
+.I s
+in the format produced by
+.I ar_cap
+and makes a capability that matches that representation in the capability
+pointed to by
+.I cap_p .
+It returns a pointer to the first character after the parsing of
+.I s
+stopped.
+.sH
+ar_toport
+.LP
+.sC
+char *
+ar_toport(s, port_p)
+char *s;
+port *port_p;
+.eC
+.I Ar_toport
+takes a string
+.I s
+in the format produced by
+.I ar_port
+and makes a port that matches that representation in the capability
+pointed to by
+.I port_p .
+It returns a pointer to the first character after the parsing of
+.I s
+stopped.
+.sH
+ar_topriv
+.LP
+.sC
+char *
+ar_topriv(s, priv_p)
+char *s;
+private *priv_p;
+.eC
+.I Ar_topriv
+takes a string
+.I s
+in the format produced by
+.I ar_priv
+and makes a private part of a capability (i.e., object number, rights and
+check field) that matches that representation in the capability
+pointed to by
+.I priv_p .
+It returns a pointer to the first character after the parsing of
+.I s
+stopped.
+.SH
+Examples
+.LP
+The following code prints out an array of capabilities:
+.sC L
+#include "amoeba.h"
+#include "module/ar.n"
+.sp 0.5v
+printcaps(caps, n)
+    capability caps[];
+    int n;
+{
+    int i;
+
+    for (i = 0; i < n; ++i)
+	printf("Cap #%d: %s\en", i, ar_cap(&caps[i]));
+}
+.eC
+.LP
+The following function prints ``hello world'' and stores the port consisting
+of the bytes 1, 2, 3, 4, 5, 6 in
+.I p .
+.sC L
+Hello()
+{
+    port p;
+
+    printf("%s\en", ar_toport("1:2:3:4:5:6hello world", &p);
+}
+.eC
+.SH
+See Also
+.LP
+c2a(U),
+rpc(L).

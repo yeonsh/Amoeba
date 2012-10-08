@@ -1,0 +1,42 @@
+.\"	@(#)touch.n	1.2	94/04/05 16:12:43
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, Oct 1990
+	Document: Gregory J. Sharp, Jan 1994
+.aE
+.mT "touch" U
+update the time on the directory entry of an object
+.SH
+Synopsis
+.LP
+.sC L
+touch [-c] pathname ...
+.eC
+.SH
+Description
+.LP
+.I Touch
+sets the creation time on the directory entry for an object to the current time.
+Since the time is stored per directory entry and not per object it will
+not update other directory entries which point to the same object.
+If the directory entry does not exist then an empty file will be created
+and registered under the
+.I pathname
+specified.
+.mH
+Options
+.LP
+.IP "\fB\-c\fP" 6
+Do not create a file and directory entry if the directory entry does not exist.
+.SH
+Example
+.LP
+.sC
+touch /home/foo
+.eC
+will set the creation time to the current time on the directory entry
+.I /home/foo .

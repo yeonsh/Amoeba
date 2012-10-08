@@ -1,0 +1,706 @@
+.\"	@(#)ailcook.n	1.6	96/02/15 16:59:28
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, 1989-1990
+	Document: Siebren van der Zee, 1989-1990
+	Modified: Gregory J. Sharp, Dec 1991
+				- tried hard to make an English version :-(
+		  Gregory J. Sharp, Feb 1996
+.aE
+.bp
+.nH 1 "The AIL Cookbook"
+.SH
+Introduction
+.LP
+.kW AIL
+This manual describes the parts of AIL that are target language
+specific: the code generators.
+This documentation is in a separate place since it is probably the fastest
+changing part of AIL.
+In particular, whenever support for a new language is added,
+this manual should be changed accordingly.
+It is assumed that the reader is familiar with the material in the
+.I "AIL Reference Manual" .
+.LP
+First of all, check that this documentation is consistent
+with the installed version of AIL.
+Type
+.I "ail \(engG"
+.kW "AIL code generator"
+to obtain a list of code generators that the installed version of AIL knows.
+.LP
+By convention, the generators that affect the behavior of other
+generators have capitalized names.
+An example of such a generator
+is
+.I Language ,
+which sets the output language of AIL.
+Information like this is localized by resetting it to its default every time
+a new
+.I generate
+clause shows up.
+.LP
+Some code generators might have names that start with an underscore,
+indicating that they should not normally be used for some reason.
+Some may do things that are only useful when developing a new
+version of AIL, others may not be of astonishing quality, or are
+scheduled to disappear.
+They are listed here merely for completeness.
+.LP
+A concise description of the syntax to call a code generator is found
+in
+.I "The AIL Reference Manual" .
+As long as AIL does not support programming languages other than C,
+it is not necessary to document the obvious: where ``header file'' is written
+it  means a C-file intended to be included whose name ends in ``.h'',
+and where it says ``function'' it refers to one written in C.
+.LP
+All code generators that create files put them in the output
+directory set by the command line
+.B \-o
+option.
+The default output directory is the working directory.
+If the output directory is absent, it will be created.
+.LP
+The rest of this document describes the following code generators:
+Act_deact,
+class_list,
+client_interface,
+client_stubs,
+command,
+complete_interface,
+complete_stubs,
+contents,
+define,
+feature,
+flat_interface,
+Get_mem,
+Idempotent,
+impl_dummy,
+Impl_repl_buf,
+Language,
+marsh_funcs,
+Monitor_client,
+ordinal,
+output_files,
+Output_directory,
+Pass_acttype,
+Post_deact,
+server,
+type_list
+.SH
+Generator Act_deact
+.LP
+This one changes the output of generator server.
+The syntax is:
+.sC
+Act_deact(type-name, activate-function, deactivate-function)
+.eC
+It is used to call,
+for example,
+locking code,
+code to check the validity of the capability,
+or code to do additional cleanup between
+.I putrep
+and the next call to
+.I getreq .
+This code must be provided by the server implementor.
+.LP
+Type-name is supposed to be any valid type.
+AIL does not check this,
+because it might be declared in one of the ``include'' files.
+Note that this may lead to server code that does not compile.
+.LP
+The activate function must return an
+.I errstat
+as defined in
+.I amoeba.h .
+Its arguments are a pointer to the private part of the capability the
+RPC is meant for, and optionally a pointer to a variable of type type-name.
+The deactivate function is of type
+.I void ,
+and optionally has one argument of type
+.I type-name :
+.sC
+errstat activate_function(private *_prv);
+void deactivate_function(void);
+.eC
+.LP
+As mentioned above, _obj parameters of type
+.I "type_name *"
+and
+.I type_name
+respectively are passed if generator
+.I Pass_acttype
+was used in the same generate clause.
+.LP
+After the request comes in, the activate function is called.
+If it returns something other than STD_OK,
+no implementation function is called,
+and the server returns the error status to the client.
+If it returns STD_OK, the activate function is supposed to have set *_obj.
+The implementation function is called, and then the deactivate function
+will be called with the variable set by the activate function,
+whether the implementation succeeded or failed.
+.LP
+.I "See also :"
+Pass_acttype, server, Post_deact.
+.SH
+Generator class_list
+.LP
+This generator is probably only useful for gurus.
+It makes a user-unfriendly dump of AIL's internal class data.
+.SH
+Generator client_interface
+.LP
+This generator creates a class specific header file.
+No parameters are allowed.
+It #includes the header files of all inherited classes and the
+files listed in the include line of the class definition, so in general
+a client_interface is needed for every class defined.
+Then it #defines the constants, declares the types, and declares the
+operators.
+These declarations will be prototypes if the language is
+.I ansi .
+.LP
+Then there is the prototype versus argument widening problem in C.
+If a function has been declared to have either a short, a char or a float
+argument, ANSI compilers can avoid argument widening when there is a
+prototype for the function in scope.
+If any operator has been
+declared that has such an argument, AIL will generate code that checks
+the
+.cW __STDC__
+symbol.
+If this does not match the currently selected
+Language, the code will not compile, unless you have files with
+ridiculous names like traditional_c_required, or ansi_c_required.
+.LP
+To prevent multiple inclusions, the file tests and defines a
+preprocessor symbol whose name is a derivative of the name of the
+class.
+For example, the client interface for class
+.I foo
+\- which is a C header file called
+.I foo.h
+\- will define
+.cW __FOO_H__ \^.
+.LP
+.I "See also :"
+complete_interface, Language, Output_directory.
+.SH
+Generator client_stubs
+.LP
+This generates a client stub for each operator in a separate file.
+If invoked without arguments, AIL will generate the functions for all
+the operators defined within the class.
+Otherwise AIL assumes that the
+arguments are the names of the operators that should be generated.
+.LP
+Normally, this function contains code to marshal the parameters, call
+.I trans ,
+and unmarshal the results.
+If the operator is declared to be
+idempotent, AIL generates code to retry in case of RPC failures.
+The function has exactly the same name as the operator, and is placed in a
+separate file with the name <operator-id>.c.
+.LP
+The function is written in the flavor of C selected by generator ``Language'',
+or the default language if none was selected.
+.LP
+AIL assumes that operators that do not have the special first argument ``*''
+will be provided by the programmer.
+A request to write a complete client stub cannot be satisfied anyway,
+because AIL would not know which port to use.
+Instead, it will generate a dummy function that has the parameter
+list AIL expects it to have.
+It returns an error code right away.
+In this case the file is called <operator-id>.c.dummy.
+.LP
+.I "See also :"
+complete_stubs, Get_mem, Idempotent, Language, Monitor_client.
+.SH
+Generator command
+.LP
+This generator generates one or more stand alone programs that do one
+transaction.
+The arguments to the generator are the names of the
+operators for which a program should be created.
+If invoked without arguments,
+AIL will generate a program for each operator defined in the class.
+Each program appears in a separate file, called
+cmd_<operator-name>.c, e.g.,
+.I cmd_op.c
+for operator
+.I op .
+.LP
+The program, when compiled and executed, expects the in-parameters of
+the operator as command line arguments.
+The first argument is
+converted to a capability using
+.I name_lookup (L).
+The out-parameters and
+their values are printed on
+.I stdout ,
+except for any out capabilities.
+These are registered at the directory server using a path from the
+command line.
+Any previous entry with the same name is deleted, but not
+destroyed.
+If any error occurs, the program prints the most descriptive
+message possible given AIL's limited knowledge of what it is doing,
+and exits with status 1.
+Hint: the first error to check is the
+number of parameters, which is fixed.
+Since these programs take at
+least one argument (the object capability), invoking it without
+arguments makes it print a usage string.
+.LP
+Currently, only integers, capabilities and character arrays are
+accepted as arguments.
+The way the latter are handled is a genuine
+bug, which will be around until AIL knows about strings.
+By then,
+the support for character arrays will probably disappear.
+.LP
+.I "See also :"
+Language, Output_directory.
+.SH
+Generator complete_interface
+.LP
+The generator
+.I client_interface
+only generates the header file for one class.
+In this file are #includes for inherited classes,
+which are not automatically generated by
+.I client_interface .
+This generator generates the header files of the effectively inherited classes.
+Like
+.I client_interface ,
+it does not accept arguments.
+.LP
+.I "See also :"
+client_interface, Language.
+.SH
+Generator complete_stubs
+.LP
+This generator emits the same files as
+.I client_stubs ,
+but for all the inherited classes, not the class self.
+It does not accept arguments.
+Note that a class might inherit more classes than just the ones
+listed in its inheritance list, since the classes mentioned
+might in turn inherit classes, which are then implicitly inherited
+by any class that inherits it.
+.LP
+.I "See also :"
+client_stubs, Idempotent, Language, Monitor_client.
+.SH
+Generator contents
+.LP
+Lists the contents of a class on
+.I stdout .
+.SH
+Generator define
+.LP
+This generator creates a header file that defines the
+.I h_command
+values it picked for each operator.
+To mimic C programmers, it
+folds the names of the operators to uppercase.
+The header file is called
+.I <class>_def.h.
+.SH
+Generator flat_interface
+.LP
+This generator creates a class specific header file, like
+.I client_interface .
+No parameters allowed.
+Unlike
+.I client_interface ,
+it generates the definitions of the classes that are inherited
+explicitly, instead of including the associated header files.
+It #includes the header files of the implicitly inherited classes.
+For each explicitly inherited class, it includes the
+files listed in the include line of the class definition.
+Then it #defines the constants, declares the types, and declares the operators.
+These declarations will be prototypes if the language is
+.I ansi .
+.LP
+To prevent multiple inclusions, the file tests and defines a
+preprocessor symbol whose name is a derivative of the name of the class.
+For example, the client interface for class foo \- which is
+a C header file called
+.I foo.h
+\- will define
+.cW __FOO_H__ \^.
+.LP
+.I "See also :"
+Language, client_interface, Output_directory.
+.SH
+Generator feature
+.LP
+This generator generates several miscellaneous things.
+They are put together in a single file called
+.I <class-id>_feature.c .
+.LP
+The argument
+.I def_inh
+tells it to emit the declaration and
+initialization of a character pointer array called
+.I def_inh .
+These pointers point to the names of the classes in the
+.I inherit
+statement.
+The last pointer in the array is initialized to null.
+The argument
+.I eff_inh
+creates a similar array called
+.I eff_inh ,
+containing the names of the effectively inherited
+classes.
+The first class listed is the superclass.
+.SH
+Generator Get_mem
+.LP
+For clients stubs,
+AIL by default does not generate code containing calls to either
+.I alloca ,
+.I malloc
+or
+.I free .
+Specify
+.I Get_mem(malloc)
+to let the client generators use
+.I malloc
+and
+.I free
+to obtain and release dynamic storage.
+Specify
+.I Get_mem(alloca)
+to let them use
+.I alloca .
+There is an implicit
+.I Get_mem(off)
+before any generator is executed within a generate clause.
+.SH
+Generator Idempotent
+.LP
+Usage:
+.sC
+Idempotent( [retry = expr, ] operators );
+.eC
+.LP
+If an operator is declared to be idempotent, AIL will generate client
+stubs that retry <expr> times if
+.I trans
+returns RPC_FAILURE.
+The current default for
+.I retry
+is five.
+Note that
+.I trans
+is called at most
+.I retry
++ 1 times.
+.LP
+Please also note that the return value of a stub generated like this is
+the value for the
+.I last
+attempt.
+This means that
+.cW RPC_NOTFOUND
+does not guarantee that the operation was never executed.
+.LP
+.I "See also :"
+client_stubs.
+.SH
+Generator impl_dummy
+.LP
+This generator makes dummy implementation routines for all the operators
+that should be implemented by a server for a class.
+The output is stored in a file called
+.I <class-id>.dummy .
+.LP
+If the language is set to
+.I ansi ,
+AIL will generate a prototype style function,
+otherwise it will generate an old-fashioned K&R style function.
+The body contains the statement
+.I return
+.cW STD_ARGBAD .
+.LP
+.I "See also :"
+Pass_acttype, Language.
+.SH
+Generator Impl_repl_buf
+.LP
+This generator takes several operator names as arguments, and tells
+AIL that the implementations for them supplies the buffer for the
+reply message.
+This is done to implement,
+for example,
+the \*(Bs's read request efficiently.
+An operator can only be implemented this
+way if there is exactly one parameter in the reply buffer.
+There might be more in the header of course.
+AIL assumes that no marshaling of this particular parameter is needed.
+Instead of passing a pointer in the buffer as usual, the server loop
+will pass two other parameters.
+The first one is a var pointer to
+.cW char
+(a char ** in C), which must be set to point to the buffer.
+The other one is a
+.cW "var long"
+(hence long * in C), and must indicate
+how big this buffer is.
+Obviously, this affects both server loop
+and implementation.
+The client stubs are not affected.
+.LP
+.I "See also :"
+server, impl_dummy.
+.SH
+Generator Language
+.LP
+This generator tells AIL which language should be generated.
+It takes one argument, which stands for the language.
+Currently, it knows about
+.I traditional ,
+.I ansi
+and
+.I lint .
+All are C dialects.
+The default is
+.I traditional .
+.LP
+Not all generators actually obey this setting,
+because it does not make sense for some.
+.SH
+Generator marsh_funcs
+.LP
+This function generates the marshaling and unmarshaling routines
+for a typedef type.
+It expects one argument: the name of the typedef.
+The names of the functions must have been specified with a
+.I marshal
+statement.
+.LP
+.I "See also :"
+Language.
+.SH
+Generator Monitor_client
+.LP
+With this generator one can convince AIL to include monitor code in
+the named client stubs.
+If no operators are mentioned, all client_stubs
+will be monitored.
+.LP
+.I "See also :"
+client_stubs.
+.SH
+Generator ordinal
+.LP
+For tagged enumerated types, AIL can generate conversion routines from
+enumerated value to enumeration identifier and back.
+The identifiers are ordinary,
+statically allocated strings.
+The table of strings is called
+.I tab_<tag> .
+The conversion routine from enumerated type to string is called
+.I str_<tag> ,
+and the conversion back is called
+.I ord_<tag> .
+They are to be found in the file
+.I conv_<tag>.c .
+The type of
+.I tab_<tag>
+is explicitly left undocumented,
+as is the behavior of the
+.I ord_<tag>
+function when invoked with an invalid parameter.
+.LP
+The functions are written in the flavor of C selected by generator
+``Language'', or the default language if none was selected.
+.LP
+.I "See also :"
+Language.
+.SH
+Generator output_files
+.LP
+This generator prints a list of file names generated thus far.
+It takes one argument, which is considered to be the name
+of the file where it should print its list.
+.SH
+Generator Output_directory
+.LP
+This generator sets the current output directory for this generate clause.
+The output directory is reset to its default,
+or the command line value for each generate clause.
+.SH
+Generator Pass_acttype
+.LP
+This changes the output of a generator server.
+Before it may be called, an
+.I Act_deact
+must have been used.
+It makes the server pass to the implementation the value set by the activate
+function.
+.LP
+The arguments are the names of the operators to which the activate return value
+is to be passed.
+If no arguments are passed, the value is passed to all implementations.
+.LP
+.I "See also :"
+Act_deact, server.
+.SH
+Generator Post_deact
+.LP
+Before this generator is called,
+.I Act_deact
+must have been be used.
+There are no arguments.
+Normally, the deactivate function is called before the reply
+is sent to the client.
+If the deactivate function basically
+unlocks internal data structures, this is what you want.
+This generator makes
+.I server
+call the deactivate function
+.I after
+the call to
+.I putrep .
+This is done to facilitate single threaded servers and to be able
+to call
+.I thread_exit
+at a reasonable point.
+.SH
+Generator type_list
+.LP
+This prints on
+.I stdout
+a list of all known types, together with the address its
+descriptor happens to have within AIL.
+.SH
+Generator server
+.LP
+Used to create server main loops.
+The server loop is put in the file
+.I ml_<class-id>.c .
+Some aspects of the server loop can be
+modified by passing optional parameters.
+.IP
+Specifying
+.I rights_check
+has the effect that the server will verify that a capability contains the
+appropriate rights for an operation before calling the implementation.
+Note that the generated code is insufficient to make a server secure.
+The capability should be checked for the correct check field as well.
+Hint: this can be done in an activate function provided by the programmer.
+See
+.I Act_deact .
+.IP
+Specifying
+.I monitor
+has the effect that
+.I monitor.h
+is also included.
+See
+.I monitor (L)
+for the implications of this.
+.IP
+Another argument is
+.I buf_size ,
+which should have a positive
+value, because it specifies the size of the message buffer.
+.IP
+Another way to provide a message buffer is passing it at run-time, which
+is indicated by the parameter
+.I my_buf .
+This results in a function
+that expects you to pass a
+.I port
+pointer, a buffer pointer and a buffer size, in that order.
+The buffer size is declared as a
+.I bufsize .
+Currently it is an unsigned 16-bit integer.
+This will probably change in \*(Am 6.0.
+.IP
+If neither buf_size or my_buf is specified, AIL is responsible
+for the buffer size.
+However, if any of the supported operators
+has a variable sized parameter, AIL does not succeed.
+It simply prints a warning and comes up with a compiled-in default.
+.IP
+The argument
+.I no_loop
+indicates that no loop should be generated.
+In this case the generated routine handles at most one request and
+returns zero if all went well.
+.LP
+The server loop looks like this:
+.LP
+First of all,
+.I ailamoeba.h
+and the client interface are included.
+The latter should be in the file
+.I <class-id>.h .
+Then the marshaling functions are declared (maybe these should be
+part of the client_interface?).
+Since C programmers might want to
+implement a marshaling function as a macro, every declaration is
+surrounded by #ifdef/#endif's.
+This is used by
+.I ailamoeba.h
+to speed some things up, by the way.
+The server main loop is implemented
+as a function called
+.I ml_<class-id> .
+It takes one argument unless
+.I my_buf
+was passed:  a port-pointer.
+Unless
+.I no_loop
+is passed, the function does repeated calls to
+.I getreq
+on this port,
+and only returns if
+.I getreq
+fails.
+The return value is the return value from
+.I getreq
+is this case.
+.LP
+It decodes the request and calls the corresponding implementation
+function if all is well.
+This implementation function is supposed
+to have a name of the form
+.I impl_<operator-id> ,
+so the implementation for
+.I std_info
+is
+.I impl_std_info .
+.LP
+The return value of the implementation is treated as an error code.
+It should be zero if all is well, and is shipped in the
+.I h_command
+field, which is #defined to
+.I h_status .
+.LP
+If the implementation function terminates successfully, the results
+are marshaled in a message buffer.
+After that,
+.I putrep
+is called.
+.LP
+.I "See also :"
+Act_deact,
+Impl_repl_buf,
+Language,
+Pass_acttype,
+Post_deact.

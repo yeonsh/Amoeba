@@ -1,0 +1,90 @@
+.\"	@(#)reboot.n	1.6	96/02/15 17:51:20
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren, 1991
+		Modified by Leendert van Doorn, Aug 1992
+	Document: Gregory J. Sharp, Nov 1991
+		Modified by Leendert van Doorn, Aug 1992
+.aE
+.mT reboot A
+reboot a machine with a new kernel binary
+.SH
+Synopsis
+.LP
+.sC L
+reboot [options] kernel machine ...
+.eC
+.SH
+Description
+.LP
+.kW "bootstrap"
+.kW "bootstrap kernel"
+If a host is running an \*(Am kernel then
+.I reboot
+causes a machine to reboot itself with a new kernel binary.
+It does this by sending the capability of the new kernel binary (specified
+by the
+.I kernel
+argument) to the system server
+(see
+.kW "\fIsyssvr\fP"
+.I syssvr (A))
+running in the kernel of the host specified by
+.I machine .
+This name is looked up using
+.I host_lookup (L),
+so it can be either the
+name of a machine or the full path name of a capability for a machine.
+.mH
+Options
+.LP
+.IP "\fB\-a\fP \fIargs\fP" 1i
+Pass the single string
+.I args
+to the kernel which is to be rebooted.
+The interpretation of these arguments depends on the kernel booted.
+.mH
+Diagnostics
+.LP
+.I Reboot
+complains only if the kernel cannot be found or the system server is not
+present on the specified machine.
+If the kernel is not valid or defective it will just crash when started.
+.mH
+Warnings
+.LP
+There is no indication of failure of the reboot command, since
+the kernel has to send the reply before attempting the reboot.
+.LP
+Sending garbage data (like a kernel for a different CPU, MMU or bus
+architecture) will undoubtedly crash the machine.
+.LP
+.I Reboot
+is of no help to reboot a halted machine.
+Depending on their type, halted machines may be rebooted from a local disk,
+the network or using a bootstrap \*(Am kernel in ROM.
+.SH
+Examples
+.LP
+To reboot the hosts ``bpl'', ``blo'', and ``bne'':
+.sC
+reboot /super/admin/kernel/sun3.pool bpl blo bne
+.eC
+To reboot the i80386 host ``pico'' with an instruction not to
+.kW "noreboot option"
+automatically reboot after going down:
+.sC
+reboot -a "-noreboot:1" /super/admin/kernel/isa.pool pico
+.eC
+.SH
+See Also
+.LP
+host_lookup(L),
+kstat(A),
+mkhost(A),
+printbuf(A),
+sys_boot(L).

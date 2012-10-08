@@ -1,0 +1,111 @@
+.\"	@(#)exception.n	1.5	96/02/15 16:48:50
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1988-1989
+	Document: Guido van Rossum, March 1990
+.aE
+.mT exception.h H
+predefined exception names
+.SH
+Synopsis
+.LP
+.sC L
+.ta 1c 2.5c 4c 6c
+#include "exception.h"
+
+#define EXC_ILL	(-2)	/* Illegal instruction */
+#define EXC_ODD	(-3)	/* Mis-aligned reference */
+#define EXC_MEM	(-4)	/* Non-existent memory */
+#define EXC_BPT	(-5)	/* Breakpoint instruction */
+#define EXC_INS	(-6)	/* Undefined instruction */
+#define EXC_DIV	(-7)	/* Division by zero */
+#define EXC_FPE	(-8)	/* Floating exception */
+#define EXC_ACC	(-9)	/* Memory access control violation */
+#define EXC_SYS	(-10)	/* Bad system call */
+#define EXC_ARG	(-11)	/* Illegal operand (to instruction) */
+#define EXC_EMU	(-12)	/* System call emulation */
+#define EXC_ABT	(-13)	/* abort() called */
+
+#define EXC_NONE	0	/* List terminator */
+.eC
+.SH
+Description
+.LP
+.kW "exception"
+.kW "exception names"
+.kW "EXC_ILL"
+.kW "EXC_ODD"
+.kW "EXC_MEM"
+.kW "EXC_BPT"
+.kW "EXC_INS"
+.kW "EXC_DIV"
+.kW "EXC_FPE"
+.kW "EXC_ACC"
+.kW "EXC_SYS"
+.kW "EXC_ARG"
+.kW "EXC_EMU"
+.kW "EXC_ABT"
+.kW "EXC_NONE"
+.kW "abort"
+This manual page offers a quick reference to the exceptions that a thread
+can generate.
+Exception handling is treated in
+.I signals (L).
+.LP
+The names for exceptions are defined in the include file
+.I exception.h .
+They are:
+.IP EXC_ILL 12
+Illegal instruction.
+.IP EXC_ODD
+Mis-aligned memory reference.
+.IP EXC_MEM
+Access to non-existent memory.
+Note: on some machines this exception is not generated; rather
+.I EXC_ACC
+is generated instead.
+.IP EXC_BPT
+Breakpoint instruction or trace-mode exception.
+.IP EXC_INS
+Undefined instruction.
+.IP EXC_DIV
+Divide by zero (or other arithmetic trap).
+.IP EXC_FPE
+Floating point exception.
+.IP EXC_ACC
+Memory access violation (e.g. writing read-only memory).
+.IP EXC_SYS
+Bad system call or illegal system call arguments.
+.IP EXC_ARG
+Illegal instruction operand.
+On some machines this shows up as
+.I EXC_INS .
+.IP EXC_EMU
+System call emulation trap.
+.IP EXC_ABT
+The library function
+.kW "abort"
+.I abort
+was called (see
+.I ansi_C (L),
+.I posix (L)).
+.LP
+Exception number zero
+.I (EXC_NONE)
+is reserved.
+It is used as a list terminator in the vector passed by
+.I sys_setvec
+.kW "sys_setvec"
+(see
+.I signals (L)).
+.SH
+See Also
+.LP
+ansi_C(L),
+signals(L),
+process(L).

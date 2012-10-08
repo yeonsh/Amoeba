@@ -1,0 +1,46 @@
+.\"	@(#)amdir.n	1.4	96/02/15 18:00:18
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, April 1992
+.aE
+.mT "amdir" U
+print root of \*(Am distribution tree
+.SH
+Synopsis
+.LP
+.sC L
+amdir
+.eC
+.SH
+Description
+.LP
+.I Amdir
+prints the path name of the root of the \*(Am distribution tree for the
+system upon which it is installed.
+The command is typically used by shell scripts that must examine sources,
+for example,
+.I amwhereis (U).
+It is also useful with commands such as
+.I amoebatree (A).
+.SH
+Example
+.LP
+The command
+.sC
+amdir
+.eC
+under
+.UX
+might print
+.sC
+/user/amoeba
+.eC
+and under \*(Am it typically prints
+.sC
+/profile/module/amoeba
+.eC

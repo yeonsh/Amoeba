@@ -1,0 +1,541 @@
+.\"	@(#)ack.n	1.9	96/02/15 17:59:07
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ed Keizer
+	Document: Ed Keizer
+	Modified: Gregory J. Sharp, Oct 1995 - got rid of a lot of the
+				ambiguity and gobbledygook.
+.aE
+.mT "ack" U
+Amsterdam Compiler Kit
+.SH
+Synopsis
+.LP
+.sC L
+ack arguments
+basic arguments
+cc arguments
+f\^77 arguments
+m2 arguments
+pc arguments
+\fImachine\fP arguments
+.eC
+.SH
+Description
+.LP
+.kW ACK
+.kW "compiler"
+.kW "driver"
+.kW "\fIcc\fP"
+.kW "C compiler"
+.kW "\fIf77\fP"
+.kW FORTRAN
+.kW "\fIbasic\fP"
+.kW BASIC
+.kW "\fIm2\fP"
+.kW "Modula-2"
+.kW "\fIpc\fP"
+.kW Pascal
+.I ACK
+is a single compiler capable of compiling several different languages.
+It is also able to produce binaries for various machine architectures.
+The transformation of source to binary takes place in several distinct phases.
+Command line arguments may be used to stop the translation at any of the phases.
+Combining sources from several languages is allowed.
+The run-time system of the first language mentioned,
+either in the program call name (e.g., pascal) or in the arguments,
+is automatically included.
+The libraries of all other languages mentioned,
+containing most of the run-time systems,
+are also automatically included.
+Which combinations of languages and machines are allowed varies
+depending on the installation.
+.LP
+The actions of
+.I ack
+are to repeatedly transform files with a
+particular suffix into files with another suffix,
+finally combining the results into a single file.
+.LP
+Different systems may use different suffices,
+but the following are recognized by \*(Am:
+.IP .b 5
+Basic program.
+.IP .c
+C module.
+.IP .e
+EM assembly module in human readable form.
+.IP .k
+Compact EM assembly code.
+.IP .m
+Optimized compact EM assembly code.
+.IP .mod
+Modula-2 module.
+.IP .o
+Object file.
+.IP .p
+Pascal program.
+.IP .s
+Machine assembly language code.
+.mH
+Options
+.LP
+\fIAck\fP accepts the following flags:
+.mH
+Output Files
+.LP
+.IP \fB\-o\fP
+Use the next argument as the name of the resulting file.
+.I Ack
+produces
+.I a.out
+by default.
+This flag can always be used when
+.I ack
+produces a single output file,
+as in
+.sC
+ack -c.s main.c -o new.s
+.eC
+The output is produced in the file
+.I new.s
+instead of
+.I main.s .
+.IP \fB\-c\fP
+.IP \fB\-c\fP\fI.suffix\fP
+.br
+.I Ack
+tries to transform each source into a file with the given
+.I suffix .
+When no
+.I suffix
+is specified
+.I ack
+stops just before the phase where it combines all arguments into a load file,
+thereby transforming the sources into \fI.k\fP, \fI.s\fP,
+\&\fI.o\fP or \fI.m\fP files.
+One extra
+.I suffix
+is recognized here,
+.I .i .
+This tells
+.I ack
+to only preprocess all human readable sources,
+producing files with
+.I "suffix .i".
+.br
+Note:
+.I ack
+refuses to overwrite argument \fI.e\fP files.
+.IP \fB\-t\fP
+Preserve all intermediate files.
+If two \fB\-t\fP are given,
+.I ack
+also preserves core dumps and the output of failed transformations.
+.mH
+Machine Used
+.LP
+.IP \fB\-m\fP\fImachine\fP
+.br
+This flag tells
+.I ack
+to generate a load file for
+.I machine .
+To generate an \*(Am binary,
+the argument should be ``\*<am_\*>\fIarch\fP'',
+where
+.I arch
+is the target architecture.
+The following command will generate an \*(Am object file
+.I file.o
+for the i80386 architecture:
+.sC
+ack -c -mam_i80386 file.c
+.eC
+.IP \fB\-fp\fP
+Use the software floating-point package.
+.mH
+Messages
+.LP
+.IP \fB\-w\fP
+Suppress all warning messages.
+.IP \fB\-E\fP
+Produce a complete listing of each Pascal source program.
+Normally for each error, one message,
+including the source line number, is given.
+.IP \fB\-e\fP
+List only the erroneous lines of each Pascal source program.
+.IP \fB\-v\fP[\fInum\fP]
+.br
+Verbose.
+Print information about the various compilation phases as they occur.
+The optional argument \fInum\fP specifies the amount of information printed.
+The higher \fInum\fP,
+the more information.
+For example,
+.B \-v3
+specifies that all front and back end invocations are to be displayed.
+.mH
+Preprocessing
+.LP
+.IP \fB\-I\fP\fIdir\fP
+.br
+\&``#include'' files whose names do not begin with ``/'' are
+always sought first in the directory of the
+.I file
+argument,
+then in the directories named in
+.B \-I
+options,
+then in directories on a standard list.
+.IP \fB\-D\fP\fIname=def\fP
+.IP \fB\-D\fP\fIname\fP
+.br
+Define the
+.I name
+to the preprocessor,
+as if by ``#define''.
+If no definition is given the
+.I name
+is defined as 1.
+.IP \fB\-U\fP\fIname\fP
+.br
+Remove any initial definition of
+.I name ,
+before preprocessing.
+.IP \fB\-P\fP
+Do not generate line directives.
+.IP \fB\-C\fP
+Leave C-comments in.
+.mH
+Profiling/Debugging
+.LP
+.IP \fB\-p\fP
+This flag tells both the Pascal and C front ends to include
+code enabling the user to do some monitoring/debugging.
+Each time a routine is entered the routine
+.I procentry()
+is called and just before each return
+.I procexit()
+is called.
+These routines are supplied with one parameter,
+a pointer to a string containing the name of the routine.
+In
+.I libamoeba.a
+for \*(Am these routines generate profiling information.
+See
+.kW profiling
+.I profiling (L)
+for more information.
+.mH
+Optimizing
+.LP
+.IP \fB\-O\fP
+.IP \fB\-O\fP\fInum\fP
+.br
+Try to use the optimizers with optimization level <= \fInum\fP (default 1).
+Currently,
+only the global optimizer has a level > 1.
+Higher levels will invoke more passes of the global optimizer.
+The passes which the global optimizer may perform are the following:
+Inline substitution,
+Common subexpression elimination,
+Strength reduction,
+Use definition analysis,
+Live variable analysis,
+Register allocation,
+Stack pollution,
+Branch optimization
+and Cross jumping.
+.LP
+Also, the following flags may be used:
+.RS
+.IP \fB\-s\fP\fInum\fP
+.br
+Give an indication to the inline substitution phase,
+how much bigger the program may get,
+in percentage.
+This is only used as a rough indication.
+The inline substitution phase will not make the program bigger when given
+.B \-s0 .
+.IP \fB\-a\fP
+Indicate to the inline substitution phase that it is offered the whole program.
+This allows it to throw away routines that it has substituted inline.
+.IP \fB\-Q\fP
+Give some statistics.
+.IP \fB\-T\fP
+Optimize for time.
+.IP \fB\-S\fP
+Optimize for size.
+.RE
+.IP
+In principle,
+the optimization phases can be run in any order;
+a phase may even be run more than once.
+However,
+the following rules must be obeyed:
+.RS
+.IP -
+The Live Variable analysis phase (LV) must be run prior to the
+Register Allocation phase (SA),
+as SA uses information produced by LV.
+.IP -
+SA should be the last phase.
+.RE
+.IP ""
+Also, the following may be of use:
+.RS
+.IP -
+Inline Substitution (IL) may create new opportunities for most other phases,
+so it should be run as early as possible.
+.IP -
+Use Definition analysis (UD) may introduce opportunities for LV.
+.IP -
+Strength Reduction (SR) may create opportunities for UD.
+.RE
+.IP ""
+The global optimizer is a combiner, so,
+when using it,
+offer it all the source files of the program being compiled.
+This is not strictly necessary,
+but it makes the global optimizer more effective.
+The current default optimization phases are:
+.RS
+.IP -
+For \-O2: CJ, BO, SP;
+.IP -
+For \-O3: CS, SR, CJ, BO, SP, UD, LV, RA;
+.IP -
+For \-O4: IL, CS, SR, CJ, BO, SP, UD, LV, RA;
+.IP -
+For higher levels: as for \-O4.
+.RE
+.IP \fB\-L\fP
+Disable the generation of code by the front ends to
+record line number and source file name at run-time.
+.mH
+Libraries
+.LP
+.IP \fB\-l\fP\fIname\fP
+.br
+Tells
+.I ack
+to insert the library module specified by
+.I name
+at this point.
+.IP \fB\-.\fP\fIsuffix\fP
+.br
+When linking multiple \fI.o\fP or \fI.m\fP files created by
+separate calls of
+.I ack
+together,
+.I ack
+cannot deduce the run-time system needed,
+unless called as
+.I pc ,
+.I basic ,
+.I m2
+or
+.I cc .
+This flag serves to tell
+.I ack
+which run-time system is needed in such a case.
+For example:
+.sC
+ack -c x.c ; ack -.c x.o
+.eC
+.IP \fB\-r.\fP\fIsuffix\fP
+.br
+Most front ends and back ends use one or
+more run-time libraries.
+These flags tell
+.I ack
+to include the libraries needed when
+a file with
+.I suffix
+is be included in the arguments.
+.IP \fB\-LIB\fP
+.br
+This flag tells the peephole optimizer
+.I em_opt
+to add information about the visibility of the names used in each output module.
+This is needed by assembler/linkers when these modules are to be inserted
+in libraries.
+.mH
+General
+.LP
+.IP \fB\-R\fP\fIprogram=xxx\fP
+.br
+Replace the
+.I program
+by the path name
+.I xxx .
+The program names referred to later in this manual are allowed here.
+.IP \fB\-R\fP\fIprogram\-xxx\fP
+.br
+The flag argument
+.I \-xxx
+is given to
+.I program .
+For example,
+.sC
+ack -.c -Rcv-s32 main.o
+.eC
+will cause the binary conversion program
+.I cv
+to be called with the option
+.B \-s32.
+As a result,
+the main thread of the program will be provided with a 32 K stack
+(the default is 8 K).
+.IP \fB\-R\fP\fIprogram:n\fP
+.br
+Set the priority of the indicated transformation to
+.I n .
+The default priority is 0,
+setting it to -1 makes it highly unlikely the phase will be used,
+setting it to 1 makes it very likely that the phase will be used.
+.IP \fB\-k\fP
+Do not stop when an error occurs,
+but try to transform all other arguments as far as possible.
+.LP
+All arguments without a suffix or with an unrecognized suffix
+are passed to the loader.
+Unrecognized flags are also passed to the loader.
+.mH
+Preprocessor
+.LP
+All C source programs are run through the preprocessor
+before they are fed to the compiler proper.
+On larger machines,
+the compiler has a built-in preprocessor.
+Other human readable sources
+(Modula-2, Pascal,
+or Basic programs and machine assembly)
+are only preprocessed when they start with a ``#''.
+.LP
+.I Ack
+adds a few macro definitions when it calls the preprocessor.
+These macros contain the word and pointer size and the sizes
+of some basic types used by the Pascal,
+Basic and/or C compiler.
+All sizes are in bytes.
+.TS
+center allbox;
+c c
+l l.
+Macro	Description
+_
+_EM_WSIZE	word size
+_EM_SSIZE	size of shorts (C)
+_EM_FSIZE	size of floats (C)
+_EM_PSIZE	pointer size
+_EM_LSIZE	size of longs (C+Pascal)
+_EM_DSIZE	size of doubles (C+Pascal)
+.TE
+.LP
+The name of the
+.I machine
+architecture
+or something like it when the machine name is numeric is also defined (as 1).
+.LP
+The default directories searched for include files differ for each operating
+system.
+.mH
+Programs
+.LP
+.I Ack
+uses one or more programs in each phase of the transformation.
+The table below gives the names
+.I ack
+uses for these programs.
+Internally
+.I ack
+maintains a mapping of these names to path names for load files.
+The table specifies which type of files are accepted by each
+program as input and the file type produced as output.
+.TS
+center allbox;
+l|l|l|l.
+Input	Name	Output	Description
+_
+\&.c	cem	.k	C front end
+\&.p	pc	.k	Pascal front end
+\&.b	abc	.k	Basic front end
+\&.mod	m2	.k	Modula-2 front end
+\&.e	encode	.k	Compactify EM assembly code
+\&.k	opt	.m	EM peephole optimizer
+\&.k .m	decode	.e	Produce human readable EM code
+\&.m	ego	.gk	EM global optimizer
+\&.gk	opt2	.g	Second EM peephole optimizer
+\&.m .g	be	.s	Back end
+\&.s	asopt	.so	Target optimizer
+\&.s.so	as	.o	Assembler, relocatable object
+\&.o	led	.out	Linker, Ack object format
+\&.out	cv	a.out	Conversion from Ack to machine binary
+.TE
+.mH
+Files
+.LP
+.I /profile/module/ack/lib/descr/fe
+\- front end description table
+.LP
+.I /profile/module/ack/lib/\*<mach\*>/descr:
+back end description table for
+.I mach .
+.mH
+Environment Variables
+.LP
+.IP ACKDIR 10
+If set,
+this environment variable overrides
+.I ack 's
+idea of its home directory.
+.IP ACKM
+If set,
+this environment variable overrides
+.I ack 's
+idea of the default machine it compiles for.
+.IP ACKFE
+If set,
+this environment variable tells
+.I ack
+where to get the front-end description file.
+.mH
+Diagnostics
+.LP
+The diagnostics are intended to be self\-explanatory.
+.mH
+Warnings
+.LP
+When using separate compilation,
+be sure to give
+.I ack
+consistent
+.B \-m
+options.
+The linker is not able to check that all object files
+are indeed of the same architecture.
+.br
+Not all warning messages are switched off by the
+.B \-w
+flag.
+.br
+Argument assembly files are not preprocessed when fed into the
+universal assembler/loader.
+.SH
+See Also
+.LP
+basic(U),
+cc(U),
+f\^77(U),
+m2(U),
+pc(U).
+.br
+In the Programming Guide see the reference information on ACK in the
+.I tools
+section.

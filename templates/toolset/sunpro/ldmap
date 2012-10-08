@@ -1,0 +1,10 @@
+# The A(lign) directives seem to have no effect, so we just introduce
+#	
+#	@(#)ldmap	1.1	96/02/16 15:56:39
+#
+# "safe" start addresses for the Text/Data/Bss to get the alignment right.
+# Put BSS in a separate section:
+bss : .bss;
+text = V0x40000  A0x10000;
+data = V0x400000 A0x10000;
+bss  = V0x600000;

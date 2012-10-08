@@ -1,0 +1,45 @@
+.\"	@(#)eject.n	1.3	96/02/15 18:09:44
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, June 1993
+	Document: Gregory J. Sharp, July 1993
+.aE
+.mT "eject" U
+eject the disk from a removable-disk drive
+.SH
+Synopsis
+.LP
+.sC L
+eject disk-cap
+.eC
+.SH
+Description
+.LP
+This command is used to eject floppies and CDs from devices that can only
+eject their media under software control.
+This is typically true for Sun 4 machines.
+.LP
+It will not eject disks that can only be ejected manually, such as on most
+PCs.
+.mH
+Diagnostics
+.LP
+If the disk specified is not software ejectable or the user has insufficient
+permission then an error message will be printed.
+No error is printed if no disk was present in the drive.
+.SH
+Example
+.LP
+.sC
+eject /super/hosts/jumbo/floppy:00
+.eC
+will eject the floppy disk from drive 0 on the host
+.I jumbo .
+.SH
+See Also
+.LP
+vdisk(A).

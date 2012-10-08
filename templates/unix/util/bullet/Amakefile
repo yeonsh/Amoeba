@@ -1,0 +1,24 @@
+#	
+#	@(#)Amakefile	1.2	94/04/05 17:21:29
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/util/bullet/Amake.srclist;
+%include $SRC_ROOT/unix/util/bullet/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/server
+};
+
+%include $CONF_ROOT/toolset/unix.bin;
+
+%instance gcluster(bsize, $U_BULLET_BSIZE, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(fromb, $U_BULLET_FROMB, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(tob, $U_BULLET_TOB, $LIB_AMUNIX, $LINT_AMUNIX);

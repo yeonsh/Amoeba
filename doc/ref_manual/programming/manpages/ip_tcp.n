@@ -1,0 +1,580 @@
+.\"	@(#)ip_tcp.n	1.1	96/02/15 16:52:05
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, 1991
+	Document: Philip Homburg, Sept 3, 1991
+	Modified: Gregory J. Sharp and Philip Homburg, March 1992
+		  - merged with udp(L) and made a little more complete.
+		  Gregory J. Sharp, April 1992
+		  - updated keywords for auto index generation
+		  Gregory J. Sharp, May 1995
+		  - made into 4 manual pages with some better hints on
+		    how to use this stuff.
+		  Gregory J. Sharp, Feb 1996
+		  - polish up
+.aE
+.mT "ip_tcp" L "libamoeba.a"
+Internet Protocol server's TCP client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "server/ip/tcp_io.h"
+#include "server/ip/types.h"
+#include "server/ip/gen/in.h"
+#include "server/ip/gen/tcp.h"
+#include "server/ip/gen/tcp_io.h"
+
+errstat tcp_ioc_connect(chan_cap, tcpcl)
+errstat tcp_ioc_getconf(chan_cap, tcpconf)
+errstat tcp_ioc_getopt(chan_cap, tcpopt)
+errstat tcp_ioc_listen(chan_cap, tcpcl)
+errstat tcp_ioc_setconf(chan_cap, tcpconf)
+errstat tcp_ioc_setopt(chan_cap, tcpopt)
+errstat tcp_ioc_shutdown(chan_cap)
+.eC
+.kW "\fItcp_ioc_getopt\fP"
+.kW "\fItcp_ioc_setopt\fP"
+.kW "\fItcp_ioc_connect\fP"
+.kW "\fItcp_ioc_getconf\fP"
+.kW "\fItcp_ioc_listen\fP"
+.kW "\fItcp_ioc_setconf\fP"
+.kW "\fItcp_ioc_shutdown\fP"
+.SH
+Description
+.LP
+.kW "IP"
+.kW "Internet Protocol"
+.kW "TCP"
+.kW "TCP/IP"
+.kW "tcp"
+The Internet Protocol (IP) server implements four network protocols, as
+described in
+.I ipsvr (A).
+The routines described below give access to the ``Transmission Control
+Protocol'' (TCP) of the IP server.
+TCP implements a connection-oriented, byte-stream protocol on top of IP 
+(see RFC-793).
+.LP
+Access to this service is provided using two types of capabilities:
+a server capability and channel capabilities.
+The server capability is called
+.I tcp .
+The server capability is used to obtain a channel to the corresponding
+server.
+This is done with
+.I tcpip_open
+(see
+.I ip (L)).
+The channel capability can be used to transfer data using the protocol
+implemented by the server.
+This is also done with the generic
+.I tcpip_read
+and
+.I tcpip_write
+routines.
+Since the semantics of the
+.I tcpip_
+functions vary slightly depending on channel type, these routines
+are described briefly below.
+The
+.I tcp_ioc_
+routines are used to manage the options and status of the TCP channel.
+.LP
+Before these routines are described,
+a brief introduction to the various types is given.
+The general-purpose types and rights in the capabilities are described in
+.I ip (L).
+.mH
+TCP Types
+.IP server/ip/gen/tcp.h
+.br
+defines
+.I tcpport_t
+and
+.I Tcpport_t
+for use in prototypes.
+.IP server/ip/gen/tcp_io.h
+.br
+defines struct nwio_tcpconf (\fInwio_tcpconf_t\fP),
+struct nwio_tcpcl (\fInwio_tcpcl_t\fP),
+struct nwio_tcpatt (\fInwio_tcpatt_t\fP) and
+struct nwio_tcpopt (\fInwio_tcpopt_t\fP).
+.IP server/ip/gen/tcp_hdr.h
+.br
+defines struct tcp_hdr (\fItcp_hdr_t\fP) and struct tcp_hdropt
+(\fItcp_hdropt_t\fP).
+.mH
+General Functions
+.sH
+tcpip_read
+.LP
+.sC
+errstat
+tcpip_read(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_read\fP"
+.I Tcpip_read
+reads data from the TCP channel specified by
+.I chan_cap
+into
+.I buffer .
+The call blocks until either
+.I nbytes
+of data are available,
+or an error condition is detected.
+On success it returns the number of bytes read.
+If the connection has been closed then it returns 0.
+If urgent data is pending and the channel is not configured for urgent
+data then the error code
+.cW TCPIP_URG
+is returned.
+The channel should then be reconfigured for urgent data using
+.I tcp_ioc_setopt .
+Further
+.I tcpip_read s
+should then be done until the error code
+.cW TCPIP_NOURG
+is returned, indicating that there is no more urgent data.
+At this point the channel can be reconfigured for normal operation.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<STD_INTR\*>
+\*<TCPIP_NOCONN\*>
+\*<TCPIP_URG\*>
+\*<TCPIP_NOURG\*>
+.DE
+.sH
+tcpip_write
+.LP
+.sC
+errstat
+tcpip_write(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_write\fP"
+.I Tcpip_write
+writes the
+.I nbytes
+of data in
+.I buffer
+to the TCP channel specified by
+.I chan_cap .
+The call blocks until enough buffer space is available to hold the entire
+write.
+Urgent data can be sent by setting the
+.cW NWTO_SND_URG
+option using
+.I tcp_ioc_setopt
+and then doing the write.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<STD_INTR\*>
+\*<TCPIP_NOTCONN\*>
+\*<TCPIP_SHUTDOWN\*>
+.DE
+.mH
+TCP Functions
+.LP
+.sH
+tcp_ioc_connect
+.LP
+.sC
+errstat
+tcp_ioc_connect(chan_cap, clopt)
+capability *chan_cap;
+struct nwio_tcpcl *clopt;
+.eC
+.kW "\fItcp_ioc_connect\fP"
+.I Tcp_ioc_connect
+tries to setup a connection with a remote TCP/IP server.
+The channel must be fully configured (see
+.I tcp_ioc_setconf )
+and values for the local port, the remote port and the remote address must
+have been specified using
+.cW NWTC_LP_SET
+or
+.cW NWTC_LP_SEL ,
+.cW NWTC_SET_RA
+and
+.cW NWTC_SET_RP .
+.sH
+tcp_ioc_getconf
+.LP
+.sC
+errstat
+tcp_ioc_getconf(chan_cap, tcpconf)
+capability *chan_cap;
+struct nwio_tcpconf *tcpconf;
+.eC
+.kW "\fItcp_ioc_getconf\fP"
+This call reports the current configuration of a TCP channel.
+See
+.I tcp_ioc_setconf for a description of
+.I "struct nwio_tcpconf" .
+The
+.I nwtc_flags
+field shows the status of the
+.I access ,
+.I locport ,
+.I remaddr
+and
+.I remport
+fields.
+.I Nwtc_locaddr
+contains the Internet address of the TCP/IP server.
+.I Remaddr
+contains the Internet address of the remote TCP/IP server,
+once it has been set with
+.cW NWTC_SET_RA
+or after a successful connect or listen (see
+.I tcp_ioc_connect
+and
+.I tcp_ioc_listen ).
+.I Nwio_locport
+contains the local TCP/IP port, set with
+.cW NWTC_LP_SET
+or the selected port set with
+.cW NWTC_LP_SEL .
+.I Nwtc_remport
+contains the TCP port of the remote TCP/IP server as set with
+.cW NWIO_SET_RP
+or after a successful connect or listen (see
+.I tcp_ioc_connect
+or
+.I tcp_ioc_listen ).
+.LP
+A value of 0 (zero) is reported for
+.I nwtc_remaddr,
+.I nwtc_locport
+or
+.I nwtc_remport
+when no value is set, either explicitly or implicitly.
+.sH
+tcp_ioc_getopt
+.LP
+.sC
+errstat
+tcp_ioc_getopt(chan_cap, tcpopt)
+capability * chan_cap;
+struct nwio_tcpopt *tcpopt;
+.eC
+.LP
+.kW "\fItcp_ioc_getopt\fP"
+This returns in
+.I tcpopt
+the current options for a TCP channel specified by
+.I chan_cap .
+See
+.I tcp_ioc_setopt
+for a description of the various options.
+.sH
+tcp_ioc_listen
+.LP
+.sC
+errstat
+tcp_ioc_listen(chan_cap, clopt)
+capability *chan_cap;
+struct nwio_tcpcl *clopt;
+.eC
+.kW "\fItcp_ioc_listen\fP"
+.I Tcp_ioc_listen
+waits until a remote TCP/IP server tries to connect to this channel.
+The channel has to be configured (see
+.I tcp_ioc_setconf ).
+An additional restriction is that the local port
+must be set (with
+.cW NWTC_LP_SET)
+or selected (with
+.cW NWTC_LP_SEL ).
+When a remote address is set, only connections for that host are accepted, and
+when a remote port is set, only connections from that port are accepted.
+After a successful listen,
+.I tcp_ioc_getconf
+can be used to find out the address and port of the other side.
+.sH
+tcp_ioc_setconf
+.LP
+.sC
+errstat
+tcp_ioc_setconf(chan_cap, conf)
+capability *chan_cap;
+struct nwio_tcpconf *conf;
+.eC
+.kW "\fItcp_ioc_setconf\fP"
+Before a TCP channel (created by calling
+.I tcpip_open
+with a TCP server capability) can be used or options set, it must configured
+using
+.I tcp_ioc_setconf .
+The parameters to
+.I tcp_ioc_setconf
+are the channel capability and a
+.I "struct nwio_tcpconf"
+as defined in
+.I server/ip/gen/tcp_io.h :
+.sC
+typedef struct nwio_tcpconf
+{
+	unsigned long nwtc_flags;
+	ipaddr_t nwtc_locaddr;
+	ipaddr_t nwtc_remaddr;
+	tcpport_t nwtc_locport;
+	tcpport_t nwtc_remport;
+} nwio_tcpconf_t;
+.eC
+.sC
+#define NWTC_NOFLAGS    0x0000L
+#define NWTC_ACC_MASK   0x0003L
+#       define NWTC_EXCL        0x00000001L
+#       define NWTC_SHARED      0x00000002L
+#       define NWTC_COPY        0x00000003L
+#define NWTC_LOCPORT_MASK       0x0030L
+#       define NWTC_LP_UNSET    0x00000010L
+#       define NWTC_LP_SET      0x00000020L
+#       define NWTC_LP_SEL      0x00000030L
+#define NWTC_REMADDR_MASK       0x0100L
+#       define NWTC_SET_RA      0x00000100L
+#       define NWTC_UNSET_RA    0x01000000L
+#define NWTC_REMPORT_MASK       0x0200L
+#       define NWTC_SET_RP      0x00000200L
+#       define NWTC_UNSET_RP    0x02000000L
+.eC
+A TCP channel is considered configured when one flag in each category has
+been selected.
+Thus one of
+.cW NWTC_EXCL,
+.cW NWTC_SHARED
+or
+.cW NWTC_COPY,
+one of
+.cW NWTC_LP_UNSET,
+.cW NWTC_LP_SET
+or
+.cW NWTC_LP_SEL,
+one of
+.cW NWTC_SET_RA
+or
+.cW NWTC_UNSET_RA,
+and one of
+.cW NWTC_SET_RP
+or
+.cW NWTC_UNSET_RP.
+.LP
+The
+.cW NWTC_ACC_
+flags control the access to a TCP port.
+.cW NWTC_EXCL
+means exclusive access.
+An attempt to configure a channel will be denied if the same port is specified
+as that of a channel that requested exclusive access.
+.cW NWTC_SHARED
+indicates that several channels use the same port but cooperate.
+If the shared mode is specified for one channel then all other channels that
+use the same port should also be configured with the
+.cW NWTC_SHARED
+flag.
+.cW NWTC_COPY
+is specified when the programmer does not care about other channels.
+This is the default.
+.LP
+The locport flags control which TCP port is used for communication.
+.cW NWTC_LP_UNSET
+indicates the absence of a local port.
+This is the default.
+.cW NWTC_LP_SET
+means that the
+.I nwtc_locport
+field contains the local port to be used by TCP.
+This value must be in network byte order (see
+.I "Byte Order Conversion"
+in
+.I ip (L)).
+.cW NWTC_LP_SEL
+requests the TCP server to pick a port.
+This port will be in the range from 32768 to 65535 and will be unique.
+.LP
+The
+.I remaddr
+flags specify which hosts are acceptable for connections.
+.cW NWTC_SET_RA
+indicates that only connections to the host specified in
+.I nwtc_remaddr
+are acceptable.
+.I Nwtc_remaddr
+should be in network byte order (see
+.I "Byte Order Conversion"
+in
+.I ip (L)).
+.cW NWTC_UNSET_RA
+allows any host on the other side of a connection.
+This is the default.
+.LP
+The
+.I remport
+flags specify which remote ports are acceptable for connections.
+.cW NWTC_SET_RP
+indicates that only the port specified in
+.I nwtc_remport
+is acceptable.
+.cW NWTC_UNSET_RP
+allows any port on the other side of a connection.
+This is the default.
+.sH
+tcp_ioc_setopt
+.LP
+.sC
+errstat
+tcp_ioc_setopt(chan_cap, tcpopt)
+capability * chan_cap;
+struct nwio_tcpopt *tcpopt;
+.eC
+.LP
+.kW "\fItcp_ioc_setopt\fP"
+The behavior of a TCP channel can be changed using
+.I tcp_ioc_setopt .
+The parameters to
+.I tcp_ioc_setopt
+are a channel capability and a
+.I "struct nwio_tcopt"
+as defined in
+.I server/ip/gen/tcp_io.h :
+.sC
+typedef struct nwio_tcpopt
+{
+	u32_t nwto_flags;
+} nwio_tcpopt_t;
+.eC
+The \fInwto_flags\fP field takes the following flags:
+.sC
+#define NWTO_NOFLAG             0x0000L
+#define NWTO_SND_URG_MASK       0x0001L
+#       define NWTO_SND_URG     0x00000001L
+#       define NWTO_SND_NOTURG  0x00010000L
+#define NWTO_RCV_URG_MASK       0x0002L
+#       define NWTO_RCV_URG     0x00000002L
+#       define NWTO_RCV_NOTURG  0x00020000L
+#define NWTO_BSD_URG_MASK       0x0004L
+#       define NWTO_BSD_URG     0x00000004L
+#       define NWTO_NOTBSD_URG  0x00040000L
+#define NWTO_DEL_RST_MASK       0x0008L
+#       define NWTO_DEL_RST     0x00000008L
+#       define NWTO_NOTDEL_RST  0x00080000L
+.eC
+.cW NWTO_SND_URG
+and
+.cW NWTO_SND_NOTURG
+control the sending of urgent data.
+If
+.I NWTO_SND_URG
+is set, data written with
+.I tcpip_write
+will be sent as urgent data.
+If
+.cW NWTO_SND_NOTURG
+is set, data will be sent as normal data.
+Similarly,
+.cW NWTO_RCV_URG
+and
+.cW NWTO_RCV_NOTURG
+control the reception of urgent data.
+If the wrong kind of data is present
+.I tcpip_read
+returns the error
+.cW TCPIP_URG
+or
+.cW TCPIP_NOURG ,
+as appropriate.
+.LP
+.cW NWTO_BSD_URG
+and
+.cW NWTO_NOTBSD_URG
+control whether data is sent and received according to the BSD semantics or
+according to the semantics described in the RFC.
+These options can only be specified if a successful
+.I tcp_ioc_connect
+or
+.I tcp_ioc_listen
+has been done.
+.LP
+The
+.cW NWTO_DEL_RST
+can be used to delay the sending of an
+.cW RST
+packet in response to a
+.cW SYN
+packet.
+Normally, when a
+.cW SYN
+arrives for a port and there is no listen for that
+particular port, the TCP server will send an
+.cW RST
+packet.
+This results in a ``Connection Refused'' error at the sending host.
+If a server repeatedly accepts connections for the same port, it can use this
+bit tell the TCP server not to send an
+.cW RST
+immediately.
+When a
+.cW SYN
+packet arrives and the TCP server is about to send an
+.cW RST
+packet,
+it will look for existing channels to the same port with the bit set.
+If such a channel exists, the TCP server will delay the sending of the
+.cW RST
+packet to give the server an opportunity to open a new channel and start
+a listen.
+.sH
+tcp_ioc_shutdown
+.LP
+.sC
+errstat
+tcp_ioc_shutdown(chan_cap)
+capability *chan_cap;
+.eC
+.kW "\fItcp_ioc_shutdown\fP"
+.I Tcp_ioc_shutdown
+tells the TCP/IP server that no more data will be sent over the channel
+specified by
+.I chan_cap .
+This command can be issued when the channel is connected to a remote TCP/IP
+server.
+The TCP/IP server will tell the remote TCP/IP server and the client of the
+remote TCP/IP server will receive an end-of-file indication.
+.mH
+Diagnostics
+.LP
+The complete set of error codes is described in
+.I ip (L).
+.\".SH
+.\"Examples
+.\".LP
+.\"XXX
+.SH
+See Also
+.LP
+error(L),
+ip(L),
+ip_eth(L),
+ip_ip(L),
+ip_udp(L),
+ipsvr(A).

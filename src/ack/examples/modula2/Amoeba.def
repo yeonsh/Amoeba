@@ -1,0 +1,91 @@
+/*	@(#)Amoeba.def	1.3	94/04/06 11:10:33 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+(*$Foreign language module *)
+(*$U+ allow for underscores in identifiers *)
+
+(* This is a Modula-2 version of a stripped version of the amoeba.h
+   include-file.
+*)
+
+DEFINITION MODULE Amoeba;
+  
+  FROM SYSTEM IMPORT	ADDRESS;
+
+  (* Constants which give what the sizes of the network structures SHOULD be *)
+  CONST
+	PORTSIZE =	 6;
+	OOBSIZE =	20;
+	HEADERSIZE =	32;
+	PRIVSIZE =	10;
+	CAPSIZE =	16;
+
+  TYPE
+	int32 =		LONGINT;
+	int16 =		INTEGER [-32768..32767];
+	int8 =		INTEGER [-128..127];
+	uint32 =	CARDINAL;	(* only on 4-byte implementations *)
+	uint16 =	CARDINAL[0..65535];
+	uint8 =		CARDINAL[0..255];
+
+  (* For transaction interface routines *)
+	bufptr =	ADDRESS;	(* address of transaction buffer *)
+	bufsize =	uint16;		(* transaction buffer size *)
+
+  (* For sleep and wakeup and semaphores *)
+	event =		ADDRESS;
+	mutex =		int32;
+
+  (* Used in headers and capabilities *)
+	right_bits =	int32;		(* rights bits in a capability *)
+	objnum =	int32;		(* object number in a capability *)
+
+	command =	uint16;		(* command as in header *)
+	Errstat =	command;	(* error status as in header *)
+	errstat =	int32;		(* error status as used by stubs *)
+
+	interval =	int32;		(* timeout in milliseconds *)
+
+	port = ARRAY[0..PORTSIZE-1] OF int8;
+
+	private =
+	    RECORD
+		prv_object:	ARRAY[0..2] OF int8;
+		prv_rights:	uint8;
+		prv_random:	port;
+	    END;
+	
+	capability =
+	    RECORD
+		cap_port:	port;
+		cap_priv:	private;
+	    END;
+
+	header =
+	    RECORD
+		h_port:		port;
+		h_signature:	port;
+		h_priv:		private;
+		h_command:	command;
+		h_offset:	int32;
+		h_size:		bufsize;
+		h_extra:	uint16;
+	    END;
+  
+  PROCEDURE trans(VAR h1: header; bufp1: bufptr; bufsz1: bufsize;
+		  VAR h2: header; bufp2: bufptr; bufsz2: bufsize) : bufsize;
+
+  PROCEDURE getreq(VAR h: header; bufp: bufptr; bufsz: bufsize) : bufsize;
+
+  PROCEDURE putrep(VAR h: header; bufp: bufptr; bufsz: bufsize);
+
+  PROCEDURE timeout(i: interval) : interval;
+
+  PROCEDURE priv2pub(VAR priv: port; VAR pub: port);
+
+END Amoeba.
+

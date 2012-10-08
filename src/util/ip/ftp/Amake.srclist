@@ -1,0 +1,15 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 13:08:44
+#
+U_FTP = {
+	$PWD/cmds.c,
+	$PWD/cmdtab.c,
+	$PWD/domacro.c,
+	$PWD/ftp.c,
+	$PWD/glob.c,
+	$PWD/main.c,
+	$PWD/ruserpass.c,
+
+	$PWD/strcasecmp.c,	# add to libamoeba?
+};
+

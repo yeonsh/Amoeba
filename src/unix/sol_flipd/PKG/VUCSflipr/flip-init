@@ -1,0 +1,18 @@
+#!/bin/sh
+#	
+#	@(#)flip-init	1.1	96/02/27 11:49:17
+#
+# start /usr/sbin/flipd
+#
+
+case "$1" in
+'start')
+	if [ -f /usr/sbin/flipd ]; then
+		/usr/sbin/flipd
+	fi
+	;;
+*)
+	echo "Usage: /etc/init.d/flip-init start"
+	;;
+esac
+exit 0

@@ -1,0 +1,12 @@
+#	
+#	@(#)Amake.srclist	1.5	94/04/06 11:36:05
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_SUN_INSTALLBOOT = $PWD/../sun4/installboot.c;
+U_SUN3_BOOTBLOCK = {
+	$PWD/head.s,
+	$PWD/readkernel.c
+};

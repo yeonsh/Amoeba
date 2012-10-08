@@ -1,0 +1,13 @@
+/*	@(#)flrpc.init	1.4	96/02/27 14:03:31 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+INTERFACE rpc_init
+#ifdef MEASURE
+MEASUREMENTS rpc_init
+#endif
+rpc_init THREADS
+RANDOM rpc_init

@@ -1,0 +1,9 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)unix.lib	1.2	94/04/05 17:01:34
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/unix.cmds;
+%include $PWD/lib.generic;

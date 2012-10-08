@@ -1,0 +1,123 @@
+.\"	@(#)bootutil.n	1.5	96/02/15 17:07:12
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, June 1990
+	Document: Siebren van der Zee, June-September 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "bootutil" A
+boot server control
+.SH
+Synopsis
+.LP
+.sC
+boot_ctl scap option
+boot_conf scap servicename on
+boot_reinit scap
+boot_setio scap tty-cap
+boot_shutdown scap
+.eC
+.SH
+Description
+.LP
+.kW "boot server"
+These utilities provide an interface to the
+boot server (see
+.I boot (A)).
+They all operate on its super-capability, and require
+the administrative right, which has the same value as
+the \*(Bs's
+.cW BS_RGT_ADMIN
+right.
+.LP
+.kW "\fIboot_ctl\fP"
+.I Boot_ctl
+is used to toggle several server-internal flags, such as the level
+of verbosity, in the same style as
+.I kstat (U).
+Use
+.sC
+boot_ctl \fIscap\fP ?
+.eC
+to get a list of possible options,
+where
+.I scap
+is the server capability of the
+.I boot
+server.
+.I Boot_ctl
+reports an ``invalid argument'' if the option
+is not supported by the boot server.
+.LP
+.kW "\fIboot_conf\fP"
+.I Boot_conf
+tells the boot server (not) to bother about the service
+.I servicename .
+The argument
+.I on
+must be 0 to stop the boot server from managing the service
+or 1 to resume.
+The server reports an invalid argument if
+.I on
+has any other value.
+This is really a temporary way of (re)setting the ``down'' option
+described in
+.I boot (A):
+the down flag will be reset to its original
+value by the next
+.I boot_reinit ,
+or when the
+.I boot
+server is started.
+.LP
+.kW "\fIboot_reinit\fP"
+.I Boot_reinit
+causes the boot server listening to
+.I scap
+to reinitialize.
+This involves re-reading the configuration file,
+stunning processes associated with services that no longer exist,
+and undoing any effect of a
+.I boot_conf
+operation.
+.LP
+.kW "\fIboot_shutdown\fP"
+.I Boot_shutdown
+tells the boot server to exit.
+It returns
+.cW STD_NOTNOW
+if the server is already in the process of shutting down.
+The boot server does this itself on startup,
+in an attempt to stop any other boot server that listens to the same port.
+.LP
+.kW "\fIboot_setio\fP"
+.I Boot_setio
+tells the boot server to use
+.I tty-cap
+for printing messages.
+It returns ``invalid argument'' if the capability
+belongs to a server that is currently unreachable,
+or if it does not support the
+.I fswrite
+command (see
+.I fs (L)).
+.SH
+Diagnostics
+.LP
+These utilities may report standard errors as described in
+.I std (L).
+.mH
+Warnings
+.LP
+The diagnostics and output are as horrible as one
+can expect from automatically generated programs.
+.SH
+See Also
+.LP
+boot(A),
+iboot(A).

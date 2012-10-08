@@ -1,0 +1,218 @@
+.\"	@(#)amsh.n	1.3	96/02/15 18:00:22
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Mike Condict
+	Document: Gregory J. Sharp, April 1992
+	Modified: Gregory J. Sharp, Oct 1995
+			- eliminated some ambiguity (I hope)
+.aE
+.mT "amsh" U "UNIX ONLY"
+start an \*(Am shell running in a UNIX tty.
+.SH
+Synopsis
+.LP
+.sC L
+amsh [-m host] [-E stringenv] [-C capenv] [-t tty] [-s shell]
+		[-d] [cmd [args]]
+.eC
+.SH
+Description
+.LP
+.I Amsh
+is used under
+.UX
+to start a shell running under \*(Am which uses a
+.UX
+tty for its input and output.
+Typically
+.I amsh
+is started in a window.
+It uses the FLIP driver in the
+.UX
+.kW "processor pool"
+kernel to communicate with the \*(Am processor pool.
+It sets up a sensible capability and string environment for the shell,
+using only what is necessary from the
+.UX
+string environment.
+It starts a session server if none is running (see
+.kW "\fIsession\fP"
+.I session (U))
+and then the specified shell is started.
+The output from the session server is written to the console if it is
+writable,
+and otherwise to the
+.UX
+file
+.I $HOME/.session.out .
+.LP
+If a command is specified as the last argument then it will be started instead
+of just an interactive shell.
+The command may have arguments.
+.LP
+The \*(Am root directory (i.e.,
+.I / )
+used is specified by the capability in the
+.UX
+file
+.kW ".capability file"
+.I $HOME/.capability .
+.mH
+Options
+.LP
+The
+.B \-m ,
+.B \-C
+and
+.B \-E
+options are passed straight to
+.kW "\fIax\fP"
+.I ax (U)
+which is used to start the shell.
+See
+.I ax (U)
+for more details of the exact semantics of these options.
+.IP "\fB\-C\fP \fIcapenv\fP
+.br
+.kW "capability environment"
+This allows values to be set in the capability environment of the shell to
+be started.
+The
+.I capenv
+argument is normally of the form
+.I name=capability
+but see
+.I ax (U)
+for more details.
+.IP "\fB\-E\fP \fIstringenv\fP
+.br
+.kW "string environment"
+This is used to set values in the string environment of the shell to be
+started.
+The
+.I stringenv
+argument is normally of the form
+.I name=string .
+See
+.I ax (U)
+for other possibilities.
+.IP \fB\-d\fP
+Set debugging on.
+This causes
+.I amsh
+and
+.I ax
+to be verbose.
+It is not recommended.
+.IP "\fB\-m\fP \fIhost\fP
+.br
+This option causes
+.I amsh
+to start the session server and shell on the specified
+.I host .
+The default is to let the
+.I run (A)
+server decide where to run the shell.
+.IP "\fB\-s\fP \fIshell\fP
+.br
+This causes the shell specified by the
+.I shell
+argument to be started instead of the default or the shell specified by the
+.cW AM_SHELL
+string environment variable.
+.br
+.ne 3
+.IP "\fB\-t\fP \fItty\fP
+.br
+This causes the
+.UX
+.I tty
+device to be used for the input and output of the shell instead of the current
+tty.
+.mH
+Diagnostics
+.LP
+.sC
+No writable /dev directory on Amoeba!
+.eC
+No
+.I /dev
+directory could be found under \*(Am for the user.
+This is necessary to start a session server.
+.LP
+All other diagnostics come from
+.I ax (U)
+or the session server.
+.mH
+Environment Variables
+.LP
+.IP \*<AM_SHELL\*> 10
+Specifies which shell should be started under \*(Am.
+The default is
+.I /bin/sh .
+It is overridden by the
+.B \-s
+option.
+.IP \*<AM_HOME\*>
+Specifies the
+.cW HOME
+capability environment variable used when starting the shell.
+The default is
+.I /home .
+.IP \*<AM_PATH\*>
+Specifies the
+.cW PATH
+string environment variable used by the shell started under \*(Am.
+The default is
+.I /bin:/profile/util .
+.IP \*<AM_TERM\*>
+This sets the
+.UX
+terminal type which is to be used for
+.I stdin ,
+.I stdout
+and
+.I stderr
+by the shell.
+The default is the
+.UX
+.cW TERM
+string environment variable.
+.SH
+Examples
+.LP
+In 99.99% of cases it is sufficient to type
+.sC
+amsh
+.eC
+If another shell is preferred over the default (for example
+.I /bin/ksh )
+then set the
+.cW AM_SHELL
+string environment variable under
+.UX .
+.LP
+.kW "X windows"
+For people using X windows it is possible to set up
+.I amsh
+to be started from a menu option.
+For example, the following will start
+.I amsh
+in an
+.I xterm
+window if installed in a menu for
+.I twm .
+.sC
+"amoeba"	 !"xterm -ut -geometry 80x40 -name amoeba -e amsh&"
+.eC
+.SH
+See Also
+.LP
+ax(U),
+ksh(U),
+session(U),
+sh(U).

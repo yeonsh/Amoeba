@@ -1,0 +1,59 @@
+#!/bin/sh
+#	
+#	@(#)do_as	1.1	96/02/16 15:56:31
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	This is the version of do_as used by kernel and libraries.
+#
+
+CPPLIB=/usr/ccs/lib
+CPPFLAGS=
+PROG=$0
+TARGET_ARCH=sparc  # default architecture
+SUNPROBIN=/usr/ccs/bin
+
+# Parse options
+while [ $# -gt 0 ]
+do
+	case $1 in
+	*.S)		FILE=$1; base=`basename $FILE .S` ;;
+	*.s)		FILE=$1; base=`basename $FILE .s` ;;
+	-o)		OFILE=$2; shift ;;
+	-C)		CPPLIB=$2; shift ;;
+	-G)		SUNPROBIN=$2; shift ;;
+	-10)		;; # ignored; mc68010 support should be automatic
+	-mam_sparc)	TARGET_ARCH=sparc ;;
+	-mam_*)		echo "architecture $1 not supported" >&2; exit 1 ;;
+	-*)		CPPFLAGS="$CPPFLAGS $1" ;;
+	 *)		echo "$PROG: $1 ignored >&2" ;;
+	esac
+	shift
+done
+
+
+# the return value gets set to 0 when everything goes well
+ret=1
+
+if [ -f "$SUNPROBIN/as" ]
+then
+	TEMP1=/tmp/$base$$-1.s
+	TEMP2=/tmp/$base$$-2.s
+	trap "rm -f $TEMP1 $TEMP2" 0
+	if $CPPLIB/cpp -P -D_ASM $CPPFLAGS $FILE > $TEMP1
+	then 
+		# replace semicolons by newlines and assemble
+		tr ';' '\012' < $TEMP1 > $TEMP2
+		$SUNPROBIN/as -o ${OFILE-$base.o} $TEMP2
+		# save result in ret
+		ret=$?
+	else
+		echo "Preprocessor failed on file $FILE" 1>&2
+	fi
+else
+	echo "No assembler found in $SUNPROBIN" 1>&2
+fi
+
+exit $ret

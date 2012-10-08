@@ -1,0 +1,62 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 13:53:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/../sun4gen/Amake.srclist;
+
+K_DEV_SUN4C_LANCE = $PWD/lancesupport.c;
+K_DEV_SUN4C_ETHER = {
+	$K_DEV_GLANCE,
+	$PWD/sun4c_eth.c,
+	$PWD/sun4c_eth.init,
+};
+
+K_DEV_SUN4C_UART = {
+	$PWD/sun_putchar.c,
+	$K_DEV_SUN4GEN_UART,
+};
+
+K_DEV_SUN4C_TIMER = {
+	$PWD/timer.c,
+	$PWD/timer.init,
+	$K_DEV_SUN4GEN_TOD,
+};
+
+K_MACH = {
+	$PWD/sun4c.c,
+	$PWD/sun4c.init,
+	$PWD/sun4c.kstat,
+	$K_DEV_SUN4C_UART,
+	$K_DEV_SUN4C_TIMER,
+	$K_DEV_SUN4GEN_OPENPROM,
+	$K_DEV_SUN4GEN_KPARAM,
+};
+
+K_DEV_SUN4C_SCSI = {
+	$PWD/scsi_dev.c,
+	$PWD/scsi_dev.init,
+	$PWD/scsi_dma.c,
+	$PWD/scsi_dma.h,
+	$PWD/scsi_dma.init,
+	$K_DEV_SUN4GEN_SCSI
+};
+
+K_DEV_SUN4C_DISKDEP = {
+	$PWD/../sun3/diskdep.c
+};
+
+K_DEV_SUN4C_OFFSET = $PWD/offset.c;
+
+K_DEV_SUN4C_IOP = {
+	$PWD/iop_cvt.c,
+	$K_DEV_SUN4GEN_IOP,
+};
+
+K_DEV_SUN4C_FLOPPY = {
+	$PWD/82072.c,
+	$PWD/82072.h,
+	$PWD/82072.kstat
+};

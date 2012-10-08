@@ -1,0 +1,731 @@
+.\"	@(#)starch.n	1.7	96/02/16 11:08:11
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ed Keizer, 1991
+	Document: Ed Keizer, November 1991
+	Modified: Leendert van Doorn, December 1991, added floppy support.
+		  Ed Keizer, July 1995, added incremental dump support.
+		  Gregory J. Sharp, Nov 1995, tidied up the grammar
+.aE
+.mT "starch" U
+backup and restore tool
+.SH
+Synopsis
+.LP
+.sC L
+starch -o [options] path ...
+starch -o [options] -A path [options]
+starch -i [options] [path ...]
+starch -t [options] [path ...]
+starch -g [options] path ...
+.eC
+.SH
+Description
+.LP
+.kW "backup"
+.kW "restore"
+.kW "archive"
+.kW SOAP
+.kW "directory graph"
+.kW "archive"
+.kW "tape"
+.kW "directory listing"
+.I Starch
+can save an entire Soap directory graph to an archive
+file from which it can later restore that same graph.
+The archive can be written to, and read from, a bullet file,
+standard input, standard output or a tape.
+It also performs related functions such as listing the
+objects in a directory graph and listing the contents of an archive.
+There are options to skip certain directories or file names matching a
+given pattern.
+.LP
+The \*(Am directory graph contains cycles.
+Therefore a simple tree traversal algorithm as is typically used by utilities
+such as
+.I tar (U)
+and
+.I find (U)
+can get into an infinite loop.
+To avoid following cycles,
+it is necessary to remember at least the capabilities of all the directories
+encountered on the path to a directory. 
+In fact,
+.I starch
+remembers the capabilities of all objects it has encountered,
+so it will not only avoid cycles but in general archive each object at most once.
+.mH
+Options
+.LP
+Exactly one mode option must be specified, chosen from the list below.
+The interpretation of path name arguments depends on the mode.
+The archives are read from
+.I stdin
+and written to
+.I stdout ,
+unless a
+.B \-f ,
+.B \-l ,
+.B \-m
+or
+.B \-M
+option is present.
+The mode options are:
+.IP \fB\-i\fP
+Input mode.
+.I Path
+names specify starting points of subsets of objects to be
+restored; if no path names are specified, the entire archive is restored.
+.IP \fB\-g\fP
+Name generation mode.
+This does not manipulate archives.
+It traverses one or more directory graphs whose starting point(s) are given
+as arguments and prints the names of the objects found.
+These are exactly the objects that would be written to the archive in
+output mode.
+The same object may be listed under multiple names.
+.IP \fB\-o\fP
+Output mode.
+One or more path names indicating the starting point(s)
+of the directory graph(s) to be written to the archive file must
+be specified.
+Starting point arguments are not allowed when the
+.B \-A
+option is used to create an incremental dump.
+.IP \fB\-t\fP
+Tabulation mode.
+This lists the contents of the archive rather than restoring from it; it
+is otherwise similar to input mode.
+.LP
+Archive selection and handling options which are valid in combination with
+.B \-i ,
+.B \-o
+and
+.B \-t
+are:
+.IP "\fB\-b\fP \fIN\fP"
+.br
+The number
+.I N
+indicates the size in bytes of the read or write operations
+used to access the archive.
+This option can be useful while writing tapes.
+The number
+.I N
+can be followed by
+.cW b ,
+.cW k ,
+.cW m
+or
+.cW g
+to indicate respectively 512-byte blocks, kilobytes, megabytes
+and gigabytes.
+The upper case versions of these suffices are also recognized and
+have the same meaning as the lower case versions.
+.br
+The number
+.I N
+must be a multiple of 1024, the internal block size
+of
+.I starch .
+.IP "\fB\-f\fP \fIpath\fP"
+.br
+Use the indicated
+.I path
+to read/write the archive.
+Multiple
+.B \-f
+options can be used to read multiple archives with the
+.B \-i
+and
+.B \-t
+option.
+This is used when reading base archives in combination with incremental
+archives (see
+.B \-a
+and
+.B \-A
+below).
+The restored objects will have the creation time of the archive indicated
+by the first
+.B \-f
+option.
+.br
+One of the options
+.B \-l ,
+.B \-m
+or
+.B \-M
+passed as argument before the
+.B \-f
+can be used to change the device type of the archive.
+.IP \fB\-l\fP
+Use the
+.I vdisk (L)
+stub interface to read/write the archive mentioned with the next
+.B \-f ,
+.B \-a
+or
+.B \-A
+option.
+If
+.B \-l
+is not followed by a
+.B \-f ,
+.B \-a
+or
+.B \-A
+and the
+.cW FLOPPY
+environment variable is defined,
+then
+.I starch
+acts as if an
+.B \-f
+.cW $FLOPPY
+option was added to the end of the option list.
+.br
+When the archive does not fit on a single floppy it is advisable to use
+the
+.B \-s
+option to indicate the size of the floppy disk.
+.IP \fB\-m\fP
+Use the
+.I tape (L)
+stub interface to read/write the archive mentioned with the next following
+.B \-f ,
+.B \-a
+or
+.B \-A
+option.
+If
+.B \-m
+is not followed by a
+.B \-f ,
+.B \-a
+or
+.B \-A
+and the
+.cW TAPE
+environment variable is defined,
+then
+.I starch
+acts as if an
+.B \-f
+.cW $TAPE
+option was added to the end of the option list.
+.br
+With tape drives that allow writing after the preliminary end-of-tape
+message,
+.I starch
+does not need to know the size of the tape in advance.
+If error messages appear at the end of the tape,
+.I starch
+still will produce readable archives, but in such cases it is preferable
+to use the
+.B \-s
+option to indicate the size of the tape.
+.br
+The tape will be rewound to the load point when the archive
+has been read or written.
+.IP \fB\-M\fP
+As under
+.B \-m
+but without rewinding the tape.
+.IP "\fB\-n\fP \fIN\fP"
+.br
+Indicates the number of buffers used between the main and read or write threads
+of
+.I starch .
+If the number of buffers to use is 1, no buffering will take place and
+only a single thread will be used.
+Only the \*(Am version of
+.I starch
+can use multiple threads.
+The default numbers of buffers under \*(Am is 80.
+.IP "\fB\-s\fP \fIN\fP"
+.br
+The number
+.I N
+indicates the size, in bytes, of the medium on which the archive is to be
+written.
+This option is most useful while writing (floppy) disks or tapes.
+The same single letter suffices can be used as with the
+.B \-b
+option.
+.IP "\fB\-S\fP"
+Print the total number of bytes written to, and read from, archives.
+.LP
+Options that can only be used while creating archives with
+.B \-o
+are:
+.IP "\fB\-a\fP \fIpath\fP"
+.br
+In addition to the archive which contains the contents of the files and
+directories (known as the
+.I base
+archive),
+a
+.I "description archive"
+is created and stored under the name
+.I path .
+A description archive is a
+.I starch
+archive containing the capability and version number for each directory
+(see
+.I soap (A))
+and one capability for each archived file.
+The description archive can be used with later invocations
+of
+.I starch
+to make incremental archives (see the
+.B \-A
+option).
+The description archive can also be used to retrieve lost capabilities.
+.I Starch
+uses the `illegal' version number zero for all directories for which
+it cannot get the sequence number.
+.br
+One of the options
+.B \-l ,
+.B \-m
+or
+.B \-M
+given as argument before the
+.B \-a
+can be used to change the device type of the description archive.
+.IP "\fB\-A\fP \fIpath\fP"
+.br
+This option is used to make incremental archives.
+The
+.I path
+argument must refer to a description archive created with the
+.B \-a
+option.
+.br
+For each directory found in the description archive,
+.I starch
+only needs to consider directories with sequence numbers
+that differ from those in the description archive.
+These directories are scanned for new capabilities.
+New directory capabilities are followed.
+The archive it creates contains the whole new directory structure
+and any new capabilities and bullet files.
+This type of archive is called
+.I incremental .
+.I Starch
+will only work properly if the same
+.B \-U ,
+.B \-Y ,
+.B \-Z 
+.B \-u ,
+.B \-y
+and
+.B \-z 
+options which were used while making the base archive are used to make
+the incremental archive.
+If any of these options have changed since the last base achive was made
+then make a new base archive.
+.br
+Individual files can be restored from incremental archives.
+To restore complete archives, use multiple
+.B \-f
+options with the
+.B \-i
+option.
+The directory structure restored is that of the archive mentioned in the first
+.B \-f
+option.
+.br
+For obscure reasons having to do with capability-sets,
+.I starch
+will sometimes write bullet files on an incremental archive that
+are already present in the base archive.
+.br
+.B \-A
+and
+.B \-a
+can be combined to create levels of incremental archives.
+.br
+One of the options
+.B \-l ,
+.B \-m
+or
+.B \-M
+given as argument before the
+.B \-A
+can be used to change the device type of the archive.
+.LP
+Options that can be used while restoring archives with
+.B \-i
+are:
+.IP "\fB\-B\fP \fIpath\fP"
+.br
+All bullet files to be created by
+.I starch
+will be created on the bullet server specified by
+.I path .
+.IP "\fB\-D\fP \fIpath\fP"
+.br
+All directories to be created by
+.I starch
+will be created on the directory server specified by
+.I path .
+.IP "\fB\-k\fP \fIpath\fP"
+.br
+This option is useful when the archive is somehow damaged.
+All bullet files, capabilities and directories
+that are not accessible through the entry points due
+to missing directory information are stored in the directory
+specified by
+.I path
+under their
+.I id
+number.
+More information on the
+.I id
+number is given in the section ``Informative Output Format'', below.
+This option is not valid in combination with partial restores.
+.IP \fB\-r\fP
+Retain.
+Normally
+.I starch
+stops when an entry it tries to create already exists.
+With this option
+.I starch
+will leave all existing entries intact and only create new entries.
+.IP \fB\-w\fP
+Overwrite.
+Normally
+.I starch
+stops when an entry it tries to create already exists.
+With this option
+.I starch
+will replace existing entries with the entry stored in the archive.
+.LP
+The remaining options may be combined with any of the mode options:
+.IP \fB\-v\fP
+Verbose.
+This may be used to increase the amount of output generated.
+There are four levels of verbosity: silent, names only, names
+and status information, and extended status information.
+Tabulation and name generation mode (\fB\-t\fP and
+.B \-g )
+start at the second level (names only);
+the other modes are silent by default (except for error messages).
+.IP "\fB\-x\fP \fIpath\fP"
+.br
+Specifies a path name which should not be archived/restored/listed/etc\. (as
+appropriate for each mode).
+This may be repeated to specify multiple exceptions.
+If a directory is specified in this way, the subgraph starting at
+.I path
+will not be traversed.
+Other names for the same object will be treated as links (thus, the
+object itself will not be copied to the archive at all).
+.IP "\fB\-X\fP \fIpattern\fP"
+.br
+Objects whose last path name component match
+.I pattern
+are skipped.
+The pattern matching syntax is (hopefully) identical to that of the shell
+(so it will need to be quoted to stop the shell trying to interpret it).
+If a directory is skipped, the subgraph starting at that point will not
+be traversed.
+Unlike the
+.B \-x
+option, objects that are skipped through this option may
+still be reached by other names.
+This option may be repeated to specify multiple exceptions.
+.mH
+Selecting Files on Input
+.LP
+.I Starch
+has a rather complex method for selecting files
+to be listed or archived to tape.
+There are three ways to handle an entry: ignore it,
+archive/restore the capability of the object,
+archive/restore the contents of the object.
+The only type of objects
+.I starch
+can archive and restore the contents of, are bullet files
+and directories.
+Apart from the
+.B \-x
+and
+.B \-X
+options mentioned above,
+there are two mechanisms for specifying how to handle an entry.
+One is based on the port number in capabilities and
+the other is based on the first character returned by
+.I std_info (U).
+The first selection method used is the one based on capabilities.
+If the port of a capability is identical to one of the ports of
+the capabilities stored in any of the paths mentioned
+by the \fB\-U\fP, \fB\-Y\fP or \fB\-Z\fP options, the entry
+is handled as specified by the option.
+If no port match is found, the second method, based on
+.I std_info ,
+is used.
+The default method is to select every entry that is a bullet file
+(\fIstd_info\fP string begins with ``\-'')
+or a directory
+(\fIstd_info\fP string begins with ``/'')
+and to archive the capability for all other types.
+.br
+The options:
+.IP "\fB\-u\fP \fIobject_types\fP"
+.br
+Specifies the
+.I std_info
+types of the objects for which the contents
+are to be archived.
+Only directory and bullet types may be specified with this option.
+The default is ``/\-''.
+To disable matching with
+.I std_info
+strings use \fB\-u\fP\ "".
+.IP "\fB\-y\fP \fIobject_types\fP"
+.br
+Specifies the
+.I std_info
+types of the objects for which the capabilities
+are to be archived.
+If this option is present, the default method for handling objects of
+unknown type changes from storing the capability to ignoring the object.
+The
+.B \-z
+and
+.B \-Z
+options can not be combined with this option.
+.IP "\fB\-z\fP \fIobject_types\fP"
+.br
+Specifies the
+.I std_info
+types of the objects to be ignored.
+The
+.B \-y
+and
+.B \-Y
+options can not be combined with this option.
+.IP "\fB\-U\fP \fIpath\fP"
+.br
+Specifies the ports of the objects for which the contents
+are to be archived.
+This option may be repeated.
+Only directory and bullet ports may be specified with this option.
+.IP "\fB\-Y\fP \fIpath\fP"
+.br
+Specifies the ports of the objects for which the capabilities
+are to be archived.
+This option may be repeated.
+If this option is present the default method of handling objects of
+unknown type changes from storing the capability to ignoring the object.
+The
+.B \-z
+and
+.B \-Z
+options can not be combined with this option.
+.IP "\fB\-Z\fP \fIpath\fP"
+.br
+All entries with their
+port identical to the port of the capability stored under
+.I path
+will be ignored.
+This option may be repeated.
+The
+.B \-y
+and
+.B \-Y
+options can not be combined with this option.
+.mH
+Informative Output Format
+.LP
+Output in tabulation and name generation modes is presented on
+.I stdout .
+Output in all other modes is presented on
+.I stderr .
+The output of
+.I starch
+in tabulation mode sometimes uses
+.I id
+numbers to identify objects.
+These numbers are used for the internal administration
+of
+.I starch
+and have no relation to the object numbers in capabilities.
+The output in tabulation mode is intended to be self explanatory.
+.mH
+Path name arguments
+.LP
+.I Starch
+is not good at handling ``.'' and ``..'' in path name arguments.
+Specifying a single ``.'' in output mode to indicate that the current
+directory should be archived will work.
+Specifying ``..'' in argument path names will lead to confusion.
+In output and list mode the argument path names are normalized
+(see
+.I path (L)).
+Normalization is not done for input and tabulation mode because the
+source archive might contain ``.'' or ``..'' entries.
+.mH
+Diagnostics
+.LP
+The program prints an error when a header cannot be parsed or
+an I/O error occurs on the archive file.
+If this happens during tape writes, the user is offered
+a chance to insert a new tape, retry the write or abort.
+If an I/O error on the archive happens during a restore,
+the user is offered
+a chance to insert a new tape, retry the read, abort or
+assume that the end of the archive has been reached.
+In the last case
+.I starch
+will attempt to restore as much as it can.
+The \fB\-k\fP option can be useful under
+such circumstances.
+.mH
+Environment Variables
+.LP
+.cW TAPE
+\- specifies the tape server when the
+.B \-m
+or
+.B \-M
+option is 
+not followed by a
+.B \-f .
+.LP
+.cW FLOPPY
+\- specifies the floppy drive to use when the
+.B \-l
+option is
+not followed by a
+.B \-f .
+.mH
+Warnings
+.LP
+Due to a missing interface in the \*(Ss, it is not possible to
+restore objects' modification times from archives (the time is put on
+the archive however, so if that interface is ever added...).
+.LP
+The \fB\-v\fP has no effect in combination with
+\fB\-g\fP.
+.LP
+Inaccessible directories are ignored. Often no warning is issued.
+.LP
+Inaccessible bullet files are ignored. A warning is issued.
+.SH
+File Format
+.LP
+The archive file format is unique to
+.I starch ;
+standard archive formats
+such as
+.I tar
+(which are also available in \*(Am) cannot adequately handle
+directed graphs and do not provide
+space for the information about files and directories that must be saved
+in order to be able to restore them to their original state (such as
+directory column names and column masks).
+The exact format is quite complex and can be gleaned from the source code;
+it should be sufficient to state that all information is split in blocks
+of 1024 bytes, possibly padded with zero bytes, and headers are byte-order
+independent.
+.SH
+Examples
+.LP
+To list the file names of everything in directory
+.I src
+and below:
+.sC
+starch -g src
+.eC
+This might print:
+.sC
+src
+src/main.c
+src/test
+src/a.out
+src/test/testinput
+.eC
+To archive the contents of directory
+.I src
+to file
+.I src.starch:
+.sC
+starch -o -f src.starch src
+.eC
+To get a verbose listing of the contents of file src.starch:
+.sC
+starch -tv -f src.starch
+.eC
+To restore everything from
+.I src.starch
+except the directory
+.I src/test ,
+and get a listing of the files restored:
+.sC
+starch -i -v -x src/test -f src.starch
+.eC
+This might print:
+.sC
+src
+src/main.c
+src/a.out
+.eC
+To archive to tape everything accessible through
+.I /super
+on a soap and two bullet servers.
+This method of specifying the directory and file servers to be archived makes
+.I starch
+much faster.
+.sC
+starch -mof /super/hosts/machine/tape:00 -u "" -U / \e
+	-U /super/cap/bulletsvr/bullet0 \e
+	-U /super/cap/bulletsvr/bullet1 /super
+.eC
+To make a base archive on tape and a description archive on file:
+.sC
+starch -mof /super/hosts/machine/tape:00 \e
+	-a dd \e
+	-u "" -U / \e
+	-U /super/cap/bulletsvr/bullet0 \e
+	-U /super/cap/bulletsvr/bullet1 /super
+.eC
+The description archive
+.I dd
+will be made in the current directory.
+.LP
+To make an incremental archive:
+.sC
+starch -mof /super/hosts/machine/tape:00 \e
+	-A dd \e
+	-u "" -U / \e
+	-U /super/cap/bulletsvr/bullet0 \e
+	-U /super/cap/bulletsvr/bullet1 /super
+.eC
+To restore from the base and incremental tapes in the two previous examples,
+to a file system with only the directory
+.cW /super
+present:
+.sC
+starch -i -mf /super/hosts/machine/tape:00 \e
+	-mf /super/hosts/machine/tape:00
+.eC
+Note that the first tape that should be inserted in the drive is the
+incremental archive.
+Once
+.I starch
+is finished with the incremental archive it will prompt for the base archive.
+.SH
+See Also
+.LP
+dgwalk(L),
+find(U),
+tape(U),
+tar(U).

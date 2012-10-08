@@ -1,0 +1,15 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)generic	1.2	94/04/05 17:03:05
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+AMAKELIB = $SRC_ROOT/Amakelib + $SRC_ROOT/Amakelib/common;
+%if (%not defined(COMPILER_SET), {
+    COMPILER_SET = gnu-2;
+});
+
+#  for people who need a read only text segment
+CFLAGS_READ_ONLY_TEXT = {};
+LDFLAGS_READ_ONLY_TEXT = {};

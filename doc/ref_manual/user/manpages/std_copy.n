@@ -1,0 +1,96 @@
+.\"	@(#)std_copy.n	1.5	96/02/16 11:08:17
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 16/02/90
+	Modified: Gregory J. Sharp, Nov 1995 - style conformance
+.aE
+.mT "std_copy" U
+replicate an object
+.SH
+Synopsis
+.LP
+.sC L
+std_copy servercap original newcopy
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "replicate object"
+As part of the automatic replication facilities,
+servers implementing abstract objects (such as files) support the
+.cW STD_COPY
+command which requests them to replicate a particular object.
+This allows a higher degree of availability for an object by storing copies of
+it on several different servers.
+The automatic replication facility of the \*(Ss is implemented using the
+.cW STD_COPY
+command and is the preferred method of replication.
+However,
+in some cases it is convenient to be able to execute the command for a
+particular object.
+.I Std_copy
+is a utility which permits the user to directly execute a
+.cW STD_COPY
+command.
+.I Servercap
+is the path name for the capability for the server which is to make the copy,
+.I original
+is the path name for the capability for the object to be copied and
+.I newcopy
+is the path name to store the capability for the new copy of the object.
+.LP
+This differs from the standard copy command in that it works for all abstract
+objects and not just files,
+and more importantly,
+it allows a particular server to be specified on which to make the copy.
+.mH
+Diagnostics
+.LP
+Three types of error are possible:
+.IP 1.
+Errors while looking up the capabilities of the server and the original object
+in the directory server.
+.IP 2.
+Errors during the actual copy operation itself
+(for example, insufficient permission to copy the object).
+.IP 3.
+Errors while attempting to store the capability of the newly copied object
+in the directory server.
+.LP
+The error messages for the three different types are clear and include
+the explanation of the error status.
+.mH
+Warnings
+.LP
+In most cases there is little sense in replicating on the same server as the
+original object.
+To increase the availability of the file it is best to select a different
+server from the one storing the original.
+.SH
+Example
+.LP
+.sC L
+std_copy /profile/cap/bulletsvr/b2 /home/myfile /home/myfile2
+.eC
+makes a copy of
+.I /home/myfile
+on the bullet file server known as
+.I b2
+and stores the capability for the copy under the name
+.I /home/myfile2
+.SH
+See Also
+.LP
+.kW "standard commands"
+cp(U),
+soap(A),
+std_destroy(U),
+std_info(U),
+std_restrict(U),
+std_touch(U).

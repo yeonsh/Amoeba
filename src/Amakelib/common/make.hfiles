@@ -1,0 +1,43 @@
+#!/bin/sh
+#	
+#	@(#)make.hfiles	1.2	94/04/06 10:34:27
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+: Update Files from database
+
+PATH=/bin:/usr/bin
+
+case $# in
+1) ;;
+*)	echo use: $0 file >&2
+	exit 1
+esac
+
+(
+IFCOMMAND="if (<\$FN) 2>/dev/null;\
+	then	if cmp -s \$FN \$TMP;\
+		then	rm \$TMP;\
+		else	mv \$TMP \$FN;\
+			echo update \$FN;\
+		fi;\
+	else	mv \$TMP \$FN;\
+		echo create \$FN;\
+	fi"
+echo 'TMP=.uf$$'
+echo 'FN=$TMP'
+echo 'cat >$TMP <<\!EOF!'
+sed -n '/^!File:/,${
+/^$/d
+/^!File:[	 ]*\(.*\)$/s@@!EOF!\
+'"$IFCOMMAND"'\
+FN=\1\
+cat >$TMP <<\\!EOF!@
+p
+}' $1
+echo '!EOF!'
+echo $IFCOMMAND
+) |
+sh

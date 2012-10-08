@@ -1,0 +1,15 @@
+#!/bin/sh
+#	
+#	@(#)make.next	1.2	94/04/06 10:34:38
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+echo '#include "debug.h"'
+sed -n '
+s:^.*[ 	]ALLOCDEF[ 	].*"\(.*\)".*$:struct \1 *h_\1 = 0;\
+#ifdef DEBUG\
+int cnt_\1 = 0;\
+#endif:p
+' $*

@@ -1,0 +1,51 @@
+.\"	@(#)basename.n	1.6	96/03/19 13:09:15
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995
+			- more clarity
+		  Gregory J. Sharp, Mar 1996
+			- don't use impossible paths in examples.
+.aE
+.mT "basename" U
+strip off file prefixes and suffixes
+.SH
+Synopsis
+.LP
+.sC L
+basename file [suffix]
+.eC
+.SH
+Description
+.LP
+The initial directory names in the name
+.I file
+(if any) are removed yielding the name of the file itself.
+If a second argument is present,
+it is interpreted as a suffix and is also stripped,
+if present.
+This program is primarily used in shell scripts.
+.SH
+Examples
+.LP
+.sC
+basename /bar/ast/foo
+.eC
+strips the path to yield
+.I foo .
+.sC
+basename /xyz/bar.c .c
+.eC
+strips the path and the
+.I .c
+to yield
+.I bar .
+.SH
+See Also
+.LP
+dirname(U).

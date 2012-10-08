@@ -1,0 +1,132 @@
+.\"	@(#)refont.n	1.3	92/05/15 17:09:11
+.aU
+	Software: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Document: Steve Kirkendall, kirkenda@cs.pdx.edu
+.aE
+.mT "refont" U
+changes the notation used for fonts
+.SH
+Synopsis
+.LP
+.sC L
+refont [flags] files ...
+.eC
+.SH
+Description
+.LP
+.kW "editor"
+.I Refont
+reads a text file which contains font selection codes embedded within it,
+and it writes the same text with a different notation for fonts.
+.LP
+For example,
+the original
+.kW "\fIelvis\fP"
+.I elvis
+documentation used Epson-compatible escape sequences
+to select different fonts.
+The command
+.sC
+refont -b intro.doc > intro.b
+.eC
+could be used to make a file that uses overtyping to implement boldface
+or underlined text.
+.mH
+Options
+.IP \fB\-b\fP 6
+Emit text which uses the ``backspace'' notation for fonts.
+Each underlined character will be preceded by an underscore character
+and a backspace character.
+Bold characters are set twice,
+with a backspace in between.
+The
+.I more (U)
+utility understands this notation.
+.IP \fB\-c\fP
+Emit text which uses the ``carriage-return'' notation for fonts.
+An entire line of text is written,
+followed by a carriage return instead of a newline.
+Then a space is sent for each normal character,
+an underscore is sent for each underlined or italic character,
+and each boldface character is sent a second time.
+Many mainframe line printers accept this notation.
+.IP \fB\-d\fP
+Emit text which uses
+.I nroff -style
+``dot'' commands for fonts.
+This does not work very well.
+.IP \fB\-e\fP
+Emit text using Epson-compatible escape sequences for fonts.
+This is useful as a ``least common denominator'' for font notations,
+because this is the only supported notation to use control-character sequences
+and also distinguish between italics and underlining.
+.IP \fB\-f\fP
+Emit text which uses
+.I nroff 's
+.I \efX
+notation for fonts.
+Underlined text is denoted by
+.I \efU ,
+boldface by
+.I \efB ,
+italics by
+.I \efI ,
+and normal text by
+.I \efR .
+This is somewhat useful in conjunction with
+.kW "\fIelvis\fP"
+.I elvis '
+``charattr'' option.
+.IP \fB\-x\fP
+Emit text which has had all font information stripped out.
+.IP \fB\-I\fP
+When reading text,
+.B \-I
+tells
+.I refont
+to accept any of the above notations for fonts.
+Without
+.B \-I
+it will ignore the ``dot''
+command and
+.I \efX
+notations;
+they will be treated as normal text.
+In other words,
+without
+.B \-I
+the only things that could be recognized as
+font changes are control-character sequences.
+.IP \fB\-F\fP
+This causes
+.I refont
+to insert form feed characters between input files.
+.mH
+Warnings
+.LP
+Support for the
+.I nroff -style
+``dot'' commands is not very good.
+.LP
+If the
+.B \-I
+option is mixed with the
+.B \-f
+or
+.B \-d
+options,
+the resulting output may not be translatable back into its original format.
+This is because the original text may have included,
+for example,
+strings that looked like
+.I \efX
+strings which were not meant to cause font changes.
+.LP
+With
+.B \-b
+or
+.B \-c ,
+both underlining and italics are implemented by
+overtyping the underscore character with a text character.
+Since they are represented the same way,
+the distinction between underlining and italics is lost.

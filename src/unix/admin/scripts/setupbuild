@@ -1,0 +1,67 @@
+#! /bin/sh
+#	
+#	@(#)setupbuild	1.2	94/04/07 14:01:10
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	setupbuild
+#	- create a tree that is a clone of the first tree structure
+#	  but with symlinks to the original files.
+#	  This is used for building TeX and MMDF, among other things
+#
+prog=`basename $0`
+
+if [ $# -ne 2 -o ! -d $1 -o ! -d $2 ]
+then
+    echo "Usage: $prog srcdir clonedir"
+    exit 1
+fi
+
+srcdir=$1
+clonedir=$2
+
+# The following is a rather simplistic test - should fiddle about with pwd
+# but the idea is that setupbuild is only used internally and by sane people.
+
+if [ $clonedir = $srcdir ]
+then
+	echo "$prog: src and clone are same directory!"
+	exit 1
+fi
+
+cd $clonedir
+
+# We use ls -f since it should be a tiny bit faster than ls -a.
+
+for file in `ls -f $srcdir`
+do
+    case "$file" in
+    RCS|SCCS|.|..|*.o)
+	# don't copy these - they're boring
+	;;
+    *)
+	if [ ! -d $srcdir/$file ]
+	then
+	    ln -s $srcdir/$file
+	else
+	    # Copy the tree structure
+	    echo $file:
+	    if [ ! -d $file ]
+	    then
+		mkdir $file
+	    fi
+	    (
+		cd $file
+		case "$srcdir" in
+		/*) ;;
+		*)  srcdir=../$srcdir ;;
+		esac
+		# Make a recursive call to ourselves
+		$0 $srcdir/$file .
+	    )
+	fi
+	;;
+    esac
+done

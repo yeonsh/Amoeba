@@ -1,0 +1,173 @@
+#!/bin/sh
+#	
+#	@(#)Install_INPUTS	1.1	91/11/21 14:16:28
+#
+#
+# This script is ./TeX3.0/Install_INPUTS.
+# 
+# Look at the destination directories for 
+# TEXINPUTS, BIBINPUTS, and MFINPUTS below.
+# Make sure that they are defined correctly,
+# matching up with your definitions in site.h.
+#
+# If you are certain that you will not be using BibTeX or LaTeX
+# or whatever else, you may comment out the lines concerned 
+# by preceding them with a hash mark (#); but keep in mind that
+# you will need LaTeX if you wish to print out the manual for 
+# the PostScript printer driver (in ./DVIware/laser-setters/dvi-to-ps/TeXPS).
+#
+#
+TEXINPUTS=/super/module/tex/inputs; export TEXINPUTS
+BIBINPUTS=/super/module/tex/bib; export BIBINPUTS
+MFINPUTS=/super/module/mf/inputs; export MFINPUTS
+
+#Install VUlocal.mf in $(MFINPUTS)
+tob ../../VU/fonts/fonts/VUlocal.mf $MFINPUTS/VUlocal.mf
+
+
+cd TeXmacros
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd ../LaTeX
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd LaTeXmacros
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd ../LaTeXmakeindex/lib
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd ../paper
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.bbl`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd ../../LaTeXslitex
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+
+cd ../../BibTeX.inputs
+for i in `ls *.tex`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.sty`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.bst`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.bbl`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.aux`
+do
+tob $i $TEXINPUTS/$i
+done
+for i in `ls *.bib`
+do
+tob $i $BIBINPUTS/$i
+done
+
+cd ../../cmfonts/mf
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../../LaTeXfonts/mf
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../../utilityfonts/bases
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../black
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../gray
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../half
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../logo
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../manualfonts
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../mfbook
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+
+cd ../slant
+for i in `ls *.mf`
+do
+tob $i $MFINPUTS/$i
+done
+

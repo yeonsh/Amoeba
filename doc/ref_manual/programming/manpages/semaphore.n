@@ -1,0 +1,330 @@
+.\"	@(#)semaphore.n	1.4	96/02/15 16:55:58
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, Jack Jansen, 1988-1989
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "semaphore" L "libamoeba.a, libamunix.a"
+thread synchronization using counting semaphores
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "semaphore.h"
+
+typedef ... semaphore;
+
+void sema_init(psem, level)
+int sema_level(psem)
+
+void sema_up(psem)
+void sema_down(psem)
+int sema_trydown(psem, maxdelay)
+
+void sema_mup(psem, count)
+int sema_mdown(psem, count)
+int sema_trymdown(psem, count, maxdelay)
+.eC
+.SH
+Description
+.LP
+.kW "concurrent threads"
+.kW "synchronization"
+.kW "semaphore"
+.kW "counting semaphore"
+.kW "semaphore.h"
+.kW "\fIsema_init\fP"
+.kW "\fIsema_level\fP"
+.kW "\fIsema_up\fP"
+.kW "\fIsema_down\fP"
+.kW "\fIsema_trydown\fP"
+.kW "\fIsema_mup\fP"
+.kW "\fIsema_mdown\fP"
+.kW "\fIsema_trymdown\fP"
+These operations implement counting semaphores.
+What follows is an intuitive explanation of semaphores, not a formal
+definition:
+.LP
+A semaphore contains a non-negative integer variable, usually called its
+level.
+The two important operations on semaphores are
+.I up
+and
+.I down,
+which increment and decrement the level, respectively.
+However,
+when a call to
+.I down
+would decrement the level below zero, it blocks until a call to
+.I up
+is made (by another thread) that increments the level above zero.
+This is done in such a way that the level will never actually go
+negative.
+You could also say that the total number of completed
+.I down
+calls for a particular semaphore will never exceed the total number of
+.I up
+calls (not necessarily completed), plus its initial level.
+.mH
+Types
+.LP
+The
+.I semaphore
+data type declared in
+.I semaphore.h
+is an opaque data type; its only use should be to declare semaphores.
+All operations on semaphores must be done through the functions below.
+.mH
+Errors
+.LP
+The semaphore package makes no consistency checks; illegal calls cause
+undefined behavior.
+The source may be compiled with a debugging flag which adds some
+consistency checks; if an illegal situation is detected a message is
+printed and the program is aborted.
+.KS
+.mH
+Functions
+.sH
+sema_init
+.LP
+.sC
+void
+sema_init(psem, level)
+semaphore *psem;
+int level;
+.eC
+.kW "\fIsema_init\fP"
+A semaphore must be initialized to a certain
+.I level
+by calling this function.
+This call is compulsory; semaphores initialized to all zeros have an
+illegal state.
+The initial level must not be negative.
+.KE
+.sH
+sema_level
+.LP
+.sC
+int
+sema_level(psem)
+semaphore *psem;
+.eC
+.kW "\fIsema_level\fP"
+This function returns the semaphore's current level.
+Since this value may be invalid the next microsecond (if another
+thread changes the level), it is not useful for synchronization.
+It is provided in the interface to allow printing the value of a
+semaphore for debugging purposes.
+.sH
+sema_up
+.LP
+.sC
+void
+sema_up(psem)
+semaphore *psem;
+.eC
+.kW "\fIsema_up\fP"
+This function implements the
+.I up
+operation described above.
+.sH
+sema_down
+.LP
+.sC
+void
+sema_down(psem)
+semaphore *psem;
+.eC
+.kW "\fIsema_down\fP"
+This function implements the
+.I down
+operation described above.
+.sH
+sema_trydown
+.LP
+.sC
+int
+sema_trydown(psem, maxdelay)
+semaphore *psem;
+interval maxdelay;
+.eC
+.kW "\fIsema_trydown\fP"
+This is a variant of the
+.I down
+operation that gives up when it has been blocked unsuccessfully for
+.I maxdelay
+milliseconds, or when the call is interrupted by a signal
+catcher (see
+.I signals (L)),
+or when the process is continued after a stun (see
+.I process (L)).
+If
+.I maxdelay
+is zero, it succeeds only if the
+.I down
+operation can proceed without blocking.
+If
+.I maxdelay
+is negative, an infinite delay is set, but the call may still be interrupted
+(unlike
+.kW "\fIsema_down\fP"
+.I sema_down ).
+.I Maxdelay
+may be rounded up to a multiple of the kernel's internal clock.
+The return value is zero for success, negative for failure.
+.sH
+sema_mup
+.LP
+.sC
+void
+sema_mup(psem, count)
+semaphore *psem;
+int count;
+.eC
+.kW "\fIsema_mup\fP"
+This function is equivalent to
+.I count
+calls to
+.kW "\fIsema_up\fP"
+.I sema_up ,
+but more efficient.
+.sH
+sema_mdown
+.LP
+.sC
+int
+sema_mdown(psem, count)
+semaphore *psem;
+int count;
+.eC
+.kW "\fIsema_mdown\fP"
+This function is not quite equivalent to
+.I count
+calls to
+.kW "\fIsema_down\fP"
+.I sema_down !
+When
+.I count
+\&<= 0, it is a no-op; otherwise, it is equivalent to between 1
+and
+.I count
+calls to
+.kW "\fIsema_down\fP"
+.I sema_down .
+It returns the actual number subtracted from the semaphore's level.
+This number is determined as follows.
+If, on entry into
+.kW "\fIsema_mdown\fP"
+.I sema_mdown ,
+the semaphore's level is > 0, the call
+proceeds immediately, otherwise it blocks until the level is raised above zero.
+In all cases, the return value is MIN(count, level).
+(Informally, you can think of all this as:
+.kW "\fIsema_mdown\fP"
+.I sema_mdown
+tries to do as many calls as possible to
+.kW "\fIsema_down\fP"
+.I sema_down
+with as little effort as possible.)
+.sH
+sema_trymdown
+.LP
+.sC
+int
+sema_trymdown(psem, count, maxdelay)
+semaphore *psem;
+int count;
+interval maxdelay;
+.eC
+.kW "\fIsema_trymdown\fP"
+This call is a combination of the functionality of
+.kW "\fIsema_trydown\fP"
+.I sema_trydown
+and
+.kW "\fIsema_mdown\fP"
+.I sema_mdown .
+If it decides to block, it will block at most
+.I maxdelay
+milliseconds, or indefinitely but interruptible if
+.I maxdelay
+is < 0.
+If the level is still zero at the end of the delay period, the semaphore
+is not updated and the return value is negative; otherwise the effect and
+return value are the same as for
+.kW "\fIsema_mdown\fP"
+.I sema_mdown .
+.mH
+Warning
+.LP
+Overflow of the
+.I level
+field is not detected.
+.SH
+Example
+.LP
+The code below sketches the solution to the standard problem of a
+producer and consumer with a limited buffer, using counting semaphores.
+It lacks a main program that executes the producer and consumer
+threads in parallel.
+Extension to multiple producers and/or consumers are left as exercises
+for the reader (hint: the
+.I next_slot
+variables must be shared per group and protected with mutexes).
+.kW "\fIsema_init\fP"
+.kW "\fIsema_down\fP"
+.sC
+#define N_SLOTS 10
+typedef ... item;
+item buffer[N_SLOTS];
+semaphore slots_filled, slots_empty;
+
+init()
+{
+    /* Buffer starts empty */
+    sema_init(&slots_filled, 0);
+    sema_init(&slots_empty, N_SLOTS);
+}
+
+producer()
+{
+    int next_slot = 0;
+
+    for (;;) {
+        sema_down(&slots_empty);
+        "produce an item into buffer[next_slot]"
+        next_slot = (next_slot + 1) % N_SLOTS;
+        sema_up(&slots_filled);
+    }
+}
+
+consumer()
+{
+    int next_slot = 0;
+
+    for (;;) {
+        sema_down(&slots_filled);
+        "consume an item from buffer[next_slot]"
+        next_slot = (next_slot + 1) % N_SLOTS;
+        sema_up(&slots_empty);
+    }
+}
+.eC
+.SH
+See Also
+.LP
+Edsger W. Dijkstra,
+.I "Cooperating Sequential Processes" .
+.LP
+A. Van Wijngaarden et.al.,
+.I "Revised Report on the Algorithmic Language Algol-68" .
+.LP
+mutex(L),
+signals(L).

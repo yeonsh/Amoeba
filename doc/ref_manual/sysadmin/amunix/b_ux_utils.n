@@ -1,0 +1,137 @@
+.\"	@(#)b_ux_utils.n	1.6	96/02/15 17:01:19
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.nH 1 "Building the UNIX Utilities"
+.LP
+This section describes the configuring and installation of the
+.UX
+utilities.
+.kW UNIX
+.kW "\fIamoebatree\fP"
+.kW "\fIunixtree\fP"
+The configuration tree is built using the command
+.I unixtree
+(which is a link to the command
+.I amoebatree (A)).
+For example,
+suppose you have installed the distribution tree under the directory
+.I /amoeba
+and you wanted to build the
+.cW mc68000
+version of the
+.UX
+.kW SunOS
+utilities using the SunOS C compiler and related tools.
+Further suppose that you wanted to build all your configurations under the
+directory
+.cW conf
+then the following command will generate the entire configuration tree for the
+.UX
+software that relates to \*(Am.
+.sC
+\fBunixtree /amoeba/conf/unix /amoeba/src /amoeba/templates mc68000 sun\fP
+.eC
+.LP
+Note that this does not compile the software but merely constructs the tree
+with
+.I Amakefiles
+parameterized to build the mc68000 version using the Sun compiler.
+This tree will appear under the directory
+.I /amoeba/conf/unix/mc68000.sun .
+.LP
+.kW Ultrix
+On
+.I Ultrix
+systems you should use the compiler set
+.I ultrix .
+It is also a good idea to keep the paths as short as possible on
+.I Ultrix .
+Certain libraries are too large for the shell to cope with the commands used
+to build them and so it is necessary to do the following to the configuration
+before running the build commands.
+In the directories
+.I lib/amoeba
+and
+.I lib/kernel
+in the \*(Am configuration and the directory
+.I lib/amunix
+in the
+.UX
+configuration you should make a symbolic link called
+.cW S
+to the source tree and edit the
+.I Amakefile
+so that the definition of the
+.kW SRC_ROOT
+.cW SRC_ROOT
+becomes
+.cW S .
+This is necessary to keep the path names short since they are used in
+commands to generate the lint libraries and the library itself.
+A better alternative is to get a serious shell that can handle long commands.
+.LP
+The next step is to actually compile the programs in the configuration tree.
+The program
+.I amake (U)
+will be needed for this.
+The binaries for SunOS are distributed with \*(Am.
+For other versions of
+.UX
+it will be necessary to first compile
+.I amake .
+This is done in the configuration tree.
+Go to the directory
+.I util/amake
+in the new configuration tree and follow the instructions in the
+.cW README
+file.
+.LP
+Once a copy of
+.I amake
+has been installed the rest of the build process s largely automated.
+Change directory to the configuration (in the above example,
+.I /amoeba/conf/unix/mc68000.sun )
+and type the command
+.kW "\fIbuild\fP"
+.sC
+\fBbuild > build.out 2>&1\fP
+.eC
+It is strongly recommended that you redirect the output since there is rather
+a lot of it.
+The command
+.I build (A)
+will traverse the configuration tree and execute any
+.I Amakefile
+that it finds,
+beginning first with any libraries.
+.LP
+The compilation time depends on the type of machine.
+On a SPARCstation it will take about 30 minutes, depending on the model
+and possibly much more on a slow machine.
+The
+.I build
+command lets
+.I amake
+.kW amake
+run with the default amount of parallelism.
+This is currently set at four parallel jobs but if your machine does not have
+much memory (less than 8 megabytes) it may be advisable to edit the script
+.cW build.domake
+and add the flag
+.B \-p2
+to the line
+.cW $MAKE.
+.LP
+To install the utilities in a
+.I bin
+directory use the command
+.kW "\fIamuinstall\fP"
+.I amuinstall (A).
+For details of this see the manual page.

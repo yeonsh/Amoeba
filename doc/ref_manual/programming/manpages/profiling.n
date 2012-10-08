@@ -1,0 +1,193 @@
+.\"	@(#)profiling.n	1.4	96/02/15 16:54:24
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, 1992
+	Document: Gregory J. Sharp, Jan 1993
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "profiling" L "libamoeba.a"
+find performance bottlenecks in \*(Am C programs
+.SH
+Synopsis
+.LP
+.sC L
+void	procentry(func)
+void	procexit(func)
+void	prof_dump(fp)
+.eC
+.kW "profiling"
+.kW "\fIprocentry\fP"
+.kW "\fIprocexit\fP"
+.kW "\fIprof_dump\fP"
+.SH
+Description
+.LP
+The
+.I profiling
+module provides a method of finding performance bottlenecks in a C program
+that runs under \*(Am.
+It currently only works in conjunction with the ACK compiler (see
+.I ack (U)).
+The program to be profiled should be compiled using the
+.B \-p
+option of
+.I ack (U)
+(which is linked to
+.I cc
+under \*(Am).
+The functions are not normally explicitly called by the programmer.
+They are compiled in at the appropriate places by the
+.B \-p
+option of the compiler.
+The one exception is
+.I prof_dump
+which may be called by the programmer as described below.
+.LP
+There are two ways to obtain profiling information:
+.LP
+The first is to simply link the program with the standard version of
+.I libamoeba.a .
+To obtain statistics from such a program it is necessary to add a call
+to the function
+.I prof_dump
+just before the program exits, or where the summary of
+statistics is desired.
+Note that no statistics about calls to library routines will be reported
+in this case.
+.LP
+The second is to link the program with a specially compiled version of
+.I libamoeba.a ,
+which has been compiled with profiling on.
+When the program runs it collects information about almost all the function
+calls made and when the program exits it prints a summary of all the statistics.
+Calls to assembly code routines and a very small number of special C routines
+(namely those used by
+.I procentry
+and
+.I procexit)
+are not reported in the statistics.
+.LP
+The profiling version of
+.I libamoeba.a
+can be made by adding the
+.cW -DPROFILING
+flag to the
+.cW DEFINES
+in the
+.I Amakefile
+for
+.I libamoeba.a
+and then remaking the library.
+This causes the entire library to be compiled with the
+.B \-p
+option.
+System administrators may prefer to make a separate directory next to
+.I lib/amoeba
+in the configuration tree, copy the
+.I Amakefile
+from
+.I lib/amoeba
+to it and build the profiling version there.
+.LP
+If it is desired to profile libraries other than
+.I libamoeba.a
+then they should be compiled with the
+.B \-p
+flag.
+.br
+.ne 10
+.mH
+Functions
+.LP
+.sH
+procentry, procexit
+.LP
+.sC
+void
+procentry(func)
+char * func;
+.eC
+.kW "\fIprocentry\fP"
+.sC
+void
+procexit(func)
+char * func;
+.eC
+.kW "\fIprocexit\fP"
+A call to these function is added by the compiler at the start and end
+respectively, of each C function call.
+They are given as argument the name of the function from which they are called.
+The programmer can, of course, redefine these routines for other debugging
+purposes.
+The version of these routines in
+.I libamoeba.a
+maintains, in core,
+statistics about the number of times the function is called in each thread
+of the process and the time taken for each call.
+A summary of this information can be printed using
+.I prof_dump .
+.sH
+prof_dump
+.LP
+.sC
+void
+prof_dump(fp)
+FILE * fp;
+.eC
+.kW "\fIprof_dump\fP"
+.LP
+This function prints the statistics gathered by the
+.I procentry
+and
+.I procexit
+routines in
+.I libamoeba.a .
+It prints them on the file referred to by
+.I fp .
+If
+.I fp
+is the NULL-pointer then it prints on
+.I stderr .
+.LP
+If the profiling version of the library is used then this routine is called
+when the program exits.
+If the standard version of
+.I libamoeba.a
+is used it is necessary to make explicit calls to
+.I prof_dump
+from within the program to obtain the statistics.
+.LP
+Profiling information is recorded and printed per thread.
+When printed it appears as follows:
+.sC
+------ thread 0 -------
+clean_up            :   1 {   0,   0,   0 } [ list(1) ]
+print_result        :  18 {   0,   8,  50 } [ list(18) ]
+compare             :  54 {   0,   0,   0 } [ list(54) ]
+list                :   1 { 650, 650, 650 } [ main(1) ]
+main                :   0 {   0,   0,   0 } [ ]
+.eC
+.LP
+To provide a short example, the above information was taken from a program with
+a single thread that was not linked with the profiling library.
+A fully profiled program would produce much more information.
+The first column is the name of the function that was called.
+The second column is the number of times that function was called.
+The next three numbers between the braces are the minimum, mean and
+maximum execution times in milliseconds taken by the function.
+The list between the brackets shows the names of the functions which called the
+function in question and the number of times each of them called it.
+.mH
+Warnings
+.LP
+The timings provided are not very accurate and the performance of the
+program will degrade when using the profiling tools.
+(They are themselves a bottleneck at present.)
+.SH
+See Also
+.LP
+ack(U).

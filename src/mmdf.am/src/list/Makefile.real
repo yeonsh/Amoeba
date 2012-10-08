@@ -1,0 +1,75 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:40:22
+#
+#
+#  List Channel
+#
+
+MODULES =	ch_list qu2ls_send
+
+OBJECTS =	ch_list.o qu2ls_send.o
+
+SOURCES =	ch_list.c qu2ls_send.c
+
+real-default:	list
+
+install:	$(CHANDIR)/list
+
+aminstall:	
+	$(AINSTALL) $(AINSTALLFLAGS) xlist $(CHANDIR)/list
+
+$(CHANDIR)/list  :   xlist
+	$(INSTALL) -c -m 0$(PGMPROT)  -o $(MMDFLOGIN) xlist $(CHANDIR)/list
+#	     cp xlist $(CHANDIR)/list
+#	    -$(CHOWN) $(MMDFLOGIN) $(CHANDIR)/list
+#	    -chmod 0$(PGMPROT) $(CHANDIR)/list
+	    -@ls -ls $(CHANDIR)/list
+	    -@echo "list channel installed normally"; echo ""
+
+list:	xlist
+xlist:	$(HEAD) $(OBJECTS) $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) $(OBJECTS) $(MMDFLIBS) $(SYSLIBS)
+
+lint:   ;  $(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f xlist *.o x.c makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+ch_list.o: ch_list.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_list.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_list.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_list.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_list.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_list.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_list.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_list.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+ch_list.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+ch_list.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_list.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_list.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_list.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_list.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ch.h
+ch_list.o: /usr/proj/amwork/src/h/posix/stdio.h
+qu2ls_send.o: qu2ls_send.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/ctype.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/setjmp.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/sys/types.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+qu2ls_send.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/time.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/dirent.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ch.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/ap.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/pwd.h
+qu2ls_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

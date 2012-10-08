@@ -1,0 +1,622 @@
+.\"	@(#)disklabel.n	1.14	96/02/15 17:11:03
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp, 1990
+	Modified: Hans van Staveren, April 1991
+		  Gregory Sharp, June 1992 - made it machine independent and
+					     added multiple disk support	
+	Document: Gregory Sharp, May 1991
+	Modified: Hans van Staveren, May 1991
+		  Gregory Sharp, June 1992
+		  Gregory Sharp, Jan 1996
+.aE
+.mT "disklabel" A
+partition and label disks
+.SH
+Synopsis
+.LP
+.sC L
+disklabel host-capability
+.eC
+.SH
+Description
+.LP
+.kW "virtual disk"
+.kW "disk label"
+.kW "disk partition"
+.kW "system coldstart"
+.kW "partition"
+The
+.I disklabel
+utility is used to put information on a host's disk(s) which tell
+the virtual disk server (see
+.I vdisk (A))
+how to use the disk.
+The label on a disk is used by the virtual disk server to obtain information
+about the characteristics of the disk and the way it has been partitioned.
+Partitioning is used to divide the disk into sub-disks, each with their own
+special use.
+This is necessary since some programs need an ``entire disk'' but in fact
+only a small one.
+Therefore the disk is divided into what look like several small disks.
+These are known as partitions.
+The virtual disk server will then take each partition (or perhaps a set of
+partitions) and present it to clients as a virtual disk.
+For example,
+the \*(Bs (see
+.I bullet (A))
+requires a complete virtual disk.
+Soap (see
+.I soap (A))
+also requires a complete virtual disk,
+but one of only 1 or 2 Mbytes.
+Since most systems have only one physical disk it is necessary to partition
+it into several sub-disks, each of which will be represented as a virtual
+disk by the virtual disk server.
+.LP
+When a kernel with a virtual disk server is booted,
+it will create in the kernel's directory, a
+.I bootp
+entry for each physical disk,
+even if the disk is not labeled.
+The
+.I disklabel
+program will search the kernel directory of the host specified on the command
+line and present all the accessible disks for labeling.
+It is not necessary to label all of them.
+Part or all of a disk can be set aside for other purposes.
+.LP
+It is possible to run the
+.I disklabel
+utility when the system is in normal operation.
+It is not necessary to shut the system down or to run the program on any
+particular processor.
+However, once
+.I disklabel
+has been run,
+before the virtual disk server can become aware of the new label(s)
+the machine with the disk(s) must be rebooted.
+.LP
+Note,
+it is not necessary to run this program on the same machine as the disks
+or even on a machine of the same architecture.
+It can be run on any \*(Am host which can access the specified host.
+.mH
+Warning
+.LP
+Labeling a disk is a dangerous operation.
+If the disk to be labeled already has a label then altering the label in some
+way will almost certainly mean that the data on the disk can no longer be
+retrieved.
+Therefore experimenting with disks containing
+valuable information is not recommended.
+Also, as a consequence, confirmation is usually required before proceeding
+with a destructive operation.
+It is worth thinking before answering.
+.mH
+Preliminaries
+.LP
+Before labeling a disk it is necessary to know several pieces of information.
+The first is the type of disk it is.
+If it is not on the list of disks known to the
+.I disklabel
+utility then the disk geometry must be provided.
+The following information is required:
+the number of cylinders on the disk,
+the number of read/write heads
+and the number of sectors per track.
+Other questions will be asked about the geometry but the above three pieces of
+information are sufficient to answer all the questions.
+Note that sectors are assumed to be 512 bytes.
+.LP
+The other thing that needs to be done in advance is to determine how many
+partitions are required and how big they should be.
+Note that some systems (such as SunOS\(tm) require that partitions begin on
+cylinder boundaries and this should be taken into consideration when
+determining partition sizes.
+.LP
+It is important to understand the nature of virtual disks for a good
+understanding of the disk labeling process and so it is recommended that
+the
+.I vdisk (A)
+manual page be studied.
+The structure of the disk is as follows.
+Somewhere near the beginning of the disk is the disk label.
+The contents of it is usually defined by the operating system for the machine.
+In the case of \*(Am,
+it can either be the label of the operating system delivered with the machine
+(for example,
+a SunOS disk label on a SPARCstation)
+or an \*(Am disk label.
+Typically it contains the disk geometry information and a partition table.
+The reason for recognizing the label of the original operating system is that
+it may be possible to share a disk with another operating system.
+It also simplifies bootstrapping.
+\*(Am will look at the first block of each disk partition.
+If the partition has an \*(Am disk label on block 0 then \*(Am will use that
+disk partition.
+Otherwise it will not touch it and assume it is for another operating system.
+\*(Am may use more than one partition from such a disk.
+.\" We cannot print the diagrams in nroff - so only with troff ...
+.if t \{ .LP
+The structure of the data on disks varies according to the possibilities
+provided by the host operating system.
+.kW DOS
+.kW MS-DOS
+In the case of a 386/DOS system the structure of the disk is (approximately)
+as in
+.fX .
+.f1
+.PS
+.ps 11
+boxht = 0.4
+box with .nw at 0.0,4.0     wid 0.5 "DOS" "Label"
+box with .nw at last box.ne wid 1.1 "DOS Bootstrap"
+box with .nw at last box.ne wid 1.7 "DOS Partition"
+box with .nw at last box.ne wid 1.7 "Amoeba Partition"
+line right from last box.ne 0.3
+line right from last box.se 0.3
+move to last box.e + (0.2,0.0)
+"\fR...\fP" ljust
+move to last box.sw + (0.3,-0.1)
+line to 1.0,3.0
+move to last box.sw + (1.2,-0.1)
+line to 5.0,3.0
+box with .nw at 0.2,2.9	    wid 1.00 "Amoeba" "Bootstrap"
+box with .nw at last box.ne wid 0.55 "Amoeba" "Label"
+box with .nw at last box.ne wid 0.55 "Vdisk" "Label"
+box with .nw at last box.ne wid 1.20 "Vdisk 1"
+box with .nw at last box.ne wid 0.55 "Vdisk" "Label"
+box with .nw at last box.ne wid 1.20 "Vdisk 2"
+line right from last box.ne to last box.ne + (0.3,0.0)
+line right from last box.se to last box.se + (0.3,0.0)
+move to last box.e + (0.2,0.0)
+"\fR...\fP" ljust
+.PE
+.f2
+DOS Disk structure
+.f3
+.LP
+It is not necessary have a partition for DOS.
+The whole disk can be assigned to \*(Am.
+Some \*(Am systems may also use an extra partition for bad block mapping.
+NB. The physical disk must be labeled before \*(Am can use it.
+For DOS disks this is done with the
+.I fdisk (A)
+utility which should be run
+.B before
+.I disklabel .
+.LP
+When using Sun hardware, the following disk layout is used.
+This allows \*(Am to boot from disk using the standard PROMs in the Suns.
+Note that it is possible to use one Sun partition for \*(Am and the rest for
+SunOS but the following shows the entire disk given over to \*(Am.
+.f1
+.PS
+.ps 11
+boxht = 0.4
+box with .nw at (0.0,2.0)   wid 0.55 "SunOS" "Label"
+box with .nw at last box.ne wid 1.00 "Sun secondary" "Bootstrap"
+box with .nw at last box.ne wid 0.55 "Amoeba" "Label"
+box with .nw at last box.ne wid 0.55 "Vdisk" "Label"
+box with .nw at last box.ne wid 1.20 "Vdisk 1"
+box with .nw at last box.ne wid 0.55 "Vdisk" "Label"
+box with .nw at last box.ne wid 1.20 "Vdisk 2"
+line right from last box.ne to last box.ne+(0.3,0.0)
+line right from last box.se to last box.se+(0.3,0.0)
+move to last box.e + (0.2,0.0)
+"\fR...\fP" ljust
+.PE
+.f2
+SunOS Disk Structure
+.f3
+.LP
+Bad block mapping does not require a separate partition in this case,
+however a few spare cylinders should be assigned when specifying the
+disk geometry.\}
+.LP
+At whatever level an \*(Am disk label is found (either in place of the host
+label or on one or more partitions) it expects partitioning to take place.
+This means that if there is only one free disk partition on a system,
+\*(Am can have more than one partition of its own by sub-partitioning that
+partition.
+Users do not see partitions but virtual disks.
+Normally there is a one to one correspondence between partitions and
+virtual disks but a virtual disk may comprise more than one partition.
+If so, not all partitions need necessarily be on the same physical disk.
+It is possible to treat partitions from two or more separate physical devices
+as a single virtual disk and thus make quite a large disk for a particular
+server (such as a \*(Bs).
+This is done using the
+.I concatenation
+option (see below).
+.LP
+The
+.I disklabel
+utility asks lots of questions and the simplest way to explain its use is
+by means of an example.
+.SH
+Example
+.LP
+The following is an example of the dialogue that is produced when using
+the
+.I disklabel
+utility.
+The text printed by the computer is in constant width text and the responses
+typed at the keyboard are in bold.
+Comments on what is happening appear in normal (Roman) text.
+In this case it is labeling the disk on a Sun.
+The command to do this is:
+.sC
+\fBdisklabel /super/hosts/\fP\fIxxxx\fP
+.eC
+where
+.I xxxx
+is the name of the host with the disk to be labeled.
+.LP
+For a typical \*(Am system four disk partitions are required.
+One for the \*(Ss (about 1 \- 2 Mbyte),
+one for the Boot server (about 1 Mbyte),
+one for \*(Am kernels to be booted from the disk (about 1 Mbyte)
+and
+one for the \*(Bs (as large as possible).
+Four partitions will be made,
+namely those needed for a standard system as mentioned above.
+The first thing that must be established is which host operating system
+is to be used.
+.LP
+.\" Some convenience macros for the computer dialogue
+.de zA
+.nf
+.br
+.cW
+.ps-2
+.sp 0.5v
+..
+.de zZ
+.ps
+.R
+.fi
+.LP
+..
+.zA
+Which operating system disk label should be used?
+  0. Dos
+  1. SunOS
+
+Your selection: \fB1\fP
+
+.zZ
+SunOS is the required host OS in this case.
+After this the main menu will be displayed.
+It offers the various possibilities.
+.zA
+.ne 10
+ 0. Exit disklabel program
+ 1. Display Physical Disks
+ 2. Display Physical Partitions
+ 3. Display Virtual Disks
+ 4. Label Physical Disks
+ 5. Label Virtual Disks
+ 6. Merge Virtual Disks
+ 7. Unmerge Virtual Disks
+
+Your selection:
+.zZ
+Firstly it is good to know how to stop the program.
+To quit the program at this menu enter a zero followed by a return.
+At any time it is also possible to interrupt the program but care should
+be taken to do it at a point were a consistent state will be left on the disk.
+.LP
+The first step in labeling is to display the information about the disks
+.I disklabel
+found attached to the host
+.I xxxx .
+To do this select menu item 1.
+.zA
+Your selection: \fB1\fP
+
+  Physical disks available on host ``xxxx''
+  No. Name      Size (in sectors) Label type
+   0: bootp:00       640583       SunOS
+
+continue ?
+.zZ
+What we see is that this host has one disk of 320 MB.
+It has a SunOS label on it.
+.LP
+If these disks have previously been used for \*(Am then menu items 2 and 3
+can also be used to display the current partitioning of the disks and the
+structure of any previously defined virtual disks.
+.LP
+In response to the ``continue ?'' pressing any key that transmits a
+character will cause the message to disappear and the main menu to
+reappear.
+The main menu will not be reproduced again in this example.
+Refer to it above if necessary.
+Note that in response to yes/no questions you should not press return but
+only `y' or `n'.
+.mH
+Labeling Physical Disks
+.LP
+Now we proceed with labeling the physical disks, namely menu item 4.
+It should also be pointed out at this point that to label a DOS
+disk it is necessary to use the program
+.I fdisk (A) .
+It cannot be done with
+.I disklabel .
+.zA
+Your selection: \fB4\fP
+
+  Physical disks available on host ``xxxx''
+  No. Name      Size (in sectors) Label type
+   0: bootp:00       640583       SunOS
+Do you wish to (re)label one of these disks? [y or n]: \fBy\fP
+Please enter the number of the disk to be labeled : \fB0\fP
+
+You selected 0
+.zZ
+At this point the contents of the disk label will be displayed.
+In the case of Sun this consists of the disk geometry and the partition table.
+This information is present on this particular disk since it was previously
+used for SunOS.
+.zA
+This disk already has a label.
+The current label is as follows:
+
+      SUNOS Disk Label
+Alternates per cyl  : 0
+Bytes in Gap1       : 0
+Bytes in Gap2       : 0
+Interleave Factor   : 0
+Number of Cylinders : 1545
+Alternate Cylinders : 4
+Number of Heads     : 9
+Sectors per track   : 46
+Label head          : 0
+Physical Partition  : 0
+Partition Table
+Partition  First Cylinder  Number of Sectors
+     a             0          55890
+     b           135         414000
+     c             0         639630
+     d             0              0
+     e             0              0
+     f             0              0
+     g          1135         169740
+     h             0              0
+
+Changing the label will almost certainly destroy any data on the disk.
+Are you sure that you want to change it? [y or n]: \fBy\fP
+
+You can modify this label or make one from scratch.
+Do you want to modify this label? [y or n]: \fBy\fP
+.zZ
+Note that in this case a cylinder contains 9x46=414 sectors.
+Also note that in the following the current value for a field is displayed
+between square brackets.
+If this value is the required one then pressing return will leave it
+unchanged.
+Entering a new value next to it will replace the old value.
+In the case of the geometry it need not change since it is already correct.
+.LP
+In the following the first four and the last two fields can be set to zero
+since they are not currently used.
+The total number of cylinders should equal the sum of the
+.I "# Cylinders (Used)"
+and
+.I "# Alternate Cylinders" .
+The alternate cylinders are for bad block mapping and for a disk of this
+size two alternate cylinders are usually sufficient.
+.zA
+.ne 12
+Please enter the disk geometry information
+Alternates per cyl.   : [0] 
+Bytes in gap1         : [0] 
+Bytes in gap2         : [0] 
+Interleave factor     : [0] 
+# Cylinders (Used)    : [1545] 
+# Alternate Cylinders : [4] 
+# Read/Write Heads    : [9] 
+# Sectors per Track   : [46] 
+Label location - head : [0] 
+Label location - part : [0] 
+Is all the above information correct? [y or n]: \fBy\fP
+.zZ
+If you make a label from scratch or if there was no label found on the disk
+it will give you the following menu:
+.zA
+.ne 11
+Disk Types:
+ 1.  CDC Wren IV 94171-307
+ 2.  CDC Wren IV 94171-344
+ 3.  CDC Wren V 94181-385
+ 4.  CDC Wren V 94181-702
+ 5.  CDC Wren VII 94601-12G
+ 6.  Fujitsu M2243AS
+ 7.  Fujitsu M2266SA
+ 8.  Micropolis 1325
+ 9.  Other
+Enter the type of the disk to be labeled: 
+.zZ
+Additions to this menu should be put in the file
+.I config.c
+in the sources.
+.LP
+If the disk present is not one of those mentioned then select ``Other''.
+The disk geometry must be provided below.
+If the disk type is known then it will fill in the geometry automatically.
+In this example the type is known and so when enquiring about the geometry
+information the ``known'' value is printed in brackets.
+If
+.I return
+is typed it will use the known value for each field.
+Otherwise it can be overridden by typing in the new value and pressing
+.I return .
+.LP
+Once the geometry is filled in, the disk partition table must be filled in.
+In this case it is the partition table that SunOS normally uses.
+It requires that partitions be aligned on cylinder boundaries,
+as can be seen by the information requested.
+Note that SunOS also permits partitions to overlap.
+The \*(Am virtual disk server will reject overlapping partitions, so be careful
+when specifying this partition table.
+Once again,
+if there was already a partition table on the disk, the current values would
+be printed in brackets after the colon.
+If cylinder numbers or block counts which do not fit on the disk are given
+an error message is printed and the information will be requested again.
+If you realize that you have made a mistake do not worry.
+At the end it will print a summary and ask if everything is ok.
+Respond with
+.B n
+to be able to re-enter the information.
+.LP
+\fBNB\fP.
+It is best to make a single partition of the entire disk (or that part which
+is to be used for \*(Am).
+The results will then conform to the description in the installation guide.
+A separate SunOS partition for each \*(Am partition will only lead to
+confusion.
+.zA
+There are 640169 sectors of 512 bytes available (1544 cylinders).
+Please enter the partition table information
+
+Partition  a: First Cylinder    : [0]
+              Number of Sectors : [55890] \fB640169\fP
+
+Partition  b: First Cylinder    : [135] \fB0\fP
+              Number of Sectors : [414000] \fB0\fP
+
+Partition  c: First Cylinder    : [0] \fB0\fP
+              Number of Sectors : [639630] \fB0\fP
+
+Partition  d: First Cylinder    : [0]
+              Number of Sectors : [0]
+
+Partition  e: First Cylinder    : [0] 
+              Number of Sectors : [0] 
+
+Partition  f: First Cylinder    : [0] 
+              Number of Sectors : [0] 
+
+Partition  g: First Cylinder    : [1135] \fB0\fP
+              Number of Sectors : [169740] \fB0\fP
+
+Partition  h: First Cylinder    : [0] 
+              Number of Sectors : [0] 
+Partition Table Summary
+Number of Sectors on Disk = 640169
+Partition  First Cylinder  Number of Sectors
+     a             0        640169
+     b             0             0
+     c             0             0
+     d             0             0
+     e             0             0
+     f             0             0
+     g             0             0
+     h             0             0
+Is the partition table ok? [y or n]: \fBy\fP
+.zZ
+At this point it has a complete host operating system disklabel
+and will (over)write the disk label on the disk if
+.B y
+is given in answer to the next question.
+.zA
+Last chance.  Do you really want to label this disk? [y or n]: \fBy\fP
+Disk label has been written.
+
+Do you wish to label another disk? [y or n]: \fBn\fP
+.zZ
+.mH
+Making Virtual Disks
+.LP
+The program will now return to the main menu.
+The next step is to go through all the physical partitions present and
+determine which can be used for \*(Am.
+Those that can be used for \*(Am are then labeled with an \*(Am partition
+label.
+This label describes the sub-partitioning required.
+To do this select main menu item 5.
+.zA
+Your selection: \fB5\fP
+
+You must now decide which partitions to allocate to Amoeba.
+
+Disk `bootp:00' Partition a (640169 blocks):
+Can I use this partition for Amoeba? [y or n]: \fBy\fP
+You need to give the sub-partitioning of this partition.
+Please enter the partition table information
+.zZ
+At this point four partitions will be made as per the standard installation
+procedure.
+Other partitionings can be made for other purposes, of course.
+Note that now there is no discussion of cylinders.
+Sector addresses are used.
+Cylinder addressing is a peculiarity of Sun's.
+.LP
+NB.
+When partitioning, the block numbers should be given relative to the start
+of the disk partition.
+They should not be absolute disk addresses.
+Therefore, block 0 is the first sector number on the disk.
+.zA
+Partition a: First Sector      : \fB0\fP
+             Number of Sectors : \fB2000\fP
+
+Partition b: First Sector      : \fB2000\fP
+             Number of Sectors : \fB200\fP
+
+Partition c: First Sector      : \fB2200\fP
+             Number of Sectors : \fB2000\fP
+
+Partition d: First Sector      : \fB4200 \fP
+             Number of Sectors : \fB635969\fP
+Partition Table Summary
+Number of Sectors on Disk = 640169
+Partition  First Sector  Number of Sectors
+    a             0           2000
+    b          2000            200
+    c          2200           2000
+    d          4200         635969
+    e             0              0
+    f             0              0
+    g             0              0
+    h             0              0
+Is the partition table ok? [y or n]: \fBy\fP
+.zZ
+At this point if the answer
+.B n
+is given then the table will be present for a second attempt.
+Note that for historical reasons it is necessary to use all the blocks in
+a partition.
+This is enforced.
+The answer
+.B y
+should return
+.I disklabel
+to the main menu (unless there are more partitions to label).
+.LP
+Selecting option 3 of the main menu should now display the table of available
+virtual disks.
+It should now be possible to exit and reboot the host with the disk.
+When rebooted it should then have 4 virtual disks available.
+.LP
+If the system has more than one physical disk or several partitions
+available to \*(Am it is no problem to concatenate several partitions to form
+a single large disk.
+Item 6 of the main menu will do that.
+Note that if a partition forms part of a set of partitions then it is
+safer to unmerge it before re-subpartitioning it.
+Use main menu item 7 for this.
+.\" Get rid of our convenience macros
+.rm zA
+.rm zZ
+.SH
+See Also
+.LP
+vdisk(A).

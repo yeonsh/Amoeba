@@ -1,0 +1,58 @@
+.\"	@(#)dread.n	1.6	96/02/15 17:19:15
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Peter Bosch
+	Document: Peter Bosch
+.aE
+.mT "dread" A
+read raw data blocks from a virtual disk
+.SH
+Synopsis
+.LP
+.sC L
+dread [-s startblock] [-n num_blocks] [-b block_size] disk_cap
+.eC
+.SH
+Description
+.LP
+.kW "virtual disk"
+.I Dread
+reads
+.I num_blocks
+blocks from the virtual disk specified by the
+.I disk_cap
+capability starting at block number
+.I start_block
+and writes it to
+.I stdout .
+The block size must be a power of two.
+The default values for
+.I start_block ,
+.I num_blocks
+and
+.I block_size
+are respectively 0, 1, and 512.
+.LP
+Error messages are supposedly self explanatory.
+The exit status is non-zero on error.
+.SH
+Example
+.LP
+.sC
+dread -s 3 /super/hosts/boris/vdisk:01 > data_file
+.eC
+will read the first 512 bytes of block 3 from
+.I vdisk:01
+on the host called
+.I boris .
+The data will be stored in
+.I data_file .
+.SH
+See Also
+.LP
+dwrite(A).

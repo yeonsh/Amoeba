@@ -1,0 +1,58 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 14:31:19
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_AIL= {
+	$PWD/ail.c,
+	$PWD/ail.h,
+	$PWD/bfile.c,
+	$PWD/class.c,
+	$PWD/client.c,
+	$PWD/clientgen.c,
+	$PWD/cmd.c,
+	$PWD/dbg.c,
+	$PWD/etree.c,
+	$PWD/feature.c,
+	$PWD/gen.h,
+	$PWD/headergen.c,
+	$PWD/impl.c,
+	$PWD/keyw.c,
+	$PWD/lint.h,
+	$PWD/marsh.c,
+	$PWD/mhdr.c,
+	$PWD/mkptree.c,
+	$PWD/msh.c,
+	$PWD/myprintf.c,
+	$PWD/name.c,
+	$PWD/num.c,
+	$PWD/opflag.c,
+	$PWD/pars.y,
+	$PWD/pdbg.c,
+	$PWD/python.c,
+	$PWD/sc_global.h,
+	$PWD/scan.l,
+	$PWD/scclgen.c,
+	$PWD/scdocgen.c,
+	$PWD/serr.c,
+	$PWD/server.c,
+	$PWD/servergen.c,
+	$PWD/str.c,
+	$PWD/stubcode.h,
+	$PWD/tdecl.c,
+	$PWD/ttab.c,
+	$PWD/unmsh.c,
+	$PWD/xtr.c
+};
+
+U_SC2TXT={
+	$PWD/sc2txt.c,
+	$PWD/sc2txt.h
+};
+
+UNUSED_SRC={
+	$PWD/dummy.c
+};

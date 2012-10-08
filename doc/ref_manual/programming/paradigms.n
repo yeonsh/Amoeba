@@ -1,0 +1,814 @@
+.\"	@(#)paradigms.n	1.7	96/02/15 16:42:03
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Paradigms and Implementations"
+.nH 1 "The Client-Server Model" no_bp
+.LP
+.kW "programming model"
+The programming model of \*(Am is based on having programs,
+possibly running on different processors,
+working together to perform a task.
+This is inherent in the nature of distributed systems.
+The programs communicate with each other using various methods, but typically
+remote procedure call (RPC).
+.kW RPC
+.kW Ethernet
+RPCs may go over a network (typically Ethernet) or to another process on the
+same computer.
+The location of the sender and receiver of a message is invisible to the
+sender and receiver.
+Various functions can be implemented in programs that offer a service.
+For example, the file system provides a file creation and storage service for
+other programs.
+It can accept requests to create, read and write files.
+Such programs which accept requests to perform operations for another program
+are called
+.kW "client-server model"
+.I servers .
+Programs which send requests to servers are known as
+.I clients.
+Some programs may at various times in their execution switch between being a
+client and a server and so the categorization cannot always be strictly
+applied to a particular program.
+For example,
+a file server may become a client of the time\-of\-day server when it needs
+to obtain the time for a time-stamp on a file.
+.LP
+Many standard servers are provided with \*(Am and so applications can
+usually be written as clients of one or more of the standard services.
+However it is also possible to write specialized servers to manage a data base
+or some other kind of object.
+.LP
+.kW "object-based"
+\*(Am is an
+.I object-based
+system.
+(N.B. Class inheritance is not
+.I enforced .
+It is permitted.
+Therefore \*(Am is
+.B not
+an
+.kW "object-oriented"
+.I object-oriented
+system but it is relatively simple to build an object-oriented system on top
+of \*(Am.)
+In general,
+each server manages a single type of object.
+For example, a file server manages files and a disk server manages disks.
+It is possible to write servers that manage several types of objects
+simultaneously but this can easily lead to inelegant and difficult to
+maintain programs.
+Extensions are planned to give proper support for this to avoid the
+inelegancies (see below).
+.nH 1 "Capabilities" no_bp
+.LP
+.kW capability
+When an object is created,
+the server that does the creation also creates a
+.I capability
+for the object and gives it to the client.
+Access to objects is exclusively via capabilities.
+In principle programs should never directly examine the contents of
+capabilities.
+Servers sometimes need certain data from a capability,
+such as the object number or the rights.
+This information should be extracted using the specially provided routines
+(see
+.kW prv
+.I prv (L)).
+Similarly,
+generation of capabilities for new objects should be done with these routines
+and the function
+.kW "\fIuniqport\fP"
+.I uniqport (L).
+Any programs not conforming to this may cease to function correctly in later
+releases of \*(Am since in a subsequent release the sizes of the fields in a
+capability may change.
+.LP
+The present structure of a capability is shown in
+.fX .
+It is 128 bits long and contains four fields.
+The first field is the
+.I "server port" ,
+and is used to identify the (server) process that manages the object.
+It is in effect a 48-bit random number chosen by the server.
+.kW "server port"
+.kW "object number"
+.kW "rights"
+.kW "check field"
+.f1
+.PS
+boxht=0.5i
+A:box wid 1.5i "Server" "port"
+B:box wid .75i "Object" "number"
+C:box wid 0.25i "Rts" ""
+D:box wid 1.5i "Check" "field"
+"48" at A.n above
+"24" at B.n above
+"8" at C.n above
+"48" at D.n above
+.PE
+.f2
+A capability.  The numbers give the current sizes in bits.
+.f3
+.LP
+The second field is the
+.I "object number" ,
+which is used by the server to identify which of
+its objects is being addressed.
+Together, the server port and object number uniquely identify the object on
+which the operation is to be performed.
+.LP
+The third field is the
+.I rights
+field,
+which contains a bit map telling which operations the holder of the
+capability may perform.
+If all the bits are 1s,
+all operations are allowed.
+However,
+if some of the bits are 0s, the holder of the capability may not
+perform the corresponding operations.
+.LP
+To prevent users from just turning all the 0 bits in the rights field into
+1 bits, a cryptographic protection scheme is used.
+When a server is asked to create an object, it picks an available slot
+in its internal tables and puts the information about the object in there
+along with a newly generated 48-bit random number.
+The index into the table is put into the object number field of the
+capability, the rights bits are all set to 1,
+and the
+.I "check field"
+is generated by XOR-ing the rights field with the random number and running the
+result through a (publicly known)
+.I "one-way function" .
+The encryption process is built into the routines
+.kW \fIprv_encode\fP
+.I prv_encode
+and
+.kW \fIprv_decode\fP
+.I prv_decode
+(see
+.I prv (L)).
+(N.B.  For efficiency, the one-way function is not applied when all the
+rights are ``on'' since there is no gain in security since all rights are
+available to the holder of the capability anyway.)
+.LP
+The server can construct a new capability with a subset of the rights by
+turning off some of the rights bits before XOR-ing the rights
+field with the random number.
+Each server should provide a rights-restriction service for clients.
+.LP
+When a capability arrives at a server, the server uses the object field to
+index into its tables to locate the information about the object.
+It performs an XOR of the original random number
+in its table with the rights field of the capability.
+This number is then run through the one-way function.
+If the output of the one-way function agrees with the contents of the check
+field, the capability is deemed valid,
+and the requested operation is performed if its rights bit is set to 1.
+Due to the fact that the one-way function cannot be inverted, it is extremely
+improbable that a user can ``decrypt'' a capability to get the original
+random number in order to generate a false capability with more rights.
+.nH 1 "Remote Procedure Call" no_bp
+.LP
+.kW RPC
+The RPC mechanism of \*(Am is based on four primitives:
+.kW "\fItrans\fP"
+.I trans ,
+.kW "\fIgetreq\fP"
+.I getreq ,
+.kW "\fIputrep\fP"
+.I putrep
+and
+.kW "\fItimeout\fP"
+.I timeout
+(see
+.I rpc (L)).
+These functions form the basis of inter-process communication.
+.kW FLIP
+The RPC interface is built on top the Fast Local Internet Protocol (FLIP).
+.kW "network protocol"
+This network protocol provides automatic shortest path routing of messages
+and provides automatic gatewaying between connected networks.
+See the bibliography in the
+.I "Release Notes"
+for more details about FLIP.
+.LP
+The
+.I getreq
+and
+.I putrep
+functions
+are used by servers.
+Once a server has initialized itself it performs the
+.I getreq
+operation with the port that it wishes to listen to.
+The
+.I getreq
+function blocks the server until a client sends a request using
+.I trans
+(see below).
+When a request arrives,
+the server checks that the capability is valid and has sufficient rights.
+Then it performs the requested operation.
+Finally it sends a reply back to the client using
+.kW "\fIputrep\fP"
+.I putrep .
+.LP
+N.B.
+.kW "\fIgetreq\fP"
+.I getreq
+and
+.I putrep
+must always come in balanced pairs.
+If a thread attempts to do a
+.I putrep
+when it has not done a
+.I getreq
+or does two
+.I getreq
+calls without an intervening
+.I putrep
+(or
+.I grp_forward )
+then this constitutes a programming error and the program will terminate
+with an uncatchable exception.
+.LP
+The
+.I trans
+function is used by clients to send requests to servers.
+The port of the server to which the RPC must go is embedded in the first
+parameter to
+.I trans .
+The
+.kW "\fItrans\fP"
+.I trans
+call blocks until the server sends a reply.
+The \*(Am kernel on which the
+.I trans
+is executed attempts to locate the server by broadcasting a message
+with that port in it (unless it is on the same host).
+If another kernel has a server waiting for a request on that port it responds
+and the RPC is sent to the server which then handles the request and returns a
+reply.
+The kernel keeps a cache of known locations of ports to improve performance for
+subsequent RPCs.
+However it is recommended that
+.I trans
+not be called directly in client programs.
+Rather it should be embedded in a procedure call that handles the
+marshaling of data and the sending of the message to the server.
+This shall be described in more detail below.
+.LP
+.kW RPC
+Note that giving a null port (i.e., all bits 0) to any of the RPC
+routines will result in an RPC error.
+The null port is not a valid address for a server.
+The routine
+.kW "\fIuniqport\fP"
+.I uniqport (L)
+which generates ports will not produce the null port.
+.LP
+The
+.kW "\fItimeout\fP"
+.I timeout
+function is used to set the amount of time spent searching for the server
+when doing a transaction.
+This is known as the
+.kW "locate timeout"
+.I "locate timeout" .
+If a server is unavailable (possibly due to network partitioning or a system
+crash) then programs attempting to communicate with that server will hang
+for the length of the timeout.
+The default timeout is 5 seconds.
+Such a delay will be very irritating to users so it is important in
+.I interactive
+programs that timeouts be set to a value short enough to
+avoid irritating the user but long enough to have a chance to find the server.
+Two seconds is the recommended minimum for interactive programs.
+Any shorter than this may report failure to find the server even though it is
+available.
+For non-interactive programs such as compilers,
+a longer timeout is usually acceptable and increases reliability.
+.nH 2 "Upcoming Features"
+.LP
+Note that
+.kW "\fItimeout\fP"
+.I timeout
+does not limit the amount of time that a server may spend executing a request.
+This timeout is known as the
+.kW "service timeout"
+.I "service timeout" .
+It is not yet implemented but may well be in a future release.
+There are also plans to add the ability for
+.I getreq
+to listen to multiple ports.
+This will be useful in the wide-area network gateways and any other server
+that wishes to handle more than one type of object.
+.LP
+Because of the improvements planned for this interface in the next major
+release of \*(Am,
+it is important that calls to the RPC interface routines be embedded in stub
+routines.
+A
+.kW "stub routine"
+.I "stub routine"
+provides an interface specific to a particular server that hides the details
+of the data marshaling and message passing.
+For example,
+the routine
+.I b_read
+(see
+.I bullet (L))
+provides the file read interface to the \*(Bs.
+This routine bundles up the relevant information for a read command and sends
+it in the form required by the \*(Bs.
+This has the effect of hiding the packaging of the data required by the server
+and providing an simple interface which minimizes the chance of error.
+It is possible to automatically generate the stubs and data unmarshaling in the
+server using
+.kW AIL
+.I ail (U).
+This is recommended since it will allow simple regeneration of servers for
+new releases of \*(Am.
+There is more information about how to use
+.I AIL
+in the programming tools section of this manual and in the section on writing
+clients and servers.
+.nH 1 "Group Communication" no_bp
+.LP
+.kW "group communication"
+In addition to the RPC interface for sending point-to-point messages,
+it is possible to send a message to a group of processes.
+This is sometimes known as
+.kW multicast
+.I multicast
+or
+.kW broadcast
+.I broadcast .
+.kW shared-memory
+.kW Orca
+This is a powerful tool with many uses.
+For example it is used for efficient implementation of distributed
+shared-memory in Orca and for replication of data such as files.
+The \*(Am group communication primitives are described in
+.I grp (L).
+They are implemented on top of a reliable multicast protocol and take
+advantage of any hardware support for multicast provided by the network.
+(If there is none they revert to a series of point-to-point messages
+to implement the multicast.)
+The group communication takes advantage of the auto-routing capabilities of
+.kW FLIP
+the FLIP network protocol.
+.nH 1 "Processes and Threads" no_bp
+.LP
+Under many systems
+(for example,
+.UX ),
+programs consist of a
+.kW "text segment"
+.I "text segment"
+which contains the program instructions,
+a
+.kW "data segment"
+.I "data segment"
+which contains initialized global data,
+a
+.kW "bss segment"
+.I "bss segment"
+which contains uninitialized global data
+and a
+.kW "stack segment"
+.I "stack segment" .
+These four segments are typically all in the same address space and
+together with the program counter and stack pointer, when running, comprise a
+.I process .
+.kW thread
+The process has a single
+.I thread
+of execution.
+Under \*(Am each process can have multiple threads of execution all running
+within the same address space.
+.kW "program counter"
+.kW "stack pointer"
+Each thread has its own program counter, stack pointer and stack segment but
+all share the text,
+data and bss segments.
+.LP
+.kW "glocal data"
+Since a certain amount of global data was necessary per thread,
+an extra data type was created.
+Each thread keeps a pointer to data allocated at run-time which all the
+functions in that thread can gain access through a pointer maintained by the
+library.
+This data is known as the
+.I glocal
+data (because it is local to a thread but global to all the functions in
+that thread).
+.nH 2 "Multithreaded Programming"
+.LP
+.kW "multithreaded programming"
+The multithreaded environment is implemented with a set of routines described
+in
+.I thread (L).
+It provides routines for creating threads,
+destroying them and support for glocal data.
+.LP
+Careful thought needs to be given to programming in a multithreaded
+environment.
+.kW synchronization
+Synchronization between threads is non-trivial since it is possible that
+a library function may perform a blocking operation and cause rescheduling
+at an undesirable moment.
+The normal way to organize synchronization between threads is by using the
+mutex and/or semaphore packages (see
+.I mutex (L)
+and
+.I semaphore (L)).
+The routine
+.I threadswitch
+also provides a mechanism for a thread to give up control voluntarily.
+.nH 1 "Scheduling" no_bp
+.LP
+At any instant many threads and processes may be runnable so a scheduler is
+needed to determine which to run next.
+The scheduler uses a priority scheme as follows:
+.IP
+Enqueued interrupt handlers in the kernel have the highest priority,
+then runnable kernel threads and finally,
+if none of the above are runnable,
+user processes.
+.LP
+.kW scheduling
+.kW "round-robin"
+.kW "time-slice"
+Processes are scheduled round-robin on a time-slice (typically 10 milliseconds)
+or when a process blocks.
+.kW "preemptive scheduling"
+Thus between processes there is preemptive scheduling.
+However,
+between individual threads within a process there is per default no preemption.
+Thus,
+if a process is rescheduled due to a time-slice then when it is restarted the
+same thread of that process will be resumed.
+Rescheduling between threads only occurs when a thread executes a blocking
+primitive.
+This includes the transaction primitives
+.kW "\fItrans\fP"
+.I trans
+and
+.kW "\fIgetreq\fP"
+.I getreq
+(see
+.I rpc (L))
+and the mutex primitives (see
+.I mutex (L)).
+There is also a special function
+.kW "\fIthreadswitch\fP"
+.I threadswitch
+(see
+.I thread_scheduling (L))
+which allows a process to reschedule itself without executing a function
+which blocks.
+The kernel is regarded as a process,
+so there is no preemption between kernel threads.
+They are only rescheduled when they block.
+.LP
+It is also possible to allow a user process to use preemptive scheduling
+between its threads.
+This is done on a per process basis so that not all processes have to use
+preemptive scheduling.
+Threads can also be assigned priorities and there is time-slicing
+between threads in this case.
+See
+.I thread_scheduling (L)
+for details.
+.nH 1 "Signals" no_bp
+.LP
+.kW signals
+Signals are a method of sending unsolicited information to a thread or process.
+Lightweight signals are sent to threads.
+The manual page
+.I signals (L)
+explains how they are implemented and used.
+.kW stun
+Heavyweight signals are used to stun a process (not a thread).
+This is described in manual page for
+.I pro_stun
+(see
+.I process (L)).
+It is important to note that if a thread is in a transaction the
+signal handler of the thread will not be called until the transaction completes.
+The signal will be propagated to the server which may either ignore it or
+stop what it is doing and reply at once.
+Thus,
+when a user interrupts a process with CTRL\-C, it may not die
+immediately,
+but hang until the server replies to the current transaction.
+.LP
+There is a special kind of stun which allows a
+.kW "\fItrans\fP"
+.I trans
+to be broken off without waiting for the server to reply.
+This is also described in
+.I process (L).
+.nH 1 "POSIX Emulation" no_bp
+.LP
+.kW POSIX
+The POSIX emulation under \*(Am
+currently provides a subset of the POSIX 1003.1 standard.
+In subsequent releases more of the POSIX functionality will be added,
+according to what is implementable.
+At present, the basic calls such as
+.I open ,
+.I close ,
+.I read
+and
+.I write
+are implemented along with the directory package,
+the time of day routines,
+signal handling and many miscellaneous functions.
+.LP
+Several POSIX concepts do not make any sense in \*(Am.
+One is the idea of a user id or group id.
+Security is based on capabilities.
+Identification of users by something other than capabilities only
+complicates matters.
+An emulation of user ids is provided but the group id is always 1.
+(See
+.I posix (L)
+for more details.)
+.LP
+.kW "Bullet Server"
+.kW "atomic file creation"
+The Bullet File Server creates files atomically.
+One of the side effects of this is that it is not possible to read a file as
+it is being created.
+Commands such as
+.I "tail \(enf"
+are therefore difficult to implement.
+.LP
+To manage shared file descriptors each user needs a
+.kW "session server"
+.I "session server"
+(see
+.I session (U)).
+This also deals with the null device,
+.kW "/dev/tty"
+.I /dev/tty ,
+.kW pipe
+.kW fork
+pipes and the forking of processes.
+Forking is in fact slow and inefficient under \*(Am.
+This is because when a new process is started it will usually be started on a
+different processor from the parent process.
+The idea of copying the text of a totally irrelevant program to another
+processor is inefficient in the context of a distributed system.
+Therefore there is a routine called
+.kW "\fInewproc\fP"
+.I newproc (L)
+which can be used to start a new process more efficiently than with
+.I fork
+and
+.I exec .
+.LP
+See
+.I posix (L)
+for further details of POSIX conformance.
+.nH 2 "Porting UNIX Programs"
+.LP
+.kW POSIX
+In general,
+porting most programs from
+.UX
+should not present problems if they are POSIX conformant, restrict
+themselves to the calls defined in P1003.1 and do not use
+.UX
+specific networking.
+Programs that use sockets or the select system call may
+prove difficult to port.
+It some cases the functionality of sockets may be able to be reproduced with
+.kW "TCP/IP"
+the support routines for the TCP/IP server.
+.nH 1 "Languages" no_bp
+.LP
+Currently several programming languages are provided with \*(Am.
+.kW "programming languages"
+.kW ACK
+.kW "STD C"
+.kW BASIC
+.kW FORTRAN
+.kW Pascal
+.kW "Modula-2"
+The Amsterdam Compiler Kit (ACK) provides STD C, Pascal, BASIC, FORTRAN 77
+and Modula-2.
+The standard run-time libraries are available for these languages (see
+.kW "libmod2.a"
+.I libmod2 (L)
+and
+.kW "libpc.a"
+.I libpc (L)).
+However,
+the \*(Am library routines have only been provided for C at present.
+Note that the ACK loader is capable of linking the routines from the C
+libraries with Modula-2 programs.
+See
+.I libmod2 (L)
+for details.
+.LP
+The stub generator
+.kW AIL
+.I ail (U)
+only provides the possibility of generating stubs in C.
+.LP
+A special language for parallel programming has been developed.
+It is called
+.kW Orca
+.I Orca .
+It can be obtained from the Vrije Universiteit.
+.LP
+.kW GNU
+The GNU C compiler is available for all architectures under \*(Am.
+.LP
+For further details on programming languages see chapter 5,
+.I "Programming Languages" .
+.nH 2 "Programming in C"
+.LP
+.kW ACK
+The ACK C compiler distributed with \*(Am is a STD C compiler.
+The \*(Am source code was written in K&R C but function prototypes and
+new\-style declarations are gradually replacing the old-style code.
+.kW "STD C"
+.kW "compiling programs"
+The STD C compiler can be used to compile the system.
+The library routines and include files required by STD C are provided.
+.LP
+To compile a program under \*(Am it is sufficient to call
+.kW cc
+.I cc (U).
+This will automatically link programs with the correct run-time start-off and
+the relevant libraries.
+The two libraries that are of importance are
+.kW libamoeba.a
+.I libamoeba.a
+and
+.kW libajax.a
+.kW Ajax
+.I libajax.a .
+The latter is only required when using functions that interact with the
+.kW "session server"
+session server.
+(That is,
+when a program will use shared file descriptors.)
+If linking programs without using
+.I cc
+then
+.I libajax.a
+should be linked before
+.I libamoeba.a ,
+which should always be the last library linked.
+.LP
+Note that just calling
+.I cc
+will result in compiling a program for the default architecture.
+It is better to specify the target architecture if there is any doubt or if
+cross-compiling for another architecture (see the
+.B \-m
+option of
+.I ack (U)
+for details).
+.LP
+If developing a software system it is recommended that
+.kW "amake"
+.I amake (U)
+be used instead of
+.I make (U).
+.I Amake
+is more reliable under \*(Am (it does not use the unreliable time-stamps on
+directory entries) and provides much more flexibility.
+There are many examples of Amakefiles in the \*(Am distribution.
+.nH 2 "Standard Types"
+.LP
+.kW "types"
+.kW "standard types"
+There are many standard types defined using
+.I typedef .
+The most important ones are defined in the include file
+.I amoeba.h .
+These include the definitions of
+.kW capability
+.I capability ,
+.kW "\fIport\fP"
+.I port ,
+.kW "\fIheader\fP"
+.I header
+and
+.kW "\fIerrstat\fP"
+.I errstat .
+For the sake of portability it is important that these types be used
+uniformly throughout applications.
+In subsequent releases the actual underlying types will almost certainly
+change.
+For example,
+.kW "\fIbufsize\fP"
+.I bufsize
+is presently an unsigned 16-bit integer.
+It is expected that this will be upgraded to a signed 32-bit integer
+in a future release.
+.LP
+Since many types are used it is worthwhile for the programmer to become
+acquainted with them.
+.LP
+In addition to the type definitions there are several macros defined
+which relate to the types.
+It is worthwhile becoming acquainted with these as well.
+Two macros are of special importance.
+The macro
+.kW PORTCMP
+.cW PORTCMP
+compares two
+.I ports.
+It returns 1 if they are identical and 0 otherwise.
+Similarly the macro
+.kW NULLPORT
+.cW NULLPORT
+returns 1 if the given port is null and zero otherwise.
+An example of their use is given below.
+.sC
+#include "amoeba.h"
+
+port p1;
+port p2;
+
+if (PORTCMP(&p1, &p2))
+    printf("p1 and p2 are equal\en");
+
+if (NULLPORT(&p1))
+    printf("p1 is the null port!\en");
+.eC
+.nH 2 "Standard Commands and Errors"
+.LP
+.kW "standard commands"
+.kW "standard error codes"
+Like many other operating systems,
+\*(Am provides a standard set of error messages.
+These standard error codes are defined in the include file
+.I stderr.h .
+(See also
+.I err (L).)
+Servers may define extra non\-standard error codes which their clients must
+be made aware of, but these numbers may not conflict with the standard set
+of errors.
+Otherwise it is not possible for the error message routines to print meaningful
+strings corresponding to error codes.
+Furthermore,
+there are several macros for manipulating an error status.
+At present certain unsigned fields in headers are required to carry error codes
+which are signed quantities.
+However to write code that will run on both the current and future releases
+with simple recompilation, two macros have been provided.
+.kW "\fIerrstat\fP"
+The first is called
+.kW ERR_STATUS
+.cW ERR_STATUS.
+It takes a single argument (an unsigned 16-bit integer) and determines whether
+or not it is an error code.
+A related macro
+.kW ERR_CONVERT
+.cW ERR_CONVERT
+converts an unsigned 16-bit integer to the type
+.I errstat .
+In practice almost no user programs will confront these problems if they
+confine themselves to calling stub routines whose external interface only
+deals with the type
+.I errstat .
+Only the writers of stubs will face these compatibility problems and by
+using the \*(Am Interface Language (AIL) the stubs can be automatically
+generated and thus eliminate nearly all compatibility issues.
+.LP
+Command codes sent to servers have also been standardized.
+There are standard command codes defined in
+.I stdcmd.h
+which must be implemented by all servers where applicable.
+(Those that are not applicable should be ignored and a good status returned.)
+Furthermore there are reserved command codes for standard servers defined in
+the include file
+.I cmdreg.h .
+At the end of this file is the special symbol
+.kW UNREGISTERED_FIRST_COM
+.cW UNREGISTERED_FIRST_COM
+which defines where local server's command codes should begin.
+The reason for this division of command codes is to allow the possibility of
+inheriting interfaces in an object-oriented fashion.
+AIL is able to take advantage of this when building server interfaces.
+(See the Programming tools section for details of AIL class inheritance.)
+Similarly,
+if a server needs to use non-standard error codes,
+they should also be numbered from
+.kW UNREGISTERED_FIRST_ERR
+.cW UNREGISTERED_FIRST_ERR .

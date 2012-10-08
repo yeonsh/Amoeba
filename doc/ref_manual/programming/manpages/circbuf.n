@@ -1,0 +1,616 @@
+.\"	@(#)circbuf.n	1.6	96/02/15 16:48:11
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen & Guido van Rossum
+	Document: Peter Bosch, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "circbuf" L "libamoeba.a"
+circular buffer - serialized, buffered data transfer between concurrent threads
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "semaphore.h"
+#include "circbuf.h"
+
+struct circbuf *cb_alloc(size)
+void cb_close(cb)
+void cb_free(cb)
+
+int cb_putc(cb, c)
+int cb_puts(cb, s, n)
+
+int cb_getc(cb)
+int cb_trygetc(cb, maxtimeout)
+
+int cb_gets(cb, s, minlen, maxlen)
+
+int cb_putp(cb, ps, blocking)
+void cb_putpdone(cb, len)
+int cb_getp(cb, ps, blocking)
+void cb_getpdone(cb, len)
+
+int cb_full(cb)
+int cb_empty(cb)
+void cb_setsema(cb, sema)
+.eC
+.SH
+Description
+.LP
+.kW "circular buffer"
+.kW "circbuf.h"
+.kW "semaphore.h"
+.kW "semaphore"
+.kW "concurrent threads"
+.kW "synchronization"
+.kW "\fIcb_alloc\fP"
+.kW "\fIcb_close\fP"
+.kW "\fIcb_free\fP"
+.kW "\fIcb_putc\fP"
+.kW "\fIcb_puts\fP"
+.kW "\fIcb_getc\fP"
+.kW "\fIcb_trygetc\fP"
+.kW "\fIcb_gets\fP"
+.kW "\fIcb_putp\fP"
+.kW "\fIcb_putpdone\fP"
+.kW "\fIcb_getp\fP"
+.kW "\fIcb_getpdone\fP"
+.kW "\fIcb_full\fP"
+.kW "\fIcb_empty\fP"
+.kW "\fIcb_setsema\fP"
+A
+.I "circular buffer"
+provides serialized, buffered data transfer between concurrent threads.
+Threads within a process can read from a circular buffer,
+while other threads in the same process can write to it.
+The circular buffer module provides a set of routines to manage the
+circular buffers.
+.LP
+Data transfer through circular buffers is similar to transferring data through
+a pipe.
+Threads write data into the pipe, other threads read data from the pipe.
+A close on a circular buffer is similar to closing the input side of a pipe:
+it is no longer allowed to put new data into the circular buffer but the
+circular buffer can still be emptied.
+.LP
+Data transfer through a circular buffer can be accomplished by the routines
+.I "cb_getc, cb_trygetc"
+and
+.I cb_gets
+to read data, and
+.I cb_putc
+and
+.I cb_puts
+to write data.
+Each function copies data respectively from the circular buffer to a local
+buffer or from a local buffer to the circular buffer.
+.LP
+The routines
+.I "cb_putp, cb_putpdone, cb_getp"
+and
+.I cb_getpdone
+are routines meant for directly accessing the circular buffer data.
+The routines
+.I cb_putp
+and
+.I cb_getp
+return a pointer to the correct place where
+data can be put in/fetched from the circular buffer.
+Once data is moved to/from the circular buffer, it must be marked as done by
+the routines
+.I cb_putpdone
+and
+.I cb_getpdone .
+The main difference with stubs like
+.I cb_puts
+and
+.I cb_gets
+is the absence of an extra copy to a local buffer
+(internally,
+.I cb_gets
+and
+.I cb_puts
+use
+.I cb_getp/cb_getpdone
+and
+.I cb_putp/cb_putpdone ).
+This entitles the stubs to be called the optimized stubs.
+.LP
+The following example shows the use of normal stubs and the use of the
+optimized stubs:
+.sC
+char buf[100];	/* Allocate a transaction buffer */
+int bs;
+
+/* Get some data in buf */
+bs = trans(&some_header, 0, 0, &some_header, buf, 100);
+if (ERR_STATUS(bs)) {
+   ... etc ...
+}
+/* Put it in the circular buffer */
+if (cb_puts(some_cb, buf, bs) != 0) {	
+   ... etc ...
+.eC
+Using the optimized stubs:
+.sC
+char *buf;
+int bs, bs2;
+
+/* Get a circular buffer data pointer */
+bs = cb_putp(some_cb, &buf, 1);
+/* Get some data in the circular buffer */
+bs2 = trans(&some_header, 0, 0, &some_header, buf, bs);
+if (ERR_STATUS(bs2)) {
+   ... etc ...
+}
+/* Mark the data copied */
+cb_putpdone(some_cb, bs2);
+.eC
+In the latter case,
+.I rpc (L)
+stores the received data directly in the circular buffer.
+.ne 9
+.mH
+Functions
+.LP
+.sH
+cb_alloc
+.LP
+.sC
+struct circbuf *
+cb_alloc(size)
+int size;
+.eC
+.kW "\fIcb_alloc\fP"
+.I Cb_alloc
+allocates a circular buffer of
+.I size
+bytes and returns a circular buffer reference pointer.
+If the memory could not be allocated it returns the NULL-pointer.
+.sH
+cb_close
+.LP
+.sC
+void
+cb_close(cb)
+struct circbuf *cb;
+.eC
+.kW "\fIcb_close\fP"
+.I Cb_close
+closes a circular buffer.
+.I Cb_close
+does not flush the circular buffer.
+When closed, threads are no longer allowed to write data to the circular buffer.
+The circular buffer can only be emptied.
+.sH
+cb_free
+.LP
+.sC
+void
+cb_free(cb)
+struct circbuf *cb;
+.eC
+.kW "\fIcb_free\fP"
+.I Cb_free
+destroys the circular buffer.
+All data in the circular buffer is lost.
+.I Cb_free
+may not be called while threads are still using the circular buffer;
+it will cause threads to hang or crash.
+.sH
+cb_putc, cb_puts
+.LP
+.sC
+int
+cb_putc(cb, c)
+struct circbuf *cb;
+int c;
+
+int cb_puts(cb, s, n)
+struct circbuf *cb;
+char *s;
+int n;
+.eC
+.kW "\fIcb_putc\fP"
+.kW "\fIcb_puts\fP"
+.I Cb_putc
+and
+.I cb_puts
+write data to the circular buffer.
+.I Cb_putc
+writes the character
+.I c
+to the circular buffer.
+.I Cb_puts
+writes
+.I n
+characters from the character array
+.I s
+to the circular buffer.
+.I Cb_puts
+is not an atomic operation (except when writing one character).
+Two concurrent
+.I cb_puts
+calls to the same circular buffer might result in mixed data.
+Use
+.I cb_putp
+and
+.I cb_putpdone
+for atomic writes to circular buffers.
+It is possible, however, to make sure that
+.I cb_puts
+is atomic:
+if all accesses to the buffer are through
+.I cb_puts
+and
+.I cb_gets ,
+all these accesses put or get objects of the same size and the
+size of the circular buffer is a multiple of this size.
+.LP
+.I Cb_putc
+returns \(mi1 when the circular buffer is closed, zero upon successful writes.
+.I Cb_puts
+returns 0 on success, \(mi1 when the circular buffer is closed.
+Note that
+.I cb_puts
+will also return \(mi1 if the buffer is closed during the
+.I cb_puts
+call, so some bytes may have been written.
+.sH
+cb_getc, cb_trygetc
+.LP
+.sC
+int
+cb_getc(cb)
+struct circbuf *cb;
+
+int
+cb_trygetc(cb, maxtimeout)
+struct circbuf *cb;
+int maxtimeout;
+.eC
+.kW "\fIcb_getc\fP"
+.kW "\fIcb_trygetc\fP"
+.I Cb_getc
+and
+.I cb_trygetc
+read a byte from the circular buffer.
+They both return the character read.
+.I Cb_trygetc
+completes when it has read a character or when no character has become
+available after waiting for
+.I maxtimeout
+milliseconds.
+.LP
+.I Cb_getc
+and
+.I cb_trygetc
+return \(mi1 if the circular buffer is closed and
+there are no input bytes available.
+.I Cb_trygetc
+returns \(ni1 when the timer has expired.
+.LP
+Note:
+The routine
+.I cb_trygetc
+behaves on signals exactly as
+.I mu_trylock
+(see
+.I signal (L),
+.I mutex (L)).
+If the thread doing circular buffer actions has defined a signal catcher,
+the signal will be caught.
+Otherwise the signal will be ignored.
+On a caught signal,
+.I cb_trygetc
+will return a \(mi1 value.
+When
+.I maxtimeout
+equals \(mi1,
+.I cb_trygetc
+will be blocked until a byte arrives.
+That is,
+there is no maximum timeout.
+In this case,
+.I cb_trygetc
+is still interruptible by a signal.
+.sH
+cb_gets
+.LP
+.sC
+int
+cb_gets(cb, s, minlen, maxlen)
+struct circbuf *cb;
+char *s;
+int minlen, maxlen;
+.eC
+.kW "\fIcb_gets\fP"
+.I Cb_gets
+reads at least
+.I minlen
+and at most
+.I maxlen
+bytes from the circular buffer into the character array
+.I s.
+.I Cb_gets
+will block when the number of bytes available is less than
+the minimum requested (available < minlen).
+.I Cb_gets
+returns the number of bytes read.
+.LP
+.I Cb_gets
+returns zero when the circular buffer is closed.
+.sH
+cb_putp, cb_putpdone
+.LP
+.sC
+int
+cb_putp(cb, ps, blocking)
+struct circbuf *cb;
+char **ps;
+int blocking;
+.eC
+.sC
+void
+cb_putpdone(cb, len)
+struct circbuf *cb;
+int len;
+.eC
+.kW "\fIcb_putp\fP"
+.kW "\fIcb_putpdone\fP"
+.I Cb_putp
+returns in
+.I *ps
+a pointer to the available free bytes in the circular buffer.
+The number of available free bytes is passed back as the function value.
+Data can be copied directly into the circular buffer by copying it to
+.I *ps .
+.LP
+When
+.I blocking
+is zero,
+.I cb_putp
+does not block.
+It returns the number of free bytes in the circular buffer (including zero).
+When
+.I blocking
+is negative,
+.I cb_putp
+waits for available free bytes,
+but is interruptible by a signal (see
+.I cb_trygetc ).
+When signaled and there are no bytes available,
+.I cb_putp
+returns zero.
+When
+.I blocking
+is positive,
+.I cb_putp
+waits for available free bytes and is not interruptible by a signal.
+.LP
+It is possible
+.I cb_putp
+returns less bytes than the amount actually free when
+the free buffer space crosses the circular buffer boundary
+(ie. the size of the circular buffer equals
+10 bytes, bytes 4 and 5 are in use,
+.I cb_putp
+will return 5 instead of 8).
+.LP
+A
+.I cb_putp
+call that returned a value larger than zero must be followed by a
+.I cb_putpdone
+call informing how many bytes are used up in the circular buffer (\fIlen\fP
+bytes).
+.mH
+Diagnostics
+.LP
+.I cb_putp
+returns \(mi1 on closed circular buffers, otherwise it returns the
+amount of free bytes available.
+.I Cb_putpdone
+returns no status.
+.LP
+Note:
+A sequence
+.I cb_putp()
+\- ``store data'' \-
+.I cb_close() \-
+.I cb_putpdone() ,
+is allowed but the stored data is flushed.
+.sH
+cb_getp, cb_getpdone
+.LP
+.sC
+int
+cb_getp(cb, ps, blocking)
+struct circbuf *cb;
+char **ps;
+int blocking;
+
+void
+cb_getpdone(cb, len)
+struct circbuf *cb;
+int len;
+.eC
+.kW "\fIcb_getp\fP"
+.kW "\fIcb_getpdone\fP"
+.I Cb_getp
+and
+.I cb_getpdone
+are the complement of
+.I cb_putp
+and
+.I cb_putpdone .
+.I Cb_getp
+returns in
+.I *ps
+a pointer to the available data bytes.
+The number of available data bytes is passed back as function value.
+Data can be copied directly copied from the circular buffer via
+.I *ps .
+.LP
+When
+.I blocking
+is zero,
+.I cb_getp
+does not block.
+It returns the number of data bytes
+immediately available (including zero).
+When
+.I blocking
+is negative,
+.I cb_getp
+waits for available data bytes, but is
+interruptible by a signal (see
+.I cb_trygetc ).
+When signaled and there are no data bytes,
+.I cb_getp
+returns a zero value.
+When
+.I blocking
+is positive,
+.I cb_getp
+waits for available data bytes and is not interruptible.
+.LP
+It is possible that
+.I cb_getp
+returns less data bytes than actually available, in this case the
+data space crosses the circular buffer boundary (see
+.I cb_putp ).
+.LP
+A
+.I cb_getp
+call that returned a value larger than zero must be followed by a
+.I cb_getpdone
+call, informing the number of bytes used up (\fIlen\fP bytes).
+.LP
+.I Cb_getp
+returns the number of available data bytes (zero when no bytes are available).
+.I Cb_getpdone
+returns no status.
+.sH
+cb_full, cb_empty
+.LP
+.sC
+int
+cb_full(cb)
+struct circbuf *cb;
+
+int
+cb_empty(cb)
+struct circbuf *cb;
+.eC
+.kW "\fIcb_full\fP"
+.kW "\fIcb_empty\fP"
+.I Cb_full
+returns the number of available data bytes in a circular buffer.
+.I Cb_empty
+returns the number of available free bytes in a circular buffer.
+.LP
+.I Cb_full
+returns a \(mi1 when there are no available data bytes and the circular
+buffer is closed.
+.I Cb_empty
+returns \(mi1 when the circular buffer is closed.
+.sH
+cb_setsema
+.LP
+.sC
+void
+cb_setsema(cb, sema)
+struct circbuf *cb;
+semaphore *sema;
+.eC
+.kW "\fIcb_setsema\fP"
+.I Cb_setsema
+attaches an external semaphore to a circular buffer.
+Each time a data byte arrives, the semaphore
+.I sema
+is
+.I upped
+by
+.I sema_up
+(see
+.I semaphore (L)).
+When the circular buffer is closed, the semaphore is
+.I upped
+as well.
+The semaphore is initialized to the number of available data bytes.
+.SH
+Example
+.LP
+The following demonstrates the fundamentals of using the circular buffer
+routines in a multi-threaded environment.
+.sC
+static circbuf *cb;
+
+main(argc, argv)
+char **argv;
+{
+   int num_bytes, n;
+   char s[10];
+
+   /* Create the circular buffer */
+   cb = cb_alloc(20);
+   if (cb == 0) {
+      fprintf(stderr,
+	       "%s: Cannot allocate circular buffer.\\\\n",
+               argv[0]);
+      exit(1);
+   }
+
+   /* Spawn NR_THREADS threads which write to the circular
+      buffer
+   */
+   for (n = 0; n != NR_THREADS; n++)
+      if (thread_newthread(thread, STACK_SIZE, 0, 0) == 0) {
+	 fprintf(stderr, "Cannot spawn threads.\n");
+	 exit(1);
+      }
+.eC
+.sC
+   /* while the circular buffer is not closed */
+   while (cb_empty(cb) != -1) {	
+      /* get a string from the circular buffer, min size 5,
+	 max size 10
+      */
+      num_bytes = cb_gets(cb, s, 5, 10);
+      do_something(s, num_bytes);
+   }
+   /* The circular buffer is closed, remove it */
+   cb_free(cb);
+}	
+.eC
+.sC
+thread()
+{
+   char s[10];
+   int size;
+
+   /* Get some data */
+   while (size = buf_get_string(s, 10))	
+      /* Write the data to the circular buffer */
+      if (cb_puts(cb, s, size) != 0)
+         break;
+
+   /* Once all is written, close the circular buffer */
+   cb_close(cb);
+
+   /* stop thread */
+   thread_exit();
+}
+.eC
+.SH
+See Also
+.LP
+rpc(L),
+semaphore(L),
+thread(L).

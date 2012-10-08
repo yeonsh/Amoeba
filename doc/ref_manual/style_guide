@@ -1,0 +1,76 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)style_guide	1.5	94/04/05 14:56:49
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+The following are the basic rules about style for writing Amoeba documents:
+
+*  Use only the standard ms macros and the additions in am_macros file.
+
+*  In fact, Do not use a troff directive when an ms macro is
+   available to perform the same function.
+
+*  Avoid personal pronouns where possible (such as "you", "he" and "she").
+   Never use the first person (I/me).  Use formal 3rd person (passive voice)
+   wherever possible.
+
+*  For manual pages use the TEMPLATE file - don't alter the ordering.  Don't
+   add new sub-headings unless absolutely necessary.
+
+*  Don't use contractions (such as don't).  Spell out the full text.
+   Remember that `cannot' is one word.
+
+*  References to other manuals should give the name of the manual in italics
+   and the (X) immediately following in Roman text, where X is one of:
+	A - administrative man page
+	H - include file man page
+	L - library man page
+	T - test system man page
+	U - utility man page
+
+    This effect is achieved by the following:
+    .I name (X)
+
+*  References to indiviual routines should be in italics with no () at the end.
+
+*  Make sure that when printed the text of examples remains within the text
+   margins.
+
+*  Make sure that there is a . after the last See Also item of manual pages.
+
+*  Start new sentences on new lines.
+
+*  Make sure that there are no blanks on the ends of lines.
+
+*  Code examples should be placed between .sC and .eC macros.
+
+*  The use of .br to start a new paragraph is strictly forbidden.
+   Use .LP only.  For indented paragraphs use .IP.
+
+*  The only acceptable dingbat is the bullet \(bu.
+
+*  Don't use double quote (") so that appears in the text except when using
+   a constant width font.  Use `` and '' for open double quote and close
+   double quote respectively.
+
+*  All options should appear in bold face.  Minus signs must be "long"
+   so an option should be of the form
+   .B \-option
+
+*  All environment variables should be in constant width font. (.cW macro)
+
+*  All file names should be in italic font.
+
+*  SPELL CHECK (American spelling, I'm afraid) the file carefully.
+
+*  Add keywords markers for generating indices.  Use the .kW macro for this.
+   Don't just place it at the front of the file but in the text near where the
+   reference for the indexed word appears.
+
+*  The first word in the summary line (ie. after the .mT) should begin with a
+   lowercase letter unless the first word is normally capitalized in English.
+   The should *not* be a full-stop (.) at the end of the summary line.
+
+*  If you want a grave accent and not an open-quote use \(ga and not `.

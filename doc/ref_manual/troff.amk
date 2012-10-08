@@ -1,0 +1,85 @@
+#	
+#	@(#)troff.amk	1.7	96/02/15 16:36:51
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(TFLAGS), {
+	TFLAGS = {};
+});
+
+REFER = refer;
+TROFF = troff;
+TBL = tbl;
+EQN = eqn;
+PIC = pic;
+RM = rm;
+PSFIG = psfig;
+
+%if (%not defined(TFLAGS), {
+	TFLAGS = {};
+});
+
+%if (%not defined(PSFIGFLAGS), {
+	PSFIGFLAGS = {};
+});
+
+%if (%not defined(MKINDEX), {
+	echo('You must define the index generation program MKINDEX.');
+	echo('Aborting ...');
+	exit();
+});
+
+%tool troff-tool (
+    macrosrc:	%in		[troff-source, macros];
+    coversrc:	%in %list	[troff-source, cover = %true];
+    realsrc:	%in %list	[troff-source, cover = %false];
+    fakeindex:	%in %list	[fkindx = %true] => {};
+    seealso:	%in %list	[see-also = %true] => {};
+    result:	%out		[type = troff-output];
+    psfigflags:	%string %list		=> $PSFIGFLAGS;
+    flags:	%string %list		=> $TFLAGS;
+    temps:	%tmp %list 		=> { $result.refer, $result.pic,
+					     $result.tbl, $result.eqn,
+					     $result.psfig};
+)
+{
+    exec($REFER,  args => $macrosrc + $coversrc + $realsrc + $fakeindex,
+		  stdout => $result.refer);
+    exec($PIC,	  stdin => $result.refer, stdout => $result.pic);
+    exec($TBL,	  stdin => $result.pic,   stdout => $result.tbl);
+    exec($EQN,	  stdin => $result.tbl,   stdout => $result.eqn);
+    exec($PSFIG,  args => $psfigflags,
+		  stdin => $result.eqn,
+		  stdout => $result.psfig);
+    exec($TROFF,  args => $flags + '-ms',
+	          stdin => $result.psfig,
+	          stdout => $result,
+	          stderr => $result.indinfo.n);
+    exec($MKINDEX, args => $result + .indinfo.n + $seealso);
+    exec($RM, 	  args => $temps + $result.indinfo.n + $result);
+    exec($REFER,  args => $macrosrc + $coversrc + $result.contents.n
+			  + $realsrc + $result.index.n,
+		  stdout => $result.refer);
+    exec($PIC,	  stdin => $result.refer, stdout => $result.pic);
+    exec($TBL,	  stdin => $result.pic,   stdout => $result.tbl);
+    exec($EQN,	  stdin => $result.tbl,   stdout => $result.eqn);
+    exec($PSFIG,  args => $psfigflags,
+		  stdin => $result.eqn,
+		  stdout => $result.psfig);
+    exec($TROFF,  args => $flags + '-ms',
+	          stdin => $result.psfig,
+	          stdout => $result,
+	          stderr => /dev/null);
+    exec($RM, 	  args => $temps + $result.contents.n + $result.index.n);
+};
+
+%tool do-printbib(
+    printbib: %in  [type = printbib];
+    args:     %in  [type = printbib-src];
+    output:   %out [type = troff-source];
+)
+{
+    exec($printbib, args => $args, stdout => $output);
+};

@@ -1,0 +1,43 @@
+.\"	@(#)strip.n	1.4	96/02/16 11:08:56
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Kees Verstoep, adapted from Minix version by Dick van Veen
+        Document: Kees Verstoep
+        Modified: Gregory J. Sharp, Nov 1995, style conformance
+.aE
+.mT "strip" U
+remove the symbol table from executables
+.SH
+Synopsis
+.LP
+.sC L
+strip [file] ...
+.eC
+.SH
+Description
+.LP
+.kW "symbol table"
+.I Strip
+removes the symbol table from the executables given as argument.
+This can be used to reduce disk usage.
+When no argument is given,
+the file
+.I a.out
+will be stripped by default.
+.LP
+Note that after stripping a binary,
+it will be virtually useless for debugging purposes.
+.SH
+Example
+.LP
+.sC
+strip foo bar
+.eC
+Strips files
+.I foo
+and
+.I bar .

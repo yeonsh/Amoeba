@@ -1,0 +1,46 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 14:06:44
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+GBULLET_COMMON = {
+	$PWD/bullet.c,
+	$PWD/alloc.c,
+	$PWD/bs_adm_cmds.c,
+	$PWD/bs_std_cmds.c,
+	$PWD/bs_user_cmds.c,
+	$PWD/gs_adm_cmds.c,
+	$PWD/gs_std_cmds.c,
+	$PWD/bullet_init.c,
+	$PWD/cache.c,
+	$PWD/b_misc.c,
+	$PWD/inode.c,
+	$PWD/new_file.c,
+	$PWD/readwrite.c,
+	$PWD/grp_comm.c,
+	$PWD/grp_bullet.c,
+	$PWD/grp_adm.c,
+	$PWD/member.c,
+	$PWD/shuffle.c,
+	$PWD/event.c,
+	$PWD/alloc.h,
+	$PWD/cache.h,
+	$PWD/stats.h,
+	$PWD/event.h,
+	$PWD/replic.c,
+	$PWD/aging.h,
+	$PWD/aging.c
+};
+
+K_SVR_GBULLET = {
+	$GBULLET_COMMON,
+	$PWD/bullet.init,
+	$PWD/kernel_dep.c
+};
+
+S_GBULLET = {
+	$PWD/user_dep.c,
+	$GBULLET_COMMON
+};

@@ -1,0 +1,489 @@
+.\"	@(#)buffer.n	1.6	96/02/15 16:47:50
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Most of it by Greg Sharp
+	Document: Michael N. Condict, June 1990
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "buffer" L "libamoeba.a, libamunix.a"
+getting and putting data in architecture-independent format
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/buffers.h"
+
+char *buf_get_cap(p, endp, &val)
+char *buf_get_capset(p, endp, &val)
+char *buf_get_int16(p, endp, &val)
+char *buf_get_int32(p, endp, &val)
+char *buf_get_objnum(p, endp, &val)
+char *buf_get_pd(p, endp, &val)
+char *buf_get_port(p, endp, &val)
+char *buf_get_priv(p, endp, &val)
+char *buf_get_right_bits(p, endp, &val)
+char *buf_get_string(p, endp, &val)
+char *buf_put_cap(p, endp, &val)
+char *buf_put_capset(p, endp, &val)
+char *buf_put_int16(p, endp, val)
+char *buf_put_int32(p, endp, val)
+char *buf_put_objnum(p, endp, val)
+char *buf_put_pd(p, endp, &val)
+char *buf_put_port(p, endp, &val)
+char *buf_put_priv(p, endp, &val)
+char *buf_put_right_bits(p, endp, val)
+char *buf_put_string(p, endp, val)
+.eC
+.SH
+Description
+.LP
+.kW "\fIbuf_get_cap\fP"
+.kW "\fIbuf_get_capset\fP"
+.kW "\fIbuf_get_int16\fP"
+.kW "\fIbuf_get_int32\fP"
+.kW "\fIbuf_get_objnum\fP"
+.kW "\fIbuf_get_pd\fP"
+.kW "\fIbuf_get_port\fP"
+.kW "\fIbuf_get_priv\fP"
+.kW "\fIbuf_get_right_bits\fP"
+.kW "\fIbuf_get_string\fP"
+.kW "\fIbuf_put_cap\fP"
+.kW "\fIbuf_put_capset\fP"
+.kW "\fIbuf_put_int16\fP"
+.kW "\fIbuf_put_int32\fP"
+.kW "\fIbuf_put_objnum\fP"
+.kW "\fIbuf_put_pd\fP"
+.kW "\fIbuf_put_port\fP"
+.kW "\fIbuf_put_priv\fP"
+.kW "\fIbuf_put_right_bits\fP"
+.kW "\fIbuf_put_string\fP"
+.kW "transaction buffer"
+.kW "RPC buffer"
+.kW "architecture-independence"
+.kW "byte-order independence"
+These functions get data from, or put data into, a character buffer in a format
+that is independent of any machine architecture; in particular of byte-order
+dependencies.
+They are primarily useful in loading and unloading RPC buffers (and
+reply buffers).
+All of them have the same calling sequence and return value, except
+for the type of the last argument.
+.LP
+In each case,
+.I p
+should point to the place within the buffer where data is to be stored or
+retrieved, and
+.I endp
+should point to the end of the buffer.
+(That is,
+the first byte after the buffer.)
+.LP
+For the
+.I buf_get
+functions, the
+.I val
+argument should be the address where the
+data retrieved from the buffer is to be stored.
+It must be a pointer to the type of value expected by the function.
+(See the individual function descriptions, below.)
+.LP
+For the
+.I buf_put
+functions, there are two possibilities:
+if the value to be put in the buffer is an integral type,
+or a character pointer, the value itself should be passed as the
+.I val
+argument.
+For larger, structured types, a pointer to the value should be supplied.
+(See the individual function descriptions, below.)
+.LP
+On success, the functions return a pointer to the next byte in the buffer
+following the value that was retrieved or inserted.
+Thus, in normal usage,
+a simple sequence of calls to
+.I buf_get
+functions or to
+.I buf_put
+functions can be used to get or put a sequence of values, in order.
+All that is necessary is to provide the output of a previous call as the first
+argument of the next call (see the example, below.)
+.LP
+The end pointer is used to detect whether there is sufficient space in the
+buffer to get or put the specified value.
+If not, NULL is returned to indicate failure.
+To avoid the necessity of an error check after each of a
+sequence of calls to
+.I buf_get
+or
+.I buf_put
+functions, this overflow error propagates: if a NULL
+pointer is passed as the
+.I p
+argument to any of the functions, it returns NULL.
+.LP
+Note that these routines guarantee not to require more than
+.I sizeof(datatype)
+bytes to store the data in the buffer.
+If similar routines are needed to marshal a
+.I union
+then the union should be encapsulated within a
+.I struct
+with an extra field which specifies the field of the
+.I union
+which is really being sent.
+.mH
+Functions
+.LP
+.sH
+buf_get_cap
+.LP
+.sC
+char *
+buf_get_cap(p, endp, valp)
+char *p, *endp;
+capability *valp;
+.eC
+A capability is retrieved from the buffer pointed to by
+.I p
+and copied to the capability pointed to by
+.I valp .
+.sH
+buf_get_capset
+.LP
+.sC
+#include "capset.h"
+
+char *
+buf_get_capset(p, endp, valp)
+char *p, *endp;
+capset *valp;
+.eC
+A capability-set is retrieved from the buffer pointed to by
+.I p
+and copied to the capability-set pointed to by
+.I valp .
+The suite for the capability-set is allocated by this function.
+The suite must not contain more than
+.cW MAXCAPSET
+entries.
+.sH
+buf_get_int16
+.LP
+.sC
+char *
+buf_get_int16(p, endp, valp)
+char *p, *endp;
+int16 *valp;
+.eC
+An architecture-independent 16-bit integer is retrieved from the buffer
+pointed to by
+.I p
+and copied to the 16-bit integer pointed to by
+.I valp ,
+in the form required by the local host architecture.
+.sH
+buf_get_int32
+.LP
+.sC
+char *
+buf_get_int32(p, endp, valp)
+char *p, *endp;
+int32 *valp;
+.eC
+An architecture-independent 32-bit integer is retrieved from the buffer
+pointed to by
+.I p
+and copied to the 32-bit integer pointed to by
+.I valp ,
+in the form required by the local host architecture.
+.sH
+buf_get_objnum
+.LP
+.sC
+char *
+buf_get_objnum(p, endp, valp)
+char *p, *endp;
+objnum *valp;
+.eC
+An object number (as found in capabilities) is retrieved from the buffer
+pointed to by
+.I p
+and copied to the object number pointed to by
+.I valp .
+.sH
+buf_get_pd
+.LP
+.sC
+char *
+buf_get_pd(p, endp, valp)
+char *p, *endp;
+process_d *valp;
+.eC
+A process descriptor stored in an architecture-independent
+format is retrieved from the buffer pointed to by
+.I p
+and stored in the process descriptor structure pointed to by
+.I valp .
+All necessary allocation of sub-structures is performed by this function.
+See
+.I process_d (L)
+for more details.
+.sH
+buf_get_port
+.LP
+.sC
+char *
+buf_get_port(p, endp, valp)
+char *p, *endp;
+port *valp;
+.eC
+A port is retrieved from the buffer pointed to by
+.I p
+and copied to the port pointed to by
+.I valp .
+.sH
+buf_get_priv
+.LP
+.sC
+char *
+buf_get_priv(p, endp, valp)
+char *p, *endp;
+private *valp;
+.eC
+The private part of a capability (object number, rights and check field) is
+retrieved from the buffer pointed to by
+.I p
+and copied to the place pointed to by
+.I valp .
+.sH
+buf_get_right_bits
+.LP
+.sC
+char *
+buf_get_right_bits(p, endp, valp)
+char *p, *endp;
+rights_bits *valp;
+.eC
+The rights bits of a capability are retrieved from the buffer pointed to by
+.I p
+and copied to the place pointed to by
+.I valp .
+.sH
+buf_get_string
+.LP
+.sC
+char *
+buf_get_string(p, endp, valp)
+char *p, *endp;
+char **valp;
+.eC
+The char pointer specified by
+.I valp
+is modified to point to the character string beginning at location
+.I p
+in the buffer, and
+.I p
+is advanced to just beyond the NULL-byte that terminates the string.
+If no such NULL-byte is found, however, NULL is returned and
+.I valp
+is left undefined.
+.LP
+WARNING: This behavior is often not what is wanted, especially when the
+transaction buffer is to be re-used.
+Most of the time, it will be necessary
+to copy the characters of the string out of the buffer to a safer place.
+This is not done by
+.I buf_get_string
+nor is any storage allocated for the string, beyond the transaction buffer
+itself.
+.sH
+buf_put_cap
+.LP
+.sC
+char *
+buf_put_cap(p, endp, valp)
+char *p, *endp;
+capability *valp;
+.eC
+The capability pointed to by
+.I valp
+is copied into the buffer pointed to by
+.I p .
+.sH
+buf_put_capset
+.LP
+.sC
+#include "capset.h"
+
+char *
+buf_put_capset(p, endp, valp)
+char *p, *endp;
+capset *valp;
+.eC
+The capability-set pointed to by
+.I valp
+(including the suite sub-structure)
+is copied into the buffer pointed to by
+.I p .
+The suite must not contain more than
+.cW MAXCAPSET
+entries.
+.sH
+buf_put_int16
+.LP
+.sC
+char *
+buf_put_int16(p, endp, val)
+char *p, *endp;
+int16 val;
+.eC
+.I Val
+is stored in the buffer pointed to by
+.I p .
+.sH
+buf_put_int32
+.LP
+.sC
+char *
+buf_put_int32(p, endp, val)
+char *p, *endp;
+int32 val;
+.eC
+.I Val
+is stored in the buffer pointed to by
+.I p .
+.sH
+buf_put_objnum
+.LP
+.sC
+char *
+buf_put_objnum(p, endp, val)
+char *p, *endp;
+objnum val;
+.eC
+.I Val ,
+which should be an object number as found in a capability,
+is stored in the buffer pointed to by
+.I p .
+.sH
+buf_put_pd
+.LP
+.sC
+char *
+buf_put_pd(p, endp, valp)
+char *p, *endp;
+process_d *valp;
+.eC
+The process descriptor pointed to by
+.I valp
+is copied into the buffer pointed to by
+.I p .
+See
+.I process_d (L)
+for more details.
+.sH
+buf_put_port
+.LP
+.sC
+char *
+buf_put_port(p, endp, valp)
+char *p, *endp;
+port *valp;
+.eC
+The port pointed to by
+.I valp
+is copied into the buffer pointed to by
+.I p .
+.sH
+buf_put_priv
+.LP
+.sC
+char *
+buf_put_priv(p, endp, valp)
+char *p, *endp;
+private *valp;
+.eC
+The private part of a capability
+(object number, rights and check field),
+pointed to by
+.I valp ,
+is copied into the buffer pointed to by
+.I p .
+.sH
+buf_right_bits
+.LP
+.sC
+char *
+buf_put_right_bits(p, endp, val)
+char *p, *endp;
+rights_bits val;
+.eC
+.I Val ,
+which should be the rights bit of a capability,
+is copied into the buffer pointed to by
+.I p .
+.sH
+buf_put_string
+.LP
+.sC
+char *
+buf_put_string(p, endp, valp)
+char *p, *endp;
+char *valp;
+.eC
+The string pointed to by
+.I valp
+is copied into the buffer pointed to by
+.I p ,
+including the NULL-byte terminator.
+.
+.SH
+Example
+.LP
+The following code copies a capability,
+.I c ,
+a 32-bit integer,
+.I i ,
+a character string,
+.I s ,
+into a transaction buffer, then retrieves them into the variables
+.I c2 ,
+.I i2 ,
+and
+.I s2 .
+.sC
+
+capability c, c2;
+int32 i, i2;
+char *s, *s2;
+char buffer[1000];
+char *p, *ep;
+
+name_lookup(path, &c);
+i = 17;
+s = "foobar";
+
+p = buffer;
+ep = buffer + sizeof buffer;
+p = buf_put_cap(p, ep, &c);
+p = buf_put_int32(p, ep, i);
+p = buf_put_string(p, ep, s);
+if (!p) {
+	error("Buffer overflow during put");
+}
+
+p = buffer;
+ep = buffer + sizeof buffer;
+p = buf_get_cap(p, ep, &c2);
+p = buf_get_int32(p, ep, &i2);
+p = buf_get_string(p, ep, &s2);
+if (!p) {
+	error("Buffer underflow during get");
+}
+.eC

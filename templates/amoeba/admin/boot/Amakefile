@@ -1,0 +1,34 @@
+#	
+#	@(#)Amakefile	1.2	94/04/05 16:23:34
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/bootsvr/Amake.srclist;
+%include $SRC_ROOT/admin/boot/Amake.srclist;
+
+INCLUDES = {
+    -I.,
+    -I$SRC_ROOT/h,
+    -I$SRC_ROOT/h/posix,
+    -I$SRC_ROOT/h/machdep/arch/$ARCH,
+    -I$SRC_ROOT/h/class
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+%include $CONF_ROOT/toolset/ail.generic;
+
+%instance bare_ail($HEADER_GEN);
+%instance ailprog(boot_reinit, $U_REINIT, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance ailprog(boot_shutdown, $U_SHUTDOWN, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance ailprog(boot_setio, $U_SETIO, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance ailprog(boot_conf, $U_CONF, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance ailprog(boot_ctl, $U_CTL, $LIB_AMOEBA, $LINT_AMOEBA);
+
+%instance gcluster(iboot, $U_IBOOT, $LIB_AMOEBA, $LINT_AMOEBA);

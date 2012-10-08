@@ -1,0 +1,40 @@
+.\"	@(#)tset.n	1.5	94/04/05 16:13:15
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "tset" U
+set the TERM string environment variable
+.SH
+Synopsis
+.LP
+.sC L
+tset [device]
+.eC
+.SH
+Description
+.LP
+.kW tty
+.kW "TERM environment variable"
+.I Tset
+is used almost exclusively to set the shell variable
+.cW TERM
+from inside profiles.
+If an argument is supplied,
+that is used as the value of
+.cW TERM .
+Otherwise it looks in
+.I /etc/ttytype .
+.SH
+Example
+.LP
+.sC
+eval \(gatset\(ga
+.eC
+Sets the value of
+.cW TERM .

@@ -1,0 +1,19 @@
+/*	@(#)locklist.gen	1.2	94/04/06 11:28:53 */
+/*
+ * Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+ * The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in
+ * the top level of the Amoeba distribution.
+ */
+
+/*
+ *	This is really for debugging, it may
+ *	mean something quite different next week.
+ */
+
+#include "boot.cls"
+
+generate boot_svr {
+    command(boot_locklist);
+    client_stubs(boot_locklist);
+};

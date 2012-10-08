@@ -1,0 +1,260 @@
+.\"	@(#)vdisk.n	1.6	96/02/15 17:54:44
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, January-March 1989
+	Document: Gregory J. Sharp, July 1990
+	Modified: Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "vdisk" A
+kernel-based virtual disk server
+.SH
+Synopsis
+.LP
+Built into the kernel.
+.SH
+Description
+.LP
+.kW "virtual disk"
+.kW "disk server"
+.kW "disklabel"
+The virtual disk server provides a high performance interface for reading
+and writing disk blocks.
+It does
+.B not
+implement a file system.
+File systems can be constructed on top of this interface.
+The main feature of the server is that it implements
+.I "virtual disks" .
+It can collect one or more disk partitions from one or more physical disks and
+present them as a single virtual disk to the client.
+The client is not aware of the underlying hardware.
+One of the side-effects of this is that it is possible to grow a virtual disk
+by adding an extra partition if that does not interfere with the semantics of
+the disk usage.
+(Some file systems may have details about the total disk size built into
+information on the disk.)
+.LP
+NB. All the physical disks managed by the server must be physically attached to
+the machine where the server is running.
+.LP
+The server can manage more than one virtual disk at a time.
+Their capabilities will appear in the kernel directory on the machine to which
+the disks are attached under the name
+.I vdisk:nn
+where
+.I nn
+is a two digit number assigned to the virtual disk.
+.LP
+In addition there is an interface to each physical disk which can be
+accessed using the standard disk interface routines.
+This capability provides raw access to the entire disk and is extremely
+dangerous since it permits writing on any block on the device.
+The capability for the physical disks appear in the kernel directory of the
+machine to which they are attached under the name
+.I bootp:nn
+where
+.I nn
+is a two digit number assigned to the physical disk.
+.LP
+The server does not enforce a fixed size disk block but rather lets the client
+specify the size of the disk block that is most convenient for the client.
+The disk block size must be a power of 2 and may range from 512 bytes up to
+a system defined limit.
+(The current limit is 16K bytes.)
+The client specifies the block size as the logarithm (base 2) of the size of
+the block.
+.LP
+Information about which partitions belong to which virtual disk is written
+on the disk.
+Each physical disk begins with a label describing the disk geometry and the
+partition table.
+In addition,
+each partition assigned to \*(Am begins with a special disk label that
+describes possible sub-partitioning of that partition and the virtual disk
+to which it belongs.
+It also contains information about where in the virtual disk it belongs
+(in case there is more than one physical partition comprising the vdisk).
+.LP
+Note that the server is able to use the disk label of certain other operating
+systems and thus share a disk by using a subset of the partitions.
+.LP
+When the virtual disk server starts up it reads the disk label.
+Using the partition table,
+it examines each partition to see if it is intended for use by \*(Am.
+(If it is it will have an \*(Am partition label.)
+It then collects details about which partitions comprise which virtual disk
+and then proceeds to take requests.
+The set of commands accepted by the server are very small.
+Beyond the standard commands it accepts only five others.
+They are for read, write, size of the disk, geometry of the disk and an
+``info'' request which returns
+a description of the underlying physical structure of a virtual disk.
+The interface is described below.
+.SH
+Programming Interface Summary
+.LP
+The programming interface consists of commands particular to the server
+(whose names begin with
+.I disk_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+A summary of the supported commands is presented in the following two tables.
+For a complete description of the interface routines see
+.I vdisk (L)
+and
+.I std (L).
+Not all the standard commands are supported since many of them are only
+relevant to abstract objects and disks are physical objects.
+Therefore
+.I std_copy
+and
+.I std_destroy
+are not implemented.
+.I Std_age
+and
+.I std_touch
+are implemented but simply return
+.cW STD_OK
+and do nothing further.
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+Standard Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:NONE:T{
+RPC error
+T}:T{
+Does Nothing
+T}
+_
+std_info:RGT_READ:T{
+RPC error
+.br
+STD_ARGBAD
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Returns string giving size in K bytes of disk
+T}
+_
+std_restrict::T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Returns a disk capability with restricted rights
+T}
+_
+std_touch:NONE:T{
+RPC error
+T}:T{
+Does Nothing
+T}
+_
+.TE
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lw(2.6c) | lw(2.8c) | lw(6c)
+lw(2.2c) | lp-2w(2.6c) | lp-2w(2.8c) | lw(6c) .
+Disk Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+disk_getgeometry:RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Return the disk geometry for a virtual disk
+T}
+_
+disk_info:RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Return physical layout of virtual disk
+T}
+_
+disk_read:RGT_READ:T{
+RPC error
+.br
+STD_ARGBAD
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Reads N disk blocks
+T}
+_
+disk_size:RGT_READ:T{
+RPC error
+.br
+STD_ARGBAD
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Return size in blocks of the disk
+T}
+_
+disk_write:RGT_WRITE:T{
+RPC error
+.br
+STD_ARGBAD
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Writes N blocks to disk
+T}
+_
+.TE
+.SH
+Administration
+.LP
+There is practically no day to day administration required for a virtual disk
+server once it has been installed.
+The only functions of interest are adding physical disks and replacing disks.
+The administrative information used by the server to describe virtual disks
+is kept in partition tables on the disk.
+This information is put in place by the
+.I disklabel (A)
+program.
+Therefore all administration of virtual disks is done using this tool.
+.LP
+If you need to know the current relationship between virtual disks and the
+physical disks (for example for repartitioning a disk) the program
+.I di (A)
+will print it for you.
+.SH
+See Also
+.LP
+di(A),
+disklabel(A),
+std(L),
+std_info(U),
+std_restrict(U),
+vdisk(L).

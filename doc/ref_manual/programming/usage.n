@@ -1,0 +1,76 @@
+.\"	@(#)usage.n	1.4	94/04/05 14:59:09
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "About This Manual"
+.SH
+Intended Audience
+.LP
+This manual is intended for use by people writing programs for \*(Am.
+It is assumed that the reader is familiar with the introductory material
+in the User Guide.
+.SH
+Scope
+.LP
+This manual explains the basic concepts of \*(Am from a programmer's
+perspective,
+the paradigms,
+the programming tools,
+writing clients and servers and using the various module interfaces.
+The manual also provides a description of the various library modules and
+routines available under \*(Am.
+.SH
+Advice on the Use of the Manual
+.LP
+The introductory material describing the programming paradigms of \*(Am
+should be thoroughly understood before attempting the development of
+important software.
+The tutorial examples are designed to give quick hands-on experience,
+which should demonstrate the important concepts.
+It is well worth typing them in and running them.
+.LP
+Throughout the manual there are references of the form
+.I prv (L),
+.I ack (U)
+and
+.I bullet (A).
+These refer to manual pages at the back of each guide.
+The following table explains what each classification refers to and in which
+guide the manual page can be found.
+.TS
+center, tab(:), box;
+l | l | l .
+Letter:Type:Location
+_
+(A):Administrative Program:System Administration Guide
+(H):Include file:Programming Guide
+(L):Library routine:Programming Guide
+(T):Test Program:System Administration Guide
+(U):User Utility:User Guide
+.TE
+.LP
+There is a full index at the end of the manual providing a permuted
+cross-reference to all the material.
+It gives references to both the manual pages and the introductory material
+which should direct you to enough information to clarify any difficulties in
+understanding.
+.LP
+Additional material may be required for a complete understanding of the
+programming environment.
+In particular the ANSI\ C and POSIX 1003.1 standards and some knowledge of
+.UX
+are helpful.
+.SH
+Warnings
+.LP
+As stated in the release notes,
+there have been several major changes between \*(Am\ 4 and \*(Am\ 5.
+More are expected in \*(Am 6.
+It is important that the guidelines for software development be followed
+to avoid upgrade difficulties.
+In particular,
+it is vital that all remote procedure calls be encapsulated in stub routines
+to isolate the rest of the code from the possible syntactic and semantic
+changes to this interface.

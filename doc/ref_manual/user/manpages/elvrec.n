@@ -1,0 +1,85 @@
+.\"	@(#)elvrec.n	1.1	96/02/15 18:11:49
+.aU
+	Software: Steve Kirkendall <kirkenda@cs.pdx.edu>
+	Document: Steve Kirkendall <kirkenda@cs.pdx.edu>
+	Modified: Gregory J. Sharp, Nov 1995 - converted to Amoeba format and
+				     adjusted to reflect the functionality
+				     under Amoeba.
+.aE
+.mT "elvrec" U
+recover the modified version of a file after a crash
+.SH
+Synopsis
+.LP
+elvrec [preservedfile [newfile]]
+.sC L
+.eC
+.SH
+Description
+.LP
+If editing a file with
+.I elvis (U)
+and it dies due to a signal,
+the most recent version of the file being edited will be preserved.
+The preserved text is stored in a special directory; it does NOT overwrite
+the original text file automatically.
+.LP
+.I Elvrec
+locates the preserved version of a given file using the
+.I preservedfile
+argument.
+It must be exactly the same file name as given to the original aborted
+.I elvis
+command.
+.I Elvrec
+writes the recovered version over the top of the original file \- or to a new file,
+if the
+.I newfile
+argument was specified.
+The recovered file will have
+.I nearly
+all of the changes.
+.LP
+To see a list of all recoverable files, run
+.I elvrec
+with no arguments.
+.LP
+If a nameless buffer was being edited when
+.I elvis
+died, then
+.I elvrec
+will pretend that the file was named
+.I foo .
+.mH
+Files
+.LP
+.IP \fI/dev/dead/p*\fP
+.br
+The text that was preserved when
+.I elvis
+died.
+.IP \fI/dev/dead/ElvisIndex\fP
+.br
+A text file which lists the names of all preserved files, and the corresponding
+names of the
+.I /dev/dead/p*
+files which contain the preserved text.
+.mH
+Warnings
+.LP
+.I Elvrec
+is very picky about filenames.
+Exactly the same path name given to
+.I elvis
+must be specified.
+The simplest way to do this is to go into the same directory where
+.I elvis
+was running, and invoke
+.I elvrec
+with no arguments.
+This will give exactly which path name was used for the desired file.
+.SH
+See Also
+.LP
+elvis(U),
+elvprsv(U).

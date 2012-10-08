@@ -1,0 +1,16 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/05 15:13:08
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+PROG_TOOLS = {
+	$PWD/header.n,
+	$PWD/ail.n,
+	$PWD/ailcook.n,
+	$PWD/amake.n,
+	$PWD/bawk.n,
+	$PWD/debugging.n,
+	$PWD/monitor.n
+};

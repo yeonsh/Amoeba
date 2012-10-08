@@ -1,0 +1,10 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:35:00
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_PRIO_TEST1 = $PWD/t1.c;
+T_PRIO_TEST2 = $PWD/t2.c;
+T_PRIO_TEST3 = $PWD/t3.c;

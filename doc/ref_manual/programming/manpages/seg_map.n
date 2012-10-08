@@ -1,0 +1,193 @@
+.\"	@(#)seg_map.n	1.6	96/02/15 16:55:41
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1989
+	Modified: Gregory J. Sharp, Aug 1994 - changed syscall names and made
+						versions that remember the
+						segment map
+	Document: Jack Jansen, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "seg_map" L "libamoeba.a"
+routines to control process virtual memory
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+
+segid seg_map(cap, addr, len, flags)
+errstat seg_grow(id, newsize)
+errstat seg_unmap(id, cap)
+.eC
+.SH
+Description
+.LP
+.kW "\fIseg_map\fP"
+.kW "\fIseg_grow\fP"
+.kW "\fIseg_unmap\fP"
+.kW "segment"
+.kW "virtual memory"
+.kW "process"
+.kW "segment identifier"
+.kW "click"
+These routines enable a user program to control its virtual address
+space.
+.I Seg_map
+creates a new segment, optionally filling it
+from a file or another segment, and maps the new segment in.
+.I Seg_grow
+grows or shrinks a segment.
+.I Seg_unmap
+unmaps a segment.
+.LP
+These calls are implemented with system calls, so no rights are involved,
+and a process can only manipulate its own address space in this way.
+.mH
+Functions
+.sH
+seg_map
+.LP
+.sC
+segid
+seg_map(cap, addr, len, flags)
+capability *cap;
+vir_bytes addr;
+vir_bytes len;
+long flags;
+.eC
+.kW "\fIseg_map\fP"
+.I Seg_map
+creates a new segment of length
+.I len
+and maps it into
+the process' address space at address
+.I addr .
+.I Addr
+should be a multiple of ``clicks''.
+The size of a click is architecture dependent,
+but usually the same as the hardware page size.
+Also, architectures may place restrictions on the range
+of virtual addresses that may be used by user programs.
+The routine
+.kW "\fIfindhole\fP"
+.I findhole (L)
+may be used to obtain an address where
+a segment may be mapped in and that satisfies all the necessary conditions.
+.LP
+If
+.I cap
+is non-NULL and not a NULL-capability the segment is initialized from the
+specified file or segment (using
+.I b_read
+calls,
+see
+.I bullet (L)).
+The
+.I flags
+specify how the segment should be mapped, whether it is
+growable, etc.
+A complete description of the bits in
+.I flags
+can be found in
+.I process_d (L).
+.LP
+On success,
+.kW "\fIseg_map\fP"
+.I seg_map
+returns a segment identifier, a small integer
+that can be passed to
+.kW "\fIseg_grow\fP"
+.I seg_grow
+or
+.kW "\fIseg_unmap\fP"
+.I seg_unmap .
+.eR
+\*<STD_ARGBAD\*>	Addr is not on a click boundary,
+	the length is bigger than the maximum segment size,
+	or the segment would overlap an existing segment.
+\*<STD_COMBAD\*>	The flag word is invalid, i.e., no segment type
+	or protection specified, or an attempt to map
+	a non-local segment with \*<MAP_INPLACE\*> is made.
+	Also returned on an attempt to map a zero-sized segment.
+\*<STD_NOSPACE\*>	The machine has not enough physical memory
+	available to create the segment, or some internal
+	administrative table is full.
+\*<STD_CAPBAD\*>	The capability specified does not refer to an
+	existing file.
+.DE
+.sH
+seg_unmap
+.LP
+.sC
+errstat
+seg_unmap(id, cap)
+segid id;
+capability *cap;
+.eC
+.kW "\fIseg_unmap\fP"
+This call unmaps segment
+.I id .
+The segment id is either the value returned by a previous call to
+.kW "\fIseg_map\fP"
+.I seg_map ,
+or the index of the segment in the segment descriptor
+array returned by
+.kW "\fIgetinfo\fP"
+.I getinfo (L).
+If
+.I cap
+is not a NULL-pointer, a capability for the now unmapped segment is stored here.
+This segment remains attached to the program,
+and will be deleted when the program exits.
+If a NULL-pointer is specified for
+.I cap ,
+the segment will be deleted immediately.
+.eR
+\*<STD_COMBAD\*>	The segment id does not refer to a currently
+	mapped-in segment.
+.DE
+.sH
+seg_grow
+.LP
+.sC
+errstat
+seg_grow(id, newsize)
+segid id;
+vir_bytes newsize;
+.eC
+.kW "\fIseg_grow\fP"
+This call changes the size of a mapped segment.
+Depending on the growth direction specified in the call to
+.I seg_map ,
+the segment will be grown (or shrunk) at the high end or the low end.
+.eR
+\*<STD_COMBAD\*>	The segment does not exist, or it is a fixed size
+	segment.
+\*<STD_NOSPACE\*>	There is no physical memory available to grow the
+	segment, or the new size specified would cause the segment
+	to overlap with another segment.
+.DE
+.mH
+Warnings
+.LP
+Due to problems in the current kernel it is often not possible to grow
+segments, even if enough physical memory is available.
+For this reason
+modules that do memory allocation (like
+.I malloc (L))
+should always be prepared to allocate a completely new segment if it is
+impossible to grow a segment.
+.SH
+See Also
+.LP
+bullet(L),
+getinfo(L),
+process(L),
+process_d(L).

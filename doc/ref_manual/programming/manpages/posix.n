@@ -1,0 +1,623 @@
+.\"	@(#)posix.n	1.9	96/02/15 16:54:06
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Many; Ajax by Guido van Rossum, 1988-1990
+	Modified: Kees Verstoep, adapted to match changes made to libraries
+		  Ron Visser, Feb-June 1993:  improved POSIX conformance
+	Document: Guido van Rossum, March 1990
+	Modified: Kees Verstoep, adapted to match changes made to libraries
+		  Ron Visser, June 1993: extended POSIX compliance statements
+		  Greg Sharp, Feb 1996
+.aE
+.mT "posix" L "libajax.a, libamoeba.a"
+the POSIX operating system interface support
+.SH
+Synopsis
+.LP
+Support for POSIX library functions and header files is discussed.
+.SH
+Description
+.LP
+.kW "library"
+.kW "POSIX"
+.kW "POSIX conformance"
+.kW "POSIX, deviations from "
+.kW "Ajax"
+.kW "STD C"
+.kW "header files"
+.kW "AJAX_DEBUG environment variable"
+.kW "AJAX_TRACE environment variable"
+.kW "_WORK environment variable"
+The \*(Am library is evolving towards as much POSIX support as possible.
+Because most of these functions are adequately documented by POSIX,
+only those functions where \*(Am's POSIX implementation differs
+from the standard are described.
+A companion document,
+.I ansi_C (L),
+provides information about functions
+not defined by POSIX but by the C Standard.
+In cases where both standards have conflicting definitions,
+\*(Am follows POSIX.
+.LP
+Many of the POSIX library functions use the services of the session server
+(see
+.I session (U))
+to assist in their implementation.
+The session server provides shared file descriptors, process management
+support and pipes (although named pipes or FIFOs are implemented by
+.I fifosvr (A)).
+.LP
+Specific deviations from POSIX are listed below.
+It should also be noted that the library contains many reserved names
+that are used by the POSIX emulation itself (e.g., the \*(Am transaction
+primitives).
+They should not be overridden by applications.
+.LP
+For easy reference,
+the sections below are numbered the same way as the
+chapters in the POSIX standard.
+All supported header files are found in the header subdirectory
+.I posix .
+.mH
+Chapter 2.  Definitions and General Requirements
+.LP
+.I "2.2 Conformance.
+While \*(Am is not yet a conforming implementation of POSIX,
+a large number of the facilities and interfaces
+defined by the POSIX standard are supported,
+so the POSIX standard is still an important yardstick to
+measure application portability to \*(Am.
+.LP
+.I "2.2.3.3 Common Usage C Language-Dependent System Support.
+Although the C compiler available on \*(Am
+is fully derived from the Standard Conforming ACK STD C Compiler,
+the \*(Am libraries still require some work,
+in order to reach full conformance.
+.mH
+2.4 General Concepts
+.LP
+.I "File access permissions.
+.kW "file access permissions"
+\*(Am's access control mechanisms are different from and partly incompatible
+with those specified by POSIX.
+Access rights for an object depend on the capability presented to the server;
+the
+.I soap (A)
+directory service strips rights from capabilities
+depending on the path name used.
+File access permissions reported by the POSIX emulation (e.g., by
+.I stat )
+are derived values at best.
+Execute permission is always granted.
+.LP
+.I "File update time.
+.kW "file update time"
+\*(Am supports only a single time stamp for a file,
+which is reported as
+.I atime ,
+.I mtime
+and
+.I ctime .
+It is the time that the capability was stored in the directory,
+and has a precision of minutes only.
+.LP
+.I "User & group ids.
+.kW "uid"
+.kW "gid"
+No security is derived from uids and gids under \*(Am since access is
+controlled by capability.
+If some application needs to run with a particular uid and/or gid they can be
+set to other values in the string environment variable
+.cW _IDS .
+The format is
+.I uid:gid:euid:egid ,
+where
+.I euid
+and
+.I egid
+are the effective user and group ids, respectively.
+If
+.cW _IDS
+is not defined then the uid is derived from the object number in the capability
+for the user's root directory
+(since this is unique per user) and the gid defaults to 1.
+.LP
+.I "Path name resolution.
+.kW "path name resolution"
+\*(Am supports multiple indistinguishable links to directories.
+The special path name components dot and dot-dot are interpreted
+lexically,
+e.g.,
+.I /foo/bar/../bletch/.
+is reduced to
+.I /foo/bletch
+before it is presented to the directory server.
+Path names relative to the current working directory are expanded
+using the special environment variable
+.cW _WORK ,
+which keeps track of its name.
+This environment variable is passed to child processes and updated by
+.I chdir .
+.mH
+2.8 Numerical Limits
+.LP
+Most of the constants mentioned in this section beyond those defined by the C
+standard are not yet provided in
+.I limits.h .
+.mH
+Chapter 3. Process Primitives
+.LP
+The following process attributes are not supported:
+.IP \(bu
+Process time accounting attributes
+.IP \(bu
+Session membership
+.SH
+P.3.1.1
+.IP \(bu
+.kW \fIfork\fP
+Directory stream positioning is not shared by parent and child after a
+.I fork .
+.SH
+P.3.1.2
+.kW \fIexec\fP
+.IP \(bu
+If the environment variable
+.cW PATH
+is not present, the functions
+.I execlp
+and
+.I execvp
+use \*<:/bin:/usr/bin\*> as the search path.
+.IP \(bu
+When computing the size of the arguments to
+.I exec ,
+the sum is taken over the arguments including NULL-terminators,
+pointers and alignment bytes.
+.IP \(bu
+A regular file can be executed as a shell script when it begins
+with a line of the form
+.cW "#!\ \fIshell optional-arg\fP"
+(e.g.,
+.cW "#! /bin/sh -x" ).
+.IP \(bu
+It is also possible to execute a directory containing a
+set of process descriptors (see
+.I exec_file (L)).
+.IP \(bu
+An additional primitive to start a child process without forking is provided.
+See
+.I newproc (L).
+.SH
+P.3.3
+.kW \fIsignals\fP
+.IP \(bu
+The implementation defines the following additional signals:
+.cW SIGAMOEBA ,
+.cW SIGSYS ,
+.cW SIGTRAP
+and
+.cW SIGBUS .
+.IP \(bu
+.cW SIGCHLD
+is not supported.
+.IP \(bu
+If a subsequent occurrence of a pending signal is generated, the
+signal is delivered at most once.
+.IP \(bu
+Job control is not implemented because the semantics required for
+job control signals are not all implemented.
+.SH 
+P.3.3.2
+.kW \fIkill\fP
+.IP \(bu
+If the first parameter of
+.I kill
+is -1,
+all processes except the calling process are killed,
+which is what BSD does.
+.SH 
+P.3.3.4
+.kW \fIsigaction\fP
+.IP \(bu
+An attempt to set the action for a signal that cannot be caught or
+ignored to SIG_DFL fails with
+.I errno
+set to
+.cW [EINVAL] .
+.SH
+P.3.4.3
+.kW \fIsleep\fP
+.IP \(bu
+.I sleep
+is not based on
+.I alarm .
+When a
+.cW SIGALRM
+signal is scheduled and there is a handler present,
+.I sleep
+will return after the handler is finished.
+.mH
+Chapter 4. Process Environment
+.SH
+P.4.3.2
+.kW \fIsetsid\fP
+.IP \(bu
+\fIsetsid\fP is a dummy
+since the whole concept of a session is not supported.
+.SH
+P.4.3.3
+.kW \fIsetpgid\fP
+.PP
+.IP \(bu
+No checks are made on the arguments of
+.I setpgid
+and thus no errors occur.
+.SH
+P.4.5.1
+.IP \(bu
+If the function
+.I time
+cannot reach the time-of-day server,
+it returns -1,
+clears the variable pointed to by its argument if not a NULL-pointer,
+and sets
+.I errno
+to
+.cW [EIO] .
+.SH
+P.4.5.2
+.kW \fItimes\fP
+.IP \(bu
+The function
+.I times
+returns a the number of milliseconds since system start-up.
+All fields of the supplied buffer are set to zero.
+.br
+.ne 5
+.mH
+Chapter 5. Files and Directories
+.SH
+P.5.1.2
+.kW \fIreaddir\fP
+.IP \(bu
+The function
+.I readdir
+does not return the entries dot and dot-dot.
+.IP \(bu
+After a
+.I fork
+both parent and child can use a previously opened
+directory stream without interfering each other.
+.SH
+P.5.2.2
+.kW \fIgetcwd\fP
+.IP \(bu
+If the buffer supplied to to 
+.I getcwd
+is
+.cW NULL ,
+.I errno
+is set to
+.cW [EINVAL]
+and
+.cW NULL
+is returned.
+.SH 
+P.5.3.10
+.kW \fIopen\fP
+.IP \(bu
+When a disk file is concurrently opened for writing using separate
+.I open
+calls,
+only the version that is closed last will be retained.
+.IP \(bu
+When a file is opened for reading,
+the version of the file that existed
+at the time the
+.I open
+call was made is accessed.
+Updates to the file
+while the file remains open for reading will not be seen by the reader.
+.IP \(bu
+When a process that has a file open for writing crashes,
+the updated version of the file is not always committed to disk.
+In all cases,
+either the old or the new version will exist,
+never an intermediate version.
+.IP \(bu
+There is no concept of file ownership.
+.IP \(bu
+Directories cannot be opened for reading with
+.I open ;
+.I opendir
+should be used instead.
+.IP \(bu
+When a FIFO is opened with
+.cW O_RDWR ,
+the call to
+.I open
+fails with
+.I errno
+set to
+.cW [EINVAL].
+.IP \(bu
+When a file is opened with
+.cW O_CREAT
+and the mode contains other bits
+than the file permission bits, these bits are ignored.
+.IP \(bu
+If
+.cW O_EXCL
+is set without
+.cW O_CREAT ,
+the call to
+.I open
+fails if the file exists.
+.IP \(bu
+If
+.I open
+is called with
+.cW O_TRUNC
+in combination with
+.cW O_RDONLY ,
+the
+.cW O_TRUNC
+flag is ignored.
+.SH
+P.5.3.3
+.kW \fIumask\fP
+.IP \(bu
+.I umask
+ignores bits other than file permission bits.
+.SH
+P.5.3.4
+.kW \fIlink\fP
+.IP \(bu
+Links have totally different semantics.
+A link almost completely behaves as a copy of the file,
+only cheaper.
+The exception is that the \*(Am
+.I std_destroy
+request (see
+.I std (L))
+destroys a file, breaking all unmodified links to it.
+.IP \(bu
+Using
+.I link
+on arguments that name directories fails with
+.I errno
+set to
+.cW [EPERM] .
+.SH
+P.5.4.1
+.kW \fImkdir\fP
+.IP \(bu
+.I mkdir
+ignores bits other than file permission bits in its mode parameter.
+.SH
+P.5.4.2
+.kW \fImkfifo\fP
+.IP \(bu
+.I mkfifo
+ignores bits other than file permission bits in its mode parameter.
+.SH
+P.5.5.1
+.kW \fIunlink\fP
+.IP \(bu
+\*(Am does not maintain file link counts;
+unlinked files stay around until garbage-collected or explicitly destroyed with
+.I std_destroy
+(see
+.I std (L)).
+When a file is updated via the \*(Am POSIX emulation,
+any old version is automatically destroyed.
+Note this also makes any link to the old version invalid.
+The reason for not relying fully on garbage collection in this case,
+is that each update of a big log file would create an unreachable copy,
+taking up lots of disk space.
+Garbage collection could be just too slow when this happens regularly.
+.IP \(bu
+When the argument of
+.I unlink
+names a directory,
+the call fails with
+.I errno
+set to
+.cW [EPERM].
+.SH
+P.5.5.2
+.kW \fIrmdir\fP
+.IP \(bu
+.I rmdir
+is successful when
+.I path
+is a directory that is in use by another
+process or if it is the current working directory of the calling process.
+.SH
+P.5.6.2
+.kW \fIstat\fP
+.kW \fIfstat\fP
+.IP \(bu
+The functions
+.I stat
+and
+.I fstat
+return dummy data for certain members:
+.RS
+.IP st_mode 8
+Always reports read,
+write,
+modify permission for owner,
+group and
+others (the actual permissions on a file are only revealed when it is
+opened).
+.IP st_ino
+Set to a hash function of the capability's private part (object number
+and random check word).
+.IP st_dev
+Set to a hash function of the capability's port.
+.IP st_nlink
+Set to one.
+.IP "st_uid, st_gid"
+.br
+Set to one.
+.IP "st_atime, st_mtime, st_ctime"
+.br
+All three are set to the time when the entry was last placed in its
+directory.
+.RE
+.IP \(bu
+The file times have an accurracy of about one minute.
+.IP \(bu
+Currently
+.I stat
+requires read permission for the file that is inspected.
+.KS
+.IP \(bu
+Besides the required members, the stat structure contains the
+following members for BSD (layout) compatibility.
+The members are not fully supported.
+.TS
+center box tab(;);
+l l.
+Member type;Member name
+=
+\fIdev_t\fP;\fIst_rdev\fP
+\fIlong\fP;\fI_st_spare1\fP
+\fIlong\fP;\fI_st_spare2\fP
+\fIlong\fP;\fI_st_spare3\fP
+\fIlong\fP;\fIst_blksize\fP
+\fIlong\fP;\fIst_blocks\fP
+\fIlong\fP;\fI_st_spare4[2]\fP
+_
+.TE
+.KE
+.IP \(bu
+Capabilities of objects that do not represent a file or directory
+are interpreted as character special devices by
+.I stat ,
+but they usually cannot be opened for reading or writing.
+The exception is terminal devices,
+which can be opened normally.
+.mH
+Chapter 6. Input and Output Primitives
+.IP \(bu
+The semantics of calls interrupted by signals are probably incorrect.
+.IP \(bu
+Not all
+.I fcntl
+options are supported:
+.cW F_GETLK ,
+.cW F_SETLK
+and
+.cW F_SETLKW
+are not supported;
+flags set with
+.cW F_SETFL
+(\*<O_APPEND\*> and
+.cW O_NONBLOCK )
+are not used by the system.
+.mH
+Chapter 7. Device- and Class-Specific Function
+.LP
+The `controlling terminal' concept is implemented by
+the entry
+.cW TTY
+in the capability environment of the process.
+The commands
+.I ax (U),
+and
+.I login (A)
+take care of setting it to the appropriate value.
+.LP
+Support for POSIX-style tty control is described in
+.I tios (L).
+.mH
+Chapter 8. Language-Specific Services for the C Programming Language
+.LP
+Remarks on the extensions listed in this chapter:
+.IP \(bu
+.cW TZ
+is supported (see
+.I ctime (L)).
+.IP \(bu
+the only locale supported is `C'.
+.IP \(bu
+.I fileno
+and
+.I fdopen
+are supported.
+.IP \(bu
+The type
+.I sigjmp_buf
+and the functions
+.I sigsetjmp
+and
+.I siglongjmp
+are not supported.
+.IP \(bu
+.I tzset
+is supported (see
+.I ctime (L)).
+.mH
+Chapter 9. System Databases
+.LP
+Rudimentary support for the group and user databases exists,
+so programs expecting them will find them;
+however,
+the databases contain at best dummy information.
+.mH
+Chapter 10. Data Interchange Format
+.LP
+\*(Am currently only supports a restricted version of the
+.I tar (U)
+program.
+This program can be used to copy file hierarchies between
+\*(Am
+and POSIX systems.
+Other POSIX-compatible data interchange programs should be
+relatively easy to port as well.
+Given the different approaches of POSIX and \*(Am 
+to access protection,
+care must be taken when moving files from one system to the other.
+.LP
+To copy an entire directory graph from one
+\*(Am system to another,
+the program
+.I starch (U)
+should be used instead.
+Besides being able to read and restore general graphs (rather than trees),
+it will also take care of restoring the capability protection masks to
+their original value.
+.mH
+Environment Variables
+.LP
+If the POSIX libraries are compiled without
+.cW NDEBUG
+defined and the variable
+.cW AJAX_DEBUG
+is present in the string environment,
+a terse message will be printed when a POSIX library function fails.
+Similarly,
+.cW AJAX_TRACE
+can trigger various other debugging messages.
+These debugging messages are only intended when debugging the POSIX
+libraries and should not be considered a permanent part of the interface.
+.SH
+See Also
+.LP
+IEEE Std 1003.1-1990 (POSIX)
+.LP
+ansi_C(L),
+ctime(L),
+newproc(L),
+session(U),
+soap(A),
+std(L),
+tios(L).

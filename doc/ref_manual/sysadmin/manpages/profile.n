@@ -1,0 +1,93 @@
+.\"	@(#)profile.n	1.3	96/02/15 17:49:42
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg
+	Document: Gregory J. Sharp, May 1992
+.aE
+.mT "profile" A "UNIX ONLY"
+display graphically the results of an \*(Am kernel profile
+.SH
+Synopsis
+.LP
+.sC L
+profile [-a] [-i interval] [-k kernel] [-m] [-n iterations] [-v] host
+.eC
+.SH
+Description
+.LP
+.I Profile
+is used to collect stack traces from an \*(Am kernel and to display a profile
+of function calls in graphical form, including the amount of time spent in
+each function.
+.LP
+To use this from
+.UX
+the
+.UX
+kernel must have an \*(Am FLIP driver and
+the \*(Am kernel must have a profile server (see
+.I profsvr (A)).
+.LP
+The
+.I profile
+command works as follows:
+It sends a profile request to the profile server in the \*(Am kernel.
+The server begins filling a buffer with stack traces from the kernel.
+A stack trace is taken every 10 milliseconds if not otherwise specified by
+the
+.B \-i
+option.
+The buffer contains 30000 bytes.
+When it is full the profile server returns the buffer to
+.I profile .
+More than one buffer will be collected if the
+.B \-n
+option is specified.
+Once the data has been collected from the kernel it is analyzed using
+.I nm
+and then printed in a graphical format showing the function call structure
+and the amount of time (in milliseconds) spent in each routine.
+.mH
+Options
+.LP
+.kW ACK
+.IP \fB\-a\fP
+The kernel was generated using ACK.
+Use the ACK program
+.I anm
+to analyze the kernel's symbol table.
+.IP "\fB\-i\fP \fIinterval\fP"
+.br
+This sets the time between making stack traces to
+.I interval
+milliseconds.
+The default is 10.
+.IP "\fB\-k\fP \fIkernel\fP"
+.br
+This specifies the name of the
+.UX
+file containing the \*(Am kernel that is running on
+.I host .
+The symbol table from this file is used to analyze the stack traces.
+The default is
+.I ./kernel .
+.IP \fB\-m\fP
+Merge the instances of a function call into a single total for that function.
+.IP "\fB\-n\fP \fIiterations\fP"
+.br
+The number of times the profile server is asked to provide a set of stack
+traces is set to
+.I iterations .
+The default is 1.
+.IP "\fB\-v\fP"
+Verbose mode.
+Useful for debugging.
+It is not recommended.
+.SH
+See Also
+.LP
+profsvr(A).

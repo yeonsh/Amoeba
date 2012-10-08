@@ -1,0 +1,49 @@
+.\"	@(#)xreinit.n	1.4	94/04/05 16:16:08
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, May 1990
+	Document: Jack Jansen, June 1990
+.aE
+.mT "xreinit" U
+reinitialize an X server
+.SH
+Synopsis
+.LP
+.sC L
+xreinit display
+.eC
+.SH
+Description
+.LP
+.kW "X windows"
+.kW "logging out"
+.I Xreinit
+causes the specified X server to reinitialize.
+Among other things,
+this causes all windows to be destroyed and all connections to be closed.
+.SH
+Warning
+.LP
+This call is specific to the \*(Am X server, so it will not work
+for X servers running on
+.UX .
+.SH
+Example
+.LP
+The following line in your
+.I .profile
+.sC
+trap 'xreinit $DISPLAY' 0
+.eC
+will close all windows upon logout, leaving the X server ready for a
+new session.
+.SH
+See Also
+.LP
+X(U),
+xshutdown(U).

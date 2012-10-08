@@ -1,0 +1,77 @@
+.\"	@(#)sp_fix.n	1.4	94/04/05 15:40:55
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael N. Condict
+	Document: Michael N. Condict, Aug. 1990
+.aE
+.mT "sp_fix" A
+delete or get the caps for a SOAP directory
+.SH
+Synopsis
+.LP
+.cW
+sp_fix [ \-g | \-d ]  soap-disk-partition  dir-number
+.R
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "directory server"
+.kW "Bullet Server"
+.kW "lazy replication"
+Given the object number for a directory (specified in decimal, not hex),
+.I sp_fix
+will either clear its Bullet file capabilities in the
+.I soap
+disk partition, effectively deleting it (\fB\-d\fP flag), or will print the
+capabilities to
+.I stdout
+in the form expected by the
+.I put (U)
+command (\fB\-g\fP flag).
+This command is only intended to be used as a last ditch measure when
+.I soap
+cannot fix a problem with a directory itself.
+.LP
+The safest way to delete the bad directory is to first use
+.sC
+sp_fix \-g
+.eC
+piped into a
+.I put
+command, to get the capset for its Bullet files and enter them
+into the directory graph.
+At this point they can be examined and manipulated
+just like any other Bullet files.
+Then use
+.sC
+del \-f
+.eC
+to destroy the Bullet files.
+Finally use
+.sC
+sp_fix \-d
+.eC
+to clear the capabilities in the
+.I soap
+disk partition.
+.SH
+Examples
+.LP
+.sC L
+.ps-1
+sp_fix \-g /super/hosts/bullet0/vdisk:02 1488 | put /home/tmp/dir.1488
+.ps
+.eC
+will enter the capabilities for the Bullet files of directory 1488 under
+the path name
+.I /home/tmp/dir.1488 .
+.SH
+See Also
+.LP
+capset(L),
+soap(A).

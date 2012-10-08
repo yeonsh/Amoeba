@@ -1,0 +1,16 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/15 16:45:50
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+PROG_LANGS = {
+	$PWD/header.n,
+	$PWD/ack.n,
+	$PWD/ackdescr.n,
+	$PWD/led.n,
+	$PWD/ansi_C.n,
+	$PWD/pcref.n,
+	$PWD/m2ref.n,
+};

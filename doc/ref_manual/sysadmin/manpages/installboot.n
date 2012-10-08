@@ -1,0 +1,100 @@
+.\"	@(#)installboot.n	1.9	96/02/15 17:21:40
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, August 1991
+	Document: Leendert van Doorn, November 1991
+	Modified: Greg Sharp, July 1992 - added info about sun3 version
+	Modified: Greg Sharp, Jan 1996 - the world has changed.
+.aE
+.mT "installboot" A
+install the hard disk or floppy bootstrap loader on disk
+.SH
+Synopsis
+.LP
+.sC L
+installboot.ibm_at [-f] bootstrap-loader disk-capability
+installboot.sun bootp disk-capability bootstrap-loader
+.eC
+.SH
+Description
+.LP
+.kW "secondary bootstrap"
+.kW "\fIinstallboot.ibm_at\fP"
+.kW "\fIinstallboot.sun\fP"
+.I Installboot.ibm_at
+installs the \*(Am secondary bootstrap loader on hard or floppy disk,
+and patches the binary according to the ISA bootstrap specifications.
+The
+.B \-f
+options specifies whether the bootstrap loader is installed on
+a floppy or a hard disk.
+For a floppy disk the bootstrap loader is just written in the
+first 17 sectors of the disk.
+For a hard disk the partition table is searched for an active \*(Am partition,
+and only if such a partition exists is the bootstrap loader written to disk.
+Besides writing the bootstrap loader on disk it also signs the binary
+with a magic stamp as required by the ISA primary (ROM or DISK) bootstrap
+loader.
+.LP
+.I Installboot.sun
+is used to install the secondary bootstrap loaded onto a Sun hard disk.
+It uses the first cylinder of the hard disk to store the bootstrap.
+For this it needs the
+.I bootp
+parameter.
+It also needs to know the name of the virtual disk where the bootable kernels
+are kept.
+.mH
+Diagnostics
+.LP
+.I Installboot.ibm_at
+complains when the bootstrap loader binary does not have a proper
+.kW ACK
+ACK binary header.
+For hard disk installation the absence of a bootable \*(Am partition
+is considered fatal.
+.mH
+Files
+.LP
+.ta 6.7c
+/super/admin/kernel/isa.flboot	i80386 Floppy bootstrap loader
+.br
+/super/admin/kernel/isa.hdboot	i80386 Hard disk bootstrap loader
+.br
+/super/admin/kernel/sun3.hdboot	sun3 Hard disk bootstrap loader
+.br
+/super/admin/kernel/sun4.hdboot	sun4 Hard disk bootstrap loader
+.mH
+Warning
+.LP
+.I Installboot
+is by nature a very dangerous program and can,
+by improper use,
+damage the contents of your disk.
+.SH
+Examples
+.LP
+To install the \*(Am bootstrap loader on a i80386's hard disk, type:
+.sC L
+.ps-1
+installboot.ibm_at /super/admin/kernel/isa.hdboot /super/hosts/bullet/bootp:00
+.ps
+.eC
+To do likewise for a Sun 3 with host name
+.I foo :
+.sC L
+.ps-1
+installboot.sun /super/hosts/foo/bootp:00 /super/hosts/foo/vdisk:01 \e
+		/super/admin/kernel/sun3.hdboot
+.ps
+.eC
+.SH
+See Also
+.LP
+isaboot(A),
+fdisk(A),
+mkbootpartn(A).

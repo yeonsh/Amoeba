@@ -1,0 +1,60 @@
+.\"	@(#)envcap.n	1.4	96/02/15 18:11:54
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael Condict
+	Document: Michael Condict, 9/08/90
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "envcap" U
+get a capability from, or list, the capability environment
+.SH
+Synopsis
+.LP
+.sC L
+envcap [name]
+.eC
+.SH
+Description
+.LP
+.kW "capability-set"
+.kW "capability environment"
+With no arguments,
+.I envcap
+lists the names of all the capabilities in the capability environment.
+.LP
+Given the name of one of the capabilities in the environment,
+.I envcap
+uses
+.I getcap (L)
+to obtain the capability specified by
+.I name
+and writes it to standard output, in the form of a singleton capability-set
+suitable as input to the
+.I put
+command.
+No check for the validity of the capabilities in the environment is performed.
+.SH
+Example
+.LP
+.sC
+envcap TTY | put /dev/tty34
+.eC
+will install the
+.cW TTY
+capability of the current process under the name
+.I /dev/tty34
+in the directory server.
+If any process then writes to
+.I /dev/tty34 ,
+the output
+will go to the tty that was in use when the envcap command was invoked.
+.SH
+See Also
+.LP
+get(U),
+getcap(L),
+put(U).

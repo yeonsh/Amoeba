@@ -1,0 +1,68 @@
+.\"	@(#)uniq.n	1.4	96/02/16 11:10:15
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "uniq" U
+delete consecutive identical lines in a file
+.SH
+Synopsis
+.LP
+.sC L
+uniq [-cdu] [+n] [-n] [input [output]]
+.eC
+.SH
+Description
+.LP
+.I Uniq
+examines the file
+.I input
+for consecutive lines that are identical.
+All duplicate entries are deleted,
+and the file is written to the file
+.I output .
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+The count of identical copies of each line is written at the start of
+each output line.
+.IP \fB\-d\fP
+Only duplicate lines are written to output.
+One copy of each line that had duplicates is written.
+.IP \fB+n\fP
+When comparing lines skip the first
+.I n
+fields,
+where a field is defined as a run of characters separated by white space.
+.IP \fB\-n\fP
+When comparing lines skip the first
+.I n
+spaces.
+Fields are skipped first.
+.IP \fB\-u\fP
+Only unique lines are written to output.
+.SH
+Examples
+.LP
+.sC
+uniq +2 file
+.eC
+Ignore first 2 fields when comparing.
+.sC
+uniq -d inf outf
+.eC
+Write duplicate lines from the file
+.I inf
+to
+.I outf .
+.SH
+See Also
+.LP
+sort(U).

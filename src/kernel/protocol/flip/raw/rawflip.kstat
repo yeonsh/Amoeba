@@ -1,0 +1,8 @@
+/*	@(#)rawflip.kstat	1.4	96/02/27 14:03:07 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+w	rawflip_dump	"raw flip interface dump"	SYS_RGT_NONE

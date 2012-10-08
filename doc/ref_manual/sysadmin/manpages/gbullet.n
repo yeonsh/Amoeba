@@ -1,0 +1,1078 @@
+.\"	@(#)gbullet.n	1.1	96/02/15 17:21:19
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer, Nov 1993 - Nov 1995
+	Document: E.G. Keizer, 09/11/95
+	Modified: Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "gbullet" A
+a high performance immutable file server member
+.SH
+Synopsis
+.LP
+.sC L
+gbullet [-i numinodes] [-m memsize] [-t nthread] [vdiskname]
+.br
+.I or
+.br
+built into the kernel (no options)
+.eC
+.SH
+Description
+.LP
+.kW "immutable"
+.kW "Bullet file"
+.kW "contiguous"
+.kW "replicated"
+.kW "group bullet"
+.kW "atomic commit"
+The Group \*(Bs implements a high speed distributed immutable file service under \*(Am.
+Each Group \*(Bs consists of several Member \*(Bss.
+The Group \*(Bs uses provides the same file creation and access interface
+as the \*(Bs, see
+.I bullet (A).
+.LP
+The  Member \*(Bss maintain a common set of inodes.
+Each inode has a number that is used, together with the
+.I "file port"
+to create file capabilities.
+Inodes are either free or contain information on a file and the place of
+the file contents on disk.
+Each inode is owned by one of the members.
+This ownership is internal to the Group \*(Bs.
+Only the owner of an inode may change that inode.
+Changes include creation of a file, modifying an uncommitted file
+and destroying a file.
+The ownership of free inodes can change dynamically.
+The Group \*(Bs provides automatic replication of files.
+Inodes are replicated on all members through lazy replication.
+The
+.I "replication count" ,
+a common variable for the whole group,
+indicates the required number of replicas of the contents
+of each committed file.
+Normally, all members of a Group \*(Bs will be active.
+But even a single active member of a large group will provide file service.
+A single member allows file creation and provides file status information for
+most files.
+It returns the error
+.cW STD_NOTNOW
+for read attempts on files of which it does not have a replica
+and requests for using the object number of free inodes
+owned by currently inactive members.
+.LP
+The members of each group use provide several services to their users
+and each other.
+Group communication, see
+.I grp (L)
+is used among the members of the Group \*(Bs
+to keep each other apprised of changes to inodes and other status
+information.
+Member administration service is offered through a unique
+member super capability.
+Group administration service is offered through the common
+Group \*(Bs super capability.
+File service is offered through the file capabilities created by
+the Group \*(Bs.
+All file capabilities for a particular Group \*(Bs use the same port.
+This can be the same port as used for the Group \*(Bs super capability,
+see
+.I gb_mkfs (A).
+.LP
+High performance is achieved using a large buffer cache to reduce secondary
+storage access and by taking advantage of the fact that files are immutable to
+store them contiguously,
+both in the cache and on secondary storage.
+Each Member \*(Bs uses the virtual disk server (see
+.I vdisk (A))
+to read and write the disk.
+.LP
+Each Member
+\*(Bs can be run either as a user mode program or in the kernel of
+the machine with the virtual disk to be used by the server.
+When run in the kernel the information needed to start the server is deduced
+dynamically.
+When run as a user program the information can be given as command line
+options.
+For more details see the section
+.I "User Mode Bullet Server"
+below.
+Functionally the user mode and kernel mode
+servers are identical.
+They differ primarily in the manner and location of starting them.
+.LP
+Bullet files are identified by capability only.
+A directory server is used to implement a mapping between
+.kW ASCII
+ASCII file names and capabilities.
+.LP
+There are three primary operations that can be performed using the Group \*(Bs:
+.I "Create file" ,
+.I "Read file" ,
+and
+.I "Destroy file" .
+.R
+The complete set of operations are described in the
+.I "Programming Interface Summary"
+below.
+.LP
+A file may be created incrementally in the buffer cache of a Member
+\*(Bs but it remains
+.I uncommitted
+until the file is complete.
+Uncommitted files can be either modified or destroyed.
+Modification is done
+using the \*(Bs's editing operations:
+.I b_insert ,
+.I b_modify
+and
+.I b_delete .
+Along with
+.I std_destroy ,
+these are the only operations permitted on uncommitted files.
+For all other purposes they do not exist.
+Once
+.I committed ,
+files are immutable \- they can only be read or destroyed.
+The
+.I commit
+operation is atomic.
+When committing a file it is possible to specify that you wish to block until
+the file has been written to disk and replicated,
+or return immediately and let the file be written to disk later.
+The latter always occur within
+.cW BS_SWEEP_TIME
+milliseconds (see
+.I bullet.h ).
+This is typically set to one minute.
+.LP
+Because it is possible for the capability for a file to be lost,
+.kW "garbage collection"
+there is a system of garbage collection to throw away files that have not
+been
+.I touched
+within a certain time period.
+A file is
+.I touched
+by being accessed or by using the special command
+.I std_touch
+described below.
+.kW "garbage collection"
+More details of garbage collection are given in the
+.I Administration
+section below.
+.LP
+It is possible that a client dies while creating a file,
+leaving an uncommitted file in the buffer cache.
+To prevent malicious or accidental filling of the buffer cache with files
+that will never be committed there is a short time out on uncommitted files.
+If no modification command is received within
+.cW BS_CACHE_TIMEOUT
+seconds (typically set to ten minutes) the file is destroyed.
+.SH
+The User Mode Bullet Server
+.LP
+The performance of the user mode Group \*(Bs is marginally slower than that of the
+kernel mode version but the difference is negligible for most purposes.
+The primary difference between the user and kernel mode servers is the manner
+of starting them.
+The kernel mode version is started when the kernel is booted and determines
+which disk and how much memory it should use on the basis of the resources
+that are present.
+The user mode version must be told which virtual disk to use.
+This can be done with a path name for the virtual disk on the command line
+(for example,
+.I /super/hosts/foo/vdisk:09 )
+or by setting the string environment variable
+.cW BULLET_VDISK
+to be the name of the virtual disk.
+The user mode server need not run on the same host as the virtual disk server
+that it uses (as is the case with the kernel mode server), but the best
+performance is obtained that way.
+.mH
+Options
+.LP
+.IP "\fB\-i\fP \fInuminodes\fP"
+.br
+This tells the server to load only the first
+.I numinodes
+inodes into the cache.
+Any files whose inode number is higher than
+.I numinodes
+will not be accessible.
+The effect of this is to reduce the amount of memory taken up by the in-core
+inode table.
+This is only intended for use in the coldstart process.
+It should not be used for normal operation.
+Note that when this option is used a small warning will be printed before
+the initialization notice telling the number of inodes that will be cached.
+.IP "\fB\-m\fP \fImemsize\fP"
+.br
+This option tells the server how much memory to allocate for its buffer cache.
+The default is two megabytes.
+.IP "\fB\-t\fP \fInthread\fP"
+.br
+This option sets the number of threads accepting requests from clients to be
+.I nthread .
+The default is ten (25).
+.SH
+Programming Interface Summary
+.LP
+The programmers' interface consists of commands particular to the \*(Bs
+(whose names begin with
+.I b_ ),
+the Group \*(Bs
+(whose names begin with
+.I gb_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+The commands are divided into two categories:
+administrative and user.
+A summary of the commands is presented in the following two tables,
+the first listing the user commands and the second the administrative commands.
+The interface is described in detail in the library section of the manual
+(see
+.I gbullet (L)
+and
+.I std (L)).
+The letters under the
+.I Port
+heading indicate which port accepts that request.
+The meaning of the letters is:
+.I f
+for file port,
+.I S
+for Group \*(Bs super capability and
+.I M
+for Member \*(Bs super capability.
+.TS H
+tab(:) center box;
+cb s s s s
+lw(2.2c) | lw(0.9c) | lw(2.9c) | lw(2.3c) | lw(4.9c)
+lw(2.2c) | lw(0.9c) | lw(2.9c) | lw(2.3c) | lw(4.9c)
+lw(2.2c) | lw(0.9c) | lp-2w(2.9c) | lp-2w(2.3c) | lw(4.9c) .
+User Functions
+_
+Function:Port:Required:Error:Summary
+Name::Rights:Conditions:
+=
+.TH
+std_copy:S:T{
+BS_RGT_CREATE in servercap
+.br
+BS_RGT_READ in filecap
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+T}:T{
+Replicate a committed Bullet file
+T}
+_
+std_destroy:f:BS_RGT_DESTROY:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Destroy a Bullet file
+T}
+_
+std_info:T{
+f
+.br
+S
+.br
+M
+T}:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Print standard information for a Bullet object
+T}
+_
+std_restrict:T{
+f
+.br
+S
+.br
+M
+T}::T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_NOTNOW
+T}:T{
+Produce a Bullet capability with restricted rights
+T}
+_
+b_read:T{
+f
+.br
+M
+T}:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOMEM
+.br
+STD_NOTNOW
+T}:T{
+Read a file
+T}
+_
+b_size:f:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Get the size of a file
+T}
+_
+b_create:T{
+f
+.br
+S
+T}:T{
+BS_RGT_CREATE
+.br
+BS_RGT_READ in
+.br
+compare cap
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Create a file, optionally committing it
+T}
+_
+b_modify:f:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Overwrite part of the data of an uncommitted file
+T}
+_
+b_insert:f:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Insert data into an uncommitted file
+T}
+_
+b_delete:f:T{
+BS_RGT_READ
+.br
+BS_RGT_MODIFY
+T}:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Delete data from an uncommitted file
+T}
+.TE
+.bp
+.TS H
+tab(:) center box;
+cb s s s s
+lw(2.2c) | lw(0.9c) | lw(2.9c) | lw(2.3c) | lw(4.9c)
+lw(2.2c) | lw(0.9c) | lw(2.9c) | lw(2.3c) | lw(4.9c)
+lw(2.2c) | lw(0.9c) | lp-2w(2.9c) | lp-2w(2.3c) | lw(4.9c) .
+Administrative Functions
+_
+Function:Port:Required:Error:Summary
+Name::Rights:Conditions:
+=
+.TH
+std_age:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+.kW "garbage collection"
+Start a garbage collection pass
+T}
+_
+std_status:T{
+S
+.br
+M
+T}:BS_RGT_READ:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Print Group \*(Bs statistics
+T}
+_
+std_touch:f::T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_NOTNOW
+T}:T{
+Reset a Bullet file's time to live
+T}
+_
+std_ntouch:f::T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_NOTNOW
+T}:T{
+Reset a set of Bullet file's time to live
+T}
+_
+std_getparams:T{
+S
+.br
+M
+T}::T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_COMBAD
+T}
+_
+std_setparams:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_COMBAD
+T}
+_
+b_disk_compact:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Eliminate disk fragmentation
+T}
+_
+b_fsck:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Do file system check
+T}
+_
+b_sync:T{
+S
+.br
+M
+T}:none:T{
+RPC error
+.br
+STD_CAPBAD
+T}:T{
+Flush committed files to disk
+T}
+_
+gb_attach:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+.br
+STD_ARGBAD
+T}:T{
+Add member to Group \*(Bs.
+T}
+_
+gb_repchk:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+T}:T{
+Start a replication check
+T}
+_
+gb_state:T{
+S
+.br
+M
+T}:BS_RGT_ALL:T{
+RPC error
+.br
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOTNOW
+.br
+STD_COMBAD
+.br
+STD_ARGBAD
+T}:T{
+Change server state
+T}
+.TE
+.SH
+Administration
+.LP
+In general there is very little administration required for a Group \*(Bs once it
+is running.
+Installation is non-trivial and is described first.
+.mH
+Installation
+.LP
+To create a Group \*(Bs, first create an initial Member \*(Bs and then
+create additional Member \*(Bs's and
+.I attach
+them to an existing initial group.
+Each Member \*(Bs has its own disk.
+.LP
+At present each Member \*(Bs runs as a set of kernel threads.
+The references to a Group \*(Bs kernel should be taken to mean a kernel that
+automatically starts a Member \*(Bs,
+either as a kernel thread or as a user mode process.
+.LP
+To start a Member \*(Bs you need an \*(Am system with a disk and a large amount of
+core memory.
+At least 2 Mbytes is required and 12 Mbytes or more gives good performance.
+The first step is to label the disk (see
+.I disklabel (A)).
+The next step is to create an empty file system on a virtual disk.
+This is done using the
+.I gb_mkfs (A)
+command, with the
+.I \-1
+option for an initial server.
+It requires an \*(Am kernel running the virtual disk server.
+You can boot a standard Group \*(Bs kernel at this point since the Member \*(Bs will
+print a warning message and then go into a quiescent state or exit if it finds
+no Bullet file system on any of the virtual disks.
+Note that a virtual disk may comprise more than one physical partition and
+may even span several physical disks (see
+.I vdisk (A)
+for more details).
+If the initial
+.I gb_mkfs
+is not satisfactory a subsequent one may be performed on the same virtual disk
+without problems.
+If you place the file system on the wrong virtual disk you should run
+.I gb_killfs (A)
+on the unwanted Bullet file system since a Member \*(Bs can only run on one virtual
+disk and the kernel version takes the first virtual disk with a valid Bullet
+file system that it finds on the disk system.
+.LP
+Once the
+.I gb_mkfs
+is complete an \*(Am kernel containing a Group \*(Bs should be (re)booted.
+.LP
+When it comes up it should print a message of the form:
+.sC
+BULLET SERVER INITIALIZATION
+
+Buffer cache size = 0xA0A000 bytes
+Largest possible file size = 0x911000 bytes
+63743 inodes free, 0 inodes used
+317638 disk blocks free, 997 disk blocks used
+.eC
+Note that the
+.I
+Largest possible file size
+.R
+reflects the space available in the cache for storing files and not necessarily
+the largest file that it is possible to create,
+which is almost certainly smaller.
+Note that even though no files have been created,
+disk blocks are being used for inodes.
+.LP
+Once it is running and the directory server is running the system administrator
+should copy the Group \*(Bs's super capability to the directory
+.I /super/cap/bulletsvr/service ,
+and the Member \*(Bs to
+.I /super/cap/bulletsvr/ host_name,
+see
+.I gb_info (A).
+Typically these directory entries should have column masks
+.cW 0xFF:0x0F:0x0F
+(see
+.I chm (U)).
+Also ensure that the Group \*(Bs chosen as the default is installed under the
+name
+.cW DEF_BULLETSVR
+as defined in
+.I ampolicy.h
+(this is typically
+.I /profile/cap/bulletsvr/default
+but should be installed via the pathway
+.I /super/cap/bulletsvr/default )
+and should have the same column masks as the other Group \*(Bs capabilities.
+.LP
+Additional Member \*(Bs are created in a similar way.
+In this case the
+.I gb_mkfs
+command may not have the
+.I \-1
+option.
+When a Member \*(Bs is started on a disk initialized by
+.I gb_mkfs
+without the
+.I \-1
+option it will not provide any file service, but wait until
+it is attached to an existing Group \*(Bs with the
+.I gb_attach (A)
+command.
+The result of the
+.I gb_attach
+is that an identifying number is assigned to the new member and
+the existing superblock and inode information is copied to the
+virtual disk of the new member.
+The existing members also hand over a few free inode
+numbers to the new member.
+.I Gb_info
+can be used to install the member's super capability in
+.I /super/cap/bulletsvr/ host_name,
+.LP
+See elsewhere in the
+.I "System Administration Guide
+for further information about initial installation of \*(Am.
+.mH
+Day to day running
+.LP
+Each time a Member \*(Bs is started it begins with a file system consistency
+check and initiates a replication check on all active members..
+If the consistency check finds bad files it throws them away
+and prints a warning on the console.
+Except in the case of overlapping files this is always the correct solution.
+At some stage it will become more friendly and possibly allow interactive
+maintenance of a damaged file system when there are overlapping files.
+.LP
+The replication check finds files owned by non-existing members and
+assigns them to an existing member.
+Each Member \*(Bs also checks whether all files owned by it have enough replicas
+and makes up for possible shortages.
+.LP
+The
+.I bstatus (A)
+command can be used to examine the current state of the file server.
+On the group super capability it reports on the current status of existing
+members.
+On the member super capability it reports usage of resources and commands.
+It can be useful for determining usage patterns for tuning the Member \*(Bs.
+.kW "disk usage"
+It also reports the disk block and inode usage.
+.LP
+It is possible for the Member \*(Bs's cache to be filled,
+primarily due to uncommitted files.
+Committed files are deleted from the cache on a least recently used basis if
+the cache gets too full.
+Cache compaction may also be resorted to if deleting committed files does
+not provide enough space.
+If this also fails to yield sufficient space then the operation will fail.
+If too many occurrences of this occur then it is probably necessary to
+increase the main memory capacity of the file server host.
+Restarting the Member \*(Bs may also help with the problem.
+.LP
+Cache slots may also be in short supply.
+It will attempt to throw out the least recently used file which is committed.
+As a last resort it may even toss out the least recently modified uncommitted
+file,
+but it will print a warning on the console if it does this.
+If this warning is ever seen then it is almost certainly worth reducing
+the
+.cW AVERAGE_FILE_SIZE
+tunable constant to increase the number of cache slots available.
+.LP
+It is possible that after some time your Member \*(Bs virtual disk may fill up.
+There are several possibilities for dealing with this:
+.IP i)
+Run the
+.I bdkcomp (A)
+command.
+This will eliminate disk fragmentation.
+It is really a stop-gap solution.
+.IP ii)
+It is possible to add a second physical disk to the machine and (using the
+.I disklabel (A)
+program) extend the virtual disk of the Member \*(Bs to use partitions on the
+new disk.
+However it will be necessary to edit the Member \*(Bs's superblock so that it sees
+that its virtual disk has grown larger.
+.IP
+Buying a larger disk and transferring everything to the new disk is also
+possible.
+.IP iii)
+Add a new member to the group without changing the number of needed replicas.
+.IP iv)
+Create more Group \*(Bs's.
+.LP
+If for some reason it is desired to shutdown a Member \*(Bs the command
+.I bsync (A)
+will cause any uncommitted files that are not yet on disk to be written to
+disk.
+.LP
+The
+.I gb_repchk (A)
+command can be used to check whether all files are properly replicated.
+.LP
+The
+.I gb_admin (A)
+command can be used to remove a Member \*(Bs from the group.
+This can be done in a careful way by issuing the following sequence of commands:
+.IP -
+set the member to be removed in passive mode
+to prevent it from creating files
+.IP -
+wait 10 minutes
+.IP -
+increase the number of needed replicas to at least 2
+.IP -
+initiate
+a replication check
+.IP -
+tell the member to be removed that it should remove itself
+.IP -
+possibly decrease the number of needed replicas
+.IP -
+and again run a replication check.
+.LP
+.mH
+Garbage Collection
+.LP
+.kW "garbage collection"
+To prevent the disk being filled up with files for which no one has the
+capability,
+the
+.I std_age
+command causes the life-time of a file to be decremented.
+If the life-time reaches zero then the file is deleted.
+The
+.I std_touch
+command or any access to the file resets the life-time to the maximum value
+of
+.cW MAX_LIFETIME
+(which is typically 24 - see
+.I inode.h ).
+The rate at which
+.I std_age
+is called is determined by the
+.I om (A)
+server which first does an
+.I std_touch
+command on all the objects in the directory tree and then sends the
+.I std_age
+command to all the servers registered with it.
+It is important that the rate at which this is done be set to a reasonable
+value by the system administrator.
+Otherwise the disk will fill up with junk if the rate is too slow
+or the files not registered with the directory server may be garbage collected
+against the wishes of their owners.
+.LP
+If it is clear that the disk is full of junk then one way to recover the lost
+disk space is to execute several
+.I std_age (A)
+commands in succession (but always fewer than
+.cW MAX_LIFETIME )
+and then let
+.I om
+to do one or two rounds of touching and aging to clear away unreachable files.
+The touching of files before the last aging is essential.
+Otherwise all the files may be deleted!
+.mH
+Parameters
+.LP
+The Group \*(Bs has a few changeable parameters that are stored in the
+superblocks of all members.
+These can be accessed by using
+.I std_params (A)
+on the group super capability.
+.LP
+The parameter
+.cW "replication count"
+indicates the number of replicas made when a file is committed.
+This number can be changed dynamically.
+Changing the number does not immediately change the number of replicas
+for existing files.
+That can be done by issuing a
+.I gb_repchk (A)
+command.
+.LP
+The parameter
+.cW "safety replication"
+influences replication behavior for files committed with the
+.cW BS_SAFETY
+flag set.
+If this flag is true, the reply to the request will be postponed until
+all replicas have been created and are written to disk.
+If this flag is false, replication will be done after the reply
+has been sent.
+.LP
+The parameter
+.cW "log server"
+is a capability and not currently in use.
+.mH
+Tuning your Member \*(Bs
+.LP
+There are some tunable constants for the Group \*(Bs which can be found in the
+include file
+.I bullet.h .
+They come preset to values which are considered reasonable but it may be
+necessary to adjust them for your site.
+.LP
+.cW BS_SWEEP_TIME
+is the time in milliseconds between each sweep of the
+.I bullet_sweeper
+thread in the Member \*(Bs.
+This thread has three functions:
+The first is to decrement the uncommitted file timeout for any uncommitted
+files.
+If the timeout for a file reached zero the file is deleted.
+The second function is to write to disk any files which have been committed
+but not yet written to disk.
+The third function is to determine if the Member \*(Bs has been idle for a long
+period and if so to attempt compaction of the buffer cache.
+Compacting the buffer cache can be an expensive operation and is thus only
+attempted in idle periods.
+.LP
+This timeout should not be made too short or the Member \*(Bs will spend most of the
+time in the sweeper.
+The default is 60000 (1 minute).
+.LP
+.cW BS_LOAD_BASE
+is the number of sweep times over which the Member \*(Bs's load is averaged to
+determine idleness.
+When idle the Member \*(Bs will perform cache compaction.
+The default is 2 minutes.
+.LP
+.cW BS_CACHE_TIMEOUT
+is the uncommitted file timeout.
+That is,
+the longest period that an uncommitted file will continue to exist without
+a modify operation being performed on it.
+It is a multiple of the
+.cW BS_SWEEP_TIME
+\- so the timeout will be (\*<BS_CACHE_TIMEOUT\*> *
+.cW BS_SWEEP_TIME )
+milliseconds.
+.LP
+If this timeout is made too short then people will not be able to create
+files.
+If the timeout is too long then the Member \*(Bs's cache can be become congested.
+The default is 10, which in combination with the default sweep time gives a
+ten minute timeout.
+.LP
+.cW BS_REQBUFSZ
+is the size of the Group \*(Bs's request buffer size.
+This reflects the amount of throughput that can be achieved using the
+Group \*(Bs.
+.LP
+This should be made as large as practically possible,
+but bear in mind that each Member \*(Bs allocates buffers of this size from the
+buffer cache.
+The default is tuned to the Ethernet and limited by the current maximum
+transaction size to 29768 bytes.
+.LP
+When a Member \*(Bs starts it tries to allocate the largest buffer cache possible
+from the available memory.
+However,
+because the kernel may need to allocate memory and because it may be
+desirable to run user processes on the same host as the
+Member \*(Bs it is necessary to leave some memory in reserve.
+.cW BS_MEM_RESERVE
+bytes are subtracted from the size of the largest available piece of memory
+before it allocates its buffer cache.
+.LP
+It is important to bear in mind that the directory server is normally started
+on the same machine as one of the Member \*(Bs's since it too needs access to a disk.
+Therefore bear its memory requirements in mind when setting this figure.
+The default is tuned to the \*(Ss and is set at 0x280000 bytes.
+It can be defined in the
+.I Amakefile
+as some other value and will override the value in
+.I bullet.h .
+.LP
+.cW AVERAGE_FILE_SIZE
+influences the number of inodes created in the file system by
+.I gb_mkfs (A)
+and the number of cache slots used in the Member \*(Bs.
+The cache slots take up space in cache memory and reduce the space available
+for data.
+The larger the average file size, the fewer the inodes and cache slots.
+The default setting is 16K bytes.
+This is based on experience with the \*(Bs.
+For specialized applications such as data bases where memory usage is
+important this constant should be tuned to the application.
+.LP
+.cW BS_MIN_CACHE_SLOTS
+sets a lower limit on the number of cache slots the server can have.
+It is currently set at 1024.
+The system can function with less than this but performance will be poor.
+.LP
+.cW BS_MIN_MEMORY
+sets the minimum amount of cache memory which a Member \*(Bs insists on having
+before it will run.
+The default is 3 Mbytes.
+Anything less than 8 Mbytes this will cause heavy thrashing and should
+be avoided.
+Memory is cheap, after all.
+.LP
+.cW BS_DEFER_THRESHOLD
+is the number of free blocks below which a Member \*(Bs tries
+to defer create requests to other Member \*(Bs with more free blocks.
+The default is one tenth of the number of blocks on the member's disk.
+.LP
+.cW BS_REPL_RETRY
+is the maximum number of replication retries when committing a file
+with
+.cW BS_SAFETY
+and
+.I "safe replication"
+on.
+The default is 5.
+.LP
+.cW BS_REP_AVOID
+is the number of free blocks below which a server is avoided for the creation
+of replicas.
+The default is 100.
+.SH
+See Also
+.LP
+bdkcomp(A),
+bfsck(A),
+bsize(U),
+bstatus(A),
+bsync(A),
+disklabel(A),
+fromb(U),
+gb_killfs(A),
+gb_mkfs(A),
+gb_info(A),
+gb_attach(A),
+gb_repchk(A),
+gb_admin(A),
+om(A),
+printbuf(A),
+soap(A),
+std(L),
+std_age(A),
+std_params(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_touch(U),
+Tbullet(T),
+tob(U),
+vdisk(A).

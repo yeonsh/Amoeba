@@ -1,0 +1,45 @@
+.\"	@(#)time.n	1.6	96/02/16 11:09:42
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Oct 1993
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995, format in example was wrong
+.aE
+.mT "time" U
+time how long a command takes to execute
+.SH
+Synopsis
+.LP
+.sC L
+time command
+.eC
+.SH
+Description
+.LP
+The command is executed and the real time,
+user time,
+and system time (in hours,
+minutes,
+and seconds) are printed.
+.mH
+Warning
+.LP
+Currently there is no way of measuring user and system time so they are
+printed as zero.
+.SH
+Examples
+.LP
+.sC
+time a.out
+.eC
+Reports how long
+.I a.out
+takes.
+The time report look like this:
+.sC
+10.64s real    0.00s user    0.00s system
+.eC

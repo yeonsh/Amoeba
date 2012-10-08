@@ -1,0 +1,63 @@
+.\"	@(#)cdiff.n	1.4	96/02/15 18:04:29
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Grgeory J. Sharp, Oct 1995
+		    - error in synopsis and no default context size was given.
+.aE
+.mT "cdiff" U
+context diff
+.SH
+Synopsis
+.LP
+.sC L
+cdiff [-cN] old new
+.eC
+.SH
+Description
+.LP
+.I Cdiff
+.kW "file comparison"
+produces a context diff by first running
+.I diff
+to find the differences between the files
+.I old
+and
+.I new
+and then adding context.
+Some update programs,
+like patch,
+can use context diffs to update files,
+even in the presence of other,
+independent changes.
+.mH
+Options
+.LP
+.IP \fB\-c\fP\^\fIN\fP
+provide
+.I N
+lines of context.
+The default is 3.
+.SH
+Examples
+.LP
+.sC
+cdiff old new > f
+.eC
+Write context diff on
+.I f .
+.sC
+cdiff -c1 old new > f
+.eC
+Use only 1 line of context.
+.SH
+See Also
+.LP
+cmp(U),
+diff(U),
+treecmp(U).

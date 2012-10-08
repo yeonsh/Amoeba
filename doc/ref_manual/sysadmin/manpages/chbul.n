@@ -1,0 +1,57 @@
+.\"	@(#)chbul.n	1.5	96/02/15 17:07:33
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J Sharp
+	Document: Gregory J Sharp, May 1990
+	Modified: Gregory J Sharp, Jan 1996
+.aE
+.mT "chbul" A
+change a \*(Ss's \*(Bs
+.SH
+Synopsis
+.LP
+.sC L
+chbul soap-cap bullet-cap bullet-num
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "directory server"
+.kW "Bullet Server"
+.kW "lazy replication"
+.I Chbul
+tells the
+.I soap
+server whose private capability is
+.I soap-cap ,
+to change its \*(Bs to to the \*(Bs whose capability is
+.I bullet-cap.
+Each \*(Ss has two \*(Bss which it uses.
+The parameter
+.I bullet-num
+can be either 0 or 1 and selects which of the two \*(Bss is replaced.
+.LP
+This change will eventually be propagated by the \*(Ss to its duplicate (if
+it has one) through gradual updating of all directories to use the new \*(Bs.
+NB. For a large system this can take a few hours since it uses lazy
+replication.
+.SH
+Examples
+.LP
+.sC
+chbul /super/cap/soapsvr/soap0 /super/cap/bulletsvr/bullet3 0
+.eC
+will change the 0 \*(Bs of
+.I soap
+server 0 and its partner to be
+bullet server
+.I bullet3 .
+.SH
+See Also
+.LP
+soap(A).

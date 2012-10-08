@@ -1,0 +1,89 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)amoeba.cmds	1.6	96/02/28 13:19:09
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(CFLAGS), {
+	CFLAGS = { -O };
+});
+
+%if (%not defined(DEFINES), {
+	DEFINES = {};
+});
+
+%if (%not defined(INCLUDES), {
+	INCLUDES = {};
+});
+
+%if (%not defined(LDFLAGS), {
+	LDFLAGS = {};
+});
+
+%if (%not defined(AIL_FLAGS), {
+	# Need the pathname of the cpp preprocessor.
+	# First make sure Amake can find cpplib.amk
+	%include $CONF_ROOT/toolset/generic;
+	%include cpplib.amk;
+ 
+	# specify path of preprocessor to ail and let it generate ANSI code
+	AIL_FLAGS = { '-p', $CPPLIB/cpp, '-f13', '-lansi' };
+});
+
+INCLUDES = {
+	$INCLUDES,
+	-I$SRC_ROOT/h/toolset/ack
+};
+
+CC = ack;
+CFLAGS =
+{
+	%if (defined(CHECK_PROTOTYPES), {'-wn'}),
+	-mam_$ARCH,
+	$CFLAGS,
+	$DEFINES,
+	$INCLUDES
+};
+AS = $PWD/do_as;
+ASFLAGS =
+{
+	-mam_$ARCH,
+	-DACK_ASSEMBLER,
+	$DEFINES,
+	$INCLUDES
+};
+EM = ack;
+EMFLAGS = {
+	-mam_$ARCH
+};
+LD = ack;
+LDFLAGS = {
+	-mam_$ARCH,
+	-.c,
+	%if (($ARCH == 'i80386'), { -fp }),
+	$LDFLAGS
+};
+LINT = lint;
+LINTFLAGS =
+{
+	-n,
+	-DAMOEBA,
+	$DEFINES,
+	$INCLUDES
+};
+AR = aal;
+ARFLAGS = cr;
+
+LIB_AMOEBA = $CONF_ROOT/lib/amoeba/libamoeba.a;
+LIB_AJAX = $CONF_ROOT/lib/ajax/libajax.a;
+LIB_MATH = $CONF_ROOT/lib/math/libmath.a;
+LIB_X11 = $CONF_ROOT/X/lib/X/libX11.a;
+
+# lint library names
+LINT_AMOEBA = $CONF_ROOT/lib/amoeba/llib-lamoeba.ln;
+LINT_AJAX = $CONF_ROOT/lib/ajax/llib-lajax.ln;
+LINT_MATH = $CONF_ROOT/lib/math/llib-lmath.ln;
+
+%include $PWD/generic;
+%include std_tools.amk;

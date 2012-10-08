@@ -1,0 +1,143 @@
+.\"	@(#)bstatus.n	1.5	96/02/15 17:07:15
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Document: Gregory Sharp, Feb 1990
+	Modified: Gregory Sharp, Jan 1996
+.aE
+.mT "bstatus" A
+print the state of a Bullet file server
+.SH
+Synopsis
+.LP
+.cW
+bstatus [bullet_server]
+.R
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "status"
+.kW "statistics"
+.I Bstatus
+prints the current usage statistics for the \*(Bs running on the machine
+specified by the capability
+.I bullet_server .
+If the name
+.I bullet_server
+is not an absolute path name it is looked up in the directory
+.I /profile/cap/bulletsvr .
+If no name is given it looks up the default \*(Bs
+(that is,
+.I /profile/cap/bulletsvr/default ).
+The server capability must be the super-capability of the \*(Bs with the read
+right.
+This capability is looked up in the kernel directory of the specified host.
+.LP
+If there are no errors,
+.I bstatus
+returns a table of statistics from the \*(Bs.
+.kW "disk usage"
+These statistics include the disk block, inode and cache usage.
+On error it prints a short message indicating the problem.
+Possible errors include:
+.br
+a) the look up of the \*(Bs capability failed;
+b) the \*(Bs capability is not the super-capability with full rights;
+c) the \*(Bs has crashed.
+.SH
+Example
+.LP
+.sC
+bstatus moggy
+.eC
+will print a table of the following form for the \*(Bs on the host
+.I moggy :
+.sC L
+.ps-1
+                  In Use      Free      Holes
+Inodes             21894     97273        N/A
+Disk Blocks       327126    268470        39
+Cache Memory     3438592   5122048         4
+
+Committed Files          1150976 bytes cache,   442100 bytes fragmentation
+Uncommitted Files              0 bytes cache,        0 bytes fragmentation
+
+Free Cache Slots              10
+Free Hole Structs           3491
+
+cache hits         75967  cache misses       206198  compactions         14
+read misses        23587  disk reads          23589  disk writes     167626
+timed out files        0  aged files              0  std_age              7
+std_copy(local)        0  std_copy(remote)      101  std_destroy      10568
+std_info             626  std_restrict           27  std_touch       201394
+b_sync                 0  b_status                1  b_fsck               0
+b_size             10845  b_read              37269  b_create          3925
+b_modify           21767  b_insert                0  b_delete             0
+b_disk_compact         0  moved files             0
+.ps
+.eC
+.LP
+The first information printed relates to resource usage.
+It tells how much of each resource is in use, how much is free and the
+number of regions of unused resource (holes), which gives an indication of the
+state of fragmentation.
+In particular, for the two categories of files (committed and uncommitted)
+it tells the total number of bytes of cache memory in use and the amount of
+that usage which is internal fragmentation.
+.LP
+The ``Free Hole Structs'' tells how many unused slots there are in the free
+list manager for holes.
+The rest of the statistics tell how many times each kind of operation accepted
+by the \*(Bs has occurred and give an indication of the cache performance.
+Only a few need clarification:
+.LP
+.I "Cache hits"
+and
+.I "cache misses"
+refer to the number of times an inode was referenced by a command and was
+found or not found in the cache.
+Note that all inodes are all kept in core,
+but the cache can contain an inode without the corresponding file being
+read in.
+(For example,
+to destroy a file it is necessary to cache the inode temporarily but there
+is no need to read the file into the cache.)
+.LP
+.I Compactions
+refers to the number of times the \*(Bs attempted to compress the
+cache to eliminate fragmentation.
+It does this when it is either idle for a long period or if it is desperately
+short of cache memory.
+.LP
+.I "Read misses"
+refers to the number of times the
+.I b_read
+command was forced to read a file from disk.
+.LP
+.I "Disk reads"
+refers to the number of calls to do disk I/O that the \*(Bs has done.
+.LP
+.I "Timed out files"
+refers to the number of uncommitted files that were destroyed because they
+were not modified or committed within the timeout period.
+.LP
+.I "Aged files"
+refers to the number of files destroyed by the std_age command.
+.LP
+.I "Moved files"
+refers to the number of files that have been moved from one place on the disk
+to another by the most recent disk compaction.
+If the disk compaction is still running it reflects the number moved so far.
+.SH
+See Also
+.LP
+bfsck(A),
+printbuf(A),
+std_age(A)
+std_status(L),
+std_status(U).

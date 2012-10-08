@@ -1,0 +1,32 @@
+#	
+#	@(#)Amake.srclist	1.3	94/04/07 10:12:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_AM_PUTGET = {
+	$PWD/get_bytes.c,
+	$PWD/get_cap.c,
+	$PWD/get_capset.c,
+	$PWD/get_long.c,
+	$PWD/get_pd.c,
+	$PWD/get_port.c,
+	$PWD/get_priv.c,
+	$PWD/get_short.c,
+	$PWD/get_string.c,
+	$PWD/put_bytes.c,
+	$PWD/put_cap.c,
+	$PWD/put_capset.c,
+	$PWD/put_long.c,
+	$PWD/put_pd.c,
+	$PWD/put_port.c,
+	$PWD/put_priv.c,
+	$PWD/put_short.c,
+	$PWD/put_string.c,
+	$PWD/sak.c
+};
+L_AM_SYMTAB = {
+	$PWD/get_symtab.c,
+	$PWD/put_symtab.c,
+};

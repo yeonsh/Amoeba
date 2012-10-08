@@ -1,0 +1,23 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:11:34
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_MODULES_H = {
+	$PWD/alloc.h,
+	$PWD/assert.h,
+	$PWD/em.h,
+	$PWD/emO_code.h,
+	$PWD/em_arith.h,
+	$PWD/em_code.h,
+	$PWD/em_codeCE.h,
+	$PWD/em_codeEK.h,
+	$PWD/em_codeO.h,
+	$PWD/em_comp.h,
+	$PWD/em_label.h,
+	$PWD/em_mesX.h,
+	$PWD/flt_arith.h,
+	$PWD/system.h
+};

@@ -1,0 +1,81 @@
+.\"	@(#)makeversion.n	1.4	96/02/15 17:48:20
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "makeversion" A
+generates a version number string and compiles it
+.SH
+Synopsis
+.LP
+.sC L
+makeversion [filename]
+.eC
+.SH
+Description
+.LP
+.kW "version numbers"
+.kW "amake"
+.I Makeversion
+is a shell script which creates a C source file and the corresponding
+object file.
+The source file contains a single array called
+.I version
+which is initialized with a string containing information to identify a version
+of a program.
+The
+.I filename
+argument specifies the name of the output file to be produced.
+The default is
+.I version.o .
+.LP
+The intermediate C source file is used to calculate the version string.
+This file has the same basename as the object file but with suffix
+.I .c .
+The contents of this file is a string of the form:
+.sC L
+char version[] = "vnum by user@host (date)\enin directory pwd";
+.eC
+where
+.I vnum
+is an integer representing the version number.
+If the intermediate C file does not exist it is created with version number 1.
+If it does exist the version number in it is incremented by one and the
+relevant information for the rest of the string is replaced with the new values.
+.mH
+Environment Variables
+.LP
+.cW CC
+selects the C compiler to be used.
+The default is
+.I /bin/cc.
+.SH
+Example
+.LP
+.sC
+makeversion joe.o
+.eC
+will create the file
+.I joe.c
+and compile it to produce
+.I joe.o .
+If
+.I joe.c
+did not initially exist then the newly created
+.I joe.c
+might contain the following:
+.sC L
+.ps-1
+char version[] = "1 by gregor@sharpie (Thu May 31 15:02:54 MET DST 1990)\en
+in directory /home/conf/amoeba/sparc.gnu-2/kernel/sun4m/pool";
+.ps
+.eC
+If it did exist then the version number will be greater than 1 and the current
+date will replace the original date.

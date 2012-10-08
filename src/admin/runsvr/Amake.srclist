@@ -1,0 +1,26 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/06 11:50:33
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+S_RUN = {
+	$PWD/findbest.c,
+	$PWD/findbest.h,
+	$PWD/impl_runsvr.c,
+	$PWD/pooldir.c,
+	$PWD/pool_dir.h,
+	$PWD/procgc.c,
+	$PWD/procgc.h,
+	$PWD/run.c,
+	$PWD/runsvr.h,
+	$PWD/runsvr.gen[c_gen = { ml_runsvr.c }, h_gen = { runsvr.h }],
+	$PWD/segcache.c,
+	$PWD/segcache.h,
+	$PWD/tj.c,
+	$PWD/tj.h,
+	$PWD/objects.c,
+	$PWD/objects.h,
+};

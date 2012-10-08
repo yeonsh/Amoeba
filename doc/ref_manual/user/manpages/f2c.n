@@ -1,0 +1,299 @@
+.\"	@(#)f2c.n	1.5	96/02/16 10:57:53
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: David Gay, Stu Feldman, Mark Maimone, Norm Schryer
+	Document: Original by the above?
+	Modified: Gregory J. Sharp, Nov 1991 - Amoeba format
+		  Gregory J. Sharp, Nov 1995
+.aE
+.mT "f2c" U
+convert FORTRAN 77 to C or C++
+.SH
+Synopsis
+.LP
+.sC L
+f2c [options] files ...
+.eC
+.SH
+Description
+.LP
+.kW "ACK"
+.kW "\fIf77\fP"
+.kW "FORTRAN"
+.kW "C"
+.kW "compiler"
+.I F2c
+converts FORTRAN 77 source code in
+.I files
+with names ending in
+.I .f
+or
+.I .F
+to C (or C++) source files in the
+current directory, with
+.I .c
+substituted
+for the final
+.I .f
+or
+.I .F .
+If no FORTRAN files are named,
+.I f\^2c
+reads FORTRAN from standard input and
+writes C on standard output.
+Filenames that end with
+.I .p
+or
+.I .P
+are taken to be prototype
+files, as produced by option
+.B \-P
+(see below),
+and are read first.
+.LP
+The resulting C invokes the support routines of
+.I f\^77 ;
+object code should be loaded with ACK (see
+.I f\^77 (U)
+and
+.I ack (U)).
+.LP
+Note that unless special options provided by
+.I f\^2c
+are required,
+it is simpler to call
+.I f\^77
+directly to compile FORTRAN sources since this produces binaries directly.
+.mH
+Options
+.LP
+The following are standard
+.I f\^77
+options.
+.IP \fB\-C\fP 7
+Compile code to check that subscripts are within declared array bounds.
+.IP \fB\-I2\fP
+Render
+.cW INTEGER
+and
+.cW LOGICAL
+as short,
+.cW INTEGER\(**4
+as
+.I "long int" .
+Assume the default library
+.I tail_f\^77 :
+allow only
+.cW INTEGER\(**4
+(and no
+.cW LOGICAL )
+variables in
+.cW INQUIRE s.
+.IP \fB\-I4\fP
+confirms the default rendering of
+.cW INTEGER
+as
+.I "long int" .
+.IP \fB\-onetrip\fP
+.br
+Compile DO loops that are performed at least once if reached.
+(FORTRAN 77 DO loops are not performed at all if the upper limit is smaller
+than the lower limit.)
+.IP \fB\-U\fP
+The case of variable and external names is significant.
+FORTRAN keywords must be in
+.I "lower case" .
+.IP \fB\-u\fP
+Make the default type of a variable `undefined' rather than using the
+default FORTRAN rules.
+.IP \fB\-w\fP
+Suppress all warning messages.
+.IP \fB\-w66\fP
+Only FORTRAN 66 compatibility warnings are suppressed.
+.LP
+The following options are peculiar to
+.I f\^2c .
+.IP \fB\-A\fP 7
+Produce STD C.
+Default is old-style C.
+.IP \fB\-a\fP
+Make local variables automatic rather than static
+unless they appear in a
+.cW "DATA, EQUIVALENCE, NAMELIST,"
+or
+.cW SAVE
+statement.
+.IP \fB\-C++\fP
+Produce C++ code.
+.IP \fB\-c\fP
+Include original FORTRAN source as comments.
+.IP \fB\-E\fP
+Declare uninitialized
+.cW COMMON
+to be
+.cW Extern
+(overridably defined in
+.I f\^2c.h
+as
+.cW extern ).
+.IP \fB\-ec\fP
+Place uninitialized
+.cW COMMON
+blocks in separate files.
+For example,
+.cW "COMMON\ /ABC/"
+appears in the file
+.I abc_com.c .
+.IP \fB\-e1c\fP
+This bundles the separate files
+into the output file, with comments that give an unbundling
+.I sed (U)
+script.
+.IP \fB\-ext\fP
+Complain about
+.I f\^77
+extensions.
+.IP \fB\-g\fP
+Include original FORTRAN line numbers as comments.
+.IP \fB\-h\fP
+Try to align character strings on word boundaries.
+.IP \fB\-hd\fP
+Try to align character strings on double-word boundaries.
+.IP \fB\-i2\fP
+Similar to
+.B \-I2 ,
+but assume a modified
+.I tail_f\^77
+(compiled with
+.B \-Df2c_i2 ),
+so
+.cW INTEGER
+and
+.cW LOGICAL
+variables may be assigned by
+.cW INQUIRE
+and array lengths are stored in short ints.
+.IP \fB\-kr\fP
+Use temporary values to enforce FORTRAN expression evaluation
+where K&R (first edition) parenthesization rules allow rearrangement.
+.IP \fB\-krd\fP
+Use double precision temporaries even for single-precision operands.
+.IP \fB\-P\fP
+Create a
+.I file \fB.P\fP
+of STD C (or C++) prototypes for procedures defined in each input
+.I file \fB.f\fP
+or
+.I file \fB.F.\fP
+When reading FORTRAN from standard input, write prototypes
+at the beginning of standard output.
+Implies
+.B \-A
+unless option
+.B \-C++
+is present.
+.IP \fB\-Ps\fP
+This implies
+.B \-P ,
+and gives exit status 4 if rerunning
+.I f\^2c
+may change prototypes or declarations.
+.IP \fB\-p\fP
+Supply preprocessor definitions to make common-block members
+look like local variables.
+.IP \fB\-R\fP
+Do not promote
+.cW REAL
+functions and operations to
+.cW "DOUBLE PRECISION" .
+.IP \fB\-!R\fP
+confirms the default, which imitates
+.I f\^77 .
+.IP \fB\-r\fP
+Cast values of
+.cW REAL
+functions (including intrinsics) to
+.cW REAL .
+.IP \fB\-r8\fP
+Promote
+.cW REAL
+to
+.cW "DOUBLE PRECISION, COMPLEX"
+to
+.cW "DOUBLE COMPLEX" .
+.IP "\fB\-T\fP dir"
+Put temporary files in directory
+.I dir .
+.IP \fB\-w8\fP
+Suppress warnings when
+.cW COMMON
+or
+.cW EQUIVALENCE
+forces odd-word alignment of doubles.
+.IP "\fB\-W\fP n"
+Assume
+.I n
+characters/word (default 4)
+when initializing numeric variables with character data.
+.IP \fB\-z\fP
+Do not implicitly recognize
+.cW "DOUBLE COMPLEX" .
+.IP \fB\-!bs\fP
+Do not recognize \fIb\fRack\fIs\fRlash escapes
+(\e\^"\^, \e\^'\^, \e\^0\^, \e\e\^, \e\^b\^, \e\^f\^, \e\^n\^, \e\^r\^,
+\e\^t\^, \e\^v) in character strings.
+.IP \fB\-!c\fP
+Inhibit C output, but produce
+.B \-P
+output.
+.IP \fB\-!I\fP
+Reject
+.B include
+statements.
+.IP \fB\-!it\fP
+Do not infer types of untyped
+.cW EXTERNAL
+procedures from use as parameters to previously defined or prototyped
+procedures.
+.IP \fB\-!P\fP
+Do not attempt to infer STD C or C++ prototypes from usage.
+.mH
+Files
+.LP
+.I *.f
+and
+.I *.F :
+FORTRAN source files.
+.br
+.I *.c :
+C source files produced by f\^2c.
+.br
+.I /profile/module/ack/include/_tail_cc/f\^2c.h
+is the include file used by the C code produced by
+.I f\^2c .
+.br
+.I /profile/module/ack/lib/\*<ARCH\*>/tail_f\^77 :
+FORTRAN run-time libraries loaded by
+.I f\^77 .
+.mH
+Warnings
+.LP
+Floating-point constant expressions are simplified in
+the floating-point arithmetic of the machine running
+.I f\^2c ,
+so they are typically accurate to at most 16 or 17 decimal places.
+.LP
+Untypable
+.cW EXTERNAL
+functions are declared
+.I int .
+.SH
+See Also
+.LP
+ack(U),
+f77(U),
+sed(U).

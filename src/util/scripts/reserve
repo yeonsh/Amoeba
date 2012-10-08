@@ -1,0 +1,20 @@
+#!/bin/ksh
+#	
+#	@(#)reserve	1.1	96/02/27 14:36:44
+#
+# use ksh instead of sh because the latter does not implement "$@" correctly..
+
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+PYTHONDIR=/profile/module/python
+PYTHONPATH="$PYTHONDIR/amlib:$PYTHONDIR/lib"
+export PYTHONPATH
+if [ $# -eq 0 ]
+then
+	$PYTHONDIR/util/reserve.py
+else
+	$PYTHONDIR/util/reserve.py "$@"
+fi
+exit $?

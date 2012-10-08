@@ -1,0 +1,15 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 09:58:17
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_AM_CAPSET = {
+	$PWD/cs_copy.c,
+	$PWD/cs_free.c,
+	$PWD/cs_member.c,
+	$PWD/cs_to_cap.c,
+	$PWD/cs_purge.c,
+	$PWD/cs_singleton.c
+};

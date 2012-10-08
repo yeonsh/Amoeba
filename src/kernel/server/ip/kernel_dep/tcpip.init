@@ -1,0 +1,4 @@
+/*	@(#)tcpip.init	1.1	91/11/25 13:10:33 */
+THREADS tcpipinit
+tcpipinit TCPIP
+/* NR_TCPIPSVR_THREADS == 32 */

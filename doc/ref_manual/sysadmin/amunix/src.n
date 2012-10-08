@@ -1,0 +1,80 @@
+.\"	@(#)src.n	1.6	96/02/15 17:01:23
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1991
+	Modified: Gregory J. Sharp, Jan 1996 - polished up
+.aE
+.nH 1 "Loading the Source Tape"
+.LP
+The \*(Am sources require approximately 25 Mbytes of disk space.
+This includes the binaries for a single version of
+.UX .
+If you wish to build all the possible configurations then also allow
+80 Mbytes for each architecture you wish to use.
+The reason for the large space for the binaries is X windows, which requires
+60 Mbytes for the binaries.
+Note that the sources and binaries can be on separate disk partitions.
+The compilation process does not occur in the source tree.
+Therefore, to load the source tape it is only necessary to find a disk with
+25 Mbytes free.
+When you have done that,
+make a directory under which the \*(Am sources will be stored and then
+change to that directory.
+Insert the source tape into the tape drive and then type the command:
+.sC
+\fBtar xf /dev/\fP\fItapedev\fP
+.eC
+where
+.I tapedev
+is the name of the tape device in which the tape is inserted.
+On BSD-like systems this is probably
+.B rst0
+or
+.B rst8 .
+If in doubt consult your local
+.UX
+system administrator.
+.LP
+Once the sources are loaded it is necessary to do a few things which were
+(alas) not possible to do correctly on the tape.
+The first is to decide how to protect the configuration directories.
+The scripts which generate a configuration tree deduce the
+.I umask
+that they should use for creating files and directories from the script
+.I src/admin/scripts/localumask .
+If it should use the
+.I umask
+of the person creating the configuration then this script should simply be
+empty.
+If however a group or all people should have access to the configuration then
+set the
+.I umask
+in this file accordingly.
+.LP
+Many commands have been simplified by setting the root of the \*(Am
+distribution in the script
+.I src/util/scripts/amdir .
+This file should be edited to print the root of the \*(Am distribution under
+.UX .
+The initial value is that for \*(Am.
+.LP
+The program
+.I unixtree
+is just a link to
+.kW "\fIamoebatree\fP"
+.I amoebatree (A).
+It is a good idea to check that the link is correctly set since the various
+versions of
+.UX
+may not correctly translate the link as it is recorded on the tape.
+.LP
+If you wish to compile various third party software such as X windows
+then they should be linked into the source tree at the places described in
+the chapter
+.I "Installing \*(Am" .
+The various commands to build configurations can then be used to make the
+various binaries.

@@ -1,0 +1,58 @@
+.\"	@(#)dwrite.n	1.5	96/02/15 17:19:21
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Peter Bosch
+	Document: Peter Bosch
+.aE
+.mT "dwrite" A
+write raw data blocks to a virtual disk
+.SH
+Synopsis
+.LP
+.sC L
+dwrite [-s start_block] [-n num_blocks] [-b block_size] disk_cap
+.eC
+.SH
+Description
+.LP
+.kW "virtual disk"
+.I Dwrite
+writes
+.I num_blocks
+blocks from
+.I stdin
+to the virtual disk specified by the
+.I disk_cap
+capability starting at block number
+.I start_block .
+The block size must be a power of two.
+The default values for
+.I start_block ,
+.I num_blocks
+and
+.I block_size
+are respectively 0, 1, and 512.
+.LP
+Error messages are intended to be self-explanatory.
+The exit status is non-zero on error.
+.SH
+Example
+.LP
+.sC
+dwrite -s 3 -n 10 /super/hosts/boris/vdisk:02 < data_file
+.eC
+will write 10 blocks of size 512 bytes (from
+.I data_file ),
+starting at block 3 to the virtual disk
+.I vdisk:02
+on the host
+.I boris .
+.SH
+See Also
+.LP
+dread(A).

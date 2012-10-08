@@ -1,0 +1,68 @@
+.\"	@(#)bootuser.n	1.3	94/04/05 15:29:33
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, June 1990
+	Document: Siebren van der Zee, Sept-Oct 1990
+.aE
+.mT "bootuser" A
+start first user process
+.SH
+Synopsis
+.LP
+Built into the kernel.
+.SH
+Description
+.LP
+.kW "cold start"
+.I Bootuser
+is an optional kernel thread that starts the first user process;
+typically the boot server (see
+.I boot (A)).
+It is usually installed on the file server machine so that when the system
+is cold-started the first user process can be started.
+It scans the virtual disks found in the processor directory
+in a random order, until it finds one with the magic
+string ``\-boot\-'' in block zero.
+This disk must be written using
+.I iboot (A),
+and contains the capability for the executable that is to be started.
+.LP
+The process is owned by
+.I bootuser .
+It responds to
+.I std_info
+requests with the string ``bootuser thread''.
+If a checkpoint is received,
+.I bootuser
+will print this on console,
+but the process is never restarted.
+Other requests are not supported.
+.SH
+Environment
+.LP
+The only argument for the process is hard-wired in
+.I bootuser .
+The string environment of the process is empty.
+The capabilities for the process' environment are
+looked up in the processor directory:
+.TS
+l l.
+ROOT	points to the processor directory
+WORK	idem
+STDIN	points to "tty:00"
+STDOUT	idem
+STDERR	idem
+TTY	idem
+TOD	points to "tod"
+RANDOM	points to "random"
+.TE
+.SH
+See Also
+.LP
+boot(A),
+iboot(A).

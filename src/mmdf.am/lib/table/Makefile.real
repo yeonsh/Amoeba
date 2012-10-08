@@ -1,0 +1,119 @@
+#	
+#	@(#)Makefile.real	1.3	96/02/27 09:57:20
+#
+#       Makefile for name-table lookup-routines
+#           Use ch_tbseq if sequential name tables, only, are available
+#           Use ch_tbdbm if you have Unix dbm() subroutines available
+#
+
+MODULES	= dm_struct dm_table ch_tbdbm ch_tbseq \
+	  tb_io tb_ns.$(TB_NS) tb_struct
+
+OBJECTS  =  dm_struct.o dm_table.o $(CH_TB).o \
+	    tb_io.o tb_ns.$(TB_NS).o tb_struct.o
+
+COBJECTS =  dm_struct.c dm_table.c $(CH_TB).c \
+	    tb_io.c tb_ns.$(TB_NS).c tb_struct.c
+
+real-default: ../table-made
+../table-made:	$(OBJECTS)
+	-$(AR) $(ARFLAGS) ../libmmdf.a $(OBJECTS)
+	-touch ../table-made
+	-@echo "table routines built normally"
+
+lint:
+	$(LINT) -Ctable $(LFLAGS) $(COBJECTS)
+
+clean:
+	-rm -f *.o *.a x.c makedep eddep make.out errs llib-ltable*
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+dm_struct.o: dm_struct.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/ctype.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/setjmp.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/sys/types.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+dm_struct.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/time.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/dirent.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+dm_struct.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h
+dm_table.o: dm_table.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+dm_table.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_table.o: /usr/proj/amwork/src/h/posix/ctype.h
+dm_table.o: /usr/proj/amwork/src/h/posix/setjmp.h
+dm_table.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+dm_table.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_table.o: /usr/proj/amwork/src/h/posix/sys/types.h
+dm_table.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+dm_table.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+dm_table.o: /usr/proj/amwork/src/h/posix/time.h
+dm_table.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+dm_table.o: /usr/proj/amwork/src/h/posix/dirent.h
+dm_table.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+dm_table.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h ../../h/chdbm.h
+ch_tbdbm.o: ch_tbdbm.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+ch_tbdbm.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/time.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_tbdbm.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h ../../h/chdbm.h
+ch_tbseq.o: ch_tbseq.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+ch_tbseq.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/time.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_tbseq.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h
+tb_io.o: tb_io.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+tb_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_io.o: /usr/proj/amwork/src/h/posix/ctype.h
+tb_io.o: /usr/proj/amwork/src/h/posix/setjmp.h
+tb_io.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+tb_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_io.o: /usr/proj/amwork/src/h/posix/sys/types.h
+tb_io.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+tb_io.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+tb_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_io.o: /usr/proj/amwork/src/h/posix/dirent.h
+tb_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+tb_io.o: /usr/proj/amwork/src/h/posix/stdio.h
+tb_ns.fake.o: tb_ns.fake.c
+tb_struct.o: tb_struct.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/ctype.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/setjmp.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/sys/types.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+tb_struct.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/time.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/dirent.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+tb_struct.o: /usr/proj/amwork/src/h/posix/stdio.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

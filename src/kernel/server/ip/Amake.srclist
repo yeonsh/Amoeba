@@ -1,0 +1,4 @@
+#	
+#	@(#)Amake.srclist	1.1	91/11/25 13:16:42
+#
+%include $PWD/kernel_dep/Amake.srclist;

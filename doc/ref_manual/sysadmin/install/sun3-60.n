@@ -1,0 +1,229 @@
+.\"	@(#)sun3-60.n	1.10	96/02/15 17:04:35
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Hans van Staveren, April 1991
+	Modified: Gregory J. Sharp, Jan 1996 - polish
+.aE
+.bp
+.nH 2 "Installing \*(Am on the Sun 3/60"
+.LP
+.kW installation
+The distribution tape for \*(Am on the Sun 3/60 contains three
+tape files: a bootable kernel containing a ramdisk driver,
+the contents for the ramdisk, and a
+.I tar (U)
+image containing all the system binaries.
+.LP
+To use this tape the following hardware is required:
+.IP \h'1n'\(bu
+A Sun 3/60 with exactly 12\|\|MB of memory.
+.IP \h'1n'\(bu
+A Sun keyboard and monitor, or a 9600 baud terminal on ttya.
+.IP \h'1n'\(bu
+.kW "tape drive"
+.kW "QIC-24 tape"
+A QIC-24 tape drive.
+.kW "tape, 150M"
+.kW "QIC-150 tape"
+Note that a QIC-150 tape drive will not work with a Sun\ 3 boot PROM.
+(See the chapter
+.I "Trouble-shooting"
+for details.)
+.IP \h'1n'\(bu
+.kW SCSI
+.kW "disk space requirements"
+A SCSI disk of at least 70\|\|MB.
+300 MB or more is recommended for a system with many users or
+if X windows is to be installed.
+.LP
+In the instructions below the
+.B bold
+font will be used for what you
+have to type at the computer, and the
+.cW "standard font"
+for what the computer types back at you.
+A \(=> marks the beginning of each step.
+.IP \(=> 1.6c
+Power on the machine and write down the Ethernet address it displays in
+the banner.
+You will need this later.
+.IP \(=> 1.6c
+Insert the distribution tape into the tape unit, first making sure that
+it is read-only, and boot from tape by typing
+.sC L
+>\fBb st()\fP
+.eC
+The tape should spin and the kernel should boot.
+If this fails consult the chapter
+.I Trouble-shooting .
+Once the kernel boots it starts to
+initialize itself, loads the ramdisk from tape, and starts various servers.
+While all this is going on various messages will be displayed.
+They come from the boot server.
+Do not worry about them.
+After some minutes a shell prompt should appear:
+.sC L
+Welcome to standalone Amoeba
+#
+.eC
+You can verify that something works by typing
+.sC L
+# \fBdir\0\-l\0/super/hosts/coldstart\fP
+.eC
+which will give a directory listing of all devices present on your machine
+of which one will be the disk:
+.sC L
+bootp:00                        @    70498 KB
+.eC
+The `\*<@\*>' is the symbol for a disk and the number after it is the size of
+the disk in kilobytes.
+In this example it is a 70 MB disk.
+.LP
+At this point you need to partition and label your disk.
+The \*(Am disk driver code recognizes Sun disk labels and partition
+tables and makes it possible to use part of a disk for \*(Am and part
+of it for
+.UX .
+However, this is not supported for booting.
+.LP
+It is recommended to put a SunOS label on the disk which specifies only
+one partition, spanning the whole disk.
+We use the `a' partition, but
+for compatibility with SunOS the `c' partition might be more logical.
+In any case, \*(Am does not care.
+.LP
+Inside this one partition, the \*(Am disk driver code will recognize
+.kW "virtual disk"
+subpartitions.
+These are the building blocks of the \*(Am
+.I vdisk 's.
+For bootstrap purposes four virtual disks are needed.
+For simplicity each one should consist of a single subpartition.
+.IP vdisk:01 10
+This is used for booting \*(Am from disk and should have room to contain one or
+more kernels.
+In normal circumstances 1 MB should be plenty.
+More than 2 MB is probably a waste of space.
+Minimum 750 KB.
+.IP vdisk:02
+This is used by the
+.I boot (A)
+server, and 100 KB is sufficient.
+.IP vdisk:03
+This is for the administration of the directory server.
+A 1 MB partition will hold over 30000 directories and should
+be sufficient for most purposes.
+It is a bad idea to make this partition more than 1MB or the installation
+procedure may fail.
+It should be at least 500 KB.
+.IP vdisk:04
+This will hold the files for the first \*(Bs started.
+This can be up to about 600 Mbytes in size.
+Larger partitions may work but if it is larger than this then there may be
+insufficient core to cache the inode table when a full \*(Bs is started later.
+It should be at least 65 MB.
+.LP
+If you have any disk left after that you can put it in vdisk:05 but
+you might as well give it to the \*(Bs.
+.IP \(=> 1.6c
+Having planned the sizes for your partitions you should run the
+disklabel program:
+.kW "\fIdisklabel\fP"
+.sC L
+# \fBdisklabel\0coldstart\fP
+.eC
+This is an interactive program that is explained in
+.I disklabel (A).
+.IP
+NB.
+When labeling it is important to realize that the disk
+.I bootp:01
+is
+.B not
+a physical disk and should not be selected for labeling!
+.IP
+When creating the \*(Am subpartitioning the `a' partition
+corresponds to vdisk:01, `b' to vdisk:02, etc.
+.IP \(=> 1.6c
+After the disk is labeled
+.B reboot
+the machine.
+To get a monitor prompt back the Sun standard
+.B L1-A
+does
+.B not
+work.
+Instead you should press the key labeled
+.B R11
+and then
+.B r .
+When working on ttya use
+.B <CTL>^
+followed by
+.B r .
+Then boot from tape again, and list the kernel directory again (with
+.I dir ).
+This time you should see the entries for vdisk:01 up to vdisk:04.
+.IP \(=> 1.6c
+Now set the time and date in the time of day server using the
+.I date (U)
+command.
+.kW "setting the date"
+It has the form:
+.sC L
+# \fBdate\0\-s\0/super/hosts/coldstart/tod\fP yyyymmddhhmm[.ss]
+.eC
+.IP \(=> 1.6c
+Start the rest of the installation by:
+.sC L
+# \fB.\0\0installit\fP
+.eC
+This script will prompt you for the name of the machine and its Ethernet
+address.
+The machine name must be a single word (no spaces or tabs) and the
+Ethernet address should be in the usual format
+(e.g.,
+.B 8:0:20:0:12:34 ).
+After that no further user input is required and the disk
+will be loaded with the binaries and data files.
+It will print details of each file as it is loaded so that it is clear that
+it is still active.
+.LP
+After the script finishes, which can easily take half an hour,
+it will print
+.sC L
+Installation complete
+.eC
+.IP \(=> 1.6c
+You should be able to boot \*(Am from disk.
+To do this go back to the Sun monitor,
+as described above and then type:
+.sC L
+>\fBb sd()\fP
+.eC
+.IP \(=> 1.6c
+After some minutes an \*(Am login message should appear (be careful,
+it might be lost in the verbose boot server output),
+and you should be able to log in as user
+.kW Daemon
+.I Daemon .
+There is no password,
+so at the
+.cW Password:
+prompt you should just press the return key.
+.IP \(=> 1.6c
+The login name
+.I Daemon
+has the super capability giving access to the entire directory graph so it is
+important to protect this login against misuse.
+Once logged in you should set the password for the login name
+.I Daemon
+using the command
+.kW chpw
+.I chpw (U).
+.LP
+Now go on to the section on setting the time.

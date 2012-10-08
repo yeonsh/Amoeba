@@ -1,0 +1,31 @@
+#! /bin/sh
+#	
+#	@(#)amdumpsym	1.2	94/04/07 14:09:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# amdumpsym: follow symlink and install tree or file
+
+if [ $# -ne 3 ]
+then
+    echo usage: $0 unixdir relative amoebadir 2>&1
+    exit 1
+fi
+
+#echo $0 $1 $2 $3
+
+unixdir=$1
+relative=$2
+amdir=$3
+
+if cd $relative 2>/dev/null
+then
+    # symbolic link to a directory
+    amdumptree `pwd` $amdir/$relative
+else
+    # symbolic link to a file
+    amdumpfile $relative $amdir
+fi
+

@@ -1,0 +1,168 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:39:55
+#
+#
+#   deliver:    Manage message queues & invoke channel programs
+#
+MODULES =	threaded ch_wtmail ch_io ch_poll delivert deliverguts
+
+OBJECTS =	deliverguts.o ch_wtmail.o ch_io.o ch_poll.o 
+
+SOURCES =	threaded.c ch_wtmail.c ch_io.c ch_poll.c delivert.c deliverguts.c
+
+real-default:	deliver deliversvr deliverguts
+deliver:	xdeliver
+xdeliver:	$(HEAD) delivert.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) delivert.o $(MMDFLIBS) $(SYSLIBS)
+deliversvr:	xdeliversvr
+xdeliversvr:	$(HEAD) threaded.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) threaded.o $(MMDFLIBS) $(SYSLIBS)
+deliverguts:	xdeliverguts
+xdeliverguts:	$(HEAD) $(OBJECTS) $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) $(OBJECTS) $(MMDFLIBS) $(SYSLIBS)
+
+install:	$(LIBDIR)/$(MMPREF)deliver
+
+aminstall:
+	$(AINSTALL) $(AINSTALLFLAGS) xdeliver $(LIBDIR)/$(MMPREF)deliver
+	$(AINSTALL) $(AINSTALLFLAGS) xdeliversvr $(LIBDIR)/$(MMPREF)deliversvr
+	$(AINSTALL) $(AINSTALLFLAGS) xdeliverguts $(LIBDIR)/$(MMPREF)deliverguts
+
+
+$(LIBDIR)/$(MMPREF)deliver:	xdeliver
+	$(INSTALL) -c -m 04$(PGMPROT) -o root xdeliver $(LIBDIR)/$(MMPREF)deliver
+#	cp xdeliver $(LIBDIR)/$(MMPREF)deliver
+#	-$(CHOWN) root $(LIBDIR)/$(MMPREF)deliver
+#	-chmod 04$(PGMPROT) $(LIBDIR)/$(MMPREF)deliver
+	-@ls -ls $(LIBDIR)/$(MMPREF)deliver
+	-@echo "deliver installed normally"; echo ""
+
+
+lint:
+	$(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f xdeliver xdeliversvr xdeliverguts *.o x.c makedep eddep make.out errs
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+threaded.o: threaded.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/ctype.h
+threaded.o: /usr/proj/amwork/src/h/posix/setjmp.h
+threaded.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/sys/types.h
+threaded.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+threaded.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+threaded.o: /usr/proj/amwork/src/h/posix/time.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/dirent.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/signal.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/pwd.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/posix/sgtty.h
+threaded.o: /usr/proj/amwork/src/h/posix/sys/ioctl.h
+threaded.o: /usr/proj/amwork/src/h/posix/termios.h
+threaded.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+threaded.o: /usr/proj/amwork/src/h/amoeba.h /usr/proj/amwork/src/h/cmdreg.h
+threaded.o: /usr/proj/amwork/src/h/stdcom.h ../../h/deliversvr.h
+threaded.o: /usr/proj/amwork/src/h/stderr.h
+ch_wtmail.o: ch_wtmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+ch_wtmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/time.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/stdio.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_io.o: ch_io.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_io.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_io.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_io.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_io.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_io.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+ch_io.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+ch_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_io.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_io.o: /usr/proj/amwork/src/h/posix/stdio.h
+ch_io.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_io.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/nexec.h
+ch_poll.o: ch_poll.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+ch_poll.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/stdio.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+ch_poll.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/nexec.h ../../h/phs.h
+delivert.o: delivert.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+delivert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+delivert.o: /usr/proj/amwork/src/h/posix/ctype.h
+delivert.o: /usr/proj/amwork/src/h/posix/setjmp.h
+delivert.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+delivert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+delivert.o: /usr/proj/amwork/src/h/posix/sys/types.h
+delivert.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+delivert.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+delivert.o: /usr/proj/amwork/src/h/posix/time.h
+delivert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+delivert.o: /usr/proj/amwork/src/h/posix/dirent.h
+delivert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+delivert.o: /usr/proj/amwork/src/h/amoeba.h /usr/proj/amwork/src/h/cmdreg.h
+delivert.o: /usr/proj/amwork/src/h/stdcom.h ../../h/deliversvr.h
+delivert.o: /usr/proj/amwork/src/h/stderr.h
+deliverguts.o: deliverguts.c ../../h/util.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/stdio.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/ctype.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/setjmp.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/sys/types.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+deliverguts.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/time.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/dirent.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/signal.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/pwd.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/sgtty.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/sys/ioctl.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/termios.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+deliverguts.o: /usr/proj/amwork/src/h/amoeba.h /usr/proj/amwork/src/h/cmdreg.h
+deliverguts.o: /usr/proj/amwork/src/h/stdcom.h ../../h/deliversvr.h
+deliverguts.o: /usr/proj/amwork/src/h/stderr.h ../../h/ch.h
+deliverguts.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/msg.h
+deliverguts.o: ../../h/adr_queue.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

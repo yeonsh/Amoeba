@@ -1,0 +1,32 @@
+#	
+#	@(#)cc-c.amk	1.3	94/04/06 10:35:49
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# cc-c tool for the GNU C-compiler.
+# /usr/local/ambin should contain the driver "gnu-cpp".
+# That program shuffles the parameters as supplied by the GNU a bit,
+# and in turn invokes ACK cpp (/usr/local/ambin/cpp) to generate a
+# dependency file in the format required by Amake.
+#
+%instance deftypesuffix(dependents, '%.d');
+
+%include $PWD/../common/ackcpplib.amk;
+
+%tool cc-c (
+    src:      %in         [type = C-src];
+    object:   %out        [type = loadable]         => match($src);
+    flags:    %string %list                         => $CFLAGS;
+    objflags: %string %list                	    =>
+		if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:  %in         [type = command]          => $CC;
+    deps:     %out        [type = dependents]       => match($src);
+    incl:     %in %list   [C-incl, implicit]	    => %computed $deps;
+)
+{
+    exec($program, args => '-B'$ACKCPPLIB'/gnu-' +
+			   '-c' + $flags + $objflags + $src);
+};

@@ -1,0 +1,9 @@
+/*	@(#)lance.kstat	1.3	96/02/27 13:48:54 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+e eadrdump	"dump Ethernet address map"	SYS_RGT_NONE
+n netdump	"dump Lance statistics"		SYS_RGT_NONE

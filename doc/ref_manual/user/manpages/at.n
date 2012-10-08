@@ -1,0 +1,228 @@
+.\"	@(#)at.n	1.4	96/02/15 18:00:35
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Maarten Huisjes, Aug 1990
+	Document: Maarten Huisjes, Aug 1990
+	Modified: Gregory J. Sharp, Oct 1995 - standards conformance
+.aE
+.mT "at" U
+execute a command at a later date
+.SH
+Synopsis
+.LP
+.sC L
+at [options] time [date] [+ increment] [script]
+.eC
+.SH
+Description
+.kW "\fIsak\fP"
+.kW "cron"
+.kW "\fIcronsubmit\fP"
+.LP
+.I At
+reads commands from
+.I script
+to be executed at a later date.
+If
+.I script
+is omitted, commands are read from standard input.
+.I At
+will prompt for input in this case with the prompt
+.cW at> .
+It then submits the script to the
+.I sak
+server (see
+.I sak (A))
+which will execute the command script at the specified
+.I time/date .
+.LP
+The capability returned by the
+.I "sak"
+server will be stored in the sak directory (default
+.I /home/sak )
+under an entry called at\fI<nr>_script\fR.job, where
+.I <nr>
+is added to create a unique filename.
+The name passed to the
+.I "sak"
+server is the basename of the specified command.
+This name is used by the
+.I sak
+server in status reports and info requests.
+The name can overridden with the
+.B \-n
+option (see below).
+.LP
+If the
+.B \-s
+option is not specified (see below) then the shell used to execute the script
+.kW "SHELL environment variable"
+is taken from the current
+.cW SHELL
+environment variable, if set.
+It defaults to
+.I /bin/sh
+if the
+.cW SHELL
+environment variable is not set and the
+.B \-s
+option is not given.
+Since the
+.I sak
+server can only execute transactions, the command is packed into a transaction
+.kW "session server"
+that will result in the following command:
+.sC
+/profile/util/session -a \fIshell\fP -c \fIscript\fP
+.eC
+.LP
+The current string environment is copied and used when
+.I script
+is executed.
+.kW "ROOT environment variable"
+.kW "WORK environment variable"
+Only the
+.cW ROOT
+and
+.cW WORK
+capabilities are copied from the current capability environment.
+The
+.B \-E
+and
+.B \-C
+options can be used to modify the string and capability environments used
+to execute the command.
+.LP
+If no redirection is done then all output is lost.
+.LP
+The
+.I time
+may be specified using the following formats,
+.sC
+hh:mm    h:mm    hhmm    hmm    h    hh
+.eC
+.LP
+A 24 hour clock is assumed, unless the
+.I time
+is suffixed with
+.I am
+or
+.I pm .
+.LP
+Alternatively, the
+.I time
+may be specified by the special keywords
+.I now ,
+.I midnight
+or
+.I noon .
+.LP
+An optional
+.I date
+may be specified as either a month name followed by a day number (and possibly
+a year), or a day of the week.
+Month name and day of week may be fully spelled out (in lower case) or
+abbreviated to three characters.
+Two special dates are recognized:
+.I today
+and
+.I tomorrow .
+.LP
+An optional
+.I increment
+is a number followed by
+.I
+minutes, hours, days, weeks
+.R
+or
+.I years ,
+which can be added to a time specification.
+(Both singular and plural forms are accepted).
+.mH
+Options
+.LP
+.IP "\fB\-C\fP\fIname\fP=\fIcap\fP" 15
+Set the capability environment variable
+.I name
+to the value
+.I cap .
+.IP "\fB\-E\fP 0"
+Execute the command with an (almost) empty string environment.
+The environment is actually set to contain the default values of
+.cW HOME ,
+.cW WORK
+and
+.cW SHELL
+(namely
+.I /home ,
+.I / 
+and
+.I /bin/sh ).
+.IP "\fB\-E\fP\fIname\fP=\fIstr\fP"
+Set the string environment variable
+.I name
+to the value
+.I str .
+.IP "\fB\-c\fP"
+If the
+.I sak
+server is unable to execute the job at the requested time (because the server
+was not running) and the
+.B \-c
+flag is specified,
+the
+.I sak
+server will try to execute the job as soon as possible.
+If
+.B \-c
+was not specified it will report an error.
+.IP "\fB\-d\fP \fIdir\fP"
+Use
+.I dir
+as sak directory (default is
+.I /home/sak ).
+.IP "\fB\-n\fP \fIname\fP"
+Use
+.I name
+as the name of the job when submitting it to the sak server.
+.IP "\fB\-s\fP \fIshell\fP"
+Use
+.I shell
+to execute
+.I script .
+.mH
+Files
+.LP
+.IP "\fI/home/sak\fP" 25
+default sak directory.
+.IP "\fIat\fP<nr>_script\fI.job\fP"
+submitted
+.I at
+jobs.
+.IP "sak_status"
+.I sak
+status file.
+.IP "\fI/profile/cap/saksvr/default\fP"
+default
+.I sak
+server.
+.SH
+Examples
+.LP
+The following are examples of time formats and the script must be typed
+in as standard input.
+.IP
+at 3pm jan 24 1993
+.IP
+at 8:30 friday +1 week
+.IP
+at midnight
+.SH
+See Also
+.LP
+cronsubmit(U),
+sak(A).

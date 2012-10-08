@@ -1,0 +1,563 @@
+.\"	@(#)amake.n	1.5	96/02/15 17:59:19
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep
+	Document: Kees Verstoep
+	Modified: Gregory J. Sharp, Oct 1995
+			- smoothed out a few odd English constructs
+.aE
+.mT "amake" U
+(\*(Am make) stand-alone software configuration manager
+.SH Synopsis
+.LP
+.sC L
+amake [\-f file] [\-L dir] [\-D var[=value]] [\-v[level]] [\-t file]
+\ \ \ \ \ \ [\-p par] [\-r] [\-c] [\-C] [\-k] [\-n] [\-s] [\-w] [cluster] ...
+.eC
+.SH
+Description
+.LP
+.kW "\fImake\fP"
+.kW "\fIamake\fP"
+.kW "configuration management"
+.kW "dependency generation"
+.I Amake
+is a software configuration manager that was designed to be a tool in
+the same spirit as
+.I make ,
+i.e., it is a stand-alone tool that,
+when run by the user,
+should invoke precisely those commands that (re-)create a set of target files,
+according to a description file.
+The main idea is to make use of previous results as much as possible.
+Unlike standard
+.I make ,
+.I amake
+is also able to exploit possible parallelism between the commands.
+.LP
+In contrast to a lot of ``extended makes,''
+the specification language is not a superset of
+.I make 's,
+but a totally new one.
+For a complete description of the specification language refer to the
+.I "Amake User Reference Manual"
+in the Programming Guide.
+Here we only will give a short overview,
+illustrated with an example at the end.
+.LP
+In
+.I amake ,
+a software configuration can be specified by means of one or more
+.I cluster
+definitions.
+A cluster specifies the
+.I targets
+to be constructed from
+a given set of
+.I sources.
+It is
+.I amake 's
+task to deduce which
+.I tools
+to use,
+in what order,
+and how to do it efficiently.
+The tools available can be defined by the user,
+but generally a reference to a standard tool library
+\- consisting of a set of
+.I amake
+description files \-
+will suffice.
+In order to be able to decide whether a given file
+can be used or produced by a certain tool,
+files are represented as
+.I objects ,
+each having a set of
+.I attributes
+providing pieces of information about the object.
+.LP
+A tool definition,
+which resembles a function definition found in common programming languages,
+contains in its header references to the expected
+.I values
+of certain attributes,
+such as `type'.
+Rather than letting the user specify
+the values of all the necessary attributes,
+these values can usually be derived by
+.I amake
+itself,
+using
+.I "attribute derivations" .
+Rules declaring the possible derivations
+will generally be present in the library,
+together with the tools that refer to the attribute values in question,
+but the user can provide additional rules.
+.LP
+When invoked,
+.I amake
+will bring the specified set of clusters up to date
+by applying only those tools whose inputs have changed
+since the previous
+.I amake
+invocation (if there was any).
+If an argument (e.g., a compilation flag) is changed between two invocations,
+.I amake
+will notice this
+\- because it keeps track of previously executed tools \-
+and will thus re-run the tool with the new arguments.
+Moreover,
+old intermediate files produced are retained by default,
+so changing flags back again will cause it (when all inputs are unchanged)
+to reinstall the previous outputs,
+rather than to invoke the tool again.
+These files are kept in a subdirectory (the
+.I "object pool" )
+residing in the directory from which
+.I amake
+is invoked.
+This subdirectory also contains the
+.I statefile
+describing previous tool-invocations.
+.LP
+For a full description of the
+.I amake
+language,
+and
+.I amake
+usage in general,
+refer to the
+.I "Amake User Reference Manual" .
+Another good starting point,
+if interested in the various constructions available,
+would be to have a look at the standard tool library.
+.SH
+Options
+.LP
+The options available are the following:
+.IP "\fB\-f\fP \fIfile\fP
+.br
+The default specification file
+.I amake
+reads is
+.I Amakefile
+in the context in which it is invoked.
+A specification file with a different name can be specified by this option.
+Only one
+.B \-f
+option may be specified.
+.IP "\fB\-L\fP \fIdir\fP
+.br
+Files having relative path names,
+that are to be %included are normally looked for
+in the default system directory (see the Files section)
+and the current working directory.
+Invoking
+.I amake
+with
+.B \-L
+options causes it to look in the specified directories first,
+in the order in which the options are supplied.
+.IP "\fB\-p\fP \fIpar\fP
+.br
+By default
+.I amake
+runs at most 4 commands in parallel,
+to prevent overloading the local machine from thrashing.
+A different limit (in the range 1 to 20)
+can be specified with this option.
+When the local machine has little memory,
+a lower number will probably give better performance,
+while a higher number will be appropriate when several remote machines or
+(under \*(Am) processors are available.
+Supplying 0 as argument to this option causes
+.I make -like
+behavior;
+only one command is started,
+and
+.I amake
+waits for that command before it continues.
+When
+.B "\-p 1"
+is given,
+one command is run in the
+.I background ,
+and
+.I amake
+does some useful work in the meantime.
+.IP \fB\-r\fP
+.br
+Under
+.UX ,
+this option causes remote execution on a pool of workstations.
+A default pool is compiled into
+.I amake ,
+but a different one can be specified in the environment variable
+.cW RSH_POOL .
+Note that when using this option,
+be sure that all the machines in the pool are up,
+and also (with NFS) that your
+.I $HOME/.rhosts
+contains the machine on which
+.I amake
+is running.
+Furthermore,
+each machine has got to have the same file structure, i.e.,
+if on the machine running
+.I amake
+a file is reachable under the name
+.I /usr/users/versto/src/monkee.c ,
+the same should be the case for each of the other machines in the pool.
+.IP "\fB\-D\fP\fIvar\fP[\fI=expression\fP]
+.br
+An
+.I amake
+variable can be set on the command line by means of a
+.B \-D
+option.
+The
+.I expression
+is optional (default %true),
+and must be specified in
+.I amake
+syntax.
+Take care to quote the expression properly,
+if it contains characters with a special interpretation
+in the shell.
+Also,
+the argument required by the
+.B \-D
+option has to be one string,
+so
+.sC
+amake -D src = hello.c
+.eC
+will not be interpreted in the desired way.
+In the Bourne shell,
+specify
+.sC
+amake -D 'src = hello.c'
+.eC
+(i.e., explicitly made one string)
+or
+.sC
+amake -Dsrc=hello.c
+.eC
+(i.e., without spaces).
+.IP \fB\-k\fP
+.br
+By default,
+intermediate files generated while creating the targets specified,
+are kept ``hidden'' in the
+.I .Amake
+directory,
+and moved to and from this object pool whenever necessary.
+The
+.B \-k
+option leaves intermediate files in the current working directory.
+This may be used,
+for instance,
+when they contain information the user needs for debugging purposes.
+.IP \fB\-n\fP
+.br
+Stops
+.I amake
+from actually executing commands for targets that need updating.
+The commands are only written on standard output.
+It is advisable to use this option
+(possibly in combination with the
+.B \-v
+flag, see below)
+when a new
+.I Amakefile
+is used for a certain configuration.
+.IP \fB\-v\fP[\fIlevel\fP]
+.br
+Causes
+.I amake
+to be more verbose than usual.
+This option is helpful for finding out why
+.I amake
+does not do what the user intends.
+Although
+.I amake
+is relatively intelligent,
+it is not clairvoyant.
+The desired verbosity can be specified as parameter to this option:
+the higher the number, the more verbosity.
+The default verbosity level is 1.
+In this case,
+.I amake
+reports,
+among other things,
+the reason why it considers a tool not to be applicable within some cluster.
+.IP "\fB\-t\fP \fIfile\fP
+.br
+Causes
+.I amake
+to consider files having the same last component
+as the argument of this option to be updated (or ``touched,'' in
+.UX
+terms).
+This can be used when a command executed in a previous run
+did not deliver a non-zero exit status,
+even though it failed.
+Tools having a touched input will be re-invoked by
+.I amake .
+For example,
+.sC
+amake -t source.c
+.eC
+will force a recompilation of files called source.c,
+while
+.sC
+amake -t source.o
+.eC
+will only force re-invocation of the loader.
+.IP \fB\-w\fP
+.br
+Suppress warnings about questionable constructions,
+unsuspected situations, etc.
+.IP \fB\-s\fP
+.br
+By default
+.I amake
+prints the commands it is executing on standard output.
+Specifying this option suppresses this.
+.IP \fB\-c\fP
+.br
+This option should be specified if
+.I amake 's
+feature of caching objects stemming from
+previous tool invocations with different options should not be used.
+Generated files not needed in the current run
+will be removed from the cache.
+This option is handy when short on disk space.
+It also functions as a kind of `garbage collection',
+e.g., when a target has been created with some exotic option that
+will not be needed again in the near future.
+Ideally,
+.I amake
+ought to have some clever aging algorithm to do this automatically
+(and it probably will,
+one day.)
+.IP \fB\-C\fP
+.br
+This a more drastic version of the
+.B \-c
+option;
+it removes the entire
+.I amake
+object pool,
+statefile and targets.
+This can be used when a software configuration is ready,
+and its targets installed.
+When an
+.I amake
+bug or some external cause has damaged the statefile containing the
+.I amake
+administration,
+this will not work.
+In this case use the command:
+.sC
+rm -rf .Amake target ...
+.eC
+.IP \fIcluster\fP...
+.br
+All trailing arguments are taken as names of clusters or targets
+that are supposed to be updated.
+By default the first cluster encountered is assumed to require updating,
+together with the clusters producing sources for it.
+.mH
+Diagnostics
+.LP
+Commands are reported on standard output as they are executed,
+prefixed by the machine where the execution takes place.
+When all commands are executed locally,
+they are prefixed with a virtual processor name.
+The diagnostics of a command are buffered,
+i.e., redirected to temporary files and shown when the command has finished.
+.LP
+Other diagnostics,
+warnings and error messages produced by
+.I amake
+itself,
+are intended to be self-explanatory.
+Not all of them are but they will be described once things have settled down.
+.mH
+Environment Variables
+.LP
+Under
+.UX ,
+the environment variable
+.cW RSH_POOL
+can be used to specify the machines
+available for remote execution of commands (see the
+.B \-r
+option).
+The names of the machines should be separated by white space.
+.LP
+The
+.I amake
+language contains %import directives,
+which can be used to set
+.I amake
+variables according to the environment
+.I amake
+is started from.
+Likewise,
+\&%export directives are available to put
+.I amake
+variables
+in the environment supplied to commands invoked by
+.I amake .
+.mH
+Files
+.LP
+.IP \fIAmakefile\fP 20
+Default name of the configuration description file.
+.IP \fI.Amake\fP
+A subdirectory in the working directory from which
+.I amake
+is called.
+It contains files (possibly several versions of some) resulting from
+previous tool invocations.
+.IP \fI.Amake/Statefile\fP
+Contains a description of invocations made in previous builds.
+.IP \fI/usr/lib/amake\fP
+On \*(Am,
+this directory contains a set of files defining tools
+used for software development in C,
+including the parser generators
+.I yacc
+and
+.I LLgen .
+All that should be necessary is to put
+.cW "%include std-amake.amk"
+at the top of the
+.I Amakefile .
+.IP \fI/usr/local/lib/amake\fP
+Under
+.UX ,
+this is the default directory where
+.I amake
+looks for
+.I amake
+definition files.
+.mH
+Warnings
+.LP
+As
+.I amake
+decides where and how it starts a command,
+it is capable of deciding whether an argument needs quotation.
+(This may be the case when a shell is used.)
+If,
+for example,
+the C-compiler is to be called with an option defining a string,
+it should be specified with
+.sC
+CFLAGS = '-DSTR="string"';
+.eC
+When,
+as is currently the case under
+.UX ,
+the Bourne Shell is used to start the C-compiler,
+.I amake
+will insert backslashes before the " characters in the command.
+.LP
+The fact that there is only one object pool per context allows previous
+invocations to be shared between different
+.I Amakefile s.
+It is not advisable,
+however,
+to do this for specification files that have no sources in common.
+In that case a large statefile has to be read
+(and possibly written) at each
+.I amake
+invocation,
+resulting in poorer performance.
+.LP
+.I Amake
+is known to use quite a lot of memory
+when updating a large configuration,
+or when it has to maintain many instances of the same configuration.
+In the latter case,
+it helps to invoke
+.I amake
+with the
+.B \-c
+flag (described above) once in a while.
+.LP
+Targets created with
+.I amake
+are hard-linked into the cache.
+Therefore be sure to copy (rather than move) a target when installing it.
+Otherwise a future
+.I amake
+invocation may cause an inconsistent version
+to overwrite the installed one.
+.LP
+The remote execution option should only be used
+to update a working configuration,
+because it was (only recently) discovered that the
+.UX
+.I rsh
+command fails to deliver a bad exit status when a remote command fails.
+.SH
+Example
+.LP
+The following shows what the specification of simple software configuration
+might look like in
+.I amake .
+.sC
+%include std-amake.amk;
+
+%cluster
+{
+   %targets comp[type = program];
+   %sources parse.y, scan.l, comp.c, defs.h, comp.a;
+   %use     cc-c(f\&lags => '-DAMOEBA');
+};
+.eC
+.LP
+The %include directive on the first line causes
+.I amake
+to read the file
+.I std\-amake.amk ,
+which in turn lets it
+\&%include a standard set of tool definitions and derivation rules.
+The type-attribute of the target ``comp'',
+defined on line 5,
+is added explicitly and forces
+.I amake
+to apply a loader as last step in the construction of targets.
+The sources,
+introduced on line 6,
+have type
+.I yacc-src ,
+.I lex-src ,
+.I C-src ,
+.I C-incl
+and
+.I library
+respectively,
+all of which can be derived using analysis of the suffices.
+Line 7 shows that we can influence tool-behavior
+(in this case of the C-compiler)
+by supplying other values for parameters than the default ones.
+Alternatively,
+an assignment to the global variable CFLAGS could be made,
+which (like in
+.I make )
+is used to alter the default argument globally.
+.SH
+See Also
+.LP
+In the Programming Guide
+.br
+.I "Amake User Reference Manual" .

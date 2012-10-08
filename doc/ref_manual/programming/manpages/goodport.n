@@ -1,0 +1,192 @@
+.\"	@(#)goodport.n	1.5	96/02/15 16:49:48
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael N. Condict, August 1990
+	Document: Gregory J. Sharp, December 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "goodport" L "libamoeba.a, libkernel.a, libamunix.a"
+routines for avoiding repeated transactions to bad ports
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/goodport.h"
+
+gp_badport(port, command)
+gp_notebad(cap, status)
+gp_trans(cap, func_call)
+gp_std_copy(server, source, target)
+gp_std_destroy(cap)
+gp_std_info(cap, buf, n, len)
+gp_std_restrict(cap, mask, new)
+gp_std_status(cap, buf, n, len)
+gp_std_touch(cap)
+.eC
+.SH
+Description
+.LP
+.kW "capability"
+.kW "\fIgp_badport\fP"
+.kW "\fIgp_notebad\fP"
+.kW "\fIgp_trans\fP"
+.kW "\fIgp_std_copy\fP"
+.kW "\fIgp_std_destroy\fP"
+.kW "\fIgp_std_info\fP"
+.kW "\fIgp_std_restrict\fP"
+.kW "\fIgp_std_status\fP"
+.kW "\fIgp_std_touch\fP"
+One of the problems with the client-server model is that it is possible that a
+server for a particular type of object is unavailable.
+Every attempt to communicate with that server will result in a time-out while
+an attempt is made to locate the server.
+A succession of time-outs can result in very long delays and seriously impact
+perceived and actual performance.
+This module attempts to keep a history of servers which have recently
+been unavailable.
+It does this by remembering ports for which a locate time-out has occurred.
+By first checking to see if a port is in the list of unavailable ports
+it is possible to avoid the long delays.
+If an object is replicated then it is possible to immediately see if a
+particular port is known to be not responding and first attempt to obtain
+the object from one of the alternative servers for the object.
+.LP
+A port is defined to be
+.I bad
+if a previous transaction with that port has returned the error
+.cW RPC_NOTFOUND .
+That is,
+an attempt to locate the server with that port has failed.
+.LP
+A fixed size cache of bad ports is maintained.
+If more bad ports are found than fit in the cache then the least recently
+added entry in the cache is deleted to make space for a new entry.
+.mH
+Types
+.LP
+The set of legal values for the
+.I command
+argument of
+.I gp_badport
+are defined in
+.I goodport.h .
+.sH
+gp_badport
+.LP
+.sC
+int
+gp_badport(port, command)
+port *p;
+int command;
+.eC
+.kW "\fIgp_badport\fP"
+.I Gp_badport
+is used to modify the list of
+.I "bad ports" .
+There are four values for
+.I command
+which are defined in
+.I goodport.h .
+.IP \*<GP_INIT\*> 12
+Initialize the list of bad ports to empty.
+The function returns 1 in this case.
+The port argument
+.I p
+is not used and may be the NULL-pointer.
+.IP \*<GP_APPEND\*>
+Add the port pointed to by
+.I p
+to the cache of bad ports.
+Returns 1 if the port was already in the cache and 0 if it added it.
+.IP \*<GP_DELETE\*>
+Remove the port pointed to by
+.I p
+from the list of bad ports.
+Returns 1 if it deleted it and 0 if the
+.I port
+was not in the cache.
+.IP \*<GP_LOOKUP\*>
+This routine returns 1 if the port pointed to by
+.I p
+is in the cache and 0 otherwise.
+.sH
+gp_notebad
+.LP
+.sC
+errstat
+gp_notebad(cap, status)
+capability *cap;
+errstat status;
+.eC
+.kW "\fIgp_notebad\fP"
+.I Gp_notebad
+is a utility routine to add a port to the
+.I "bad port"
+cache.
+If a transaction returned an error status then the capability
+.I cap
+used for the transaction and the error returned
+.I status
+can be given to this routine.
+If
+.I status
+is
+.cW RPC_NOTFOUND
+this routine will add the port of the server to the
+.I "bad port"
+cache.
+The function returns
+.I status .
+.sH
+gp_trans
+.LP
+.sC
+errstat
+gp_trans(cap, func_call)
+capability *cap;
+errstat (*func_call)();
+.eC
+.kW "\fIgp_trans\fP"
+.I Gp_trans
+is a macro defined in
+.I goodport.h
+that
+calls the function
+.I func_call
+if the port of the capability
+.I cap
+is not in the
+.I "bad port"
+cache.
+If it is in the cache then it returns the error
+.cW RPC_BADPORT .
+.LP
+If the result of the
+.I func_call
+is
+.cW RPC_NOTFOUND
+then it registers the port of the server in the
+.I "bad port"
+cache.
+It returns the error status of
+.I func_call .
+.LP
+This macro has been used to define several other macros for all the
+.I std
+functions that automatically log any bad ports in the
+.I "bad port"
+cache.
+.kW "\fIstd\fP"
+These routines have the same parameters as the routines described in
+.I std (L)
+but the function names are prefixed with
+.I gp_ .
+.SH
+See Also
+.LP
+std(L).

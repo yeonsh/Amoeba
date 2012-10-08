@@ -1,0 +1,474 @@
+.\"	@(#)ipsvr.n	1.7	96/02/15 17:47:31
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg
+	Document: Philip Homburg, Dec 5, 1991
+	Modified: Gregory J. Sharp, May 1995
+			- conforms more to Amoeba manpage structure and is
+			  hopefully clearer and more useful.
+.aE
+.mT "ipsvr" A 
+the TCP/IP server
+.SH
+Synopsis
+.LP
+Built into the kernel.
+Add the following lines to the source file list of the kernel Amakefile:
+.sC
+conf_gw.c[flags="-I$SRC_ROOT/kernel/server/ip/kernel_dep" +
+	"-I$SRC_ROOT/kernel/server/ip/amoeba_dep" +
+	"-I$SRC_ROOT/kernel/server/ip"],
+$K_SVR_TCPIP[flags="-I$SRC_ROOT/kernel/server/ip/kernel_dep" +
+	"-I$SRC_ROOT/kernel/server/ip/amoeba_dep" +
+	"-I$SRC_ROOT/kernel/server/ip" +
+	'-DAM_KERNEL' + '-D_POSIX_SOURCE' ],
+.eC
+.SH
+Description
+.LP
+.kW IP
+.kW TCP
+.kW UDP
+.kW ICMP
+.kW TCP/IP
+.kW Internet
+The TCP/IP server implements the Internet protocols as described in RFC-791 
+``Internet Protocol'', RFC-792 ``Internet Control Message Protocol'', RFC-793 
+``Transmission Control Protocol'', RFC-768 ``User Datagram Protocol'', RFC-1256
+``ICMP router discovery messages'' and others.
+The rest of this document assumes familiarity with the basic concepts of
+TCP/IP networking.
+.LP
+The server runs in the kernel so that it can have access to the Ethernet
+interfaces.
+When the kernel is running the various capabilities of the the server are
+published in the directory
+.I ip
+under the kernel directory.
+A
+.cW "dir -l"
+of a kernel with a TCP/IP server typically looks like:
+.sC
+bootp:00                        @    69564 KB
+floppy:00                       @     1440 KB
+ip                              %--1234
+printbuf                        printbuf server
+printer                         printer server
+proc                            process/segment server
+ps                              %--1234
+random                          random number server
+sys                             system server
+tod                             TOD server
+tty:00                          +
+.eC
+.LP
+The contents of the
+.I ip
+directory is:
+.sC
+eth                             To---s--- 1
+ip                              To---s--- 2
+tcp                             To---s--- 3
+udp                             To---s--- 4
+.eC
+.LP
+These are the capabilities for the Ethernet, IP, TCP and UDP interfaces,
+respectively.
+.LP
+The default TCP/IP server elements for a user are defined in
+.I ampolicy.h .
+Typically they are the names in the following table:
+.TS
+center,tab(:),box;
+l | l .
+Variable Name:Typical default value
+_
+ETH_SVR_NAME:/profile/cap/ipsvr/eth
+IP_SVR_NAME:/profile/cap/ipsvr/ip
+TCP_SVR_NAME:/profile/cap/ipsvr/tcp
+UDP_SVR_NAME:/profile/cap/ipsvr/udp
+.TE
+.LP
+These defaults can be overridden by either the environment variables below
+or in some cases by the command line options of the various programs that
+use the TCP/IP server.
+.mH
+Environment Variables
+.LP
+There are four string environment variables, each referring to one of
+the above server capabilities of the IP server:
+.kW "ETH_SERVER environment variable"
+.kW "IP_SERVER environment variable"
+.kW "TCP_SERVER environment variable"
+.kW "UDP_SERVER environment variable"
+.cW ETH_SERVER, 
+.cW IP_SERVER, 
+.cW TCP_SERVER 
+and 
+.cW UDP_SERVER.
+The value of these environment variables is interpreted as a path name that
+refers to a capability of the TCP/IP server.
+To use the environment variables to override the default server, issue the
+following commands:
+.sC
+ETH_SERVER=/super/hosts/\fItcpip_host\fP/ip/eth; export ETH_SERVER
+IP_SERVER=/super/hosts/\fItcpip_host\fP/ip/ip; export IP_SERVER
+TCP_SERVER=/super/hosts/\fItcpip_host\fP/ip/tcp; export TCP_SERVER
+UDP_SERVER=/super/hosts/\fItcpip_host\fP/ip/udp; export UDP_SERVER
+.eC
+.LP
+where
+.I tcpip_host
+is the name of the host with the TCP/IP server to be used.
+.mH
+Initialization
+.LP
+In order to work properly, the TCP/IP server needs to have an Internet address,
+a netmask, and routing tables.
+These can be configured manually and the routing tables can also be
+configured automatically.
+.LP
+The Internet address and the netmask must configured manually using
+.kW "\fIifconfig\fP"
+.I ifconfig (A).
+The netmask defaults to 255.255.255.0.
+The program
+.I setupipsvr (A)
+can be useful when configuring TCP/IP servers.
+.LP
+The routing tables can be configured using
+.kW "\fIadd_route\fP"
+.I add_route (A).
+If the IP routers support the Internet Router Discovery Protocol (IRDP) and/or
+the Routing Information Protocol (RIP), for instance
+.UX
+hosts with the
+.I routed
+daemon, then the 
+.kW "\fIirdpd\fP"
+.I irdpd (A)
+daemon can be used to automatically configure the routing tables.
+.mH
+Warning
+.LP
+Do not choose Internet addresses at random.
+The addresses should be obtained from the appropriate authority, especially
+if the \*(Am network is directly connected to the Internet.
+.SH
+Programming Interface Summary
+.LP
+Access to the
+.I IP
+server is provided by the library routines described in 
+.I ip (L).
+.SH
+Administration
+.LP
+The TCP/IP server requires very little administration once it is installed.
+The main thing is to ensure that the
+.I boot (A)
+server maintains the capabilities for the default server in
+.I /super/cap/ipsvr .
+There are commented-out entries in the
+.I Bootfile
+provided with the system that show how to do this.
+See
+.cW IP_cap ,
+.cW ETH_cap ,
+etc\. for details.
+Note that the entries in
+.I /super/cap/ipsvr
+should have Soap column masks ff:80:80.
+The
+.I boot
+server should also be used to keep related servers running that might be
+required,
+for example,
+.I rarp (A),
+.I tftp (A)
+and
+.I irdpd (A).
+.LP
+It will be necessary to maintain the hosts table 
+.kW "/etc/hosts"
+.I (\^/etc/hosts\^)
+.kW "Domain Name System"
+if the Domain Name System (DNS) is not accessible from the \*(Am network.
+Note that there is currently no DNS server that runs on \*(Am but the \*(Am
+programs will use any accessible DNS on the network.
+.LP
+N.B.
+If there is more than one network connected to the IP server host,
+the server will only talk to the network with the lowest FLIP network number.
+.mH
+Installation
+.LP
+This section describes the installation and configuration of the TCP/IP
+related kernels and utilities.
+The first issue is to decide on which host(s) to run TCP/IP servers.
+This will be determined by the intended use of the TCP/IP server(s).
+.LP
+The TCP/IP server is typically built into a
+.I pool ,
+.I workstation
+or
+.I smallbullet
+kernel.
+It tends to take a lot of space, so building it into a
+.I smallbullet
+kernel is only a good idea if the \*(Bs host has sufficient
+memory to support both the Bullet cache and the IP server.
+.LP
+.kW "X windows"
+If it is desired to use an X server with a TCP connection to access other
+sites or
+.UX
+hosts, then it is a good idea to have a TCP/IP server in the
+.I workstation
+kernel where the X server runs.
+This simplifies addressing the display of the X server from
+.UX
+or another site.
+.LP
+The other main issue is booting hosts using TFTP.
+(This is typically the case with Sun machines.)
+At least one TCP/IP server must be able to boot without using TFTP, since
+the TFTP server under \*(Am needs the TCP/IP server.
+There are two possible solutions:
+.IP 1.
+The first TCP/IP server is in an \*(Am kernel which is booted from disk/floppy.
+This requires only a small disk with one
+.I vdisk
+set up as a boot partition.
+.IP 2.
+The kernel with the first TCP/IP server is booted from a TFTP server provided by
+.UX .
+.LP
+Once the first TCP/IP server is running,
+.I rarp (A)
+and
+.I tftp (A)
+can be started by the
+.I boot (A)
+server and these can boot the remaining \*(Am processors.
+(The
+.I boot
+server is started on the \*(Bs which is normally booted from disk.)
+Note that the
+.I rarp
+and
+.I tftp
+servers typically use more than 1.5\|MB and must run on the only machine
+guaranteed to be up,
+i.e., the TCP/IP host.
+Make sure it has enough memory free.
+.LP
+In the following it is assumed that one of the above mechanisms has been
+provided to boot the kernel containing the first TCP/IP server.
+.LP
+A TCP/IP kernel needs to to be told its Internet address and a netmask using
+.I ifconfig (A).
+This can also be done using
+.I setupipsvr (A)
+in combination with the
+.I boot
+server.
+See
+.I setupipsvr (A)
+for an example of how to set up the
+.I boot
+server to do this.
+.LP
+To check if a server knows its own Internet address use the command
+.kW "\fIifconfig\fP"
+.sC
+ifconfig $IP_SERVER
+.eC
+It reports something like:
+.sC
+hostaddr= 130.37.24.11 netmask= 255.255.255.0
+.eC
+or (after a while):
+.sC
+hostaddr not set
+.eC
+.LP
+If the Internet address has not (yet) been set then it can be set using
+.I ifconfig
+(as follows:
+.sC
+ifconfig -h 130.37.24.11 $IP_SERVER
+.eC
+with the appropriate address in place of the one shown).
+.LP
+Take a look at the netmask to see if it matches the netmask of the network the
+machine is on.
+The netmask can be changed with 
+.kW "\fIifconfig\fP"
+.sC
+ifconfig -n <netmask> $IP_SERVER.
+.eC
+.LP
+If the
+.I boot
+server has been set up appropriately, the capabilities for the default TCP/IP
+server will have been installed in
+.I /super/cap/ipsvr
+each time
+.I tcpip_host
+is rebooted.
+However, the first time it is necessary to install the capabilities manually.
+Do this using:
+.sC
+get /super/hosts/\fItcpip_host\fP/ip/eth | put /super/cap/ipsvr/eth
+get /super/hosts/\fItcpip_host\fP/ip/ip | put /super/cap/ipsvr/ip
+get /super/hosts/\fItcpip_host\fP/ip/tcp | put /super/cap/ipsvr/tcp
+get /super/hosts/\fItcpip_host\fP/ip/udp | put /super/cap/ipsvr/udp
+.eC
+At this point you can use 
+.kW "\fIping\fP"
+.I ping (A)
+to check if the server is working.
+.sC
+/super/admin/bin/ping \fItcpip_host\fP
+.eC
+will give something like:
+.sC
+PING \fItcpip_host\fP.am.cs.vu.nl (130.37.24.11): 56 data bytes
+64 bytes from 130.37.24.11: icmp_seq=0 ttl=60 time=0 ms
+64 bytes from 130.37.24.11: icmp_seq=1 ttl=60 time=0 ms
+64 bytes from 130.37.24.11: icmp_seq=2 ttl=60 time=0 ms
+.eC
+.LP
+Interrupt this if it seems to be working.
+It should now also be possible to use
+.kW "ttn"
+.I ttn (U)
+to talk to other IP hosts on the \*(Am network.
+Look up the Internet address of a 
+.UX
+machine on the same network and try
+.sC
+ttn <Internet address of UNIX machine>
+.eC
+this will give you something like:
+.sC
+connecting to <Internet address of UNIX machine>
+connect succeeded !!!!
+
+
+SunOS UNIX (xxx.cs.vu.nl)
+
+login: 
+.eC
+CTRL-D can be used to exit from the login prompt.
+.LP
+At this moment you can use TCP/IP to talk to hosts on the same network as your
+\*(Am IP server but probably not to talk to machines on other networks.
+Issue the command to display the routing table of the TCP/IP server:
+.kW "\fIpr_routes\fP"
+.sC
+pr_routes
+.eC
+If nothing is shown it indicates an empty routing table.
+.LP
+The TCP/IP server needs to know some gateways in order to forward packets that
+are to be sent to hosts on other networks.
+There are three ways for the TCP/IP server
+to get a routing table: built into the kernel, added manually using 
+.kW "\fIadd_route\fP"
+.I add_route (A),
+or discovered dynamically using the Gateway Advertisement ICMPs.
+The last method is the most appropriate one at moment.
+Unfortunately, current gateways do not generate
+Gateway Advertisement ICMPs and a daemon is needed to generate these ICMPs.
+Start the program 
+.kW "\fIirdpd\fP"
+.I irdpd (A)
+in the background:
+.sC
+irdpd -b -I $IP_SERVER -U $UDP_SERVER &
+.eC
+After about one minute rerun
+.I pr_routes (A).
+It should show some output.
+For example,
+.sC L
+.ps-1
+1 DEST= 0.0.0.0, NETMASK= 0.0.0.0, GATEWAY= 130.37.24.2, dist= 1 pref= 1
+.ps
+.eC
+Connections to machines on other networks should now be possible.
+.LP
+Until now Internet addresses have been used instead of host names.
+There two ways to map a hostname to an Internet address or the other way around.
+The first one is the 
+.I /etc/hosts
+file.
+You can add the entry
+.sC
+127.0.0.1	localhost
+.eC
+to the file 
+.I /super/unixroot/etc/hosts
+and try 
+.sC
+ttn localhost.
+.eC
+This should give the same result as
+.sC
+ttn 127.0.0.1
+.eC
+.kW "Domain Name System"
+The other way is the DNS.
+The TCP/IP programs are
+compiled with the so-called resolver library.
+This means that a DNS server can be used to look up Internet addresses.
+.kW "resolver library"
+.kW "/etc/resolv.conf"
+The resolver library uses the file 
+.I /etc/resolv.conf .
+This file should contain one entry:
+.sC
+nameserver 127.0.0.1
+.eC
+.kW "Domain Name System"
+When that Internet address is changed to the Internet address of a DNS
+server, and an entry
+.sC
+domain <your domain>
+.eC
+is added then a command like
+.sC
+host uunet.uu.net
+.eC
+should report:
+.sC
+uunet.uu.net has address 137.39.1.2
+uunet.uu.net has address 192.48.96.2
+uunet.uu.net mail is handled by relay1.UU.NET
+uunet.uu.net mail is handled by relay2.UU.NET
+.eC
+Likewise 
+.sC
+ttn <name of UNIX machine>
+.eC
+should work.
+.SH
+See Also 
+.LP
+add_route(A),
+boot(A),
+ftpd(A),
+ifconfig(A),
+ip(L),
+irdpd(A),
+ping(A),
+pr_routes(A),
+rarp(A),
+setupipsvr(A),
+telnetd(A).

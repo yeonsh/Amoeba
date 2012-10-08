@@ -1,0 +1,143 @@
+.\"	@(#)ainstall.n	1.6	96/02/15 17:59:15
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1988-1989; Kees Verstoep, 1991-1992: acv
+	Document: Guido van Rossum, Feb 1990
+	Modified: Gregory J. Sharp, Oct 1990
+				-a option was unimplementable
+		  Gregory J. Sharp, Oct 1995 
+				tidy up the errors and ambiguities
+.aE
+.mT "ainstall" U "UNIX ONLY"
+transform an Amoeba binary on
+.UX
+into an \*(Am executable file
+.SH
+Synopsis
+.LP
+.sC L
+ainstall [\-b\ extra-bss] [\-f\ filesvr] [\-s\ stacksize]
+[\-T\ address] unix-file [amoeba-file]
+.eC
+.SH
+Description
+.LP
+.kW "a.out file"
+.kW "executable file"
+.kW "architecture"
+.kW "bss"
+.kW "stack size"
+.kW "loader"
+.kW "UNIX"
+.kW "text segment"
+.I Ainstall
+is
+.I only
+run under
+.UX .
+It creates an \*(Am executable file from loader output produced under
+.UX .
+(It is not needed when running under native \*(Am.)
+The output file will reside on an \*(Am file server; typically, this is
+the \*(Bs.
+.LP
+The following input formats are supported:
+.IP -
+a.out binaries created with the native
+.UX
+compiler and loader
+.IP -
+a.out binaries created with the GNU compiler and loader.
+.IP -
+\*(Am binaries created with ACK.  These require no further conversion.
+.LP
+When conversion is required,
+the output is produced by concatenating an \*(Am-specific data
+structure
+\(em the
+.I "process descriptor" \(em
+with the original contents of the
+.UX
+executable file.
+Offsets for the text and data segments and the symbol table segment
+in the process descriptor give the offsets relative to the beginning of
+the file.
+.mH
+Options
+.LP
+.IP "\fB\-b\fP bss-extra
+.br
+Specifies the number of kilobytes of extra bss (uninitialized data,
+preset to zero) allocated for the executing program.
+This is in addition to the bss needed for uninitialized global and
+static variables declared in the program; the extra space is used by
+.I malloc.
+Normally, the bss segment is automatically grown (or a new segment
+allocated) when
+.I malloc
+needs more memory, so it is not necessary to
+specify this option even for programs with large dynamic memory requirements.
+The default is 16.
+.IP "\fB\-f\fP filesvr
+.br
+Specifies the file server where the output file is created.
+The default is the standard \*(Bs, specified by DEF_BULLETSVR in
+.I ampolicy.h
+(typically
+.I /profile/cap/bulletsvr/default ).
+.IP "\fB\-s\fP stacksize
+.br
+Specifies the stack size (in kilobytes) for the executing program.
+Since \*(Am (currently) does not grow the stack automatically, this
+must be specified for programs that engage in deep recursion or declare
+large buffers on the stack.
+The default is zero; in this case a default is chosen by
+.I exec_file (L)
+when the program is executed (normally 16\|KB or the page size, whichever is
+the larger).
+.IP "\fB\-T\fP address
+.br
+Specifies that the text segment must be loaded at the given address (in
+hexadecimal).
+If the loader was given a load address then the
+.B \-T
+option must be specified, and with the same address,
+since this information is not contained in the
+.I a.out
+header.
+The default is architecture-dependent, and matches the loader default,
+except that on a VAX the default is 400 (hex).
+.IP unix-file
+.br
+Specifies the input file.
+This must be in one of the formats documented in
+.I a.out.h (5),
+or an \*(Am-format binary.
+There is no default.
+.IP amoeba-file
+.br
+Optionally specifies the name of the output file (this is unrelated to
+the file server used).
+The default is the same as
+.I unix-file .
+.SH
+Example
+.LP
+.sC
+ainstall a.out /home/hello
+.eC
+.SH
+See Also
+.LP
+ax(U),
+exec_file(L),
+exec_findhost(L),
+malloc(L),
+proc(L).
+.LP
+.UX
+man pages: ld(1), a.out(5).

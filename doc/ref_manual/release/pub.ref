@@ -1,0 +1,815 @@
+%T Protection and Resource Control in Distributed Operating Systems
+#	
+#	@(#)pub.ref	1.7	96/02/15 16:59:52
+#
+%A S.J. Mullender
+%A A.S. Tanenbaum
+%J Computer Networks
+%V 8
+%N 5-6
+%P 421-432
+%D Oct 1984
+
+%T Distributed Match-Making for Processes in Computer Networks
+%A S.J. Mullender
+%A P.M.B. Vit\('anyi
+%J Proc. of the 4th ACM Conf. on Principles of Distributed Computing
+%C Minaki, Canada
+%D Aug 1985
+
+%T Principles of Distributed Operating System Design
+%A S.J. Mullender
+%R PhD. Thesis
+%I SMC
+%C Amsterdam
+%D Oct 1985
+%X unavailable
+
+%T Distributed Operating Systems
+%A A.S. Tanenbaum
+%A R. van Renesse
+%J ACM Computing Surveys
+%V 17
+%N 4
+%P 419-470
+%D Dec 1985
+
+%T A Distributed File Service Based on Optimistic Concurrency Control
+%A S.J. Mullender
+%A A.S. Tanenbaum
+%J Proc. of the 10th ACM Symposium on Operating System Principles
+%P 51-62
+%C Orcas Island, Washington, USA
+%D Dec 1985
+
+%T Accommodating Heterogeneity in the Amoeba Distributed System
+%A S.J. Mullender
+%A R. van Renesse
+%J Proc. of SOSP Heterogeneity Workshop
+%C Orcas Island, Washington, USA
+%D Dec 1985
+
+%T The Design of a Capability-Based Distributed Operating System
+%A S.J. Mullender
+%A A.S. Tanenbaum
+%J The Computer Journal
+%V 29
+%N 4
+%P 289-300
+%D Mar 1986
+
+%T Parallel Alpha-Beta Search
+%A H.E. Bal
+%A R. van Renesse
+%J Proc. 4th NGI-SION Symposium Stimulerende Informatica
+%P 379-385
+%C Utrecht
+%D Apr 1986
+
+%T Using Sparse Capabilities in a Distributed Operating System
+%A A.S. Tanenbaum
+%A S.J. Mullender
+%A R. van Renesse
+%J Proc. of the 6th Int. Conf. on Distributed Computing Systems
+%P 558-563
+%C Cambridge, MA
+%D May 1986
+
+%T Making Distributed Systems Palatable
+%A A.S. Tanenbaum
+%A R. van Renesse
+%J Proc. of 2nd SIGOPS Workshop Making Distributed Systems Work
+%C Amsterdam
+%D Sept 1986
+
+%T Making Amoeba Work
+%A S.J. Mullender
+%J Proc. of 2nd SIGOPS Workshop Making Distributed Systems Work
+%C Amsterdam
+%D Sept 1986
+
+%T From UNIX to a Usable Distributed Operating System
+%A R. van Renesse
+%J Proc. of the EUUG Autumn '86 Conf.
+%P 15-21
+%C Manchester, UK
+%D Sept 1986
+
+%T The Amoeba Distributed Operating System II
+%A S.J. Mullender
+%J CWI Newsletter
+%N 12
+%I Centre for Mathematics and Computer Science
+%C Amsterdam
+%D Sept 1986
+
+%T A Summary of Parallel Alpha-Beta Search Results
+%A H.E. Bal
+%A R. van Renesse
+%J ICCA Journal
+%V 9
+%P 146-149
+%D Sept 1986
+
+%T Parallel and Distributed Compilations in Loosely-Coupled Systems: A Case Study
+%A E.H. Baalbergen
+%J Proc. Workshop on Large Grain Parallelism
+%C Providence, RI
+%D Oct 1986
+%X Proceedings were not published.
+
+%T Research Issues in Distributed Operating Systems
+%A A.S. Tanenbaum
+%A R. van Renesse
+%B Computing in High-Energy Physics
+%E L.O. Hertzberger and W. Hoogland
+%P 35-46
+%I North-Holland
+%C Amsterdam
+%D 1986
+
+%T The Design of a Window System for Amoeba
+%A G.J. Sharp
+%R IR-142
+%I Vrije Universiteit, Dept. of Math. and Comp. Sci.
+%C Amsterdam
+%D Dec 1987
+
+%T Reliability Issues in Distributed Operating Systems
+%A A.S. Tanenbaum
+%A R. van Renesse
+%J Proc. of the 6th Symposium on Reliability in Distributed Software and Database Systems
+%P 3-11
+%C Kingsmill-Williamsburg, VA
+%D Mar 1987
+
+%T A Distributed Diary Application
+%A D. Johansen
+%A O.J. Anshus
+%J Proc. of the IFIP TC 6 First Iberian Conf. on Data Communications
+%E A. Cerveira.
+%I North-Holland
+%C Lisbon, Portugal
+%D May 1987
+
+%T Implementing Distributed Algorithms Using Remote Procedure Calls
+%A H.E. Bal
+%A R. van Renesse
+%A A.S. Tanenbaum
+%J Proc. of the 1987 National Computer Conf.
+%P 499-506
+%C Chicago, Ill
+%D June 1987
+
+%T Gateways and Management in an Internet Environment
+%A J. Hall
+%A R. van Renesse
+%A J.M. van Staveren
+%J Proc. of the IFIP TC6 WG6.4A Int. Workshop on LAN Management
+%I Hahn-Meitner-Institute
+%C Berlin (West)
+%D July 1987
+
+%T Connecting RPC-Based Distributed Systems Using Wide-Area Networks
+%A R. van Renesse
+%A A.S. Tanenbaum
+%A J.M. van Staveren
+%A J. Hall
+%J Proc. of the 7th Int. Conf. on Distributed Computing Systems
+%P 28-34
+%C Berlin (West)
+%D Sept 1987
+
+%T Process Management in Distributed Operating Systems
+%A S.J. Mullender
+%B Proc. of Workshop `Experiences with Distributed Systems' in Computer Science Lecture Notes
+%I Springer Verlag
+%C Berlin
+%D Sept 1987
+
+%T The Workstation: Computing Resource or Just a Terminal?
+%A R. van Renesse
+%A A.S. Tanenbaum
+%A G.J. Sharp
+%J Proc. of the Workshop on Workstation Operating Systems
+%C Cambridge, MA
+%D Nov 1987
+
+%T Amoeba as a Workstation Operating System
+%A S.J. Mullender
+%J Proc. of the Workshop on Workstation Operating Systems
+%C Cambridge, Ma.
+%D Nov 1987
+
+%T The Amoeba Distributed Operating System: Selected papers 1984 \- 1987
+%E S.J. Mullender
+%I CWI tract 41
+%C Amsterdam
+%D 1987
+%X unavailable
+
+%T Distributed Operating Systems
+%A S.J. Mullender
+%J Computer Standards & Interfaces
+%V 6
+%N 1
+%P 37-44
+%D 1987
+
+%T Distributed Operating Systems: State-of-the-Art and Future Directions
+%A S.J. Mullender
+%J Proc. of the EUTECO 88 Conf.
+%E R. Speth
+%P 57-66
+%I North-Holland
+%C Vienna, Austria
+%D Apr 1988
+
+%T A Critique of the Remote Procedure Call Paradigm
+%A A.S. Tanenbaum
+%A R. van Renesse
+%J Proc. of the EUTECO 88 Conf.
+%E R. Speth
+%P 775-783
+%I North-Holland
+%C Vienna, Austria
+%D Apr 1988
+
+%T MANDIS: Architectural Basis for Management
+%A J.M. Bacon
+%A C. Horn
+%A A. Langsford
+%A S.J. Mullender
+%A W. Zimmer
+%J Proc. of the EUTECO 88 Conf.
+%E R. Speth
+%P 795-809
+%I North-Holland
+%C Vienna, Austria
+%D Apr 1988
+
+%T An Approach to Monitoring in Distributed Systems
+%A D.B. Holden
+%A O.J. Anshus
+%A T. Fallmyr
+%A J. Hall
+%A R. van Renesse
+%A J.M. van Staveren
+%A G. Skogseth
+%J Proc. of the EUTECO 88 Conf.
+%E R. Speth
+%P 811-821
+%I North-Holland
+%C Vienna, Austria
+%D Apr 1988
+
+%T MANDIS/Amoeba:  A Widely Dispersed Object-Oriented Operating System
+%A R. van Renesse
+%A J.M. van Staveren
+%A J. Hall
+%A M. Turnbull
+%A A.A. Janssen
+%A A.J. Jansen
+%A S.J. Mullender
+%A D.B. Holden
+%A A. Bastable
+%A T. Fallmyr
+%A D. Johansen
+%A K.S. Mullender
+%A W. Zimmer
+%J Proc. of the EUTECO 88 Conf.
+%E R. Speth
+%P 823-831
+%I North-Holland
+%C Vienna, Austria
+%D Apr 1988
+
+%T Voting with Ghosts
+%A R. van Renesse
+%A A.S. Tanenbaum
+%J Proc. of the 8th Int. Conf. on Distributed Computing Systems
+%P 456-461
+%C San Jose, CA
+%D June 1988
+
+%T Distributed Programming with Shared Data
+%A H.E. Bal
+%A A.S. Tanenbaum
+%J Proc. IEEE CS 1988 Int. Conf. on Computer Languages
+%C Miami, FL
+%P 82-91
+%D Oct 1988
+
+%T Design and Implementation of Parallel Make
+%A E.H. Baalbergen
+%J Computing Systems
+%V 1
+%N 2
+%D Spring 1988
+%P 135-158
+
+%T Distributed Match-Making
+%A S.J. Mullender
+%A P.M.B. Vit\('anyi
+%J Algorithmica, 2nd special issue on distributed algorithms
+%D 1988
+
+%T The Performance of the World's Fastest Distributed Operating System
+%A R. van Renesse
+%A J.M. van Staveren
+%A A.S. Tanenbaum
+%J ACM Operating Systems Review
+%D Oct 1988
+%V 22
+%N 4
+%P 25-34
+
+%T The Performance of the Amoeba Distributed Operating System
+%A R. van Renesse
+%A J.M. van Staveren
+%A A.S. Tanenbaum
+%J Software\(emPractice and Experience
+%V 19
+%N 3
+%D Mar 1989
+%P 223-234
+
+%T The Design of a High-Performance File Server
+%A R. van Renesse
+%A A.S. Tanenbaum
+%A A. Wilschut
+%J Proc. of the 9th Int. Conf. on Distributed Computing Systems
+%C Newport Beach, CA
+%P 22-27
+%D June 1989
+
+%T Programming Languages for Distributed Computing Systems
+%A H.E. Bal
+%A J.G. Steiner
+%A A.S. Tanenbaum
+%J ACM Computing Surveys
+%V 21
+%N 3
+%P 261-322
+%D Sept 1989
+
+%T The Amoeba Distributed Operating System
+%A A.S. Tanenbaum
+%A R. van Renesse
+%A H. van Staveren
+%A G.J. Sharp
+%A S.J. Mullender
+%A A.J. Jansen
+%A G. van Rossum
+%J Proc. of ESTEC Workshop on Communication Networks and Distributed Operating Systems Within the Space Environment
+%I ESTEC
+%C Noordwijk, The Netherlands
+%D Oct 1989
+
+%T An Efficient Reliable Broadcast Protocol
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A S. Flynn\h'1n'Hummel
+%A H.E. Bal
+%J Operating Systems Review
+%I ACM
+%V 23
+%D Oct 1989
+%P 5-19
+
+%T A Distributed Implementation of the Shared Data-Object Model
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%J Proc. 1st USENIX/SERC Workshop on Experiences with Building Distributed and Multiprocessor Systems
+%I IEEE
+%P 1-19
+%D Oct 1989
+
+%T Experience with the Distributed Data Structure Paradigm in Linda
+%A M.F. Kaashoek
+%A H.E. Bal
+%A A.S. Tanenbaum
+%J Proc. 1st USENIX/SERC Workshop on Experiences with Building Distributed and Multiprocessor Systems
+%I IEEE
+%P 175-191
+%D Oct 1989
+
+%T Replication Techniques for Speeding Up Parallel Applications
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A A.J. Jansen
+%R IR-202
+%I Dept Mathematics and Computer Science, Vrije Universiteit
+%C Amsterdam
+%O (to appear in Concurrency\(emPractice and Experience)
+%D Oct 1989
+
+%T AIL \- A Class-Oriented Stub Generator for Amoeba
+%A G. van Rossum
+%J Proc. of the Workshop on Experience with Distributed Systems
+%I Springer Verlag
+%D 1989
+
+%T On the Design of the Amoeba Configuration Manager
+%A E.H. Baalbergen
+%A C. Verstoep
+%A A.S. Tanenbaum
+%J ACM SIGSOFT Software Engineering Notes
+%O Proc. 2nd Int. Workshop on Software Configuration Management (ACM)
+%I ACM
+%V 17
+%D Nov 1989
+
+%T Amoeba on a Multiprocessor
+%A L.J. van Moergestel
+%A H.E. Bal
+%A M.F. Kaashoek
+%A R. van Renesse
+%A G.J. Sharp
+%A H. van Staveren
+%A A.S. Tanenbaum
+%R IR-206
+%I Dept Mathematics and Computer Science, Vrije Universiteit
+%C Amsterdam
+%O (to appear in in Force File)
+%D Dec 1989
+
+%T Experience with Distributed Programming in Orca
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%J Proc. Int. Conf. on Comp. Languages '90
+%I IEEE
+%P 79-89
+%D March 1990
+
+%T Amoeba: A Distributed Operating System for the 1990s
+%A S.J. Mullender
+%A G. van Rossum
+%A A.S. Tanenbaum
+%A R. van Renesse
+%A H. van Staveren
+%J Computer
+%V 23
+%N 5
+%P 44-53
+%D May 1990
+
+%T Orca: A Language for Distributed Programming
+%A H.E. Bal
+%A A.S. Tanenbaum
+%A M.F. Kaashoek
+%J ACM SIGPLAN Notices
+%V 25
+%N 5
+%D May 1990
+%P 17-24
+
+%T Beyond UNIX - A True Distributed System for the 1990s
+%A A.S. Tanenbaum
+%A R. van Renesse
+%A H. van Staveren
+%A G.J. Sharp
+%J Proc. UKUUG Summer Conference
+%P 251-260
+%D 1990
+
+%T Fault Tolerance Using Group Communication
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%J Proc. of 4th ACM SIGOPS European Workshop
+%C Bologna, Italy
+%D Sept 1990
+%X (also to appear in Operating Systems Review)
+
+%T Experiences with the Amoeba Distributed Operating System
+%A A.S. Tanenbaum
+%A R. van Renesse
+%A H. van Staveren
+%A G.J. Sharp
+%A S.J. Mullender
+%A A.J. Jansen
+%A G. van Rossum
+%J CACM
+%V 33
+%N 12
+%D Dec 1990
+
+%T Programming Distributed Systems
+%A H.E. Bal
+%I Silicon Press
+%C Summit, NJ
+%D 1990
+
+%T Programming Distributed Systems
+%A H.E. Bal
+%I Prentice Hall International
+%C Hemel Hempstead, England
+%D 1991
+
+%T Distributed Programming with Shared Data
+%A H.E. Bal
+%A A.S. Tanenbaum
+%J Computer Languages
+%V 16
+%P 129-146
+%D Feb 1991
+
+%T Ervaring met het Gedistribueerde Bedrijfsysteem Amoeba
+%A A.S. Tanenbaum
+%A R. van Renesse
+%A H. van Staveren
+%A G.J. Sharp
+%A S.J. Mullender
+%A A.J. Jansen
+%A G. van Rossum
+%J Informatie
+%V 33
+%N 2
+%X Dutch translation of Dec 1990 CACM Article
+%D Feb 1991
+
+%T Group Communication in the Amoeba Distributed Operating System
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%J Proc. 11th Int. Conf. on Distributed Computer Systems
+%I IEEE Computer Society
+%C Arlington, TX
+%X IR-224
+%X Vrije Universiteit, Dept. of Math. and Comp. Sci.
+%X Amsterdam
+%X Sept 1990
+%D May 1991
+
+%T A Comparative Study of Five Parallel Programming Languages
+%A H.E. Bal
+%J EurOpen Spring 1991 Conference on Open Distributed Systems
+%C Tromso, Norway
+%P 209-228
+%D May 1991
+
+%T The Amoeba Distributed Operating System - A Status Report
+%A A.S. Tanenbaum
+%A M.F. Kaashoek
+%A R. van Renesse
+%A H. Bal
+%J Computer Communications
+%V 14
+%P 324-335
+%D Jul/Aug 1991
+
+%T Data Distribution in Orca through Compiler Optimization
+%A H.E. Bal
+%A M.F. Kaashoek
+%R IR-254
+%I Vrije Universiteit, Dept. of Math. and Comp. Sci.
+%C Amsterdam
+%D Sept 1991
+
+%T A Comparison of Two Distributed Systems: Amoeba and Sprite
+%A F. Douglis
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A J.K. Ousterhout
+%J Computing Systems
+%P 353-384
+%D Fall 1991
+
+%T Parallel Programming on Amoeba Using Efficient Distributed Shared Memory
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%B Scientific Computing on Supercomputers III
+%O (Proc. of 6th Int'l Conf. on the Use of Supercomputers in Theoretical Science, Jan 1991)
+%P 89-105
+%I Plenum Press
+%D 1992
+
+%T Orca: A language for Parallel Programming of Distributed Systems
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%J IEEE Transactions on Software Engineering
+%V 18
+%N 3
+%P 190-205
+%D Mar 1992
+
+%T Transparent Fault-tolerance in Parallel Orca Programs
+%A M.F. Kaashoek
+%A R. Michiels
+%A H.E. Bal
+%A A.S. Tanenbaum
+%J Symposium on Experiences with Distributed and Multiprocessor Systems III
+%C Newport Beach
+%D Mar 1992
+%P 297-312
+
+%T Short Overview of Amoeba
+%A R. van Renesse
+%A A.S. Tanenbaum
+%J Proc. of the USENIX workshop on Micro-Kernels and Other Kernel Architectu
+res
+%D Apr 27-28, 1992
+%C Seattle, Washington
+%P 1-10
+
+%T Replication Techniques for Speeding up Parallel Applications on Distributed Systems
+%A H.E. Bal
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A J. Jansen
+%J Concurrency Practice & Experience
+%V 4
+%N 5
+%D Aug 1992
+%P 337-355
+
+%T A Comparison of Two Paradigms for Distributed Shared Memory
+%A W.G. Levelt
+%A M.F. Kaashoek
+%A H.E. Bal
+%A A.S. Tanenbaum
+%J Software\-Practice and Experience
+%D 1992
+%V 22
+%N 11
+%P 985-1010
+%D Nov 1992
+
+%T Group Communication in Distributed Computer Systems
+%A M.F. Kaashoek
+%I Vrije Universiteit
+%R Ph.D. Thesis
+%C Amsterdam
+%D 1992
+
+%T Parallel Programming Using Shared Objects and Broadcasting
+%A A.S. Tanenbaum
+%A M.F. Kaashoek
+%A H.E. Bal
+%J IEEE Computer
+%V 25
+%N 8
+%D Aug 1992
+%P 10-19
+
+%T An Experimental Comparison of Remote Procedure Call and Group Communication
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A K. Verstoep
+%J Proc. Fifth ACM SIGOPS European Workshop 
+%C Le Mont Saint-Michel, France
+%D Sept. 1992
+
+%T Group Communication in Amoeba and its Applications
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A K. Verstoep
+%J Proc. EurOpen
+%C Utrecht, The Netherlands
+%D Nov. 1992
+
+%T FLIP: an Internetwork Protocol for Supporting Distributed Systems
+%A M.F. Kaashoek
+%A R. van Renesse
+%A H. van Staveren
+%A A.S. Tanenbaum
+%J ACM Trans. Comp. Syst.
+%D Feb 1993
+%V 11
+%N 1
+%P 73-106
+
+%T Using Group Communication to Implement a Fault-Tolerant Directory Service
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A K. Verstoep
+%J Proc. 13th International Conference on Distributed Computing Systems
+%C Pittsburgh, PA
+%P 130-139
+%D May 1993
+
+%T Programming a Distributed System Using Shared Objects
+%A A.S. Tanenbaum
+%A H.E. Bal
+%A M.F. Kaashoek
+%J Proc. 2nd Int'l Symposium on High-Performance Distributed Computing
+%C Spokane, WA
+%I IEEE
+%D Jul 1993
+
+%T Group Communication in Amoeba and its Applications
+%A M.F. Kaashoek
+%A A.S. Tanenbaum
+%A K. Verstoep
+%J Distributed Systems Engineering Journal
+%D Jul/Aug 1993
+
+%T Panda: A Portable Platform to Support Parallel Programming Languages
+%A R. Bhoedjang
+%A T. R\(:uhl
+%A R. Hofman
+%A K. Langendoen
+%A H. Bal
+%A F. Kaashoek
+%J Proc. of the 4th Symposium on Experiences with Distributed and Multiprocessor Systems
+%C San Diego
+%D Sep 1993
+%P 213-226
+
+%T Object Distribution in Orca using Compile-Time and Run-Time Techniques
+%A H.E. Bal
+%A M.F. Kaashoek
+%J Proceedings of OOPSLA '93, Conference on Object Oriented Programming 
+%J Systems, Languages and Applications
+%C Washington, D.C.
+%D 26 Sep - 1 Oct 1993
+
+%T The Amoeba Microkernel
+%A A.S. Tanenbaum
+%A M.F. Kaashoek
+%J Distributed Open Systems, IEEE Press
+%D 1994
+%P 11-30 
+
+%T Using Broadcasting to Implement Distributed Shared Memory Efficiently
+%A A.S. Tanenbaum
+%A M.F. Kaashoek
+%A H.E. Bal
+%B Readings in Distributed Computing Systems
+%E T.L. Casavant and M. Singhal
+%I IEEE Press
+%D 1994 
+%P 387-408
+
+%T Using Active Messages to Support Shared Objects
+%A Leendert van\ Doorn
+%A Andrew S. Tanenbaum
+%J Proc. Sixth ACM SIGOPS European Workshop, ACM
+%P 112-116
+%C Wadern, Germany
+%D Sep 1994
+
+%T Implementation of Process Migration in Amoeba
+%A C.F. Steketee
+%A W.P. Zhu
+%A P.A. Moseley
+%J Proc. 14th International Conference on Distributed Computing Systems
+%C Poznan, Poland
+%I IEEE
+%P 194-201
+%D 1994
+
+%T A Comparison of Three Microkernels
+%A A.S. Tanenbaum
+%J Journal of Supercomputing
+%V 9
+%N 1/2
+%P 7-22
+%D 1995
+
+%T The Amoeba Processor Reservation System - Process Creation and Processor Scheduling in Amoeba
+%A K. Verstoep
+%A G.J. Sharp
+%R IM-11
+%I Dept Mathematics and Computer Science, Vrije Universiteit
+%C Amsterdam
+%D Jul 1995
+
+%T Parallel N-Body Simulation on a Large-Scale Homogeneous Distributed System
+%A J.W. Romein
+%A H.E. Bal
+%B EURO-PAR'95 Parallel Processing, Lecture Notes in Computer Science, 966
+%E S. Haridi, K. Ali & P. Magnusson
+%I Springer-Verlag
+%P 473-484
+%C Stockholm, Sweden
+%D Aug 1995
+
+%T Load balancing and workstation autonomy on Amoeba
+%A W.P. Zhu
+%A C.F. Steketee
+%A B. Muilwijk
+%J Australian Computer Science Communications
+%V 17
+%N 1
+%D Feb 1995
+%P 588-597
+
+%T An Experimental Study of Load Balancing on Amoeba
+%A W.P. Zhu
+%A C.F. Steketee
+%J Proc. Aizu International Symposium on Parallel Algorithms / Architecture Synthesis
+%C Aizu-Wakamatsu, Japan
+%D 1995
+
+%T Experiences with the Implementation of a Process Migration Mechanism for Amoeba
+%A C.F. Steketee
+%A P. Socko
+%A B. Kiepuszewski
+%J Australian Computer Science Communications
+%X accepted
+%D 1996

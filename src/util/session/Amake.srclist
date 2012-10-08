@@ -1,0 +1,32 @@
+#	
+#	@(#)Amake.srclist	1.5	96/02/27 13:13:28
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+S_SESSION = {
+	$PWD/alarm.c,
+	$PWD/devnullsvr.c,
+	$PWD/devnullsvr.h,
+	$PWD/devproc.c,
+	$PWD/devproc.h,
+	$PWD/embalm.c,
+	$PWD/filesvr.c,
+	$PWD/session.gen [
+		c_gen = { ml_sessvr.c }
+	],
+	$PWD/pipelink.h,
+	$PWD/pipesvr.c,
+	$PWD/sesimpl.c,
+	$PWD/ses_id.c,
+	$PWD/session.c,
+	$PWD/share.c,
+	$PWD/share.h
+};
+
+U_SESS_SETOUT = {
+	$PWD/setout.c,
+	$PWD/setout.gen[c_gen = { ses_setout.c }],
+};

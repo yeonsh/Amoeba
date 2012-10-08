@@ -1,0 +1,80 @@
+.\"	@(#)bfsck.n	1.4	96/02/15 17:07:02
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Document: Gregory Sharp, 08 February 1990
+	Modified: Ed Keizer, Nov 1995 - support for gbullet.
+		  Gregory Sharp, Jan 1996
+.aE
+.mT "bfsck" A
+check bullet file system consistency
+.SH
+Synopsis
+.LP
+.sC L
+bfsck [bullet_server]
+.eC
+.SH
+Description
+.LP
+.kW "file system checker"
+.kW "Bullet file"
+.kW "Bullet Server"
+.I Bfsck
+runs a file system check on the \*(Bs specified by the
+.I bullet_server
+argument.
+If no argument is given the default \*(Bs, as defined by
+.cW DEF_BULLETSVR
+in
+.I ampolicy.h ,
+is checked.
+(\*<DEF_BULLETSVR\*> is typically
+.I /profile/cap/bulletsvr/default .)
+The capability specified by this path name must be the super-capability of
+the \*(Bs with full rights.
+This capability is typically found in the kernel directory of the \*(Bs host.
+.LP
+.I Bfsck
+goes through the file system and eliminates inconsistencies by deleting
+any files which offend against the consistency rules.
+Firstly, if the \*(Bs is compiled with debugging on,
+the cache consistency is checked.
+Then the inode table is traversed looking for files which
+a) have data blocks which lie in or before the inode table,
+b) have data blocks beyond the size of the disk,
+or
+c) consist of a negative number of disk blocks.
+Any such files are deleted.
+If any files are deleted then a message is printed on the ``console''
+of the \*(Bs.
+No message is returned to the caller unless an error is encountered.
+Possible causes of errors are:
+.IP a)
+The look up of the \*(Bs capability failed.
+.IP b)
+The \*(Bs capability is not the super-capability with full rights.
+.IP c)
+The \*(Bs is not running.
+.SH
+Example
+.LP
+.sC
+bfsck /super/hosts/bullet1/bullet
+.eC
+If all is well this will be silent.
+To check if there were errors in the file system run the command
+.sC
+printbuf /super/hosts/bullet1
+.eC
+.SH
+See Also
+.LP
+bstatus(A),
+bullet(A),
+gbullet(A),
+printbuf(A).

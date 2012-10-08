@@ -1,0 +1,9 @@
+/*	@(#)trans.kstat	1.2	94/04/06 08:34:45 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+a amdump        "dump transaction statistics"
+t transdump     "dump trans table"

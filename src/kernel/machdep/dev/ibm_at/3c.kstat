@@ -1,0 +1,10 @@
+/*	@(#)3c.kstat	1.4	96/02/27 13:50:24 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifndef NDEBUG
+3 e3c_regdump	"3Com board register dump"	SYS_RGT_READ
+#endif

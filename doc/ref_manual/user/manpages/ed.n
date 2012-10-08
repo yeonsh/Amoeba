@@ -1,0 +1,108 @@
+.\"	@(#)ed.n	1.4	96/02/15 18:09:40
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995 - it was too sketchy
+.aE
+.mT "ed" U
+editor
+.SH
+Synopsis
+.LP
+.sC L
+ed file
+.eC
+.SH
+Description
+.LP
+.kW "text editor"
+.kW editor
+.I Ed
+is a line-based editor.
+It is functionally equivalent to the standard V7 editor,
+.I ed .
+It supports the following commands:
+.IP (.)a: 8
+append
+.IP (.,.)c:
+change
+.IP (.,.)d:
+delete
+.IP e:
+edit new file
+.IP f:
+print name of edited file
+.IP (1,$)g:
+global command
+.IP (.)
+i: insert
+.IP (.,.+1)j:
+join lines together
+.IP (.)k:
+mark
+.IP (.)l:
+print with special characters in octal
+.IP (.,.)m:
+move
+.IP (.,.)p:
+print
+.IP q:
+quit editor
+.IP (.)
+r: read in new file
+.IP (.,.)s:
+substitute
+.IP (1,$)v:
+like g, except select lines that do not match
+.IP (1,$)w:
+write out edited file
+.LP
+Many of the commands can take one or two addresses,
+as indicated above.
+The defaults are shown in parentheses.
+Thus ``a'' appends to the current line,
+and ``g'' works on the whole file as default.
+The dot refers to the current line.
+Below is a sample editing session.
+.SH
+Examples
+.LP
+.sC
+ed prog.c
+.eC
+Edit
+.I prog.c .
+.sC
+3,20p
+.eC
+Print lines 3 through 20.
+.sC
+/whole/
+.eC
+Find next occurrence of whole.
+.sC
+s/whole/while/
+.eC
+Replace ``whole'' by ``while.''
+.sC
+g/Buf/s//BUF/g
+.eC
+Replace ``Buf'' by ``BUF'' everywhere.
+.sC
+w
+.eC
+Write the file back.
+.sC
+q
+.eC
+Exit the editor.
+.SH
+Note
+.LP
+.I Ed
+is part of the third party software.

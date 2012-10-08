@@ -1,0 +1,83 @@
+.\"	@(#)del.n	1.4	96/02/15 18:09:24
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Gregory J. Sharp, Oct 1995 - hopefully it is clearer
+.aE
+.mT "del" U
+delete a directory entry specified by name
+.SH
+Synopsis
+.LP
+.sC L
+del [\-df] pathname...
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "remove object"
+.kW "destroy object"
+.kW "directory server"
+For each specified
+.I pathname ,
+.I del
+uses
+.I sp_delete (L)
+to delete the specified directory entry.
+Normally, it does not destroy any of the objects referred to by
+the capabilities in the capability-set of the directory entry.
+Thus any other directory entries referring to the same object(s) are
+still valid.
+If there are no other directory entries for one of the
+objects, it will eventually be destroyed by the garbage-collection process.
+(This is the usual way for objects to be destroyed, rather
+than by an explicit user command, since users do not always know
+whether there are multiple entries for an object.)
+.LP
+If any path name cannot be found in the directory server
+a suitable error message will be printed.
+.mH
+Options
+.LP
+.IP "\fB\-d\fP" 5
+To avoid accidents, this flag
+must be specified when the directory entry refers to a directory, or
+when the type of object cannot be determined because its server is
+not responding.
+This option forces the deletion of the directory entry but does not
+destroy the object referred to by the directory entry.
+Note that non-empty directories will be destroyed by this option.
+.IP "\fB\-f\fP"
+This flag will cause an attempt to destroy each object referred
+to by the capabilities in the capability-set of each directory entry.
+Whether or not the attempt
+is fully successful, the directory entry itself will be deleted.
+For an object to be successfully destroyed it is necessary that the
+capabilities hold sufficient rights for the operation.
+Also, the directory server rejects
+attempts to destroy a non-empty directory, regardless of the capability.
+.SH
+Example
+.LP
+.sC
+get /home/oldname | put /home/test/newname
+del -d /home/oldname
+.eC
+will rename directory
+.I /home/oldname
+to
+.I /home/test/newname .
+.SH
+See Also
+.LP
+chm(U),
+dir(U),
+get(U),
+mkd(U),
+put(U).

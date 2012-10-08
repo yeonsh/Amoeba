@@ -1,0 +1,70 @@
+#!/bin/sh
+#	
+#	@(#)do_as	1.2	94/04/05 17:08:43
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	This is the version of do_as used by kernel and libraries.
+#
+
+ASFLAGS=
+CPPLIB=/lib
+CPPFLAGS=
+PROG=$0
+while [ $# -gt 0 ]
+do
+	case $1 in
+	*.S)
+		FILE=$1
+		base=`basename $FILE .S`
+		shift
+		;;
+	*.s)
+		FILE=$1
+		base=`basename $FILE .s`
+		shift
+		;;
+	-o)
+		shift
+		OFILE=$1
+		shift
+		;;
+	-C)
+		shift
+		CPPLIB=$1
+		shift
+		;;
+	-10)
+		ASFLAGS="$ASFLAGS $1"
+		shift
+		;;
+	-*)
+		CPPFLAGS="$CPPFLAGS $1"
+		shift
+		;;
+	*)
+		echo $PROG: $1 ignored >&2
+		shift
+	esac
+done
+
+TEMP1=/tmp/$base$$-1.s
+TEMP2=/tmp/$base$$-2.s
+
+if $CPPLIB/cpp -P -D_ASM $CPPFLAGS $FILE > $TEMP1
+then 
+	# replace semicolons by newlines and assemble
+	tr ';' '\012' < $TEMP1 > $TEMP2
+	as $ASFLAGS -o ${OFILE-$base.o} $TEMP2
+	# save result in ret
+	ret=$?
+else
+	# failure
+	ret=1
+fi
+
+rm -f $TEMP1 $TEMP2
+
+exit $ret

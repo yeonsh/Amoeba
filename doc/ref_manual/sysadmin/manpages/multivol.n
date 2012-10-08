@@ -1,0 +1,140 @@
+.\"	@(#)multivol.n	1.6	96/02/15 17:48:44
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, 5/6/91
+	Document: Leendert van Doorn, 5/6/91
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "multivol" A
+multi-volume (floppy disk) dump utility
+.SH
+Synopsis
+.LP
+.sC L
+multivol [-q] [-b n] [-s n] [-n name] disk-size disk-capability
+.br
+readvol [-l] [-q] [-b n] [-s n] [-n name] disk-capability
+.eC
+.SH
+Description
+.LP
+.kW "multi-volume"
+.kW "floppy disk"
+.kW "dump utility"
+.I Multivol
+reads the standard input and copies it onto multiple
+(floppy) disk volumes.
+Each disk volume starts with a volume
+header followed by disk-size\0\-\01 disk blocks of data.
+The volume label contains a volume name, current and successor's
+volume number (if any), and a CRC check sum to detect damaged data.
+.LP
+.I Multivol
+will always ask the user for confirmation before it
+starts writing data onto the disk volume.
+The confirmation questions are preceded by a user attention signal.
+This feature may be disabled using the
+.B \-q
+option.
+.LP
+.I Readvol
+reads an ordered set of volumes with the same name,
+and writes the data contents to standard output.
+If the input was block aligned,
+the output is an exact copy of the input of
+.I multivol.
+.LP
+.I Readvol
+enforces an ordered set of input volumes by starting
+at volume number 0, and reading the successor mentioned in the
+current volume header.
+If the present disk volume does not have
+the expected volume number or volume name,
+.I readvol
+will complain and make another request for the expected volume.
+.mH
+Options
+.LP
+.IP \fB\-l\fP 1i
+This option is only available with
+.I readvol.
+It causes
+.I readvol
+to read only the volume label of a disk and display its contents.
+This can be used to obtain the name and volume number from a disk which has
+no sticky label identifying it.
+.IP \fB\-q\fP
+Quiet operation mode.
+Under normal circumstances
+.I multivol
+and
+.I readvol
+will issue some kind of user attention signal
+(often an alarm bell) to get attention.
+This option disables this feature.
+.IP "\fB\-b\fP n"
+Specify the internal buffer size used by
+.I multivol
+and
+.I readvol.
+The default, 16\|KB, will often suffice, but during
+coldstart it may be necessary to reduce this value.
+The buffer size is specified as the number of 512 byte blocks.
+.IP "\fB\-s\fP n"
+Specify the start volume number.
+This option is of dubious value.
+.IP "\fB\-n\fP name"
+Specify the volume name.
+.I Multivol,
+as well as
+.I readvol,
+use the name ``AMOEBA'' as default label name.
+.mH
+Warnings
+.LP
+The granularity of the volume programs is in disk blocks.
+If the input stream is not exactly block aligned the
+.I multivol
+program will
+pad it with random bytes, these bytes will, unfortunately, also appear
+on the output stream as though they were part of the input.
+Ordinarily this does not pose much of a problem, since the input of
+.I multivol
+typically consists of
+.I tar (U)
+file images.
+However, it might be inconvenient for other uses of this program.
+.SH
+Examples
+.LP
+.I Multivol
+is used to create the kernel image floppies for
+the 80386/AT coldstart process.
+After a bootable coldstart image is built on a
+ramdisk kernel, the following command is issued to save it
+onto two 3.5 inch floppy disks:
+.sC L
+cd /super/hosts/bullet
+dread -n 4878 bootp:00 | multivol -n "RAMDISK-IMAGE" 2880 floppy:00
+.eC
+The \*(Am coldstart kernel has a built-in stripped down version of
+.I readvol,
+which is capable of reading coldstart images.
+.LP
+To store a large tar image on multiple floppy disks the following
+command could be used:
+.sC L
+tar cvBf - . | multivol -s "AMOEBA" 2880 /super/hosts/bullet/floppy:00
+.eC
+.LP
+On a fully operational system, multi-volume disks may be extracted using
+the following command.
+In fact, this command is used to unpack the floppy disk distribution set:
+.sC L
+cd /super
+readvol /super/hosts/bullet/floppy:00 | tar xvBf -
+.eC

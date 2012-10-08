@@ -1,0 +1,39 @@
+.\"	@(#)bsize.n	1.3	94/04/05 15:53:00
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp 06/02/90
+.aE
+.mT "bsize" U
+report the size of a Bullet file
+.SH
+Synopsis
+.LP
+.sC L
+bsize file [file2 ...]
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "file size"
+For each file name on the command line
+.I bsize
+prints the name of the file followed by a colon followed by a space,
+followed by the size of the file in bytes,
+followed by a newline.
+.SH
+Example
+.LP
+.sC
+bsize /bin/cat /bin/echo
+.eC
+prints
+.sC
+/bin/cat: 49376
+/bin/echo: 41184
+.eC

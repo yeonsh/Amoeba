@@ -1,0 +1,29 @@
+#	
+#	@(#)Amake.srclist	1.6	96/02/27 14:00:49
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_FLIP_GRP = {
+	$PWD/flgroup.c,
+	$PWD/flgroup.init,
+	$PWD/flgrp_alloc.c,
+	$PWD/flgrp_alloc.h,
+	$PWD/flgrp_header.c,
+	$PWD/flgrp_header.h,
+	$PWD/flgrp_hist.c,
+	$PWD/flgrp_hist.h,
+	$PWD/flgrp_hstpro.h,
+	$PWD/flgrp_marsh.c,
+	$PWD/flgrp_marsh.h,
+	$PWD/flgrp_malloc.c,
+	$PWD/flgrp_malloc.h,
+	$PWD/flgrp_member.c,
+	$PWD/flgrp_member.h,
+	$PWD/flgrp_pr.kstat,
+	$PWD/flgrp_print.c,
+	$PWD/flgrp_st.kstat,
+	$PWD/flgrp_type.h,
+	$PWD/grp_endian.h,
+};

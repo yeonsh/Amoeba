@@ -1,0 +1,66 @@
+#!/bin/sh
+#	
+#	@(#)mkdep	1.2	94/04/05 17:06:02
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	Mkdep: echo the names of included files on stdout.
+#	We eat (some) cc options to confort amake.
+#	This is a modified version of Kees Verstoep's to work
+#	on both SunOs and Ultrix with the standard cpp.
+
+PATH=/bin:/usr/bin
+CPP=/lib/cpp
+luck=Y
+DEFS=
+INCLUDES=
+FILES=
+
+# Parse options
+for i
+do
+	case $i in
+	-D*)
+		DEFS="$DEFS $i"
+		;;
+	-U*)
+		DEFS="$DEFS $i"
+		;;
+	-I*)
+		INCLUDES="$INCLUDES $i"
+		;;
+	-*)
+		;;
+	*.[csS])
+		FILES="$FILES $i"
+		;;
+	*)
+		echo "$i: unknown filename suffix" >&2 
+		exit 1
+	esac
+done
+
+# FILES is just one file in the Amake case
+
+if [ $luck = N ] 
+then
+    #	Cpp doesn't know -M
+    $CPP $DEFS $INCLUDES $FILES |
+    sed '
+	1d
+	/^# 1 /!d
+	s/^# 1 "\(.*\)".*$/\1/
+    '
+else
+    #	Use this when using Sun's cpp - it's faster
+    $CPP -M $DEFS $INCLUDES $FILES |
+    sed '
+	1d
+	s/.*\.o: //
+    '
+fi
+exit 0

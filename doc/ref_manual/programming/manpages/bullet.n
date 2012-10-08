@@ -1,0 +1,552 @@
+.\"	@(#)bullet.n	1.6	96/02/15 16:47:59
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Jan 1989 - Feb 1990
+	Document: Gregory J. Sharp, March 1990
+	Modified: Gregory J. Sharp, July 1990 - added disk compaction
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "bullet" L "libamoeba.a, libkernel.a, libamunix.a"
+the \*(Bs client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "server/bullet/bullet.h"
+
+errstat b_disk_compact(supercap)
+errstat b_fsck(supercap)
+errstat b_sync(supercap)
+
+errstat b_create(cap, buf, size, commit, newcap)
+errstat b_delete(filecap, offset, size, commit, newcap)
+errstat b_insert(filecap, offset, buf, size, commit, newcap)
+errstat b_modify(filecap, offset, buf, size, commit, newcap)
+errstat b_read(filecap, offset, buf, to_read, were_read)
+errstat b_size(filecap, size)
+.eC
+.SH
+Description
+.LP
+.kW "\fIb_disk_compact\fP"
+.kW "\fIb_fsck\fP"
+.kW "\fIb_sync\fP"
+.kW "\fIb_create\fP"
+.kW "\fIb_delete\fP"
+.kW "\fIb_insert\fP"
+.kW "\fIb_modify\fP"
+.kW "\fIb_size\fP"
+.kW "\fIb_read\fP"
+.kW "files"
+.kW "Bullet file"
+.kW "bullet.h"
+.kW "immutable"
+.kW "atomic commit"
+Along with the standard server stubs (see
+.I std (L))
+the \*(Bs stubs provide the programming interface to the \*(Bs.
+They are divided here according to whether they are administrative or user
+functions.
+Bullet files can be created incrementally but do not exist for reading
+until they have been committed.
+The commit operation is atomic.
+.mH
+Types
+.LP
+The file
+.I bullet.h
+defines the type
+.I b_fsize
+which is the size of a bullet file in bytes.
+It is implemented as a suitably sized integer.
+.mH
+Access
+.LP
+Access to files and administrative functions is determined on the basis of
+rights in the capability given with each command.
+.LP
+There is a special capability known as the
+.I
+super capability
+.R
+which is primarily for use by the file system administrator.
+The
+.I
+super capability
+.R
+is used for checking the file system,
+enquiring the status of the file system and for initiating garbage collection.
+It cannot be used to alter or destroy files except for those found
+to be defective by the file system consistency checker and those which are
+garbage collected due to lack of use.
+.LP
+The following rights are defined in \*(Bs capabilities:
+.LP
+.DS
+.ta 4c
+\*<BS_RGT_CREATE\*>	permission to create a file
+\*<BS_RGT_READ\*>	permission to read, copy or get status of a file.
+\*<BS_RGT_MODIFY\*>	permission to alter an uncommitted file.
+\*<BS_RGT_DESTROY\*>	permission to destroy a file.
+\*<BS_RGT_ADMIN\*>	permission to execute administrative activities
+\*<BS_RGT_ALL\*>	permission to do anything
+.DE
+.LP
+The last two are only of significance in the super capability.
+.LP
+Note that the only operations permitted on uncommitted files are
+.I
+std_destroy,
+b_modify,
+b_insert
+.R
+and
+.I b_delete .
+All other operations on uncommitted files will return the status
+.cW STD_CAPBAD .
+Furthermore,
+any uncommitted file that remains unmodified for more than
+.cW BS_CACHE_TIMEOUT
+minutes will be destroyed.
+NB.
+.I std_touch
+on an uncommitted file is not legal and would not prevent it from timing out
+even if it was legal.
+The only way to avoid timing out an uncommitted file is to make a
+null-modification to it.
+.mH
+Errors
+.LP
+All functions return the error status of the operation.
+The user interface to the \*(Bs returns only standard error codes
+(as defined in
+.I stderr.h ).
+All the stubs involve transactions and so in addition to the errors described
+below,
+all stubs may return any of the standard RPC error codes (see
+.I rpc (L)).
+A valid capability is required for all operations and so all operations will
+return
+.cW STD_CAPBAD
+if an invalid capability is used.
+For operations requiring rights,
+if insufficient rights are present in the capability then
+.cW STD_DENIED
+will be returned.
+If illegal parameters such as NULL-pointers or negative buffer sizes are
+given,
+exceptions may occur rather than an error status being returned.
+The behavior is not well defined under these conditions.
+.mH
+Administrative Functions
+.sH
+b_disk_compact
+.LP
+.sC
+errstat
+b_disk_compact(supercap)
+capability *supercap;
+.eC
+.kW "\fIb_disk_compact\fP"
+.I B_disk_compact
+goes through the entire virtual disk of the \*(Bs and moves all the files down
+so that there is no disk fragmentation.
+This is a very slow process and should only be attempted when there is no
+load on the system.
+The \*(Bs does respond to other requests while it is doing this but very
+slowly.
+The capability given as the parameter must have all rights for the command to
+succeed.
+.rR
+\*<BS_RGT_ALL\*> in supercap
+.eR
+\*<STD_NOTNOW\*>:	the server is already doing a compaction.
+.DE
+.sH
+b_fsck
+.LP
+.sC
+errstat
+b_fsck(supercap)
+capability *supercap;
+.eC
+.kW "\fIb_fsck\fP"
+.I B_fsck
+does a check of the \*(Bs file system.
+Error messages appear on the console of the \*(Bs.
+The function returns a failure status of some sort if any faults are detected.
+Otherwise it returns
+.cW STD_OK .
+.rR
+\*<BS_RGT_ALL\*> in supercap
+.DE
+.sH
+b_sync
+.LP
+.sC
+errstat
+b_sync(supercap)
+capability *supercap;
+.eC
+.kW "\fIb_sync\fP"
+.I B_sync
+ensures that all committed files are written to disk.
+The function returns a failure status only if the capability is not the
+super capability for the server,
+if something goes wrong with the RPC or if there is a disk error.
+Otherwise it returns
+.cW STD_OK .
+.rR
+NONE
+.DE
+.ne 11
+.mH
+User Functions
+.sH
+b_size
+.LP
+.sC
+errstat
+b_size(filecap, size)
+capability *filecap;
+b_fsize *size;
+.eC
+.kW "\fIb_size\fP"
+If there are no errors,
+.I b_size
+returns in
+.I size
+the number of bytes in the file specified by
+.I filecap .
+Otherwise
+.I size
+is unaltered.
+.rR
+\*<BS_RGT_READ\*> in filecap
+.DE
+.ne 11
+.sH
+b_read
+.LP
+.sC
+errstat
+b_read(filecap, offset, buf, to_read, were_read)
+capability *filecap;
+b_fsize offset;
+char *buf;
+b_fsize to_read;
+b_fsize *were_read;
+.eC
+.kW "\fIb_read\fP"
+.I B_read
+returns in
+.I buf
+up to
+.I to_read
+bytes of the contents of the file specified by
+.I filecap
+starting at
+.I offset
+bytes from the beginning of the file.
+It will return less than
+.I to_read
+bytes if end of file is encountered before
+.I to_read
+bytes can be read.
+The parameter
+.I to_read
+may be zero.
+If there were no errors it returns in
+.I *were_read
+the number of bytes returned in
+.I buf .
+.LP
+If an error is detected the value of
+.I *were_read
+will not be altered from its original value.
+.rR
+\*<BS_RGT_READ\*> in filecap
+.eR
+\*<STD_ARGBAD\*>:	offset > size of file
+	offset < 0
+	to_read < 0
+\*<STD_NOMEM\*>:	buffer cache was full
+.DE
+.LP
+In the remaining functions the type of
+.I commit
+is implemented as an int, but it contains two flags:
+.DS
+.ta 3.1c
+\*<BS_COMMIT\*>:	If set the file should be committed.
+\*<BS_SAFETY\*>:	If set then wait till the file is written to disk.
+	Otherwise return immediately.
+.DE
+.LP
+If the
+.cW BS_COMMIT
+flag is set in
+.I commit
+then the current contents of the file is the entire file and the file is
+created.
+If the
+.cW BS_SAFETY
+flag is also set in
+.I commit
+then the function will wait until the file is written to disk before returning.
+Otherwise it will return immediately.
+(Note that
+.cW BS_SAFETY
+is ignored if
+.cW BS_COMMIT
+is not set.)
+If the
+.cW BS_COMMIT
+flag is not set further alterations to the file are expected using either
+.I
+b_modify, b_delete
+.R
+or
+.I b_insert
+(see below).
+To avoid system abuse,
+if the
+.cW BS_COMMIT
+flag is not set and if no further modification command is received within
+.cW BS_TIMEOUT
+sweeps after the previous modification then the capability will be invalidated.
+(See
+.I bullet (A)
+for an explanation of sweeping.)
+.LP
+Note that when calculating file offsets the first byte in a file is numbered 0.
+.sH
+b_create
+.LP
+.sC
+errstat
+b_create(cap, buf, size, commit, newcap)
+capability *cap;
+char *buf;
+b_fsize size;
+int commit;
+capability *newcap;
+.eC
+.kW "\fIb_create\fP"
+.I B_create
+requests the \*(Bs whose capability is
+.I cap
+to create a new file whose initial contents is the
+.I size
+bytes in
+.I buf .
+NB: The final size of the file is not specified in advance.
+.LP
+If
+.I cap
+is a valid capability for a committed file on the server in use then when the
+new file is committed the \*(Bs will compare the new file with the extant file.
+If they are the same it will discard the new file and return the capability
+for the extant file.
+Otherwise it will create the new file and return a new capability for it.
+Note that the capability for an existing file must have the read right for
+comparison to take place.
+.LP
+.I B_create
+returns the capability for the new file in
+.I newcap .
+.rR
+\*<BS_RGT_CREATE\*> in cap
+\*<BS_RGT_READ\*> in cap if it is for comparison
+.eR
+\*<STD_NOSPACE\*>:	resource shortage: inode, memory, disk space
+.DE
+.sH
+b_modify
+.LP
+.sC
+errstat
+b_modify(filecap, offset, buf, size, commit, newcap)
+capability *filecap;
+b_fsize offset;
+char *buf;
+b_fsize size;
+int commit;
+capability *newcap;
+.eC
+.kW "\fIb_modify\fP"
+If the file specified by
+.I filecap
+has been committed,
+.I b_modify
+makes an uncommitted copy of it.
+If the file was uncommitted it is used directly.
+The file is overwritten with the
+.I size
+bytes pointed to by
+.I buf ,
+beginning at
+.I offset
+bytes from the beginning of the file.
+If
+.I offset
++
+.I size
+is greater than the file size then the file will become larger.
+Note that
+.I offset
+cannot be larger than the current file size.
+.LP
+To commit a file that is already in the \*(Bs without adding anything further
+to it,
+simply do a
+.I b_modify
+with size 0.
+If the BS_COMMIT flag is not set it will restart the timeout.
+The capability for the new file is returned in
+.I newcap .
+.LP
+Note Well:
+This operation is
+.I not
+atomic unless the amount of data sent to the file server was less
+than or equal to
+.cW BS_REQBUFSZ
+(as defined in
+.I bullet.h ).
+If more data than this was to be sent and a failure status is returned it
+is possible that some part of the operation succeeded.
+The resultant state of the file is not able to be determined.
+.rR
+\*<BS_RGT_MODIFY\*> and \*<BS_RGT_READ\*> in filecap
+.eR
+\*<STD_ARGBAD\*>:	offset < 0
+	offset > file size
+	size < 0
+\*<STD_NOSPACE\*>:	resource shortage: inode, memory, disk space
+.DE
+.sH
+b_insert
+.LP
+.sC
+errstat
+b_insert(filecap, offset, buf, size, commit, newcap)
+capability *filecap;
+b_fsize offset;
+char *buf;
+b_fsize size;
+int commit;
+capability *newcap;
+.eC
+.kW "\fIb_insert\fP"
+If the file specified by
+.I filecap
+has been committed,
+.I b_insert
+makes an uncommitted copy of it.
+If the file was uncommitted it is used directly.
+.I B_insert
+inserts the
+.I size
+bytes in
+.I buf
+immediately before the position
+.I offset
+bytes from the beginning of the file.
+The file size will increase by
+.I size
+bytes.
+.LP
+The capability for the file is returned in
+.I newcap .
+.LP
+Note Well:
+This operation is
+.I not
+atomic unless the amount of data sent to the file server was less
+than or equal to
+.cW BS_REQBUFSZ
+(as defined in
+.I bullet.h ).
+If more data than this was to be sent and a failure status is returned it
+is possible that some part of the operation succeeded.
+The resultant state of the file is not able to be determined.
+.rR
+\*<BS_RGT_MODIFY\*> and \*<BS_RGT_READ\*> in filecap
+.eR
+\*<STD_ARGBAD\*>:	size <= 0
+	offset < 0
+	offset > file size
+\*<STD_NOSPACE\*>:	resource shortage: inode, memory, disk space
+.DE
+.sH
+b_delete
+.LP
+.sC
+errstat
+b_delete(filecap, offset, size, commit, newcap)
+capability *filecap;
+b_fsize offset;
+b_fsize size;
+int commit;
+capability *newcap;
+.eC
+.kW "\fIb_delete\fP"
+If the file specified by
+.I filecap
+has been committed,
+.I b_delete
+makes an
+uncommitted copy of it.
+If the file was uncommitted it is used directly.
+.I b_delete
+deletes
+.I size
+bytes beginning at
+.I offset
+bytes from the beginning
+of the file.
+If
+.I offset
++
+.I size
+is greater than the file size then it deletes to the end of the file and stops.
+Thus the size of the file decreases by up to
+.I size
+bytes.
+.LP
+The capability for the file is returned in
+.I newcap .
+.rR
+\*<BS_RGT_MODIFY\*> and \*<BS_RGT_READ\*> in filecap
+.eR
+\*<STD_ARGBAD\*>:	size <= 0
+	offset < 0
+	offset > file size
+\*<STD_NOSPACE\*>:	resource shortage: inode, memory, disk space
+.DE
+.SH
+See Also
+.LP
+bfsck(A),
+bstatus(A),
+bsync(A),
+bullet(A),
+fromb(U),
+rpc(L),
+std(L),
+std_age(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_restrict(U),
+std_status(U),
+std_touch(U),
+tob(U).

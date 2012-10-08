@@ -1,0 +1,50 @@
+#	
+#	@(#)Amakefile	1.4	94/04/07 14:45:26
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = /usr/proj/amwork/conf/unix/mc68000.sun;
+SRC_ROOT = /usr/proj/amwork/src;
+ARCH = mc68000;
+
+SRC_DIR = $SRC_ROOT/util/amake;
+
+%include $SRC_DIR/Amake.srclist;
+%include $CONF_ROOT/toolset/generic; 		# defines COMPILER_SET
+
+DEBUG = 	'-DDEBUG';
+AMOEBA =	{ '-DAMOEBA', '-DSTR_ID' };	# capabilities kept as strings
+NO_DEBUG =	{ '-DDBUG_OFF', '-DNDEBUG' };
+RSH =		'-DUSE_RSH';
+DBX =		'-g';
+INSTALL=        { '-DAMAKELIBDIR="/usr/local/lib/amake"' };
+NO_VOID =	'-DGENERIC_TYPE=char*';		# only needed for old cc's
+
+INCLUDES = {
+	'-I'.,
+	'-I'$SRC_DIR,
+};
+
+LINTFLAGS = {
+	$INCLUDES,
+	$NO_DEBUG,
+	'-DLINT',
+	'-nuxz'
+};
+
+DEFINES = {
+	$NO_DEBUG,
+	$INSTALL,
+	%if ($COMPILER_SET == ultrix, { $NO_VOID })
+};
+
+%include $CONF_ROOT/toolset/unix.bin;
+
+# Generate "Amake" rather than "amake", so that the currently installed
+# "amake" is always used in the build, even when rebuilding itself.
+%instance gcluster(Amake, $SOURCEFILES, {}, {});
+
+echo("# install `Amake' as `amake' at the appropriate place when finished");
+

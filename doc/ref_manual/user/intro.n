@@ -1,0 +1,460 @@
+.\"	@(#)intro.n	1.7	96/02/15 17:55:35
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, April 1990
+		  This is partly a reworking of various papers and
+		  partly new material.
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.cH "Introduction"
+.nH 1 "History"
+.LP
+The \*(Am distributed operating system has been in development and use
+since 1981.
+\*(Am was originally designed and implemented at the Vrije Universiteit in
+Amsterdam, The Netherlands by Prof. Andrew S. Tanenbaum and two of his Ph\.D\.
+students,
+Sape Mullender and Robbert van Renesse.
+From 1986 until 1990 it was developed jointly there and at the Centre for
+Mathematics and Computer Science,
+also in Amsterdam.
+Since then development has continued at the Vrije Universiteit.
+.kW "Vrije Universiteit"
+.kW CWI
+It has passed through several versions,
+each experimenting with different file servers,
+network protocols and remote procedure call mechanisms.
+Although \*(Am has reached a point where it seems relatively stable, it
+is still undergoing change and so it is important to take note of the
+various warnings and advice about the proposed design changes for future
+releases.
+.nH 1 "The \*(Am Design Philosophy" nobp
+.LP
+\*(Am has been developed with several ideas in mind.
+The first is that computers are rapidly becoming cheaper and faster.
+In one decade we have progressed from many people sharing one computer to each
+person having their own computer.
+As computers continue to get cheaper it should be possible for each person
+to have many computers available for individual use.
+This is already the case to some extent.
+.LP
+The second relates to the widespread use and increasing performance of computer
+networks.
+The need for a uniform communication mechanism between computers that are
+both on a local network or on a wide-area network is already apparent for
+many applications.
+.LP
+What is needed is the ability to deal with physically distributed hardware
+while using logically centralized software.
+\*(Am allows the connection of large numbers of computers,
+on both local and wide-area networks,
+in a coherent way that is easy to use and understand.
+.LP
+The basic idea behind \*(Am is to provide the users with the illusion of
+a single powerful timesharing system,
+when in fact the system is implemented on a collection of machines,
+potentially distributed across several countries.
+The chief design goals were to build a distributed system that would be small,
+simple to use,
+.kW scalability
+scalable to large numbers of processors,
+have a degree of fault-tolerance,
+.kW "fault-tolerance"
+have very high performance,
+including the possibility for parallelism,
+and above all be usable in a way that is transparent to the users.
+.LP
+What is meant by
+.kW transparency
+.I transparent
+can best be illustrated by contrasting it with a
+network operating system,
+in which each machine retains its own identity.
+With a network operating system,
+each user logs into one specific machine:
+their home machine.
+When a program is started,
+it executes on the home machine,
+unless the user gives an explicit command to run it elsewhere.
+Similarly,
+files are local unless a remote file system is explicitly mounted
+or files are explicitly copied.
+In short,
+the user is clearly aware that multiple independent computers exist,
+and must deal with them explicitly.
+.LP
+By contrast,
+in a transparent distributed system,
+users effectively log into the system as a whole,
+and not to any specific machine.
+When a program is run,
+the system,
+not the user,
+decides the best place to run it.
+The user is not even aware of this choice.
+Finally,
+there is a single,
+system-wide object naming service.
+The files in a single directory may be located on different machines possibly
+in different countries.
+There is no concept of file transfer,
+.ne 2
+uploading or downloading from servers,
+or mounting remote file systems.
+The fact that a file is remote is not visible at all.
+.nH 1 "The System Architecture" nobp
+.LP
+The \*(Am architecture consists of four principal components, as shown
+in
+.fX .
+.kW "system architecture"
+.kW "workstation"
+First are the workstations, one per user, on which
+users can carry out editing and other tasks that require fast interactive
+response.
+The workstations are all diskless, and
+are primarily used as intelligent terminals that do
+window management, rather than as computers for running complex user programs.
+.kW "X terminal"
+Currently Suns, IBM PC/AT clones and X terminals can be used as workstations.
+.sp 1
+.f1
+.PS
+B: box wid 1.4i ht 2.2i
+"Processor Pool" at last box.n above
+L1: line right 1i with .start at last box.nw + (0.2i, -0.5i)
+line up 0.3i with .start at  1/11 <L1.start, L1.end>
+line up 0.3i with .start at  2/11 <L1.start, L1.end>
+line up 0.3i with .start at  3/11 <L1.start, L1.end>
+line up 0.3i with .start at  4/11 <L1.start, L1.end>
+line up 0.3i with .start at  5/11 <L1.start, L1.end>
+line up 0.3i with .start at  6/11 <L1.start, L1.end>
+line up 0.3i with .start at  7/11 <L1.start, L1.end>
+line up 0.3i with .start at  8/11 <L1.start, L1.end>
+line up 0.3i with .start at  9/11 <L1.start, L1.end>
+line up 0.3i with .start at 10/11 <L1.start, L1.end>
+L2: line right 1i with .start at L1.start - (0, 0.5i)
+line up 0.3i with .start at  1/11 <L2.start, L2.end>
+line up 0.3i with .start at  2/11 <L2.start, L2.end>
+line up 0.3i with .start at  3/11 <L2.start, L2.end>
+line up 0.3i with .start at  4/11 <L2.start, L2.end>
+line up 0.3i with .start at  5/11 <L2.start, L2.end>
+line up 0.3i with .start at  6/11 <L2.start, L2.end>
+line up 0.3i with .start at  7/11 <L2.start, L2.end>
+line up 0.3i with .start at  8/11 <L2.start, L2.end>
+line up 0.3i with .start at  9/11 <L2.start, L2.end>
+line up 0.3i with .start at 10/11 <L2.start, L2.end>
+L3: line right 1i with .start at L2.start - (0, 0.5i)
+line up 0.3i with .start at  1/11 <L3.start, L3.end>
+line up 0.3i with .start at  2/11 <L3.start, L3.end>
+line up 0.3i with .start at  3/11 <L3.start, L3.end>
+line up 0.3i with .start at  4/11 <L3.start, L3.end>
+line up 0.3i with .start at  5/11 <L3.start, L3.end>
+line up 0.3i with .start at  6/11 <L3.start, L3.end>
+line up 0.3i with .start at  7/11 <L3.start, L3.end>
+line up 0.3i with .start at  8/11 <L3.start, L3.end>
+line up 0.3i with .start at  9/11 <L3.start, L3.end>
+line up 0.3i with .start at 10/11 <L3.start, L3.end>
+L4: line right 1i with .start at L3.start - (0, 0.5i)
+line up 0.3i with .start at  1/11 <L4.start, L4.end>
+line up 0.3i with .start at  2/11 <L4.start, L4.end>
+line up 0.3i with .start at  3/11 <L4.start, L4.end>
+line up 0.3i with .start at  4/11 <L4.start, L4.end>
+line up 0.3i with .start at  5/11 <L4.start, L4.end>
+line up 0.3i with .start at  6/11 <L4.start, L4.end>
+line up 0.3i with .start at  7/11 <L4.start, L4.end>
+line up 0.3i with .start at  8/11 <L4.start, L4.end>
+line up 0.3i with .start at  9/11 <L4.start, L4.end>
+line up 0.3i with .start at 10/11 <L4.start, L4.end>
+line right 0.3i at B.e
+move up 0.5i
+line down 1i
+arc to last line.end + (0.15i, -0.15i) rad 0.15i
+BOTTOM: line right 1.5i
+arc invis to last line.end + (0.15i,  0.15i) rad 0.15i
+line invis up 0.35i
+line up 0.15i
+RIGHT: line up 0.5i
+arc to last line.end - (0.15i, -0.15i) rad 0.15i
+TOP: line left 1.5i
+arc to last line.end - (0.15i,  0.15i) rad 0.15i
+define workstation X
+	line up    0.15i
+	line right 0.15i
+	line up    0.30i
+	line left  0.15i
+	line down  0.20i
+	line left  0.15i
+	line down  0.10i
+	line right 0.15i
+X
+move to TOP.end + (0.15i, 0)
+workstation
+move to TOP.center
+workstation
+move to TOP.start - (0.15i, 0)
+workstation
+"Workstations" at TOP.center + (0, 0.45i) above
+oldwid=boxwid
+oldht=boxht
+boxwid = 0.3i
+boxht = 0.3i
+line down 0.15i at BOTTOM.start + (0.15i, 0)
+box with .n at last line.end
+line down 0.15i at BOTTOM.center
+box with .n at last line.end
+line down 0.15i at BOTTOM.end - (0.15i, 0)
+X: box with .n at last line.end
+box invis "Specialized servers" "(file, data base, etc)" with .w at X.e + (0.6i, 0)
+line right 0.3i at RIGHT.start
+box
+arrow right 0.5i
+"  WAN" ljust
+"Gateway" at last box.n above
+boxwid=oldwid
+boxht=oldht
+.PE
+.f2
+The \*(Am architecture.
+.f3
+.LP
+Second are the pool processors: a group of CPUs that can be dynamically
+.kW "processor pool"
+allocated as needed, used, and then returned to the pool.
+This makes it possible to take advantage of parallelism within a job.
+For example, the \fImake\fR command might need to do six compilations,
+so six processors could be selected from the pool to
+do the compilation.
+Many applications, such as heuristic search in AI applications
+(e.g., playing chess), use large
+numbers of pool processors to do their computing.
+The processor pool also offers the possibility of doing many jobs in parallel
+(e.g., several large text processing jobs and program compilations)
+without affecting the perceived performance of the system because new
+work will be assigned to idle processors (or the most lightly loaded ones).
+.LP
+Third are the specialized servers,
+.kW "specialized servers"
+.kW "name server"
+.kW "file server"
+such as directory servers,
+file servers,
+boot servers,
+and various other servers with specialized functions.
+Each server is dedicated to performing a specific function.
+In some cases, there are multiple servers that provide the same
+function, for example, as part of the replicated file system.
+.LP
+Fourth are the gateways, which are used to link \*(Am systems at different
+sites and different countries into a single, uniform system.
+The gateways isolate \*(Am from the peculiarities of the protocols that
+must be used over the wide-area networks.
+.LP
+All the \*(Am machines run the same kernel, which primarily
+provides multithreaded processes, communication services, and little else.
+The basic idea behind the kernel was to keep it small,
+to enhance its reliability, and to allow as much as possible
+of the operating system to run as user processes (i.e., outside the kernel),
+providing for flexibility and experimentation.
+.kW microkernel
+This approach is called a
+.I microkernel .
+.nH 1 "Objects and Capabilities" nobp
+.LP
+\*(Am is object-based.
+.kW "object-based"
+It uses capabilities for accessing objects.
+.kW capability
+The \*(Am system can be viewed as a collection of objects,
+on each of which there is a set of operations that can be performed.
+For example, typical operations for a file object are creating,
+reading and deleting.
+The list of allowed operations is defined by the person who designs the
+object and who writes the code to implement it.
+Both hardware and software objects exist.
+.LP
+Associated with each object is a
+.I capability ,
+a kind of ticket or key that allows the holder of the capability to perform
+some (not necessarily all) operations on that object.
+For example, a user process might have a capability for a file that permitted
+it to read the file, but not to modify it.
+Capabilities are protected cryptographically to prevent users from tampering
+with them.
+.LP
+Each user process owns some collection of capabilities,
+which together define the set of objects it may access and the type of
+operations it may perform on each.
+Thus capabilities provide a unified mechanism for naming,
+accessing and protecting objects.
+.kW protection
+From the user's perspective, the function of the operating system is to
+create an environment in which objects can be created and manipulated in a
+protected way.
+.nH 1 "Remote Procedure Call" nobp
+.LP
+This object-based model visible to the users is \fIimplemented\fR using remote
+procedure call.
+.kW RPC
+Associated with each object is a
+.I server
+process that manages the object.
+When a user process wants to perform an operation on an object,
+it sends a request message to the server that manages the object.
+The message contains the capability for the object, a specification of the
+operation to be performed, and any parameters required for the operation.
+.kW "client-server model"
+The user, known as the
+.I client ,
+then blocks.
+After the server has performed the operation, it sends back a reply message
+that unblocks the client.
+The combination of sending a request message, blocking, and accepting a
+reply message forms the remote procedure call, which can be encapsulated using
+stub routines, to make the entire remote operation look like a local
+procedure call.
+.LP
+A remote procedure call can impact perceived performance because it is possible
+for it to fail when it cannot find a server (temporarily or otherwise).
+Although this is a rare occurrence,
+it does mean that sometimes there may be
+a brief delay while a program attempts to locate a server.
+The delay may vary between two and thirty seconds.
+(Of course it is initially difficult to distinguish between a long timeout
+and someone rebooting the machine where your process is running, but that is a
+separate issue.)
+.\".nH 1 "Wide Area Networking" nobp
+.\".LP
+.\"In general you will be unaware of the existence of wide-area networking.
+.\".kW "wide-area networking"
+.\"User programs that are accessing remote servers will not be aware of it and
+.\"the only evidence of wide-area network activity for the user will be delays
+.\"if the wide-area network is slow.
+.\".LP
+.\"Communication over a wide-area network uses the network protocol of the
+.\"wide-area network.
+.\"This is hidden from the user who does remote procedure calls in exactly the
+.\"same was as for local-area communication.
+.\"Special software arranges that the messages arrive at the recipient
+.\"in such a way as to appear identical to local messages.
+.nH 1 "Directories" nobp
+.LP
+Under \*(Am, file names are not implemented by the file server.
+There are many more object types than just files,
+so a more general naming service is required.
+.kW "directory server"
+.kW "SOAP"
+The naming service is implemented by the directory server which implements
+an arbitrary directed graph of directories.
+This graph can contain cycles and does so in the standard distribution.
+This is fully intentional and causes no problems.
+.kW ASCII
+The directory object is a list of \fB(\fPASCII string, capability-set\fB)\fP
+pairs.
+The
+.I "ASCII string"
+is the human readable name of the object and the
+.kW "capability-set"
+.I "capability-set"
+contains one or more capabilities for the various copies of that object.
+(This provides support for fault tolerance by allowing the same name to
+refer to the replicated copies of an object.)
+.LP
+The capability for any object,
+including another directory,
+may be stored in a directory,
+so a directory can be linked into several places in the directory graph
+simply by entering its capability in several directories.
+.LP
+The directory graph has no concept of an absolute
+.I root
+since there is no tree structure.
+However, the user interface implements the root for a particular user as the
+user's login directory.
+Therefore all users have their own '/' directory.
+.LP
+An extra degree of fault tolerance is achieved by duplicating the directory
+server.
+Two copies of it can run simultaneously,
+each with its own set of data.
+The two servers communicate with each other to keep the data about directories
+consistent.
+If one server goes down,
+the other detects this and carries on functioning.
+When its partner is restarted it is brought up to date with the latest
+changes by the surviving server and they resume cooperation.
+.LP
+This provides a very high reliability in the directory service and allows
+software upgrades to the directory server without down time by simply
+stopping the servers one at a time and starting the new version.
+.nH 1 "Files" nobp
+.LP
+Files are also unusual in \*(Am.
+.kW file
+.kW "Bullet Server"
+.kW "immutable"
+The file server delivered with \*(Am is known as the \*(Bs.
+It uses a very large buffer cache and stores files contiguously,
+both in core and on disk to give very high performance.
+.LP
+The semantics of \*(Bs files are different from conventional file systems.
+The foremost difference is that they are immutable.
+That is,
+once created a file cannot be changed.
+The only significant operations permitted on a file are read and delete.
+(There are some operations which deal with the status information of the file.)
+.LP
+The second aspect of files is that they are created atomically.
+They can be constructed in the \*(Bs's buffer cache but they do not officially
+exist until they are
+.I committed .
+At this point they are written to disk and may be used.
+.nH 1 "\*(Am and POSIX Emulation" nobp
+.LP
+.kW "POSIX emulation"
+.kW "POSIX"
+To provide \*(Am with a reasonable programming environment and
+to simplify the migration of software and staff from
+.UX -like
+systems to \*(Am,
+there is a POSIX
+emulation library which provides reasonable source code compatibility.
+A special server handles state information when necessary,
+but this is not explicitly visible to the user.
+It is started when required.
+.LP
+Functional equivalents of many of the standard
+POSIX tools and utilities are provided with \*(Am.
+In practice this means that the user environment of \*(Am is strikingly like
+that of
+POSIX,
+although no AT&T code is present.
+However the directory service and file semantics are significantly different,
+so it is important not to take the similarity with
+.UX -like
+systems for granted.
+For example, commands like
+.I "tail \-f"
+are not implementable since file creation is atomic.
+Recursive commands such as
+.I find ,
+.I tar
+and
+.I "rm \-rf"
+are potentially dangerous if there are any cycles in the subgraph to which
+they are applied.
+.nH 1 "Conclusion" nobp
+.LP
+\*(Am was designed to provide a transparent distributed system.
+Although it is still undergoing further development the current version
+goes a long way towards satisfying the design goals.
+.LP
+.kW POSIX
+The POSIX emulation has provided a ready-made programming environment for
+people to begin using \*(Am immediately.
+To help get started, the next section provides a tutorial introduction to
+using \*(Am and highlights some of the areas where \*(Am differs from POSIX.

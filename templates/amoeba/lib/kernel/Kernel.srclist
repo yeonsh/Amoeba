@@ -1,0 +1,52 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)Kernel.srclist	1.6	94/04/05 16:31:49
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# This file is separate from the Amakefile because when we make a kernel
+# tags file it includes the library routines.
+#
+%include $SRC_ROOT/lib/libam/Amake.srclist;
+%include $SRC_ROOT/lib/stubs/Amake.srclist;
+%include $SRC_ROOT/lib/libc/Amake.srclist;
+%include $SRC_ROOT/lib/sysam/Amake.srclist;
+%include $SRC_ROOT/admin/soapsvr/Amake.srclist;
+
+
+KERNEL_LIB_SRCS = {
+	$L_AM_CAP,
+	$L_AM_CAPSET,
+	$L_AM_CRYPT,
+	$L_AM_DEBUG,
+	$L_AM_DES,
+	$L_AM_DISKLABEL,
+	$L_AM_ERROR,
+	$L_AM_FLIPONEWAY,
+	$L_AM_GOODPORT,
+	$L_AM_KMISC,
+	$L_AM_MONITOR,
+	$L_AM_PROCESS_SUPPORT,
+	$L_AM_PRV,
+	$L_AM_PUTGET,
+	$L_AM_SOAP_DIR,
+	$L_COMMON_SOAPSVR,
+	$L_STUBS_BULLET,
+	$L_STUBS_DIRECT,
+	$L_STUBS_FS,
+	$L_STUBS_PROCESS,
+	$L_STUBS_SEGMENT,
+	$L_STUBS_SOAP,
+	$L_STUBS_STD,
+	$L_STUBS_TAPE,
+	$L_STUBS_TIOS_MARSHAL,
+	$L_LIBC_CTYPE,
+	$L_LIBC_MACHDEP_MEMORY,
+	$L_LIBC_MACHDEP_STRING,
+	$L_LIBC_STRTOL,
+	$L_LIBC_RANDOM,
+	$L_LIBIP_KTCPIP,
+	$L_LIBIP_TCPIP_HTON,
+	$L_SYSAM_MUTEX,
+};

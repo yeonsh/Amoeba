@@ -1,0 +1,40 @@
+.\"	@(#)showbadblk.n	1.2	94/04/05 15:40:38
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, March 1992
+	Document: Leendert van Doorn, March 1992
+.aE
+.mT "showbadblk" A "i80386/ISA ONLY"
+\*(Am bad block utility
+.SH
+Synopsis
+.LP
+.sC L
+showbadblk disk-capability
+.eC
+.SH
+Description
+.LP
+.kW "bad block utility"
+.I Showbadblk
+displays the contents of the bad block table.
+When no table can be found, or when it is corrupted
+an appropriate error message is reported.
+.SH
+Example
+.LP
+To display the bad blocks on machine ``bullet'', the following command
+should be issued:
+.LP
+.sC
+showbadblk /super/hosts/bullet/bootp:00
+.eC
+.SH
+See Also
+.LP
+fdisk(A),
+vdisk(A).

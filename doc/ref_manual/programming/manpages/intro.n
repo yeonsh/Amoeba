@@ -1,0 +1,14 @@
+.\"	@(#)intro.n	1.2	94/04/05 15:06:24
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Manual Pages"
+.LP
+This chapter contains the library manual pages for C programming under \*(Am.
+They are listed in alphabetical order by entry name and classified into one
+of two categories.
+Either (L) for library routine or (H) for include file.
+At the beginning of each manual entry is a list of the libraries in which the
+routine(s) described can be found.

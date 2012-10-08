@@ -1,0 +1,152 @@
+.\"	@(#)more.n	1.4	96/02/16 11:05:24
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - adjusted to Amoeba style
+					       added missing info.
+.aE
+.mT "more" U
+a pager
+.SH
+Synopsis
+.LP
+.sC L
+more [-cdflpsu] [-linenum] [+linenum | +/pattern] file ...
+.eC
+.SH
+Description
+.LP
+.kW pager
+.I More
+is a pager that allows one to examine files.
+This program was originally produced at the University of California,
+Berkeley.
+It has been slightly modified for \*(Am.
+When
+.I more
+starts up,
+it displays a screen full of information from the first file in its list,
+and then pauses for one of the following commands.
+.LP
+In this description,
+``#'' represents an integer telling how many of something.
+.IP <space> 10
+Display next page
+.IP <return>
+Display next line
+.IP CTRL-B
+Go backward half a screen full
+.IP CTRL-D
+Go forward half a screen full
+.IP CTRL-L
+Redisplay the screen
+.IP #<space>
+Go forward # lines
+.IP =
+Print current line number
+.IP .
+Repeat previous command
+.IP '
+(single quote) Go back to start of last search
+.IP !
+Escape to a shell
+.IP #/<expr>
+Go to #-th occurrence of <expr>
+.IP :f
+Display current file name and line number
+.IP #:n
+Skip forward # files
+.IP #:p
+Skip backward # files
+.IP b
+Go backward half a screen full
+.IP d
+Go forward half a screen full
+.IP #f
+Skip # screen fulls
+.IP h
+Display /usr/lib/more.help
+.IP #n
+Go to #-th occurrence of last <expr>
+.IP q
+Quit more
+.IP Q
+Quit more
+.IP #s
+Skip # lines
+.IP v
+Try to execute
+.I /usr/bin/vi
+.IP #z
+Go forward # lines and set screen size to #
+.mH
+Options
+.LP
+.IP \fB\-d\fP
+Display prompt message at each pause.
+.IP \fB\-f\fP
+Do not fold lines.
+.IP \fB\-l\fP
+Do not treat CTRL-L as form feed.
+.IP \fB\-p\fP
+Page mode.
+Do not scroll.
+.IP \fB\-s\fP
+Suppress multiple blank lines.
+.IP \fB\-u\fP
+Use escape sequences for underlining.
+.IP \fB\-\fP\fIlinenum\fP
+.br
+Display
+.I linenum
+lines of the file per page.
+.IP \fB\+\fP\fIlinenum\fP
+.br
+Display from line
+.I linenum
+in the first file.
+.IP \fB+/\fP\fIpattern\fP
+.br
+Search for the specified
+.I pattern
+in the first file and begin displaying from the first line containing
+.I pattern .
+.mH
+Environment Variables
+.LP
+For the benefit of users
+who always want to use certain flags when calling more,
+the string environment variable
+.cW MORE
+can be set to the desired default flags,
+for example,
+.cW MORE =``\-p''.
+.SH
+Examples
+.LP
+.sC
+more file
+.eC
+Display file on the screen.
+.sC
+more -p file1 file2
+.eC
+Display two files in page mode.
+.sC
+more -10 file
+.eC
+Use a 10 line window
+.sC
+more +/begin file
+.eC
+Hunt for the string ``begin'' in
+.I file .
+.SH
+See Also
+.LP
+yap(U).

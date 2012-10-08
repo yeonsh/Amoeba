@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 14:03:12
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_FLIP_RPC = {
+	$PWD/am_endian.h,
+	$PWD/flrpc.c,
+	$PWD/flrpc.init,
+	$PWD/flrpc.kstat,
+	$PWD/flrpc_kd.kstat,
+	$PWD/flrpc_kid.c,
+	$PWD/flrpc_kid.h,
+	$PWD/flrpc_kid.init,
+	$PWD/flrpc_port.c,
+	$PWD/flrpc_pt.init,
+	$PWD/flrpc_pt.kstat,
+	$PWD/rpc_endian.h,
+};

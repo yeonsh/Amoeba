@@ -1,0 +1,10 @@
+/*	@(#)am4glue.kstat	1.3	96/02/27 14:00:42 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifdef STATISTICS
+4	am4_statistics		"Amoeba 4 glue statistics"	SYS_RGT_READ
+#endif

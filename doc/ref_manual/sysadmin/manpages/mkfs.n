@@ -1,0 +1,117 @@
+.\"	@(#)mkfs.n	1.6	96/02/15 17:48:29
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 12/02/90
+	Modified: Gregory J. Sharp, Dec 1995
+		  Gregory J. Sharp, Jan 1996
+.aE
+.EQ
+delim @@
+.EN
+.mT "mkfs" A
+make a Bullet file system
+.SH
+Synopsis
+.LP
+.sC L
+mkfs [-f] [-b @log sub 2@(blocksize)] [-i num_inodes] diskcap
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Bullet file system"
+.I Mkfs
+makes a Bullet file system on the virtual disk specified by
+.I diskcap .
+If there is a Bullet file system already present on the partition and the
+.B \-f
+option was not specified then it will print a warning and stop.
+Otherwise,
+it determines the size of the disk by asking the disk server.
+It then calculates the number of blocks it will need for inodes,
+but rounds up the number of inodes to fill the last inode block completely.
+It then prints a short summary of what it is about to do.
+Immediately after that it begins to modify the disk.
+Firstly it writes empty inodes to the disk,
+beginning at block 1 and then lastly it writes the superblock on block 0 of
+the disk.
+.mH
+Options
+.LP
+.IP "\fB\-b\fP @log sub 2@(blocksize)" 17
+It is possible to specify the size of the disk block that the \*(Bs will
+use.
+To enforce that it is a power of 2, the @log sub 2@ of the block size is given.
+The block size must be greater than or equal to the size of the physical disk
+block of the underlying device driver.
+That is typically 512 bytes,
+which is equivalent to
+.B \-b 9.
+There is an implementation defined maximum which can be discovered by giving an
+illegal value for the block size (such as 0).
+.IP \fB\-f\fP
+This forces an existing Bullet file system that is
+already on the virtual disk to be (irretrievably) overwritten.
+.IP "\fB\-i\fP num_inodes"
+It is possible to force a particular number of inodes for a file system.
+The default is the number of physical blocks in the file system divided by
+the constant
+.cW AVERAGE_FILE_SIZE .
+(which is a tuning parameter of the \*(Bs defined in the file
+.I bullet.h
+and is set to 16K bytes in the original distribution.)
+Note that the number of inodes specified in this option will be rounded up to
+fill the last disk block allocated for inodes.
+.mH
+Diagnostics
+.LP
+These should be self explanatory.
+Errors from
+.I mkfs
+itself (rather than the calling program) are of the form:
+.LP
+.ti 1.25c
+.I "error message"
+mkfs: b_mkfs failed:
+.I "error status"
+.LP
+where the
+.I "error status"
+message reflects the actual error code returned.
+.mH
+Warnings
+.LP
+.I Mkfs
+makes no effort to protect you from destroying a non-Bullet file system.
+It will protect extant Bullet file systems unless the
+.B \-f
+option is used.
+.SH
+Example
+.LP
+.sC
+mkfs -b 10 /super/hosts/torro/vdisk:01
+.eC
+will print
+.sC
+Blocksize = 1024 bytes
+Sizeof disk = 585329 blocks
+Number of inodes = 119488
+No. blocks for inodes = 1867
+.eC
+and then proceed to write 1867 blocks of empty inodes to the disk,
+followed by the superblock.
+.SH
+See Also
+.LP
+gb_mkfs(A),
+killfs(A).
+.EQ
+delim off
+.EN

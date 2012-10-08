@@ -1,0 +1,162 @@
+.\"	@(#)printbuf.n	1.7	96/02/15 17:49:31
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+		  Philip Homburg
+	Document: Gregory J. Sharp, 13/02/90
+	Modified: Philip Homburg Dec 1991 - new parameters
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "printbuf" A
+print the console buffer of an \*(Am host
+.SH
+Synopsis
+.LP
+.sC L
+printbuf [-s] [-c] [-p] machine
+.eC
+.SH
+Description
+.LP
+.kW "console buffer"
+.I Printbuf
+either prints the contents of the console buffers in the \*(Am host specified 
+by
+.I machine ,
+or prints output to the console buffer since the last
+.I printbuf
+request.
+This depends on the presence of a printbuf server (see
+.I printbufsvr (A))
+and the
+.B \-s
+and
+.B \-c
+command line options.
+.LP
+If the 
+.B \-s
+option is present on the command line, 
+.I printbuf
+attempts to lookup the
+.I sys
+server of the host specified by
+.I machine .
+If the
+.B \-c
+option is present, the printbuf server in
+.I machine 
+is used.
+If neither the
+.B \-c
+nor the 
+.B \-s
+flags are present
+.I printbuf
+tries to lookup the printbuf server in
+.I machine
+and assumes the
+.B \-c
+option when successful and the
+.B \-s
+option otherwise.
+.LP
+If the 
+.B \-s 
+option is turned on (either explicitly or implicitly) the entire console
+buffer is printed once.
+On the other hand, if the 
+.B \-c 
+option is turned on,
+.I printbuf
+repeatedly sends
+.I printbuf
+requests which return only the additions to the console buffer since the
+previous request.
+Thus the illusion of a continuous stream is created.
+If nothing is printed at all then the
+.B \-c
+option is probably in effect and there is no new data in the print buffer
+since the previous
+.I printbuf
+request.
+.LP
+If the
+.B \-p
+option is present
+.I printbuf
+will continue even in the presence of errors.
+If the 
+.B \-p
+option is not present
+.I printbuf 
+will quit after the first error.
+.LP
+.I Printbuf
+attempts to detect series of garbage characters and avoid printing them.
+In this case it prints
+.I etc...
+followed by a new line.
+Non-printable characters are printed as follows:
+.LP
+.TS
+l l .
+backspace	\e\^b
+formfeed	\e\^f
+null	\e\^0
+backslash	\e\e
+all others	\e\^ooo
+.TE
+.LP
+where
+.I ooo
+is a 3-digit octal number.
+.mH
+Diagnostics
+.LP
+.cW "directory lookup of"
+.I hostname
+.cW failed:
+.I "error message"
+.LP
+\-\ means that it could not find the host in any of the searched locations.
+The actual cause of the error is described by
+.I "error message" .
+.LP
+In the following
+.I nnn
+and
+.I sss
+are integers.
+.LP
+.cW
+returned offset (0xnnn) out of range [0 .. 0xsss)
+.br
+returned num_bytes (0xnnn) out of range (0 .. 0xsss]
+.R
+.LP
+\-\ these two messages mean that illegal values were returned by the
+server answering the printbuf request.
+.LP
+.cW failed:
+.I "error message"
+.LP
+\-\ means that the request to the host failed for the reason specified by
+.I "error message" .
+.SH
+Example
+.LP
+.sC
+printbuf vmesc3
+.eC
+.SH
+See Also
+.LP
+aps(U),
+kstat(A),
+printbufsvr(A),
+syssvr(A).

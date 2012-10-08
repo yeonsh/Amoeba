@@ -1,0 +1,29 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 10:13:41
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+A_FTP_SVR = {
+	$PWD/ftpsvr.c,
+};
+
+A_FTP_DAEMON = {
+	$PWD/am_conn.c,
+	$PWD/am_conn.h,
+	$PWD/am_misc.c,
+	$PWD/cdefs.h,
+	$PWD/ftp.h,
+	$PWD/ftpcmd.y,
+	$PWD/ftpd.c,
+	$PWD/glob.c,
+	# $PWD/logwtmp.c,
+	$PWD/pathnames.h,
+	$PWD/paths.h,
+	$PWD/popen.c,
+	$PWD/strcasecmp.c,
+	$PWD/syslog.h,
+	$PWD/vers.c,
+	$SRC_ROOT/admin/login/environ.c,	# for passwd checking
+};

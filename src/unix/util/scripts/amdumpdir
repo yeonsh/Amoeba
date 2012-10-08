@@ -1,0 +1,32 @@
+#! /bin/sh
+#	
+#	@(#)amdumpdir	1.2	94/04/07 14:09:20
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# amdumpdir: create amoeba directory
+
+if [ $# -ne 2 ]
+then
+    echo usage: $0 unixdir amoebadir 2>&1
+    exit 1
+fi
+
+# echo $0 $1 $2
+
+unixdir=$1
+amdir=$2
+
+# remove a possible '/.' at the end
+normalised=`echo $amdir/$unixdir | sed -e 's/\/\.$//'`
+
+if mkd $normalised 2>/dev/null
+then
+    echo directory $normalised is created
+else
+    echo directory $normalised already exists
+fi
+
+    

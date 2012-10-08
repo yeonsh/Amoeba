@@ -1,0 +1,88 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)exec.generic	1.4	94/04/05 17:00:28
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Library definitions to be used by Unix and Amoeba configurations.
+
+# ack modules
+CONF_MODULES = $CONF_ROOT/lib/ack_modules;
+
+LIB_ACKMALLOC = {
+        $CONF_MODULES/malloc/libmalloc.a
+};
+LIB_ACKMODULES = {
+        $CONF_MODULES/alloc/liballoc.a,
+        $CONF_MODULES/assert/libassert.a,
+        $CONF_MODULES/input/libinput.a,
+        $CONF_MODULES/print/libprint.a,
+        $CONF_MODULES/string/libstring.a,
+        $CONF_MODULES/system/libsystem.a
+};
+
+
+LINT_ACKMALLOC = {
+        $CONF_MODULES/malloc/llib-lmalloc.ln
+};
+
+LINT_ACKMODULES = {
+        $CONF_MODULES/alloc/llib-lalloc.ln,
+        $CONF_MODULES/assert/llib-lassert.ln,
+        $CONF_MODULES/input/llib-linput.ln,
+        $CONF_MODULES/print/llib-lprint.ln,
+        $CONF_MODULES/string/llib-lstring.ln,
+        $CONF_MODULES/system/llib-lsystem.ln
+};
+
+
+INCL_ACKMODULES = {
+        '-I'$SRC_ROOT/ack/modules/h,
+        '-I'$SRC_ROOT/ack/modules/pkg
+};
+
+%default _all;
+
+_ALL = {};
+_LINT_ALL = {};
+
+%generic gcluster(targ, src, libs, llibs)
+{
+    _ALL = $_ALL + $targ;
+    _LINT_ALL = $_LINT_ALL + lint-$targ;
+
+    %cluster
+    {
+	%targets $targ[type = program];
+	%sources $src;
+	%use	 loader(libraries => $libs);
+    };
+
+    %cluster
+    {
+	%targets lint-$targ[type = lint-output];
+        %sources select($src, lint-source, %true);
+	%use	 stub-generator(flags => '-f13'),# lint can't handle ANSI code
+		 lint-tool(lintlibs => $llibs);
+    };
+
+    %cluster
+    {
+	%targets tags-$targ[type = ctags-output];
+        %sources select($src, lint-source, %true);
+	%use	 stub-generator(flags => '-f13');# ctags can't handle ANSI code
+    };
+};
+
+%cluster _all
+{
+	%sources $_ALL;
+	%do	 echo('all done');
+};
+
+%cluster lint-all
+{
+	%sources $_LINT_ALL;
+	%do	 echo('lint-all done');
+};

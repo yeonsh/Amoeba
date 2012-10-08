@@ -1,0 +1,166 @@
+.\"	@(#)aman.n	1.5	96/02/15 18:00:07
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren, May 1992
+	Document: Gregory J. Sharp, May 1992
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "aman" U
+display manual pages on screen
+.SH
+Synopsis
+.LP
+.sC L
+aman [-A|H|L|T|U|k] keyword
+.eC
+.SH
+Description
+.LP
+.I Aman
+.kW "\fIman\fP"
+.kW "manual page"
+is used to find information from the on-line manual pages.
+Without options it looks for a manual page with the name
+.I keyword .
+If none exists then it defaults to the
+.B \-k
+option (see below) and prints a list of manual pages that refer to the
+specified
+.I keyword .
+If one such manual page exists it is displayed using the default pager
+(see
+.I "Environment Variables
+below).
+If more than one manual page exists with that name,
+for example
+.I soap (A)
+and
+.I soap (L),
+then it will complain about the ambiguity,
+and give the various possibilities.
+In this case the desired manual page can be obtained using the flag
+corresponding to the section of the manual desired.
+In the above example,
+if the system administration manual page for the \*(Ss is desired then the
+command
+.sC
+aman -A soap
+.eC
+will cause it to be displayed.
+.mH
+Options
+.LP
+At most one option can be given.
+If no manual page entry is found for the specified
+.I keyword
+then
+.I aman
+defaults to the
+.B \-k
+option and any other option will be ignored.
+.IP \fB\-A\fP
+This requests that only manual pages from the System Administration Guide be
+displayed.
+.IP \fB\-H\fP
+This requests that only manual pages about include files be displayed.
+.IP \fB\-L\fP
+This requests that only manual pages from the Programming Guide be
+displayed.
+.IP \fB\-T\fP
+This requests that only manual pages about test programs be displayed.
+.IP \fB\-U\fP
+This requests that only manual pages from the User Guide be displayed.
+.IP \fB\-k\fP
+This requests that a list of manual pages which reference the specified
+.I keyword
+be displayed, rather than an individual manual page.
+.mH
+Environment Variables
+.LP
+The string environment variable
+.cW PAGER
+specifies which pager will be used when displaying the manual page.
+.mH
+Files
+.LP
+.I \(gaamdir\(ga/lib/man/filenames
+and
+.I \(gaamdir\(ga/lib/man/keywords
+contain the database used to search on keywords and filenames.
+.LP
+The directories
+.I \(gaamdir\(ga/lib/man/*/manpages
+contain the
+.I cat able
+versions of the manual pages.
+Under \*(Am only these versions can be used.
+.SH
+Administration
+.LP
+The program
+.kW catman
+.I \(gaamdir\(ga/lib/man/catman
+should be run to bring the keywords database up to date if
+local or new manual pages are added or modified.
+The
+.I catman
+program takes no arguments and runs only under
+.UX .
+(This is because it uses
+.I nroff
+which is not available under \*(Am.)
+The new manual pages can be installed under \*(Am using
+.I amdumptree (A).
+The best solution is probably to set up
+.I cron
+(see
+.I cronsubmit (U))
+to run
+.I catman
+once per week.
+It takes a little over five minutes to regenerate the database.
+Generating the database the first time is quite slow if the
+.I cat able
+manual pages must be generated.
+It can take up to twenty-five minutes.
+.SH
+Examples
+.LP
+.sC
+aman boot
+.eC
+will print the manual page for the boot server.
+.sC
+aman -k boot
+.eC
+will print a list of manual page names and their synopsis of all the manual
+pages that have something to do with the keyword
+.I boot .
+For example, it may print the following:
+.sC L
+.ps-1
+boot(A)       - keep system services available
+bootutil(A)   - boot-server control
+iboot(A)      - inspect or  install  the  boot  server's  virtual
+installboot(A)- install hard disk or floppy bootstrap  loader  on
+isaboot(A)    - boot mechanisms for i80386 machines with  an  ISA
+isaprom(A)    - convert an 80386 kernel image to ISA boot ROM im-
+mkbootpartn(A)- make a bootable floppy or hard disk partition
+mkkdir(A)     - make kernel bootstrap directory on disk
+prkdir(A)     - print the contents of a kernel boot directory
+rarp(A)       - reverse Address Resolution Protocol daemon
+reboot(A)     - reboot a machine with a new kernel binary.
+tftp(A)       - the Trivial File Transfer Protocol server
+.ps
+.eC
+Note that the summary strings are truncated if necessary to ensure that they
+fit on one line.
+.SH
+See Also
+.LP
+amdir(U),
+cronsubmit(U).

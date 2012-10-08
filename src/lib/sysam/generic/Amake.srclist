@@ -1,0 +1,32 @@
+#	
+#	@(#)Amake.srclist	1.3	94/04/07 11:16:37
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_SYSAM_THREAD = {
+	$PWD/thread.c,
+	$PWD/enpreempt.c,
+	$PWD/getmaxprio.c,
+};
+
+L_SYSAM_MUTEX = {
+	$PWD/mu_init.c,
+	$PWD/mu_lock.c,
+	$PWD/semaphore.c
+};
+
+L_SYSAM_MISC = {
+	$PWD/dir_root.c,
+	$PWD/getcap.c,
+	$PWD/findhole.c,
+	$L_SYSAM_THREAD,
+	$PWD/uniqport.c,
+	$PWD/signals.c,
+	$PWD/stackfix.c
+};
+
+L_SYSAM_LINTLIB = {
+	$PWD/lintlib.c
+};

@@ -1,0 +1,59 @@
+#	
+#	@(#)Amake.srclist	1.9	96/02/27 13:48:15
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_DEV_NO_ETHER = {
+	$PWD/noether.c,
+	$PWD/noether.init
+};
+
+K_DEV_LANCE = {
+	$PWD/lance.c,
+	$PWD/lance.init,
+	$PWD/lance.stop,
+	$PWD/lance.kstat
+};
+K_DEV_BARELANCE = $PWD/barelance.c;
+K_DEV_FILTABYTE = {
+	$PWD/eadrfilt.c,
+	$PWD/filtabyte.h
+};
+K_DEV_GEN_DISKDEP = $PWD/host_getlab.c;
+K_DEV_RAMDISK = $PWD/ramdisk.c;
+K_DEV_TAPE_LOADER = $PWD/tape_loader.c;
+K_DEV_BULLET_LOADER = $PWD/bullet_load.c;
+K_DEV_SCSI_COMMON = {
+	$PWD/scsicommon.c,
+	$PWD/scsicommon.h,
+};
+K_DEV_SCSI_DISK = {
+	$PWD/sd.c,
+	$PWD/sd.h,
+};
+K_DEV_SCSI_TAPE = {
+	$PWD/st.c,
+	$PWD/st.h,
+};
+
+# generic lance driver
+K_DEV_GLANCE = {
+	$PWD/glance.c,
+	$PWD/ethercrc.c,
+	$PWD/glance.kstat,
+	$PWD/glance.h,
+	$PWD/glastat.h
+};
+
+K_DEV_FILTADDR = {
+	$PWD/filt_eaddr.c,
+	$PWD/filtabyte.h
+};
+
+# generic shared memory driver
+K_DEV_GSM = {
+	$PWD/gsm.c,
+	$PWD/gsminfo.h
+};

@@ -1,0 +1,124 @@
+#!/bin/sh
+#	
+#	@(#)amsh	1.5	96/02/27 11:57:00
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Start up an Amoeba shell using ax, but first invoke a session server, iff one
+# is not already running.  User can control the Amoeba shell's environment by
+# setting the UNIX AM_* evironment variables shown below (together with their
+# default values):
+#
+DEBUG=""
+AM_SHELL=${AM_SHELL-/bin/sh}
+AM_HOME=${AM_HOME-/home}
+AM_PATH=${AM_PATH-/bin:/profile/util}
+AM_TERM=${AM_TERM-$TERM}
+MACH=""
+AX_FLAGS=""
+SESS_SVR=${AM_SESS-/profile/util/session}
+
+while [ $# -gt 0 ] ; do
+	case "$1" in
+	    -m) shift	# Specify machine on which to run shell:
+		MACH="-m $1" ;;
+	    -E) shift
+		AX_FLAGS="$AX_FLAGS -E $1" ;;
+	    -C) shift
+		AX_FLAGS="$AX_FLAGS -C $1" ;;
+	    -t) shift	# Specify tty that the shell is connected to:
+		AX_FLAGS="$AX_FLAGS -C STDIN=$1 -C STDOUT=$1 -C STDERR=$1" ;;
+	    -s) shift
+		AM_SHELL="$1" ;;
+	    -d) DEBUG="$DEBUG -d" ;;
+	    -*)	echo 1>&2 "Usage: $0 [ -d ] [ -m machine ] [ -s shell ] [ -t tty ]"
+		echo 1>&2 "		[ -E VAR=value ]... [ -C VAR=path ]...  [ cmdname [ arg... ] ]"
+		exit 1 ;;
+	    *)	break ;;
+	esac
+	shift
+done
+
+if [ $# -gt 0 ]; then
+	# User wants a specific command run:
+	ARGV="$*"
+	X_FILE="$1"
+else
+	# User wants a login shell:
+	ARGV=-`basename "$AM_SHELL"`
+	X_FILE="$AM_SHELL"
+fi
+
+# Check that /dev is a writable directory on Amoeba
+devinfo=`std_info /dev`
+case "X$devinfo" in
+X/dw1*) ;;
+*)
+	echo 1>&2 "No writable /dev directory on Amoeba!"
+	exit 1
+	;;
+esac
+
+luser=`ax /profile/util/whoami`
+if [ "$luser" = "" ]; then
+	# retry; possibly a timeout error caused a process startup problem
+	luser=`ax /profile/util/whoami`
+	if [ "$luser" = "" ]; then
+		echo "Warning: cannot get username from Amoeba" >&2
+		if [ "$LOGNAME" != "" ]; then
+			luser=$LOGNAME
+		elif [ "$USER" != "" ]; then
+			luser=$USER
+		else
+			echo "Fatal: no LOGNAME or USER in environment" >&2
+			exit 2
+		fi
+	fi
+fi
+
+
+if std_info /dev/session 2>/dev/null | grep 'session server' >/dev/null
+then
+	:
+else
+	# echo 1>&2 "You don't have a session server going.  I'll start one."
+
+	# Ensure that /dev/session doesn't exist
+	# until created by the new session server:
+	del -d /dev/session >/dev/null 2>&1
+
+	if cp /dev/null /dev/console >/dev/null 2>&1 ; then
+		SESS_OUT=/dev/console
+	else
+		SESS_OUT=$HOME/.session.out
+	fi
+
+	if [ "X$DEBUG" != X ] ; then
+		echo ax $MACH -E USER=$luser $SESS_SVR \
+				       "$DEBUG -a </dev/null >>$SESS_OUT 2>&1 &"
+	fi
+	ax $MACH -E USER=$luser $SESS_SVR \
+					$DEBUG -a </dev/null >>$SESS_OUT 2>&1 &
+
+	# Wait for /dev/session to be created by the session server:
+	while : ; do
+		if dir /dev/session >/dev/null 2>&1 ; then break; fi
+		sleep 1
+	done
+fi
+
+if [ "X$DEBUG" != X ] ; then
+    echo ax -E0 $MACH -C WORK=$AM_HOME -E _WORK=$AM_HOME -E SHELL=$AM_SHELL \
+	-E TERM=$AM_TERM -E USER=$luser -E PATH=$AM_PATH -E HOME=$AM_HOME \
+	$AX_FLAGS -x $X_FILE -- $ARGV
+fi
+
+mode=`stty -g`
+trap "stty $mode" 0
+stty tabs 2>/dev/null
+ax -E0 $MACH -C WORK=$AM_HOME -E _WORK=$AM_HOME -E SHELL=$AM_SHELL \
+	-E TERM=$AM_TERM -E USER=$luser -E PATH=$AM_PATH -E HOME=$AM_HOME \
+	$AX_FLAGS -x $X_FILE -- $ARGV
+exit 0

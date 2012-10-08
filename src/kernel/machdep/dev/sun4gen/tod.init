@@ -1,0 +1,10 @@
+/*	@(#)tod.init	1.2	94/04/06 09:34:45 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+MMU initmk48t
+initmk48t NETDEVS
+initmk48t initrand

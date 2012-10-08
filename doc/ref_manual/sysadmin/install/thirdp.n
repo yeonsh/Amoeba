@@ -1,0 +1,35 @@
+.\"	@(#)thirdp.n	1.5	96/02/15 17:04:47
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Installing Third-party Software"
+.LP
+There is a large amount of freely available or licensed software
+which works under \*(Am.
+Installation of the currently supported third-party software is described below
+for each package.
+In general,
+the software is freely available from the Internet with little or no
+restriction on its use or redistribution.
+Where such restrictions apply,
+details are provided in the installation instructions.
+If you do not have the necessary network connection or bandwidth to obtain
+the software from the network it is possible to obtain the software from
+your \*(Am distributor for a small cost for the distribution medium,
+the making of the tape and any postal charges.
+.LP
+Note that besides the large packages there is also a small set of programs in
+the directory
+.I thirdp .
+Some of these come with an
+.I Amakefile
+and others simply with a
+.I Makefile .
+In the cases where
+.I Amakefile s
+have been provided they should be installed somewhere in the
+.I templates
+directory so that versions of the thirdparty software can be compiled
+in the normal configuration tree.

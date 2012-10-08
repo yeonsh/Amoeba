@@ -1,0 +1,144 @@
+#	
+#	@(#)Amakefile	1.14	96/02/16 15:40:07
+#
+# Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/util/ajax/Amake.srclist;
+%include $SRC_ROOT/util/ajax/bawk/Amake.srclist;
+%include $SRC_ROOT/util/ajax/byacc/Amake.srclist;
+%include $SRC_ROOT/util/ajax/elvis-1.7/Amake.srclist;
+%include $SRC_ROOT/util/ajax/jove/Amake.srclist;
+%include $SRC_ROOT/util/ajax/ksh/Amake.srclist;
+%include $SRC_ROOT/util/ajax/make/Amake.srclist;
+%include $SRC_ROOT/util/ajax/m4/Amake.srclist;
+%include $SRC_ROOT/util/ajax/sh/Amake.srclist;
+%include $SRC_ROOT/util/ajax/tar/Amake.srclist;
+%include $SRC_ROOT/util/ajax/yap/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/posix/machdep/$ARCH,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/h/module,
+	-I$SRC_ROOT/h/server,
+};
+
+%include $CONF_ROOT/toolset/generic;
+
+DEFINES = {
+	-D_POSIX_SOURCE,
+	-D_POSIX2_SOURCE,
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+AJ_LIBS = {
+	$LIB_AJAX,
+	$LIB_AMOEBA
+};
+
+AJ_LINTLIBS = {
+	$LINT_AJAX,
+	$LINT_AMOEBA
+};
+
+# The following programs don't need libajax, only libamoeba
+
+%instance gcluster(ascii, $U_ASCII, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(banner, $U_BANNER, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(basename, $U_BASENAME, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(bawk, $U_BAWK, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(cal, $U_CAL, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(cat, $U_CAT, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(cgrep, $U_CGREP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(clear, $U_CLEAR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(cmp, $U_CMP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(comm, $U_COMM, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(diff, $U_DIFF, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(dirname, $U_DIRNAME, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(echo, $U_ECHO, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(expand, $U_EXPAND, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(expr, $U_EXPR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(factor, $U_FACTOR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(fgrep, $U_FGREP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(file, $U_FILE, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(fold, $U_FOLD, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(grep, $U_GREP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(head, $U_HEAD, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(look, $U_LOOK, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(od, $U_OD, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(pr, $U_PR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(prep, $U_PREP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(printenv, $U_PRINTENV, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(rev, $U_REV, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(sed, $U_SED, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(shar, $U_SHAR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(size, $U_SIZE, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(split, $U_SPLIT, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(strings, $U_STRINGS, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(sum, $U_SUM, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(tail, $U_TAIL, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(termcap, $U_TERMCAP, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(tr, $U_TR, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(tsort, $U_TSORT, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(unexpand, $U_UNEXPAND, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(uniq, $U_UNIQ, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(uue, $U_UUE, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(wc, $U_WC, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(which, $U_WHICH, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(yes, $U_YES, $LIB_AMOEBA, $LINT_AMOEBA);
+
+#  The following programs need ajax
+%instance gcluster(cdiff, $U_CDIFF, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(compress, $U_COMPRESS, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(cp, $U_CP, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(cpdir, $U_CPDIR, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(dd, $U_DD, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(find, $U_FIND, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(fortune, $U_FORTUNE, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(jove, $U_JOVE, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(teachjove, $U_JOVE_TEACH, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(ksh, $U_KSH[flags={'-D_POSIX_SOURCE'}],
+						$AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(kill, $U_KILL, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(ln, $U_LN, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(ls, $U_LS, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(m4, $U_M4, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(make, $U_MAKE, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(mkdir, $U_MKDIR, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(mkfifo, $U_MKFIFO, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(more, $U_MORE, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(mv, $U_MV, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(pwd, $U_PWD, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(rm, $U_RM, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(rmdir, $U_RMDIR, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(sh, $U_SH, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(sleep, $U_SLEEP, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(sort, $U_SORT, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(tar, $U_TAR, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(tee, $U_TEE, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(test, $U_TEST, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(time, $U_TIME, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(treecmp, $U_TREECMP, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(tset, $U_TSET, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(tty, $U_TTY, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(uud, $U_UUD, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(xargs, $U_XARGS, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(yacc, $U_BYACC, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(yap, $U_YAP, $AJ_LIBS, $AJ_LINTLIBS);
+# elvis utilities
+%instance gcluster(ctags, $U_CTAGS, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(elvis, $U_ELVIS, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(fmt, $U_FMT, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(ref, $U_REF, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(refont, $U_REFONT, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(elvrec, $U_ELVREC, $AJ_LIBS, $AJ_LINTLIBS);
+%instance gcluster(elvprsv, $U_ELVPRSV, $AJ_LIBS, $AJ_LINTLIBS);

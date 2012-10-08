@@ -1,0 +1,179 @@
+.\"	@(#)fdisk.n	1.9	96/02/15 17:19:25
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, July 1991
+	Document: Leendert van Doorn, July 1991
+	Modified: Gregory J. Sharp, June 1993  - added some explanation of
+					the use of bad block scanning.
+		  Gregory J. Sharp, Jan 1996 - more than just ISA bus now.
+.aE
+.mT "fdisk" A "i80386 ONLY"
+\*(Am fixed disk utility
+.SH
+Synopsis
+.LP
+.sC L
+fdisk [-h n] [-s n] [-c n] [-m master] disk-capability
+.eC
+.SH
+Description
+.LP
+.kW "fixed disk utility"
+.kW "partitioning a disk"
+.I Fdisk
+is a menu driven program that is used to partition the
+hard disk of an i80x86 machine.
+.I Fdisk
+can be used to modify an existing partition table as well
+as initialize a new disk.
+The functions offered by
+.I fdisk
+are summarized below.
+.LP
+.I Fdisk
+is potentially a harmful program, capable of destroying the contents of
+a hard disk.
+To try to reduce the risks of errors,
+.I fdisk
+will always ask for confirmation before writing the changes to disk.
+.LP
+Below is a description of the operations that can be performed from the menu:
+.IP "Display partition table"
+.br
+Show the contents of the partition table in human readable form.
+.IP "Create a partition"
+.br
+A partition table contains four partition table entries which
+can specify up to four, possibly different, operating systems.
+.I Fdisk
+allows you to create a new \*(Am partition, by specifying
+its size and disk offset.
+For compatibility reasons the size
+and offset are specified in cylinders instead of blocks.
+Note that the created \*(Am partition is uninitialized.
+Further initialization needs to be done using
+.I disklabel (A).
+.IP
+After confirming that this is really intended, the program will ask for
+the first cylinder and the last cylinder of the disk to be allocated to the
+new partition.
+.IP "Change active partition"
+.br
+One of the four entries in the partition table can be active,
+i.e., bootable.
+At boot-time the master boot program will search the table for an active entry,
+read its first block into memory, and execute it.
+This allows you to switch among the, possibly different,
+operating systems on your disk.
+The
+.I "change active partition"
+option allows any entry in the partition table to be activated.
+Note: it is usually unwise to deactivate \*(Am, since the
+\*(Am secondary bootstrap loader provides a mechanism to
+start other operating systems as well.
+.IP "Delete a partition"
+.br
+Apart from creating a new partition table entry,
+.I fdisk
+also allows the removal of such an entry.
+However, before it actually removes the entry it asks for confirmation.
+Although the result of the removal operation is visible to
+.I fdisk
+it does not come into
+effect until the partition table is written to disk upon exit of the
+.I fdisk
+program.
+.IP "Scan and assign bad sectors"
+.br
+.kW "bad disk blocks"
+.kW "bad block mapping"
+The \*(Am Winchester hard disk driver is capable of mapping bad
+blocks onto alternate blocks, provided there exists a mapping table.
+This option will create such a mapping table and should normally only
+be used during initial system setup after formatting the disk and before
+partitioning it.
+This operation will cause a small partition to be created to hold the bad block
+remapping information.
+.IP
+It should be run directly
+.B after
+formatting the disk since only blocks marked as
+.I bad
+by the formatting will be correctly remapped.
+.I Fdisk
+may see other blocks which give ECC errors but it cannot reformat them as bad
+blocks.
+If there is a suspicion that new bad blocks have appeared during the lifetime
+of a disk then this option may well detect them.
+If bad blocks appear after formatting then before they can be remapped
+the tracks containing the new bad blocks must be reformatted, or the entire
+disk if there is no track reformatting available.
+If a disk is reformatted then this option should be run to remake the mapping
+table before repartioning.
+.IP
+This option should be run
+.B before
+creating other partitions so that the bad blocks can be remapped before they
+are assigned to a partition.
+.IP
+It is not necessary to create a bad block partition if the disk will do its
+own bad sector mapping internally.
+.IP
+There are two ways of creating a bad block mapping.
+One is to let the program scan the disk for bad blocks and generate its
+own mapping table.
+If this is desired then when it gives the following prompt answer
+.B y .
+.sC
+Scan disk for bad blocks ?
+.eC
+NOTE WELL:
+This operation can take a long time (over 1 hour for a 1 Gigabyte disk).
+The other alternative is to manually enter a list of known bad blocks.
+In this case answer
+.B n
+to the previous question and it will then give the prompt
+.sC
+Enter bad blocks manually ?
+.eC
+Answer with
+.B y
+to take this option.
+The bad block numbers are entered one per line.
+When the list is complete then enter block 0 to terminate the list.
+Answering the above question with
+.B n
+will return the program to the main menu.
+.IP
+.mH
+Options
+.LP
+Ordinarily the disk geometry of the disk is obtained from the
+disk server.
+However, sometimes it is useful to overrule this information.
+.IP "\fB\-h\fP n" 1i
+This option overrules the number of heads.
+.IP "\fB\-s\fP n"
+This option overrules the number of sectors per track.
+.IP "\fB\-c\fP n"
+This option overrules the number of cylinders on the disk.
+.IP "\fB\-m\fP master"
+Specify a new master boot block instead of the one built in.
+.SH
+Example
+.LP
+To partition a disk on machine ``bullet'', the following command should
+be issued:
+.LP
+.sC
+fdisk /super/hosts/bullet/bootp:00
+.eC
+.SH
+See Also
+.LP
+isaboot(A),
+vdisk(A).

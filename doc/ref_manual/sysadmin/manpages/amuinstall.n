@@ -1,0 +1,57 @@
+.\"	@(#)amuinstall.n	1.5	96/02/15 17:06:54
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, June 1990
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, Jan 1996 - modernised.
+.aE
+.mT "amuinstall" A "UNIX ONLY"
+install
+.UX
+utilities for talking to \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+amuinstall conf-root bin-directory
+.eC
+.SH
+Description
+.LP
+.kW "installation"
+.kW "binaries"
+This command is used to install the utilities which run under
+.UX
+but which interact with \*(Am.
+It copies them from the subtree
+.I conf-root/util
+to the directory
+.I bin-directory .
+It expects the standard \*(Am configuration tree and source tree structure.
+It only installs executable files and does not install the
+.I tools .
+These should be installed separately by the system administrator since
+they will probably need local customization.
+.SH
+Example
+.LP
+If the system is installed under the name
+.I /amoeba
+on
+.UX ,
+including building the configuration in the directory
+.I conf
+then the following command will install the SPARC binaries compiled with
+the sunpro compiler set for Solaris.
+.sC L
+amuinstall /amoeba/conf/unix/sparc.sunpro /amoeba/bin.sol
+.eC
+.SH
+See Also
+.LP
+aminstall(A),
+amoebatree(A).

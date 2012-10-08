@@ -1,0 +1,171 @@
+.\"	@(#)tftp.n	1.7	96/02/15 17:54:36
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren,
+		  Philip Homburg
+	Modified: Kees Verstoep, sept 93: added optional file caching
+	Document: Gregory J. Sharp, Dec 1991
+	Modified: Gregory J. Sharp, Sep 1995
+			- new cmd-line conventions.
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "tftp" A
+the Trivial File Transfer Protocol server
+.SH
+Synopsis
+.LP
+.sC L
+tftp [-U udp-server] [-chan chan-capability] [-cache] [-v]
+.eC
+.SH
+Description
+.LP
+.kW "TFTP"
+.kW "bootstrap"
+.kW "TCP/IP"
+The
+.I tftp
+server implements the Trivial File Transfer Protocol as described in RFC\ 783.
+This protocol runs on top of the UDP protocol.
+The primary function of this server is for booting Sun computers.
+.LP
+The server writes TFTP packets on the network using a UDP channel from a
+TCP/IP server.
+It is a good idea to run the
+.I tftp
+server on the same host as the TCP/IP server that it uses to obtain optimal
+performance.
+Note that if the TCP/IP server does not know its own Internet address the
+.I tftp
+server will hang until it does.
+The Internet address can be set using the command
+.I ifconfig (A).
+.mH
+Options
+.LP
+.IP "\fB\-U\fP \fIudp-server\fP"
+.br
+This specifies the capability of the UDP server that is used to put the
+packets onto the network.
+This is usually the
+.I udp
+channel of the \*(Am TCP/IP server.
+If this option is not specified it defaults to the UDP server defined by the
+string environment variable
+.cW UDP_SERVER .
+If this is not defined it defaults to the string
+.cW UDP_SVR_NAME
+defined in the include file
+.I ampolicy.h .
+This is typically
+.I /profile/cap/ip/udp .
+.IP "\fB\-chan\fP \fIchan-capability\fP
+.br
+This specifies where the capability for the UDP channel used by the
+.I tftp server
+should be published.
+This is useful for examining the status of the channel (see
+.I std_status (A)).
+.IP "\fB\-cache\fP
+.br
+This option will cause the
+.I tftp
+server to cache one file in memory,
+enabling it to answer
+.I tftp
+requests without having to go to the file server every time.
+This will increase performance in case many machines are trying
+to boot the same kernel at the same time.
+.IP "\fB\-v\fP
+Verbose mode.
+This will cause the
+.I tftp
+server to give a diagnostic for every new
+.I tftp
+request.
+.mH
+Environment Variables
+.LP
+.IP \*<UDP_SERVER\*>
+.br
+This is a string environment variable that specifies the capability of the
+UDP channel to use.
+It can be overridden using the
+.B \-U
+command line option.
+.LP
+.SH
+Administration
+.LP
+To boot Sun computers using the
+.I tftp
+server it is necessary to provide a special directory containing files whose
+names are the Internet addresses (in hex) of the machines to be booted.
+The contents of these files should be the kernels to be booted.
+This directory is defined by
+.cW TFTPBOOT_DIR
+in the file
+.I ampolicy.h
+and is typically
+.I /super/admin/tftpboot .
+This directory should contain a link
+.I tftpboot
+which is a capability for itself.
+The best way to do this is
+.sC
+cd /super/admin
+mkd tftpboot
+get tftpboot | put tftpboot/tftpboot
+chm ff:0:0 tftpboot
+chm ff:0:0 tftpboot/tftpboot
+.eC
+This is required for booting Sun\ 4c series computers.
+Normally the various kernels are stored in the directory
+.I /super/admin/kernel .
+This should only be accessible to holders of the
+.I super
+capability.
+One policy is to name kernels according to architecture and type.
+For example,
+.I sun3.workst .
+These kernels should be installed carefully since some must be stripped
+and have
+.I a.out
+headers removed before they can be booted (see
+.I installk (A)).
+Copies of the capabilities for kernels are then stored in the
+.I tftpboot
+directory under the Internet address for the host that must boot the kernel.
+An example of the name for the Sun\ 3 host with Internet address
+130.37.20.80 is 82251450.
+Note that any hexadecimal letters must be in upper case.
+If the host is a Sun\ 4c then the link must be called 82251450.SUN4C.
+or if the host is a Sun\ 4m then the link must be called 82251450.SUN4M.
+.LP
+NB.
+In the case of the i80386 architecture the version of the kernel in
+.I /super/admin/kernel
+is not suitable for booting via TFTP.
+The kernel must be copied and then modified using
+.I isamkimage (A).
+See the
+.I isamkimage (A)
+man page for details.
+.SH
+Example
+.LP
+.sC L
+tftp -U /super/hosts/foo/ip/udp -chan /super/cap/tftpsvr/foo
+.eC
+.SH
+See Also
+.LP
+ifconfig(A),
+installk(A),
+ipsvr(A),
+rarp(A),
+std_status(A).

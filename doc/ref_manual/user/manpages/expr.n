@@ -1,0 +1,71 @@
+.\"	@(#)expr.n	1.5	96/02/16 10:57:49
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995 - example was wrong
+.aE
+.mT "expr" U
+evaluate expression
+.SH
+Synopsis
+.LP
+.sC L
+expr expression operator expression ...
+.eC
+.SH
+Description
+.LP
+.I Expr
+computes the value of its arguments and writes the result on standard output.
+The valid operators,
+in order of increasing precedence,
+are listed below.
+Grouped operators have the same precedence.
+.IP |
+.br
+Or: return the left hand side if it is neither 0 nor the empty string,
+otherwise return the right hand side.
+.IP &
+.br
+And: return the left hand side
+if neither left or right hand side are 0 or the empty string.
+Otherwise it returns 0.
+.IP "<, <=, ==, !=, >=, >"
+.br
+If both expressions are integer,
+return the result of the numeric comparison,
+otherwise do a lexical comparison.
+.IP "+, \(mi"
+.br
+Add or subtract two integer values.
+.IP "*"
+.br
+Multiply two integer values.
+.IP ":"
+.br
+Match the first argument to the second,
+the latter being interpreted as regular expression.
+If the regular expression contains a ``\e(regexp\e)'' pair,
+the matched part is returned,
+otherwise it evaluates to the number of characters matched.
+.SH
+Example
+.LP
+.sC
+x=\(gaexpr $x + 1\(ga
+.eC
+Add 1 to shell variable
+.I x .
+.sC
+x=\(gaexpr $path : '.*/\e(.*\e)'\(ga
+.eC
+If
+.I $path
+is a path name containing one or more ``/'' characters,
+.I x
+will be set to the last component.

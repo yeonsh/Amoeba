@@ -1,0 +1,38 @@
+#	
+#	@(#)Amakefile	1.1	96/02/26 16:02:01
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+
+MACHTYPE = exec(uname, args => -rs, stdout => %return);
+
+%if (%not matches($MACHTYPE, 'SunOS 5.%'), {
+    exit($MACHTYPE + ' not supported for this package type');
+} , {
+    echo('Making FLIP package for machine type:' + $MACHTYPE);
+});
+
+VERSION = '1.00';
+echo('Version of package = ' + $VERSION);
+
+
+%generic gencluster(targ)
+{
+    %default $targ;
+    %cluster
+    {
+	%targets $targ;
+	%do exec(pkgmk, args => '-o' + '-d' +
+		    $CONF_ROOT/flip-driver/PKG +
+		    '-v' $VERSION +
+		    '-f' + $SRC_ROOT/unix/sol_flipd/PKG/$targ/prototype +
+		    CONF_ROOT'='$CONF_ROOT + SRC_ROOT'='$SRC_ROOT);
+    };
+};
+
+%instance gencluster(VUCSflipr);
+%instance gencluster(VUCSflipu);

@@ -1,0 +1,98 @@
+.\"	@(#)pr_routes.n	1.4	96/02/15 17:49:23
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg
+	Document: Philip Homburg, Nov 1, 1991
+	Modified: Gregory J. Sharp, Sept 1995
+			- unified command-line interfaces of IP utilities.
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "pr_routes" A
+print the routing table of an IP server
+.SH
+Synopsis
+.LP
+.sC L
+pr_routes [ -I ip-capability ]
+.eC
+.SH
+Description
+.LP
+.kW "TCP/IP"
+.kW "TCP"
+.kW "IP"
+.kW "UDP"
+.kW "route"
+.I Pr_routes 
+prints the routing table of an IP server in the following format:
+.br
+.sC L
+.ps-1
+<ent-no> DEST= <ip-addr>, NETMASK= <netmask>, GATEWAY= <ipaddr>, dist= %d,
+pref= %d [ fixed ]
+.ps
+.eC
+The 
+.I dist 
+field is an estimated or configured distance that can be used in the
+.I ttl 
+field of an IP header.
+The 
+.I pref 
+field shows the preference level of the gateway, the higher the better. 
+The word
+.I fixed
+is optional. 
+It indicates that the route was added manually or that the route is built-in.
+.mH
+Options 
+.LP
+.IP "\fB\-I\fP ip-capability"
+.br
+This option gives the path name of the capability of the IP server. 
+It can also be given as the name of the host containing the IP server.
+If this option is omitted the value of the environment variable
+.cW IP_SERVER
+is used.
+If this is not set then it uses the default path, as defined in
+.I ampolicy.h
+(typically
+.I /profile/cap/ipsvr/ip ).
+.mH
+Environment Variables
+.LP
+.IP \*<IP_SERVER\*> 12
+This environment variable overrides the default path name for the IP server.
+It is in turn overridden by the 
+.B \-I 
+option.
+.SH
+Example
+.LP
+.sC
+pr_routes -I /super/hosts/armada1E/ip/ip
+.eC
+and the result can be
+.sC L
+.ps-1
+0 DEST= 0.0.0.0, NETMASK= 0.0.0.0, GATEWAY= 192.31.231.93, dist= 1 pref= 509
+1 DEST= 0.0.0.0, NETMASK= 0.0.0.0, GATEWAY= 192.31.231.43, dist= 1 pref= 509
+2 DEST= 0.0.0.0, NETMASK= 0.0.0.0, GATEWAY= 192.31.231.42, dist= 1 pref= 509
+3 DEST= 4.5.6.7, NETMASK= 255.0.0.0, GATEWAY= 1.2.3.4, dist= 1 pref= 0 fixed
+.ps
+.eC
+.LP
+The same command could also have been given as:
+.sC
+pr_routes -I armada1E
+.eC
+.SH
+See Also
+.LP
+add_route(A),
+ipsvr(A),
+irdpd(A).

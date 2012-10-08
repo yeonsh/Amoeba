@@ -1,0 +1,50 @@
+#	
+#	@(#)Amake.srclist	1.6	94/04/07 14:14:44
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_SYS_UX_COMMON = {
+	$PWD/am_cleanup.c,
+	$PWD/am_getreq.c,
+	$PWD/am_putrep.c,
+	$PWD/am_exitthrd.c,
+	$PWD/am_trans.c,
+	$PWD/amdump.c,
+	$PWD/amoeba.c,
+	$PWD/cleanup.c,
+	$PWD/dir_root.c,
+	$PWD/getcap.c,
+	if (%not defined(NO_GETREQ),
+	{
+		$PWD/getreq.c,
+	}, {}),
+	$PWD/thread.c,
+	$PWD/mutex.c,
+	if (%not defined(NO_PUTREP),
+	{
+		$PWD/putrep.c,
+	}, {}),
+	$PWD/exitthread.c,
+	$PWD/timeout.c,
+	$PWD/uniqport.c,
+	$PWD/raise.c
+};
+
+L_SYSFLIP_UX = {
+	$L_SYS_UX_COMMON,
+	if (%not defined(NO_AITRANS),
+	{
+		$PWD/aitrans.c,
+	}, {}),
+	# $PWD/flip.c,
+	$PWD/flip_ctrl.c,
+	$PWD/flip_rpc.c,
+	$PWD/flip_ip.c,
+};
+
+L_SYS_UX = {
+	$L_SYS_UX_COMMON,
+	$PWD/trans.c
+};

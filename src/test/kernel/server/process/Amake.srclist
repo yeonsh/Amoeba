@@ -1,0 +1,14 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:41:04
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+#
+T_PROCESS_GETDEF = $PWD/pro_getdef.c;
+T_PROCESS_GETLOAD = $PWD/pro_getload.c;
+T_PROCESS_GETOWNER = $PWD/pro_getowner.c;
+T_PROCESS_SETOWNER = $PWD/pro_setowner.c;
+T_PROCESS_ST_OVF1 = $PWD/stackovf.c;
+T_PROCESS_ST_OVF2 = $PWD/stkovrfl2.c;
+T_PROCESS_DEEPEN = $PWD/deepen.c;

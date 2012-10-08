@@ -1,0 +1,156 @@
+#!/bin/sh
+#	
+#	@(#)do_cc	1.2	96/03/01 16:51:40
+#
+
+DEFS=
+INCLUDES=
+FILES=
+OUTPUT=a.out
+OPTS=
+XOPTS=
+lOPTS=
+ACVOPTS=
+COMPILING=no
+LINKING=no
+Cplusplus=no
+UNIX=no
+DEPS=yes
+TARGET_ARCH=sparc	# default
+SUNPROBIN=
+SOFTFLOAT=no
+OBJPRODUCED=""
+
+# Need the following absolute paths to avoid problems when creating the
+# Amoeba Ajax utilities.
+basename_prg=/bin/basename
+sed_prg=/bin/sed
+echo_prg=/bin/echo
+
+# Parse options
+while [ $# -gt 0 ]
+do
+        case $1 in
+        -D*)		DEFS="$DEFS $1" ;;
+        -U*)		DEFS="$DEFS $1" ;;
+        -I*)		INCLUDES="$INCLUDES $1" ;;
+	-G)     	SUNPROBIN=$2; shift ;;
+	-o)		OUTPUT=$2; OPTS="$OPTS -o $2"; LINKING=yes; shift ;;
+	-[cS])		COMPILING=yes; OPTS="$OPTS $1" ;;
+	-mam_i80386)	TARGET_ARCH=i80386 ;;
+	-mam_mc68000)	TARGET_ARCH=mc68000 ;;
+	-mam_sparc)	TARGET_ARCH=sparc ;;
+	-mam_*)		$echo_prg "architecture $1 not supported" >&2; exit 1 ;;
+	-msoft)		SOFTFLOAT=yes;;
+	-nodeps)	DEPS=no ;;
+	-unix)		UNIX=yes ;;
+	-gdbx)		OPTS="$OPTS $1" ;;
+	-ggdb)		OPTS="$OPTS $1" ;;
+	-gsdb)		OPTS="$OPTS $1" ;;
+	-l*)		lOPTS="$lOPTS $1" ;;
+	-s)		ACVOPTS="$ACVOPTS $1 $2"; shift ;;
+	-E)		OPTS="$OPTS $1"; COMPILING=yes ;;
+	-[LgmnvfO]*)	OPTS="$OPTS $1" ;;
+	-T*)		OPTS="$OPTS $1 $2"; shift ;;
+	-X*)		XOPTS="$XOPTS $1"; shift ;;
+	# -*)		$echo_prg "unknown option $1" >&2; exit 1 ;;
+        -*)		OPTS="$OPTS $1" ;;
+        *.[oa])		FILES="$FILES $1" ;;
+        *.[csS])	FILES="$FILES $1"; COMPILING=yes ;;
+        *.cc|*.C)	FILES="$FILES $1"; COMPILING=yes; Cplusplus=yes ;;
+        *)		$echo_prg "unrecognized argument $1" >&2; exit 1 ;;
+        esac
+	shift
+done
+
+# Default is strict ansi conformance
+if [ "X$XOPTS" = X ]
+then
+	XOPTS=-Xc
+fi
+
+if [ $DEPS = yes ]
+then
+	DEPFLAG=-MD
+else
+	DEPFLAG=
+fi
+
+case $TARGET_ARCH in
+i80386)	ARCHFLAG=i386;;
+*)	ARCHFLAG=$TARGET_ARCH;;
+esac
+
+# If not specified, use default for SUNPROBIN.
+if [ "X$SUNPROBIN" = X ]
+then
+        SUNPROBIN=/opt/SUNWspro/bin
+fi
+SUNPROBIN_ARCHDEP=$SUNPROBIN/$TARGET_ARCH
+
+if [ $SOFTFLOAT = yes ]
+then
+	OPTS="$OPTS -msoft-float"
+	case $TARGET_ARCH in
+	i80386)	OPTS="$OPTS -mno-ieee-fp -mno-fp-ret-in-387";;
+	esac
+fi
+
+
+exitval=0
+if [ $COMPILING = yes ]
+then
+	for src in $FILES
+	do
+		case $src in
+		*.c)	base=`$basename_prg $src .c`
+			;;
+		*.cc)	base=`$basename_prg $src .cc`
+			;;
+		*.C)	base=`$basename_prg $src .C`
+			;;
+		*.s)	base=`$basename_prg $src .s` ;;
+		*.S)	base=`$basename_prg $src .S` ;;
+		esac
+
+
+		$SUNPROBIN/cc $XOPTS $OPTS $INCLUDES $DEFS $src
+		retval=$?
+
+		if [ $DEPS = yes -a $retval = 0 ]
+		then
+			# Do another run with -xM to get the make-style
+			# dependency list.  Convert it to Amake style.
+			$SUNPROBIN/cc $XOPTS -xM $INCLUDES $DEFS $src |
+				$sed_prg -e 's/^.*: //' >$base.d
+			if [ $? != 0 -o ! -f $base.d ]
+			then
+				$echo_prg Cannot generate dependecies for $src
+				# fail?
+			fi
+		else
+			if [ $retval = 0 ]
+			then OBJPRODUCED="$OBJPRODUCED $base.o"
+			else exitval=$retval
+			fi
+		fi
+	done
+fi
+
+if [ $LINKING = yes -a $exitval = 0 ]
+then
+	if [ $UNIX = yes ]
+	then
+		LDFLAGS=
+		$SUNPROBIN/cc -o $OUTPUT $ACVOPTS $LIBFLAGS $FILES $lOPTS
+	else
+		LDFLAGS=
+
+	    # $GNUBIN_ARCHDEP/gcc $LIBFLAGS -ansi \
+	    #    $OPTS $INCLUDES $DEFS $FILES $lOPTS
+	    gld_am -mam_$TARGET_ARCH -o $OUTPUT $ACVOPTS $LIBFLAGS $FILES $lOPTS
+	fi
+	exitval=$?
+fi
+
+exit $exitval

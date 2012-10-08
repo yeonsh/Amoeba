@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:21:55
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_EM_MES = {
+	$PWD/C_ms_err.c,
+	$PWD/C_ms_opt.c,
+	$PWD/C_ms_emx.c,
+	$PWD/C_ms_reg.c,
+	$PWD/C_ms_src.c,
+	$PWD/C_ms_flt.c,
+	$PWD/C_ms_com.c,
+	$PWD/C_ms_par.c,
+	$PWD/C_ms_ego.c,
+	$PWD/C_ms_gto.c,
+	$PWD/C_ms_stb.c,
+	$PWD/C_ms_std.c,
+};

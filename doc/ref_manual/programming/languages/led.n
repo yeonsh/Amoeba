@@ -1,0 +1,160 @@
+.\"	@(#)led.n	1.5	96/02/15 16:46:23
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ceriel J.H. Jacobs
+	Document: Ceriel J.H. Jacobs
+	Modified: Kees Verstoep, 8/11/90 - converted to amoeba manual macros
+		  Gregory J Sharp, Feb 1996
+.aE
+.bp
+.nH 2 "The Link Editor"
+.SH
+Synopsis
+.LP
+.sC L
+led [\fIoptions\fP] \fIfile\fP ...
+.eC
+.SH
+Description
+.LP
+.kW led
+.kW ACK
+.I Led
+is a link editor (linker) for object modules,
+created by one of the ACK assemblers.
+It combines several object programs into one,
+resolves external references,
+and searches archives.
+Usually,
+.I led
+is not invoked directly by the user,
+but via the generic compiler driver
+.I ack (U).
+In the simplest case several object
+.I files
+are given, and
+.I led
+combines them,
+producing an object module which can be either
+fed into a machine specific conversion program
+or become the input for a further
+.I led
+run.
+(In the latter case,
+if there are no unresolved references,
+the
+.B \-r
+option must be given to preserve the relocation information.)
+The resulting object file of
+.I led
+is named
+.kW a.out
+.B a.out .
+.LP
+The argument routines are concatenated in the order specified.
+The entry point of the output is the beginning of the first routine.
+.LP
+If an argument is an archive,
+its table of contents is searched for names
+which are undefined at the point
+at which the argument is encountered in the argument list.
+This procedure is repeated as long as unresolved references are satisfied.
+.mH
+Options
+.LP
+.I Led
+understands several options.
+The flags
+.B \-c ,
+.B \-r ,
+.B \-s ,
+and
+.B \-u
+should appear before the file names.
+.IP \fB\-a\fIdd:nnnn\fR 8
+.br
+The alignment of section
+.I dd ,
+where
+.I dd
+is a decimal number,
+is set to
+.I nnnn .
+If
+.I nnnn
+starts with `0x',
+it is hexadecimal,
+else if its starts with `0b',
+it is binary,
+else if it starts with `0',
+it is octal,
+else it is decimal.
+.IP \fB\-b\fIdd:nnnn\fR
+.br
+The base address in the machine of section
+.I dd ,
+is set to
+.I nnnn .
+The previous remarks about
+.I dd
+and
+.I nnnn
+apply.
+.IP \fB\-o\fP
+The
+.I name
+argument after
+.B \-o
+is used as the name of the
+.I led
+output file,
+instead of
+.I a.out .
+.IP \fB\-r\fP
+Generate relocation information in the output file
+so that it can be the subject of another
+.I led
+run.
+This flag suppresses the `Undefined:' diagnostic.
+.IP \fB\-c\fP
+Indicates that relocation information must be produced, but commons must
+be resolved.
+This may be useful for machines that need a last relocation step
+at load time. This flag disables the
+.B \-r
+flag.
+.IP \fB\-s\fP
+.kW strip
+`Strip' the output.
+That is,
+remove the name table and relocation information to save space
+(but impair the usefulness of the debuggers).
+.IP \fB\-u\fP
+Take the following argument as a symbol and enter
+it as undefined in the name table.
+This is useful for loading wholly from a library,
+since initially the name table is empty
+and an unresolved reference is needed
+to force the loading of the first routine.
+.IP \fB\-v\fP
+For each member of a library that is linked,
+give a message on standard error telling why
+.I led
+chose to link it (which unresolved reference it resolves).
+This option is useful if you have `multiply defined' problems.
+.mH
+Files
+.LP
+/profile/module/ack/lib/back/any/em_led:
+led binary
+.LP
+a.out:
+output file
+.SH
+See Also
+.LP
+ack(U).

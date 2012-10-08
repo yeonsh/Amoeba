@@ -1,0 +1,57 @@
+.\"	@(#)cgrep.n	1.3	94/04/05 15:53:48
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "cgrep" U
+grep and display context
+.SH
+Synopsis
+.LP
+.sC L
+cgrep [-a n] [-b n] [-l n] [-w n] pattern [file] ...
+.eC
+.SH
+Description
+.LP
+.I Cgrep
+.kW "\fIgrep\fP"
+is a program like grep,
+except that it also can print a few lines above
+and/or below the matching lines.
+It also prints the line numbers of the output.
+.mH
+Options
+.LP
+.IP \fB\-a\fP
+The number of lines to display after the matching line.
+.IP \fB\-b\fP
+The number of lines to display before the matching line.
+.IP \fB\-f\fP
+Suppress file name in the output.
+.IP \fB\-l\fP
+Lines are truncated to this length before comparison.
+.IP \fB\-n\fP
+Suppress line numbers in the output.
+.IP \fB\-w\fP
+Sets window size.
+(This is equivalent to
+.B \-a \fIn\fP
+.B \-b \fIn\fP).
+.SH
+Example
+.LP
+.sC
+cgrep -w 3 hello file1
+.eC
+Print 3 lines of context each way.
+.SH
+See Also
+.LP
+fgrep(U),
+grep(U).

@@ -1,0 +1,339 @@
+.\"	@(#)am_macros	1.11	96/02/15 16:34:09
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.\"
+.\" am_macros - troff macros to be used for formatting the Amoeba manual
+.\"
+.\" 	These have to be used in conjunction with -ms.
+.\"	Existing -ms macros are used as much as possible.
+.\" 
+.\"	The Constant Width font is whatever is mounted at font position 5.
+.\"	You may have to adjust this for your site!
+.fp 5 CW
+.\"	kill off hyphenation
+.nh
+.rm hy
+.tr_\(ru
+.\"	some common strings
+.\" The first is the Amoeba Version number for which we are making manuals
+.ds Vs "Amoeba 5.3
+.ds Am Amoeba
+.ds Bs "Bullet Server
+.ds Ss "Soap Server
+.\" TEX string
+.ds Tx T\v'0.36n'\h'-0.2m'E\v'-0.36n'\h'-0.13m'X
+.\"	try to accommodate the difference between US and European paper
+.\"	sizes.  US: 216mm x 279mm, A4: 210mm x 297mm
+.\"	We try to fit onto both types of paper
+.po 2.5c
+.ll 16c
+.pl 11i
+.\"	set some important ms registers
+.\" the first two for the case that a figure appears in a manpage
+.nr fI 1 1
+.ds fN \\*(cN.\\n(fI
+.nr PS 12
+.nr VS 14
+.ds CF "
+.ds LF "
+.ds RF "
+.ds CH "
+.ds LH "
+.ds RH "
+.\" We set the bottom of page stuff now and reset it in the .cH macro since
+.\" cover sheets and other beasties tend to clear the page footer.
+.\" Of is the odd page footer and Ef is the even page footer.
+.ds Of "\\*(Vs%
+.ds Ef "%\\*(Vs
+.\"
+.\" nH is for lower order headings - it calls NH to print the heading but
+.\" also generates a contents page entry if the heading level is from 1 to 3.
+.\" Note, if there is a 3rd argument it won't go to a new page on level 1
+.\" headings
+.de nH
+.if \\n(.$=2 \{
+.if \\$1=1 .bp \}
+.ie \\$1>2 .SH		\" .nH [345] -> .SH
+.el \{ .NH \\$1+1
+.if \\$1=1 .ds hL \\n(H1.\\n(H2.
+.if \\$1=2 .ds hL \\n(H1.\\n(H2.\\n(H3.
+.\" .if \\$1=3 .ds hL \\n(H1.\\n(H2.\\n(H3.\\n(H4.
+.\" .if \\$1=4 .ds hL \\n(H1.\\n(H2.\\n(H3.\\n(H4.\\n(H5.
+.nr xB \\$1+1
+.if \\nk=0 .tm .iX \\n(xB \\*(hL "\\$2" \\n%
+\}
+\\$2
+..
+.\"	REDFINITION OF SOME MS MACROS
+.\" 
+.\"  We redefine the bottom of page macro since the ms version we have is
+.\"  primitive and doesn't provide EF OF EH and OH macros.
+.de BT
+.nr PX \\n(.s
+.nr PF \\n(.f
+.ft 1
+.ps \\n(PS
+'lt \\n(LTu
+.po \\n(POu
+.nr p# \\n%
+.if \\n%>0 \{ .if o .tl \\*(Of
+.if e .tl \\*(Ef \}
+.po
+.ft \\n(PF
+.ps \\n(PX
+..
+.\"***************************************************************************
+.\"	ADDITIONAL MACROS AND STRINGS FOR AMOEBA
+.\"
+.\"
+.\"	in line constant width macros - use like \*<this\*> to get a
+.\"	word or two in constant width
+.\"
+.ds < \&\f5\&
+.ds > \&\fP\&
+.\"
+.\"	Constant width font - use .cW like .I or .R or .B 
+.\"   	If using nroff, use .I.
+.de cW
+.if t \{\
+.	ie \\n(.$ \&\f5\\$1\fP\&\\$2
+.	el .ft 5
+.\}
+.if n \{\
+.	ie \\n(.$ \&\fI\\$1\fP\&\\$2
+.	el .I
+.\}
+..
+.\"
+.\" figure macros - put .f1 before the figure, .f2 before the label, .f3 after
+.\"	- use fN string to refer to the figure in text BEFORE actually
+.\"	defining the figure or the .fX macro
+.\"	- use fM string or fY macro to refer to figure after defining it
+.\" 
+.\"	f1 - start a figure -	normally will be followed by .PS, .TS or .sC
+.\"				to center what is in the figure
+.de f1
+.ds fM \\*(fN
+.ds fN \\*(cN.\\n+(fI
+.\" fN = chap_number.fig_number
+.KF			\" keep all of figure together
+.sp 0.5c
+..
+.de f2			\" f2 - end of figure, start label
+.sp 0.5c	
+.br			\" start a new line
+.ps 10			\" smaller text for label
+.di fL			\" divert so can center
+\\fBFig.\ \\*(fM. \\fP \" Fig. fN. Label goes here
+..
+.de f3			\" f3 - end of label
+.br			\" finish up label
+.di			\" stop diversion and center
+.if \\n(dl<\\n(.l .in (\\n(.lu-\\n(dlu)/2u
+.fL			\" the label itself
+.ps \\n(PS
+.in 0			\" no more indentation
+.sp 0.8
+.KE			\" stop floating keep
+..
+.de fX	\" refer to next figure in the text
+\\$2figure \\*(fN\\$1
+..
+.de fY  \" refer to previous figure in the text
+\\$2figure \\*(fM\\$1
+..
+.\"
+.\" keyword macro - use .kW with only one argument, namely the keyword
+.\"		    that should appear in the index.
+.\"
+.de kW
+.if \\nk=0 .tm KW:\\$1\\n%
+..
+.\"
+.\"	code segment macros -  use .sC to  start a code segment and .eC to
+.\"	end it. Argument to .sC is for .DS.
+.\"	It defaults to block mode (B).
+.\"	Tabs are set 8 spaces apart.
+.de sC
+.DS \\$1 \\$2
+.cW
+.ta \w'\0\0\0\0\0\0\0\0'u +\w'\0\0\0\0\0\0\0\0'u
+.nr xC \\n(.s
+.ps-1
+..
+.de eC
+.ps \\n(xC
+.R
+.DE
+..
+.\"	Cover sheet for a reference manual page
+.de cO
+.if \\nk=0 .tm .cT
+.LP
+.ds Of "
+.ds Ef "
+.ds CF "
+.ds LF "
+.ds RF "
+.ds CH "
+.ds LH "
+.ds RH "
+.rs
+.nr cI 0
+.ps+6
+.vs+6
+.sp 7v
+.ce 1
+The Amoeba Reference Manual
+.sp 3v
+.ps+6
+.vs+6
+.ce 1
+\fB\\$2\fP
+.ps-12
+.vs-12
+.\" need psfig for this!
+.sp 3c
+.tr__
+.F+
+space 4.2c
+figure logo.ps
+.F-
+.br
+.tr_\(ru
+.bp
+..
+.\" 
+.\" chapter heading macro - reset the NH numbers here, H1 will always 
+.\" 	be equal to the chapter number. This is a hack, but it works.
+.\" 	New chapter always starts a new page.
+.\"
+.nr cI 0 1
+.de cH
+.ds RH "
+.ds CH "
+.ds LH "
+.ds cA \\$1
+.ie \\n(cI=0 .bp 1
+.el .bp
+.ds Of "\\\\*(Vs%
+.ds Ef "%\\\\*(Vs
+.nr cI+1
+.nr H1 \\n(cI
+.nr H2 0
+.nr H3 0
+.nr H4 0
+.nr H5 0
+.ds cN \\n(cI
+.nr fI 1 1
+.ds fN \\*(cN.\\n(fI
+.sp 1.0i
+.DS C
+.ps+2
+.vs+2
+\fB\\*(cN\ \ \ \\*(cA\fP
+.ps
+.vs
+.DE
+.LP
+.ns
+.if \\nk=0 .tm .iX 1 \\*(cN. "\\*(cA" \\n%
+..
+.de rR
+.LP
+.DS L
+Required Rights:
+.in 1.25c
+.ta 3.2c
+..
+.de eR
+.DE
+.LP
+.DS L
+Error Conditions:
+.in 1.25c
+.ta 3.2c
+..
+.\" Manual page title
+.de mT
+.ds LH "\\$1\|(\\$2)
+.ds RH "\\$1\|(\\$2)
+.if '\\$2'A' .ds CH "Administration Program
+.if '\\$2'H' .ds CH "C Include File
+.if '\\$2'L' .ds CH "Library Routines
+.if '\\$2'T' .ds CH "Test Program
+.if '\\$2'U' .ds CH "User Program
+.LP
+.bp
+.\" for page one we work a little harder
+.if !\\n%-1 .tl \\*(LH\\*(CH\\*(RH
+.sp
+.ie '\\$2'L' \{ .ce 1
+(in libraries: \\$3)\}
+.el .if !'\\$3'' \{ .ce 1
+(\\$3)\}
+.sp 0.5v
+.SH
+Name
+.LP
+\\$1\ \-\ 
+.if \\n(hI=0 .kW "\fI\\$1\fP
+..
+.\"	For sub-headings
+.de mH
+.sp 1v
+.LP
+.ne 3
+.I
+..
+.\"	For sub-sub-headings
+.de sH
+.sp 1v
+.LP
+.ne 6
+.I
+..
+.\"	Author and revision history comment block goes between .aU and .aE
+.\"	This info doesn't appear on the printed output but is here for
+.\"	reference and may be put into a cross-reference index or similar.
+.de aU
+.br
+.ev 1
+.di xX
+..
+.de aE
+.br
+.di
+.rm xX
+.ev
+..
+.\"	Produce contents page entries
+.de iX
+.sp 1v
+.ta \\n(.l-1c
+.if \\$1=1 \fBChapter \\$2\fP\ \ \\$3\t\\$4
+.if \\$1=2 \ \ \ \ \\$2\ \ \\$3\t\\$4
+.if \\$1=3 \ \ \ \ \ \ \ \ \\$2\ \ \\$3\t\\$4
+.if \\$1=4 \ \ \ \ \ \ \ \ \ \ \ \ \\$2\ \ \\$3\t\\$4
+..
+.de cT
+.ds Of "\\\\*(Vs\\\\n(p#
+.ds Ef "\\\\n(p#\\\\*(Vs
+.af p# i
+.LP
+.sp 2v
+.ce 1
+.B
+.ps+2
+.vs+2
+Contents
+.ps
+.vs
+.R
+.sp 1.5v
+.ta 2c
+.LP
+..

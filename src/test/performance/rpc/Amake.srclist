@@ -1,0 +1,18 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:44:12
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_PCLIENT = $PWD/pclient.c;
+T_PSERVER = $PWD/pserver.c;
+T_PCOMP = $PWD/pcomp.c;
+
+T_RPC_CLIENT = $PWD/rpc_client.c;
+T_RPC_SERVER = $PWD/rpc_server.c;
+T_RPC_COMP = $PWD/rpc_comp.c;
+
+T_RRPC_CLIENT = $PWD/rrpc_client.c;
+T_RRPC_SERVER = $PWD/rrpc_server.c;
+T_RRPC_START = $PWD/rrpc_start.c;

@@ -1,0 +1,104 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)amoeba.cmds	1.2	96/02/29 16:50:14
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(DEFINES), {
+	DEFINES = {};
+});
+
+%if (%not defined(INCLUDES), {
+	INCLUDES = {};
+});
+
+%if (%not defined(LDFLAGS), {
+	LDFLAGS = {};
+});
+
+%if (%not defined(AIL_FLAGS), {
+	AIL_FLAGS = { '-p', '/usr/ccs/lib/cpp', '-f13', '-lansi' }; # let ail generate ANSI code
+});
+
+%if ($ARCH == sparc, {
+
+	%if (%not defined(CFLAGS), {
+		CFLAGS = {};
+	});
+
+	CFLAGS =
+	{
+	    $CFLAGS,
+	    -xO2
+	};
+	LDFLAGS =
+	{
+	    $LDFLAGS,
+	    -M, $PWD/ldmap,
+	    -dn,
+	    -e, start,
+	    -zdefs,
+	    -Qn
+	};
+} , {
+	%if (%not defined(CFLAGS), {
+		CFLAGS = { -O };
+	});
+});
+
+DEFINES = {
+	-DAMOEBA,
+	$DEFINES
+};
+
+INCLUDES = {
+	$INCLUDES,
+	-I$SRC_ROOT/h/toolset/sunpro
+};
+
+%include $PWD/sunprobin.amk;
+
+CC = $PWD/do_cc;
+CFLAGS =
+{
+	$SUNPROBIN_FLAGS,
+	-DNO_UNDERSCORE, # horrid but seems to be necessary for _dtou.
+	-D$ARCH,	# in addition to __$ARCH__
+	$CFLAGS,
+	$DEFINES,
+	$INCLUDES
+};
+AS = $PWD/do_as;
+ASFLAGS =
+{
+	-mam_$ARCH,
+	-DNO_UNDERSCORE,
+	$DEFINES,
+	$INCLUDES
+};
+LD = ld;
+LDHEAD = $CONF_ROOT/lib/head/head.o;
+LINT = lint;
+LINT_LIB_FLAG = '-o ';
+LINTFLAGS =
+{
+	-n,
+	$DEFINES,
+	$INCLUDES
+};
+AR = ar;
+ARFLAGS = cr;
+
+LIB_AMOEBA = $CONF_ROOT/lib/amoeba/libamoeba.a;
+LIB_AJAX = $CONF_ROOT/lib/ajax/libajax.a;
+LIB_X11 = $CONF_ROOT/X/lib/X/libX11.a;
+LIB_MATH = $CONF_ROOT/lib/math/libmath.a;
+
+# lint library names
+LINT_AMOEBA = $CONF_ROOT/lib/amoeba/llib-lamoeba.ln;
+LINT_AJAX = $CONF_ROOT/lib/ajax/llib-lajax.ln;
+LINT_MATH = $CONF_ROOT/lib/math/llib-lmath.ln;
+
+%include $PWD/generic;
+%include std_tools.amk;

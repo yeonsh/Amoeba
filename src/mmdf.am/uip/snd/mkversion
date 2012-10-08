@@ -1,0 +1,9 @@
+#!/bin/sh
+#	
+#	@(#)mkversion	1.1	92/05/14 10:44:07
+#
+#echo $c > version.number
+p=`grep "Update #" ../../VERSION| sed -e s/.*Update.#//`
+d=`/bin/date | awk '{ print $3 " " $2 " " $(NF) }'`
+rm -f version.c
+echo "char      *verdate = \"$d Update #$p\";" > version.c

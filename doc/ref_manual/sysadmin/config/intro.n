@@ -1,0 +1,40 @@
+.\"	@(#)intro.n	1.6	96/02/15 17:01:54
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Configuring an \*(Am System"
+.nH 1 "Introduction"
+.LP
+.kW configuration
+There are many aspects of an \*(Am system that are configurable.
+They will be discussed in the order that they need to be confronted just
+after having installed a new system.
+.LP
+.kW "adding hosts"
+The first problem is usually to add new hosts to the system so that there
+is more than one \*(Am host.
+This is necessary since there are several servers needed to make
+the system function satisfactorily, and they will perform much better if they
+do not all run on the same host.
+Also note that after the initial installation of \*(Am that the file
+server is in the processor pool.
+It should be removed from the pool as soon as other processors are available
+to perform the work.
+.LP
+.kW "configuring servers"
+The next step is to configure the various servers that are nearly always in
+demand or that are necessary for good functioning of the system.
+Some servers can be replicated or can replicate their data and there is a
+special server which will provide lazy replication of objects plus do
+.kW "garbage collection"
+garbage collection of objects that are no longer in use or accessible from the
+directory graph.
+.LP
+.kW "run server"
+.B N.B.
+It is very important for the performance and security of \*(Am that a
+.I run (A)
+server be started.
+Under no circumstance should this server be omitted.

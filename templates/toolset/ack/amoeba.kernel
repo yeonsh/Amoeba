@@ -1,0 +1,118 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)amoeba.kernel	1.5	94/04/05 16:58:48
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#  Definitions common to all Amoeba kernels.
+%if (%not defined(CFLAGS), {
+	CFLAGS = {};
+});
+
+%if (%not defined(ASFLAGS), {
+	ASFLAGS = {};
+});
+
+%if (%not defined(LDFLAGS), {
+	LDFLAGS = {};
+});
+
+INCLUDES = {
+	$INCLUDES,
+	-I$SRC_ROOT/h/toolset/ack
+};
+
+ASFLAGS = {
+	-mam_$ARCH,
+	-DACK_ASSEMBLER,
+	$DEFINES,
+	$INCLUDES,
+	$ASFLAGS
+};
+
+CFLAGS = {
+	-mam_$ARCH,
+	-O,
+	$DEFINES,
+	$INCLUDES,
+	$CFLAGS
+};
+
+LDFLAGS = {
+	-mam_$ARCH,
+	-Ttext$LDADDR,
+	-c.out,
+	$LDFLAGS
+};
+
+%if (defined(LD_DATA_ADDR), {
+	LDFLAGS = {
+		$LDFLAGS,
+		'-Tdata' $LD_DATA_ADDR
+	};
+});
+
+LINTFLAGS = {
+	-n,
+	$DEFINES,
+	$INCLUDES
+};
+
+AS = $PWD/do_as;
+CC = ack;
+LD = ack;
+LINT = lint;
+
+# make version needs the following
+%export CC;
+%export CFLAGS ' ';
+%export COMPILER_SET;
+
+LIB_KERNEL = $CONF_ROOT/lib/kernel/libkernel.a;
+LINT_KERNEL = $CONF_ROOT/lib/kernel/llib-lkernel.ln;
+
+%if (%not defined(LIBRARIES), {
+	LIBRARIES = $LIB_KERNEL;
+});
+
+%if (%not defined(LINTLIBS), {
+	LINTLIBS = {};
+});
+
+LINTLIBS = {
+	$LINTLIBS,
+	$K_SYS_LINTLIB,
+	$K_MMU_LINTLIB,
+	$K_ARCH_LINTLIB,
+	$LINT_KERNEL
+};
+
+%include $PWD/generic;
+%include kernel_tls.amk;
+
+# for ctags we want the kernel library sources!
+%include $CONF_ROOT/lib/kernel/Kernel.srclist;
+
+%cluster
+{
+	%targets kernel[type = version-program];
+	%sources $SOURCEFILES;
+};
+
+%cluster lint
+{
+	%targets lint.out[type = lint-output];
+	%sources select($SOURCEFILES, lint-source, %true);
+};
+
+%cluster
+{
+	%targets tags[type = ctags-output];
+	%sources select({ $SOURCEFILES, $KERNEL_LIB_SRCS }, C-src-or-incl, %true);
+};
+
+%cluster files
+{
+	%do exec(mkfiles, args => $SOURCEFILES, stdout => files);
+};

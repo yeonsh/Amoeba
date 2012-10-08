@@ -1,0 +1,61 @@
+.\"	@(#)size.n	1.4	96/02/16 11:07:41
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - binary names were wrong
+.aE
+.mT "size" U
+print the size of the text, data, and bss segments of a program
+.SH
+Synopsis
+.LP
+.sC L
+size [file] ...
+.eC
+.SH
+Description
+.LP
+.I Size
+is used to obtain information about the size of executable binary files.
+The text,
+data,
+bss,
+and total sizes for each
+.I file
+argument are printed in hexadecimal.
+If no arguments are present,
+the file name
+.I a.out
+is assumed.
+The amount of memory available for combined
+stack and data segment growth is printed in the column ``stack.''
+The total amount of memory allocated to the program when it is loaded
+is printed in decimal under ``dec.''
+This value is just the sum of the other four columns.
+The hexadecimal equivalent of ``dec'' is listed under ``hex.''
+.SH
+Example:
+.LP
+.sC
+size /bin/ls/pd.sparc
+.eC
+might print
+.sC L
+text    data    bss     stack   dec     hex
+e000    2000    28148   4000    213320  34148
+.eC
+and
+.sC
+size /bin/ls/pd.sparc /bin/date/pd.i80386
+.eC
+might print
+.sC L
+text    data    bss     stack   dec     hex
+e000    2000    28148   4000    213320  34148   /bin/ls/pd.sparc
+c000    2000    11ad8   4000    113368  1bad8   /bin/date/pd.i80386
+.eC

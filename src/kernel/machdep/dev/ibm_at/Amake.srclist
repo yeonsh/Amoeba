@@ -1,0 +1,118 @@
+#	
+#	@(#)Amake.srclist	1.13	96/02/27 13:50:29
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_DEV_IBMAT_PIC = {
+	$PWD/pic.init,
+	$PWD/pic.stop,
+	$PWD/pic.h,
+	$PWD/pic.c,
+	$PWD/picintr.S,
+};
+K_DEV_IBMAT_TIMER = {
+	$PWD/pit.init,
+	$PWD/pit.h,
+	$PWD/pit.c,
+};
+K_DEV_IBMAT_NDP = {
+	$PWD/ndp.init,
+	$PWD/ndp.c,
+};
+K_DEV_IBMAT_CMOS = {
+	$PWD/cmos.init,
+	$PWD/cmos.h,
+	$PWD/cmos.c,
+};
+K_DEV_IBMAT_NMI = {
+	$PWD/nmi.c,
+};
+
+K_DEV_IBMAT_AM2 = {
+	$PWD/am2.c,
+};
+
+# generic dp8390 driver
+K_DEV_GDP8390 = {
+	$PWD/gdp8390.h,
+	$PWD/gdp8390.c,
+	$PWD/gdp8390.kstat,
+	$PWD/eth_bcopy.S
+};
+
+K_DEV_IBMAT_WD = {
+	$PWD/wd.c,
+};
+
+K_DEV_IBMAT_NE = {
+	$PWD/ne.c,
+};
+
+K_DEV_IBMAT_3C = {
+	$PWD/3c.h,
+	$PWD/3c.c,
+	$PWD/3c.kstat
+};
+
+K_DEV_IBMAT_PRINTER = {
+	$PWD/printer.init,
+	$PWD/printer.c,
+};
+K_DEV_IBMAT_CONSOLE = {
+	$PWD/console.init,
+	$PWD/console.h,
+	$PWD/keyboard.h,
+	$PWD/console.c,
+	$PWD/keyboard.c,
+};
+K_DEV_IBMAT_IOP = {
+	$PWD/iop.c,
+	$PWD/mouse.h,
+	$PWD/mouse.c,
+};
+K_DEV_IBMAT_ASY = {
+	$PWD/asy.h,
+	$PWD/asy.c,
+};
+K_DEV_IBMAT_KGDBIO = {
+	$PWD/kgdbio.c,
+};
+K_DEV_IBMAT_DMA = {
+	$PWD/dma.init,
+	$PWD/dma.h,
+	$PWD/dma.c,
+};
+K_DEV_IBMAT_FLOPPY = {
+	$PWD/floppy.init,
+	$PWD/floppy.h,
+	$PWD/floppy.c,
+};
+K_DEV_IBMAT_WINCHESTER = {
+	$PWD/wini.stop,
+	$PWD/wini.h,
+	$PWD/wini.c,
+};
+K_DEV_IBMAT_SCSI = {
+	$PWD/aha154X.c,
+	$PWD/aha154X.h,
+	$PWD/sd.h,
+};
+K_DEV_IBMAT_DISKDEP = {
+	$PWD/diskdep.c,
+};
+K_DEV_IBMAT_FLOPPY_LOADER = {
+	$PWD/../../../../admin/multivol/volcrc.c,
+	$PWD/floppy_load.c,
+};
+K_MACH = {
+	$PWD/isa.c,
+	$PWD/kernelport.c,
+	$K_DEV_IBMAT_PIC,
+	$K_DEV_IBMAT_TIMER,
+	$K_DEV_IBMAT_NDP,
+	$K_DEV_IBMAT_NMI,
+	$K_DEV_IBMAT_CMOS,
+	$K_DEV_IBMAT_CONSOLE,
+};

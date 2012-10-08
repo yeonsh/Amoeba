@@ -1,0 +1,169 @@
+.\"	@(#)ansi_C.n	1.3	96/02/15 16:47:36
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, Dec 1993
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "ansi_C" L "libajax.a, libamoeba.a":
+details of STD C library conformance
+.SH
+Synopsis
+.LP
+.sC L
+Support for STD C library functions and header files is discussed.
+.eC
+.SH
+Description
+.LP
+.kW "STD C"
+.kW "STD C support"
+.kW "STD C conformance"
+.kW "header files"
+Several STD C conformant compilers have been ported to \*(Am.
+The principle compilers are the ACK and the GNU compilers.
+Details of the ACK compiler conformance are provided in the languages
+section of the
+.I "Programming Guide".
+.LP
+\*(Am provides its own C library rather than using those of a specific
+compiler.
+This library is the subject of the rest of this manual entry.
+.LP
+The various STD C functions are found in either
+.I libamoeba.a ,
+.I libajax.a
+and
+.I libmath.a .
+Specific deviations from the C Standard are listed below where applicable.
+Many header files define additional names that are disallowed by STD C.
+The library also contains many reserved names that should not be
+overridden by applications (e.g.,
+.I trans ).
+STD C requires that only the names defined by STD C are reserved,
+but this requires that every \*(Am function name has a leading underscore.
+This has not been fully implemented yet,
+so be careful.
+.LP
+All supported header files are found in the include subdirectory
+.I posix .
+Since the POSIX standard defines extensions to many STD C headers,
+separating STD C headers from POSIX headers would be impossible.
+.LP
+Only functions and header files with peculiarities are mentioned.
+The rest are adequately described by the ISO C standard.
+.mH
+Notes regarding \*(Am's STD C header files and libraries
+.mH
+<errno.h>
+.LP
+Currently declares the integer variable
+.I errno ,
+the constants
+.cW EDOM
+and
+.cW ERANGE
+and
+many constants required by POSIX.
+Warning: use of
+.I errno
+by concurrent threads is not safe;
+to fix this,
+it will eventually change into a macro that evaluates to a modifiable lvalue.
+For future compatibility,
+applications should not write
+.sC
+extern int errno;
+.eC
+but rather include
+.I errno.h .
+.mH
+<limits.h>
+.LP
+Defines all the constants required by STD C,
+as well as some required by POSIX.
+.mH
+<math.h>
+.LP
+The header file is STD C compatible,
+but in addition to the standard requirements,
+the library
+.I libmath.a
+contains the following functions:
+.I 
+gamma(),
+hypot(),
+j0(),
+j1(),
+jn().
+.R
+The functions
+.I frexp() and
+.I ldexp()
+reside in
+.I libamoeba.a ;
+.R
+they are included there rather than in
+.I libmath.a
+because a few standard I/O conversion routines need them.
+.mH
+<setjmp.h>
+.LP
+Apart from the standard requirements,
+this header file also defines the type
+.I sigjmp_buf
+and the functions
+.I sigsetjmp()
+and
+.I siglongjmp()
+required by POSIX.
+Note that part of these definitions are machine-dependent
+and are placed in the file
+.I posix/machdep/\fRarchitecture\fP/_setjmp.h .
+The directory where this file resides should be passed as a separate
+.B \-I
+flag to the C compiler.
+.mH
+<stdio.h>
+.LP
+Apart from the standard requirements,
+the POSIX function
+.I fdopen()
+and function/macro
+.I fileno()
+are supported.
+.mH
+<string.h>
+.LP
+Warning: the function
+.I strtok()
+uses a static global variable;
+its use by concurrent threads is not safe.
+.mH
+<time.h>
+.LP
+The type
+.I time_t
+is in fact an integral type and measures seconds since January 1,
+1970 (defined more precisely by POSIX).
+Additional information about these functions is found in
+.I ctime (L).
+Warning: many of these functions use global variables;
+their use by concurrent threads is not safe.
+In particular,
+.I
+asctime(),
+ctime(),
+gmtime(),
+localtime()
+.R
+return pointers to static storage that may be overwritten by other threads;
+most also share a hidden cache of timezone information that may be corrupted by
+concurrent accesses.
+.SH
+See Also
+.LP
+posix(L).

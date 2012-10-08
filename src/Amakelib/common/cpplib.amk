@@ -1,0 +1,26 @@
+#	
+#	@(#)cpplib.amk	1.3	96/02/15 15:58:43
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Set CPPLIB to the directory where the C preprocessor (cpp) can be found.
+%if (defined(CPPLIB), {
+    CPPLIBPATH = $CPPLIB;
+}, {
+    # Use path suitable for BSD and SYS5 derived systems:
+    CPPLIBPATH = { /lib, /usr/ccs/lib };
+});
+
+FOUND_CPPLIB = vpath(cpp, $CPPLIBPATH);
+
+# Check that cpp is indeed present there.
+# We use the built-in vpath() function for this.
+%if ($FOUND_CPPLIB == '.', {
+        echo({'Fatal error: there is no cpp in', $CPPLIBPATH});
+	exec(/bin/cat, $PWD/README.cpp);
+        exit();
+}, {
+	CPPLIB = $FOUND_CPPLIB;
+});

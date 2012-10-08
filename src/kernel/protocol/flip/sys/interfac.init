@@ -1,0 +1,12 @@
+/*	@(#)interfac.init	1.2	96/02/27 14:04:58 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+FLIPSWITCH int_init
+#ifdef MEASURE
+MEASUREMENTS int_init
+#endif
+int_init INTERFACE

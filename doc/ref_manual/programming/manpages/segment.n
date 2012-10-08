@@ -1,0 +1,155 @@
+.\"	@(#)segment.n	1.5	96/02/15 16:55:46
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1988-1990
+	Document: Jack Jansen, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "segment" L "libamoeba.a, libamunix.a"
+stubs to manage in-core segments
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+
+errstat ps_segcreate(server, size, orig, newcap)
+errstat ps_segwrite(segcap, offset, buf, size)
+.eC
+.SH
+Description
+.LP
+.kW "segment"
+.kW "in-core segment"
+.kW "memory"
+.kW "process"
+.kW "\fIps_segcreate\fP"
+.kW "\fIps_segwrite\fP"
+These stubs allow programmers to control in-core segments managed
+by \*(Am process servers.
+.I Ps_segcreate
+creates a segment, and
+.I ps_segwrite
+modifies it.
+Besides these calls the \*(Bs calls
+.I b_read
+and
+.I b_size
+(see
+.I bullet (L))
+and all applicable standard
+calls (see
+.I std (L))
+can also be applied to segments.
+.mH
+Rights bits
+.LP
+Of the rights used by the process server only three are applicable
+.kW "PSR_READ"
+.kW "PSR_WRITE"
+.kW "PSR_DELETE"
+to segments:
+.IP \*<PSR_READ\*> 14
+permission to read the segment (using
+.I b_read ).
+.IP \*<PSR_WRITE\*>
+permission to modify the segment.
+.IP \*<PSR_DELETE\*>
+permission the delete the segment (using
+.I std_destroy ).
+.mH
+Functions
+.sH
+ps_segcreate
+.LP
+.sC
+errstat
+ps_segcreate(server, size, orig, newcap)
+capability *server;
+long size;
+capability *orig;
+capability *newcap;
+.eC
+.kW "\fIps_segcreate\fP"
+This routine asks the process server
+.I server
+to create a segment of length
+.I size
+bytes.
+The capability for the new segment is returned in
+.I newcap .
+If
+.I orig
+is not a NULL-pointer or a NULL-capability
+the new segment will be initialized from the file (or segment)
+.I orig ,
+using
+.I b_read
+calls.
+Otherwise, the segment will be zero-filled.
+.rR
+NONE
+.DE
+.sH
+ps_segwrite
+.LP
+.sC
+errstat
+ps_segwrite(segcap, offset, buf, size)
+capability *segcap;
+long offset;
+char *buf;
+long size;
+.eC
+.kW "\fIps_segwrite\fP"
+This routine modifies a segment.
+.I Size
+bytes from offset
+.I offset
+in segment
+.I segcap
+are written from
+.I buf .
+.I Size
+can be arbitrarily large;
+the stub routine converts big modification requests into many little ones.
+.rR
+\*<PSR_WRITE\*>
+.DE
+.mH
+Diagnostics
+.LP
+The routines return only standard error codes from
+.I stderr.h .
+.mH
+Warnings
+.LP
+Under some circumstances all rights (instead of only
+.cW PSR_READ
+as expected) for the
+.I orig
+segment are required by the
+.kW "\fIps_segcreate\fP"
+.I ps_segcreate
+call, and the same is true for the ``initial contents'' segment in the
+.kW "\fIseg_map\fP"
+.I seg_map
+call (see
+.I seg_map (L)).
+For this reason it is currently
+not a good idea to strip rights from segment capabilities.
+.SH
+See Also
+.LP
+bullet(L),
+process(A),
+process(L),
+process_d(L),
+seg_map(L),
+std(L).

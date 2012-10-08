@@ -1,0 +1,51 @@
+#	
+#	@(#)Amakefile	1.2	94/04/05 17:14:47
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/bootblocks/sun4/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH
+};
+
+%include $CONF_ROOT/toolset/unix.bin;
+
+%instance gcluster(installboot.sun, $U_SUN_INSTALLBOOT, $LIB_AMUNIX, $LINT_AMUNIX);
+
+
+%if ($ARCH == sparc, {
+    %if ($COMPILER_SET == sun, {
+
+	HD_LD = ld;
+	HD_LDFLAGS = {
+		-s,
+		-N,
+		-X,
+		'-Ttext 4000'
+	};
+	HD_CFLAGS = {
+		-I$SRC_ROOT/h
+	};
+
+	%default sun4.hdboot;
+	%cluster
+	{
+		%targets sun4.hdboot[type = program];
+		%sources $U_SUN4_BOOTBLOCK;
+		%use     cc-c(flags => $HD_CFLAGS),
+			 loader(program => $HD_LD,
+			 head => {},
+			 flags => $HD_LDFLAGS);
+	};
+
+    });
+});

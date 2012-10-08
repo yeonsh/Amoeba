@@ -1,0 +1,18 @@
+map #1 visual v
+#	
+#	@(#)novice.rc	1.1	94/08/31 10:39:11
+#
+map #2 visual V
+map #3 visual y
+map #4 visual d
+map #5 visual p
+map #6 visual \
+map #7 j{!}fmt}
+map! #7 j{!}fmt}i
+map #8 :set negnumber
+map! #8 :set negnumbera
+map #9 :set negcharattr neghideformat
+map! #9 :set negcharattr neghideformata
+map #10 :%s/old/new/g
+map! #10 :%s/old/new/g
+set report=1 nomagic ignorecase showmode nowrapscan autowrite

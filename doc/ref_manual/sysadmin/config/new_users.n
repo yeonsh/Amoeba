@@ -1,0 +1,131 @@
+.\"	@(#)new_users.n	1.5	96/02/15 17:02:04
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Adding New Users" nobp
+.LP
+.kW "adding users"
+Giving new users access to \*(Am is extremely simple.
+It has two aspects to it.
+The first is to create a home directory and the relevant information
+for a new user so that they can log in.
+The second relates to permitting access to \*(Am from
+.UX
+hosts using the \*(Am network protocol.
+In order for users to access their accounts from
+.UX
+they need a file in their home directory called
+.kW ".capability file"
+.I .capability
+which contains the capability for their \*(Am root directory.
+.LP
+Creating an account for a new user is done with the command
+.kW "\fInewuser\fP"
+.I newuser (A).
+It creates a new directory with the name of the new account
+under the directory
+.kW "/super/users"
+.I /super/users .
+This directory then becomes the root directory of the new user.
+That is,
+it becomes the directory that the new user will think of as
+.I / .
+It then constructs a directory graph under the new account with links to
+.I pool
+directories and the
+.kW /profile
+.I profile
+directory.
+It will also create links to the
+.UX
+emulation directories,
+such as
+.I /bin
+and
+.I /etc .
+All the capabilities that link to public directories have restricted rights so
+that the public information cannot be modified or destroyed.
+As an option, it is possible to give the capability for the directory
+.I /super
+to a new user.
+However this capability gives the user
+.I write
+and
+.I destroy
+permission for the entire directory graph so it should not be given to
+unreliable people or people who do not understand the nature of the
+directory system.
+(Since there can be circuits and arbitrary links in the directory graph it is
+easily possible to start a recursive walk through the graph which touches far
+more objects than expected!)
+.LP
+Note that the command
+.I newuser
+can be run from
+.UX
+by someone with the super capability for the directory graph or it can
+be run under \*(Am by the system administrator logged in as
+.I Daemon .
+The user's new password will be requested at the end of the process.
+.kW password
+The password is stored in encrypted form in the file
+.kW /Environ
+.I Environ
+in the user's new root directory.
+(See
+.I chpw (U)
+for more details about changing passwords.)
+.LP
+The second aspect of adding a new user is the possibility of accessing \*(Am
+from under
+.UX .
+In this case,
+instead of getting the capability for the root directory by giving a password,
+the capability for the root directory is stored in the file
+.I $HOME/.capability .
+There is a command called
+.kW "\fIsendcap\fP"
+.I sendcap (A)
+which can be run by someone with the
+super capability for the directory graph and this will mail the
+.kW ".capability file"
+.I .capability
+file (uuencoded) to the user along with instructions about how to install it.
+.LP
+There is, of course, a chicken and egg problem here for those who installed
+\*(Am using the installation tape.
+They have to get the first
+.I .capability
+file installed under
+.UX
+before the
+.I sendcap
+command (or any other \*(Am command under
+.UX
+for that matter)
+will be able to access \*(Am.
+The easiest way to do this is to use the command
+.kW c2a
+.sC
+c2a /
+.eC
+to print out the capability for
+.I /
+under \*(Am and then create a binary file called
+.I .capability
+using the inverse program
+.kW a2c
+.I a2c
+in your home directory under
+.UX
+with the binary contents as per the output of
+.I c2a .
+Needless to say it is not a good idea to do this while others standing around
+and able to make a note of the capability printed.
+Be sure that the
+.I .capability
+file under
+.UX
+has the mode 400.

@@ -1,0 +1,101 @@
+#!/bin/sh
+#	
+#	@(#)aman	1.4	96/02/27 13:12:15
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Print a formatted man page from the Amoeba documentation tree:
+# Usually the man page will be preformatted in $MANDIR/*/manapages/*.n
+#
+PAGER=${PAGER-more}
+AMDIR=`amdir`
+# MANDIR is where the catable version of the manpage is found
+MANDIR=$AMDIR/lib/man
+FILENAMES=$MANDIR/filenames
+KEYWORDS=$MANDIR/keywords
+# SRCDIR is where we find the source if there is no catable version
+SRCDIR=$AMDIR/doc/ref_manual
+MACROS=$SRCDIR/am_macros
+#
+if echo 'a\c' | grep 'c' > /dev/null ; then
+        E_PRE='-n'      # We have BSD-like echo command.
+        E_SUF=''
+else
+        E_PRE=''        # We have System V-like echo command.
+        E_SUF='\c'
+fi
+#
+SUFFIX="("
+k_flag=false
+#
+for i
+do
+    case $i in
+    -[AHLTU])	SUFFIX="(`expr $i : '-\(.\)'`)"
+		;;
+    -k)		SUFFIX="(definitively not there)"
+		k_flag=true
+		;;
+    -*)		echo "Usage: `basename $0` [-k|A|H|L|T|U] arg"
+		exit 1
+		;;
+    *)		ARG=$i
+		;;
+    esac
+done
+
+if [ X$ARG = X ]
+then
+    echo "Usage: `basename $0` [-k|A|H|L|T|U] arg"
+    exit 1
+fi
+
+set gibberish `look "$ARG$SUFFIX" $FILENAMES`;shift
+case $# in
+0)  ;;
+2)  if [ -f $MANDIR/$2 ]
+    then
+	$PAGER $MANDIR/$2
+    else
+	case $2 in
+	/*)  file=$2
+	     ;;
+	*)   file=$SRCDIR/$2
+	esac
+	eqn $MACROS $file | tbl | nroff -ms -rk1 | col | $PAGER
+    fi
+    exit 0
+    ;;
+*)  echo "Ambiguous, the following entries exist:"
+    while [ $# != 0 ]
+    do
+	echo $E_PRE "$1 " $E_SUF; shift; shift
+    done
+    echo .
+    exit 0
+    ;;
+esac
+#
+# Time to go into AI keyword mode
+# The following is NOT efficient but does work under Amoeba with sh.
+#
+TMP=/tmp/aman_$$
+trap "rm -f $TMP" 0 2 3 15
+LINES=`grep -i "$ARG.*	" $KEYWORDS | sed -n "s/.*	//p" | sort -u |
+       tee $TMP | wc -l | sed 's/  *//'`
+
+if  [ $k_flag = true -o $LINES != "1" ]
+then
+	cat $TMP
+else
+	IFS="$IFS()"
+	set -- `cat $TMP`
+	arg1=$2
+	arg2=$1
+	rm -f $TMP
+	exec $0 -$arg1 $arg2
+fi
+
+exit 0

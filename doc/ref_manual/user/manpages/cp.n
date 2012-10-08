@@ -1,0 +1,40 @@
+.\"	@(#)cp.n	1.4	96/02/15 18:05:58
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "cp" U
+copy file
+.SH
+Synopsis
+.LP
+.sC L
+cp file1 file2
+cp file ... directory
+.eC
+.SH
+Description
+.LP
+.I Cp
+copies one file to another,
+or copies one or more files to a directory.
+A file cannot be copied to itself.
+.SH
+Examples
+.LP
+.sC
+cp oldfile newfile
+.eC
+Copies
+.I oldfile
+to
+.I newfile .
+.sC
+cp file1 file2 /home/ast
+.eC
+Copies two files to a directory.

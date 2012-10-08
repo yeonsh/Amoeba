@@ -1,0 +1,130 @@
+.\"	@(#)cpp.n	1.4	96/02/15 18:06:05
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: ACK developers
+	Document: ACK developers
+	Modified: Kees Verstoep, 8/11/90 - converted to amoeba manual macros
+					   and changed a few descriptions.
+	Modified: Gregory J. Sharp, Oct 1995 - general clean up
+.aE
+.mT "cpp" U
+C preprocessor
+.SH
+Synopsis
+.LP
+.sC L
+cpp [options] [inputfile]
+.eC
+.SH
+Description
+.LP
+.kW "C"
+.kW "C preprocessor"
+.I Cpp
+reads a file,
+expands macros and include files,
+and writes an input file for the C compiler.
+All output is to standard output.
+When no input file is provided as argument,
+.I cpp
+reads from standard input.
+.mH
+Options
+.LP
+.IP \fB\-I\fIdirectory\fR 8
+.br
+add this directory to the list of directories searched for
+.sC
+#include "..."
+.eC
+and
+.sC
+#include <...> commands.
+.eC
+Note that there is no space between the
+.B \-I
+and the directory string.
+More than one
+.B \-I
+option is permitted.
+.IP \fB\-I\fR 8
+end the list of directories to be searched,
+and also do not look in default places.
+.IP \fB\-D\fIname\fR=\fItext\fR
+.br
+define
+.I name
+as a macro with
+.I text
+as its replacement text.
+.IP \fB\-D\fIname\fR
+.br
+equivalent to \fB\-D\fIname\fR=1.
+.IP \fB\-U\fIname\fR
+.br
+undefine the macro name
+.I name .
+.IP \fB\-C\fR
+leave comments in.
+By default, C-comments are deleted.
+.IP \fB\-P\fR
+do not generate line directives
+.IP \fB\-M\fIn\fR
+set maximum identifier length to
+.I n .
+.IP \fB\-d\fIfile\fR
+generate a list of
+.I amake (U)
+dependencies,
+consisting of a list of all included files,
+and write them to
+.I file .
+.IP \fB\-i\fR
+when generating dependencies,
+do not include files from
+.I /usr/include .
+.IP \fB\-m\fR
+when generating dependencies,
+generate them in the format suitable as
+.I make (U)
+dependencies, i.e.,
+.RS
+.IP "	file.o: file1.h"
+.RE
+.IP ""
+where
+.I file.o
+is derived from the source file name.
+.IP \fB\-undef\fR
+.br
+this flag is silently ignored, for compatibility with other preprocessors.
+.LP
+The following names are always available unless undefined:
+.IP __FILE__ 12
+The input (or #include) file being compiled
+(as a quoted string).
+.IP __LINE__
+The line number being compiled.
+.IP __DATE__
+The date and time of compilation as a \fIctime()\fP quoted string
+(the trailing newline is removed).
+.mH
+Warnings
+.LP
+The
+.I cpp
+as supplied is not an STD C preprocessor.
+As people have been known to (ab)use the C preprocessor
+for all kinds of weird things,
+this is perhaps just for the best.
+The ACK STD C Compiler has its own preprocessor built-in.
+.SH
+See Also
+.LP
+ack(U),
+amake(U),
+cc(U).

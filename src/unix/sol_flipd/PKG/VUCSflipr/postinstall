@@ -1,0 +1,16 @@
+#!/bin/sh
+#	
+#	@(#)postinstall	1.1	96/02/27 11:49:20
+#
+
+# run "add_drv flip"
+/usr/sbin/add_drv -m '* 0666 bin bin' flip
+
+# adjust mode of /devices/pseudo/clone@0:flip_rpc0
+/usr/bin/chmod 666 /devices/pseudo/clone@0:flip_rpc0
+
+# edit /etc/devlink.tab
+/usr/bin/echo "type=ddi_pseudo;name=flip	\M0" >> /etc/devlink.tab
+
+# create entries in /dev
+/usr/sbin/devlinks

@@ -1,0 +1,236 @@
+.\"	@(#)build.n	1.6	96/02/15 17:07:23
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, 1989
+	Document: Gregory J. Sharp, May 1991
+	Modified: Gregory J. Sharp, June 1994 - X11R6 review plus a total
+						rewrite because it was all
+						so horrible.
+		  Gregory J. Sharp, Jan 1996 - it's still horrible but I
+						only did minor polishing.
+.aE
+.mT "build" A
+build an \*(Am binary configuration
+.SH
+Synopsis
+.LP
+.sC L
+build [dirname]
+buildlibs [dirname]
+buildX [-c] confdir srcdir arch toolset
+buildmmdf confdir srcdir arch toolset
+.eC
+.SH
+Description
+.LP
+Creating a set of \*(Am binaries for a particular architecture is done in
+two steps.
+.kW "amake"
+.kW "configuration"
+.kW "\fIamoebatree\fP"
+.kW "\fIunixtree\fP"
+.kW "\fIbuildlibs\fP"
+.kW "\fIbuildX\fP"
+.kW "\fIbuildmmdf\fP"
+The first is to make a configuration tree using
+.I amoebatree (A)
+or
+.I unixtree .
+This creates a directory tree full of
+.I Amakefiles .
+The second step is to recursively descend the tree and execute
+.I amake (U)
+on each
+.I Amakefile
+to create all the binaries.
+That is the function of the
+.I build
+command.
+.kW "X windows"
+Since third-party software (such as X windows) needs the \*(Am libraries,
+if any third-party software is required it can be built after this step.
+Some of the third-party software is large, complex and difficult to configure
+so scripts are provided to build commonly used packages.
+.sH
+build, buildlibs
+.LP
+The
+.I buildlibs
+and
+.I build
+commands take an optional argument.
+This must be the name of a directory.
+If no argument is given they use the current directory.
+Beginning at this directory
+.I build
+makes a recursive descent of the entire directory tree.
+.I Buildlibs
+only descends the subdirectory
+.I lib .
+Each time they encounter a file called
+.I Amakefile
+they execute
+.I amake (U).
+.LP
+Note that they check to see if the starting directory looks like a
+configuration tree.
+That is,
+it must have a directory called
+.I lib
+in it or they will refuse to go to work.
+Therefore,
+.I build
+cannot be used to remake a partial tree.
+Its function is to bring the entire configuration up to date.
+.LP
+Note that
+.I build
+will not make the kernels.
+It does not descend into the top-level directory
+.I kernel .
+Kernel configuration trees are made with
+.kW "\fIkerneltree\fP"
+.I kerneltree (A).
+.kW "\fImakeconf\fP"
+.I Makeconf (A)
+is the only program at present which automatically builds kernels.
+.sH
+buildX, buildmmdf
+.LP
+.I BuildX
+and
+.I buildmmdf
+are used to build X windows and the MMDF II electronic mail system respectively.
+Before they can be run it is necessary to have run
+.I buildlibs
+or
+.I build .
+Then the appropriate build command may be executed.
+Note that
+.I amake
+is not used to build these systems.
+The standard
+.I make (U)
+and
+.I imake
+configuration tools provided with these packages are used with minor
+changes to provide binaries suitable for \*(Am.
+.LP
+The
+.I buildX
+and
+.I buildmmdf
+commands take the same arguments (except that
+.I buildX
+takes an extra optional
+.B \-c
+option as described below).
+The first argument is the place where the configuration is to be
+constructed.
+This is typically
+.I \(gaamdir\(ga/conf/amoeba .
+The next argument is the directory where the source directories
+(e.g.,
+.I mmdf
+and
+.I mmdf.am
+for
+.I buildmmdf )
+can be found.
+This is typically
+.I \(gaamdir\(ga/src .
+The third argument is the architecture for which the binaries are to be built.
+For example,
+.I mc68000 ,
+.I sparc
+or
+.I i80386 .
+The fourth argument is the toolset to be used to compile the software.
+This is typically
+.I sunpro ,
+.I gnu-2
+or
+.I ack .
+.LP
+.I BuildX
+this takes a long time to complete (2-3 hours on a SPARCstation)
+and uses a lot of disk space.
+If the
+.I contrib uted
+X software is required then
+.I buildX
+should be called with the
+.B \-c
+option.
+.mH
+Diagnostics
+.LP
+The following error messages may be produced by
+.I build
+or
+.I buildlibs .
+.sC L
+: directory `\fIdirname\fP' not found!
+.eC
+This is printed if it could not change directory to the directory
+.I dirname
+specified on the command line.
+.sC L
+: doesn't look like an amoeba configuration tree
+bye bye
+.eC
+will be printed if the directory that
+.I build
+is told to start in is not a proper configuration directory.
+.mH
+Environment Variables
+.LP
+The default command executed by the
+.I build
+and
+.I buildlibs
+commands is
+.I amake (U).
+This can be overridden with the
+.cW MAKE
+environment variable.
+.SH
+Examples
+.LP
+.sC L
+.ps-1
+amoebatree \(gaamdir\(ga/conf/amoeba \(gaamdir\(ga/src \(gaamdir\(ga/templates sparc sunpro
+cd \(gaamdir\(ga/conf/amoeba
+build sparc.sunpro > build.m68k.out 2>&1
+.ps
+.eC
+will cause the building of the MC680x0 libraries and binaries for \*(Am.
+.LP
+Note that the program
+.I chkbuild (A)
+can be used to examine the output of
+.I build .
+It strips away almost everything except the error messages.
+.LP
+An example of
+.I buildX
+where the contrib software is not made:
+.sC L
+.ps-1
+buildX \(gaamdir\(ga/conf/amoeba \(gaamdir\(ga/src sparc sunpro > buildX.out 2>&1
+.ps
+.eC
+.SH
+See Also
+.LP
+amake(U),
+amdir(U),
+amoebatree(A),
+chkbuild(A),
+doctree(A),
+kerneltree(A),
+make(U).

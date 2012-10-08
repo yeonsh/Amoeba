@@ -1,0 +1,47 @@
+.\"	@(#)xshutdown.n	1.4	94/04/05 16:14:56
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, May 1990
+	Document: Jack Jansen, June 1990
+.aE
+.mT "xshutdown" U
+perform orderly shutdown of an X server
+.SH
+Synopsis
+.LP
+.sC L
+xshutdown display
+.eC
+.SH
+Description
+.LP
+.kW "X windows"
+.I Xshutdown
+performs an orderly shutdown of an X server.
+All connections are closed, and the server terminates.
+It is useful when shutting down a workstation.
+.mH
+Warning
+.LP
+This call is specific to the \*(Am X server, so it will not work
+for X servers running on
+.UX .
+.SH
+Example
+.LP
+.sC
+xshutdown myhost:0
+.eC
+terminates the X server on
+.I myhost
+cleanly.
+.SH
+See Also
+.LP
+X(U),
+xreinit(U).

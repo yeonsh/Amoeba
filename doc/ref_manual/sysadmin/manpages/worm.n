@@ -1,0 +1,57 @@
+.\"	@(#)worm.n	1.5	94/04/05 15:42:15
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1989
+	Document: Guido van Rossum, February 1990
+.aE
+.mT "worm" T
+self-replicating program
+.SH
+Synopsis
+.LP
+.sC L
+worm [-d|-k]
+.eC
+.SH
+Description
+.LP
+.kW "self-replicating program"
+This is a self-replicating program.
+Once started, it attempts to run copies of itself on all available pool
+processors (of the same architecture).
+Each copy regularly polls all other copies, and if a copy has
+disappeared, a new copy is started.
+This keeps processors and the network busy.
+The output of each
+.I worm
+is normally redirected to the console of its host.
+.LP
+It is difficult to get rid of a collection of worms by rebooting their
+machines, since as soon as a machine is rebooted a worm on another
+machine will start a new worm on it.
+The
+.B \-k
+option can be used to kill the entire collection.
+.mH
+Options
+.LP
+.IP \fB\-d\fP
+Debugging mode \- output is not redirected.
+.IP \fB\-k\fP
+Kill mode \- kill all other worms that can be found and then exit.
+.SH
+Examples
+.LP
+To start the worms (in the background):
+.sC
+worm &
+.eC
+To kill all worms:
+.sC
+worm \-k
+.eC

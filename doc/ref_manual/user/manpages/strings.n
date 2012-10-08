@@ -1,0 +1,52 @@
+.\"	@(#)strings.n	1.4	96/02/16 11:08:50
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1994, style conformance, correctness
+.aE
+.mT "strings" U
+print all the strings in a binary file
+.SH
+Synopsis
+.LP
+.sC L
+strings [-] [-o] [-\fIn\fP] file ...
+.eC
+.SH
+Description
+.LP
+.I Strings
+.kW ASCII
+looks for sequences of ASCII characters followed by a zero byte.
+These are usually strings.
+This program is typically used to help identify unknown binary programs.
+.mH
+Options
+.LP
+.IP \fB\-\fP
+search the whole file, not just the data segment.
+.IP \fB\-o\fP
+print octal offset of each string.
+.IP \fI\-n\fP
+Do not show strings less then
+.I n
+characters long (default = 4).
+.SH
+Examples
+.LP
+.sC
+strings -5 a.out
+.eC
+Print the strings longer than 4 characters in
+.I a.out .
+.sC
+strings - /bin/sh/pd.i80386
+.eC
+Search the entire file
+.I /bin/sh/pd.i80386
+(text and data).

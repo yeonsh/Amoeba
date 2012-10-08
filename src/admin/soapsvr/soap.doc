@@ -1,0 +1,88 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)soap.doc	1.2	94/04/06 11:58:45
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+This directory contains the code for the duplicated directory server.  Two
+copies of the server are started, the first one with argument "0", and
+the second with argument "1".  The servers are almost identical, except
+that number zero plays a master role in some conflicts.  The servers
+share a public port, but each have a private port as well.
+
+Each directory server maintains one file, called the super file.  This
+file is split up into blocks.  The first block, the header block, contains
+stable information.  The remaining blocks contain capability pairs,
+one for each directory.  The directories are stored
+redundantly on two different Bullet servers.  The capability
+pairs point to the Bullet files that store the directories.  Replication
+is done lazily.  Initially only one Bullet file is created.  The second
+Bullet file is done later by a periodically invoked watchdog function,
+which is also responsible for touching the Bullet files (to prevent them
+being garbage collected) and attempting minor repairs, when possible.
+
+Directories are read from files into a cache only as needed.  The least-
+recently used directories are flushed from the cache when more memory is
+required by alloc.  A directory is also flushed from the cache of one
+server when the other server tells it the directory has been modified.
+The in-core directory is a heirarchical, malloc'd data structure, unlike
+the Bullet file, which is a linear buffer representing the same information,
+but not in a manner suitable for random access.
+
+When a set of directories get updated, the corresponding core directories
+are updated in place, but only after saving enough data from the original
+version to allow recovery after an error (i.e., to allow undoing the
+changes).
+
+Before the pair of Bullet file capabilities is updated, the intention to
+do so is recorded in the header block.  If a crash would occur, this
+allows the operation to be completed (roll-forward recovery).  Before a
+server stores its own intentions, it makes sure that the other one has the
+intentions stored as well, or is down.  This strategy guarantees that the
+two directory servers are consistent if they're both available.
+
+The servers keep track of whether the other one is alive or not.  If a
+server thinks the other one may be up, it is in ``two-copy-mode.''
+Otherwise, when the server knows for sure that the other server is down,
+or at least not accepting user requests, the server is in ``one-copy-
+mode.''  Note that only one server may be in one-copy-mode.  A server
+that is in one-copy-mode will not attempt to communicate with the other
+server to satisfy user requests.  In two-copy-mode the servers will
+communicate intentions to make sure that their directories are identical.
+
+Recovery after a crash is as follows.  If the server is in one-copy-mode,
+it can just continue operation as usual.  If it is in two-copy-mode, it
+may first have to copy the super file from the other server.  If that
+one is down, that is too bad.  If that one is in one-copy-mode, it can
+switch back to two-copy-mode as soon as it knows for sure that the other
+server has the current version of the super file.  Copying the super file
+is actually done by the server that was up initially, such that the super
+file can be safely transfered block by block without the danger of an
+update half way through.
+
+A note about deleting Bullet files.  The directory server does attempt
+to remove obsolete Bullet files.  However, if the server is unavailable,
+it will just drop the capability on the floor and rely on garbage collection
+of Bullet files.
+
+The initial thread is the control thread of the process.  It listens to
+the private port, which is usually only addressed by the other directory
+server.  The control thread doesn't block on critical regions to avoid
+deadly embrace.  There is only one ``critical region''.  That is, all
+access to global variables is mutually exclusive within the critical
+region.  All commands leave the critical region before sending a reply,
+thus enabling executing of the next request while sending a reply.
+
+More parallelism is achieved by delaying updates.  Before commit only one
+copy of each directory is created at a Bullet service, and only the
+``commit block'' (the first block of the super file) is written.  The
+first block contains enough information (the so-called intention list)
+to complete the update.  The update can also be completed after a crash.
+The update is performed after the reply, unless another request can be
+executed during the reply.  The intention list is checked on each entry
+of the critical region.
+
+				Robbert van Renesse
+				Michael Condict
+				Kees Verstoep

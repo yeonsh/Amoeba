@@ -1,0 +1,788 @@
+.\"	@(#)soap.n	1.10	96/02/15 16:56:08
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse, 1989
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "soap" L "libamoeba.a, libkernel.a, libamunix.a"
+the \*(Ss client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "capset.h"
+#include "server/soap/soap.h"
+
+errstat sp_append(dir, name, cs, ncols, cols)
+errstat sp_chmod(dir, name, ncols, cols)
+errstat sp_create(server, columns, dir)
+errstat sp_delete(dir, name)
+errstat sp_discard(dir)
+errstat sp_getmasks(dir, name, ncols, cols)
+errstat sp_getseqno(dir, seqno)
+errstat sp_install(n, entries, capsets, oldcaps)
+errstat sp_lookup(dir, path, cs)
+errstat sp_replace(dir, name, cs)
+errstat sp_setlookup(n, in, out)
+errstat sp_traverse(dir, path, last)
+
+#include "sp_dir.h"
+errstat sp_list(dir, dd)
+.eC
+.SH
+Description
+.LP
+.kW SOAP
+.kW "directory server"
+.kW "name server"
+.kW directory
+.kW SP_DIR
+.kW "\fIsp_append\fP"
+.kW "\fIsp_chmod\fP"
+.kW "\fIsp_create\fP"
+.kW "\fIsp_delete\fP"
+.kW "\fIsp_discard\fP"
+.kW "\fIsp_getmasks\fP"
+.kW "\fIsp_getseqno\fP"
+.kW "\fIsp_install\fP"
+.kW "\fIsp_list\fP"
+.kW "\fIsp_lookup\fP"
+.kW "\fIsp_replace\fP"
+.kW "\fIsp_setlookup\fP"
+.kW "\fIsp_traverse\fP"
+This manual page describes the \*(Ss stub routines.
+Along with the standard server stubs (see
+.I std (L))
+the \*(Ss stubs provide the interface to the \*(Ss.
+In addition to the stubs there are several derived and related functions to
+provide a simple interface for common operations.
+These are described in
+.I sp_dir (L),
+.I sp_mkdir (L)
+and
+.I sp_mask (L).
+For details about the server see
+.I soap (A).
+.mH
+Types
+.LP
+The type
+.cW SP_DIR
+is defined in the include file
+.I sp_dir.h .
+It is analogous to the type
+.cW DIR
+used for accessing directories.
+.LP
+Another important type is
+.I capset ,
+.kW capset
+.kW "capability-set"
+which is used to store a set of capabilities, possibly the empty set.
+The type
+.I capset
+is defined in
+.I capset.h .
+.LP
+The type
+.I sp_entry
+is defined in
+.I soap.h .
+It is used for storing or retrieving one or more (name, capset) pairs
+in a single operation.
+.LP
+The type
+.I sp_seqno_t
+is used to represent the 64-bit directory sequence numbers,
+which are supported by some directory servers.
+It is defined in
+.I soap.h .
+.mH
+Access
+.LP
+Access to Soap objects is on the surface quite complicated,
+but extremely powerful and flexible.
+Soap directories are objects and each is therefore accessed using its
+capability.
+The following rights bits are defined for a directory entry:
+.LP
+.DS
+.ta 4c
+\*<SP_COLMASK\*>	selects which column mask will be applied
+\*<SP_DELRGT\*>	permission to delete a directory
+\*<SP_MODRGT\*>	permission to modify a directory
+.DE
+.LP
+When a capability-set is looked up in Soap,
+the rights bits in the capability for the directory determine the access
+permissions for the entries in that directory as follows.
+With each entry in a directory there is a set of masks which correspond to the
+columns of the directory.
+At present there is a maximum of four columns, but typically only three are
+used:
+.I owner
+(column 0),
+.I group
+(column 1)
+and
+.I other
+(column 2).
+The rights bits corresponding to columns (i.e., bits 0 to 3) select which
+column of the directory may be accessed.
+For all the columns to which the rights bits are on in the directory
+capability, the rights masks for those columns are bitwise OR-ed together.
+The resulting rights mask is used to generate a restricted version
+of the original capability-set stored for the name being looked up.
+This new capability-set is returned by Soap to the caller.
+.LP
+The generation of a restricted capability-set goes as follows.
+In case the original capabilities contain all rights,
+the \*(Ss is able to generate the restricted versions by itself,
+using
+.I prv_encode .
+Otherwise,
+the capabilities and the restriction mask are passed to the corresponding
+servers to perform an
+.cW STD_RESTRICT
+operation.
+.kW std_restrict
+.kW STD_RESTRICT
+.LP
+Note that to perform any operation on a directory entry one must have
+access to at least one column of the directory.
+Otherwise it is not possible to proceed further down that part of the
+directory hierarchy.
+.mH
+Time
+.LP
+Soap stores a
+.I "last updated"
+time-stamp with each directory entry.
+It uses a precision of seconds.
+This time-stamp cannot be relied upon to be accurate since it is derived
+from a Time of Day server (see
+.I tod (A)),
+but not necessarily always the same one.
+In general it will be moderately accurate but if one TOD server goes down
+and another is available it will be used.
+Therefore time-stamps may not be monotonically increasing.
+This causes programs such as
+.I make (U)
+to be even more unreliable than under
+.UX
+and it is better to create programs that do not depend on a consistent
+view of the time of day.
+.mH
+Errors
+.LP
+All of the stub functions return an error status as the value of the function.
+Soap returns all the standard error codes (as defined in
+.I stderr.h )
+plus the following:
+.IP "\*<SP_UNAVAIL\*>" 14
+This is returned if the \*(Ss is not currently accessible.
+(It is usually equivalent to
+.cW RPC_NOTFOUND ).
+.IP "\*<SP_UNREACH\*>
+This is returned if during the lookup of a capability-set,
+the \*(Ss encounters a capability for a directory within the same \*(Ss,
+that does not exist.
+This can happen if someone deletes a directory
+to which multiple links exists.
+Note that when the object number of a deleted directory is reused by Soap
+for a new directory,
+the error code
+.cW STD_CAPBAD
+will be returned instead,
+because the new directory will have a new check field.
+.IP "\*<SP_NOTEMPTY\*>
+This is returned if an attempt was made to destroy a directory that was not empty.
+This should not be confused with deleting a directory entry that points to
+a non-empty directory, which is perfectly legitimate.
+.IP "\*<SP_CLASH\*>
+This is returned if an attempt is made to replace a capability-set and the
+non-zero
+.I original
+capability provided is not a (restricted) member of it.
+(The old capability-set must be deleted before the new set can be installed
+if this is intentional.)
+.DE
+.LP
+All of the stubs may return
+.cW SP_UNAVAIL ,
+any of the
+.cW RPC_
+errors,
+.cW STD_CAPBAD ,
+.cW STD_DENIED ,
+.cW STD_ARGBAD
+and
+.cW STD_NOSPACE .
+The latter is inherent in the nature of capability-sets and even on delete
+operations it is possible to get this error.
+.mH
+Path names
+.LP
+Path names are always specified as a string relative to a directory
+whose capability-set is known.
+To perform operations relative to the current working directory
+(whatever that might be)
+the
+.I dir
+parameter in the library routines that take path name arguments
+can be specified as
+.cW SP_DEFAULT .
+.ne 7
+.mH
+Functions
+.sH
+sp_append
+.LP
+.sC
+errstat
+sp_append(dir, name, cs, ncols, cols)
+capset     *dir;
+char       *name;
+capset     *cs;
+int         ncols;
+rights_bits cols[];
+.eC
+.kW "\fIsp_append\fP"
+.I Sp_append
+adds the directory entry specified by
+.I name ,
+relative to the directory specified by
+.I dir .
+The entry may not exist already.
+The new entry has the capability-set
+.I cs .
+.LP
+The column masks for the directory entry are specified by the
+.I ncols
+entries in the array
+.I cols .
+To avoid first having to look up the number of columns the directory has,
+any legal number of columns masks (1 up to
+.cW SP_MAXCOLUMNS )
+is accepted.
+Masks referring to non-existent columns are ignored,
+and missing masks are set to zero.
+.rR
+\*<SP_MODRGT\*>
+Access to at least one column of the directory to which the new entry is
+being added.
+.eR
+\*<STD_EXISTS\*>	the specified name is already in use.
+.DE
+.ne 8
+.sH
+sp_chmod
+.LP
+.sC
+errstat
+sp_chmod(dir, name, ncols, cols)
+capset     *dir;
+char       *name;
+int         ncols;
+rights_bits cols[];
+.eC
+.LP
+.kW "\fIsp_chmod\fP"
+.I Sp_chmod
+allows one to alter the column masks for the directory entry specified by the
+path name
+.I name
+relative to the directory with capability-set
+.I dir .
+The entry has to exist already.
+The new column masks are set to the
+.I ncols
+entries in the array
+.I cols .
+Like in
+.kW "\fIsp_append\fP"
+.I sp_append ,
+superfluous masks are ignored and missing masks are set to zero.
+.rR
+.cW SP_MODRGT
+Access to at least one column of the directory containing the entry to be
+modified.
+.eR
+\*<STD_NOTFOUND\*>:	the specified name does not exist.
+.DE
+.sH
+sp_create
+.LP
+.sC
+errstat
+sp_create(server, columns, dir)
+capset *server;
+char   *columns[];
+capset *dir;
+.eC
+.kW "\fIsp_create\fP"
+.I Sp_create
+creates a new Soap directory on the \*(Ss specified by
+.I server .
+The column names for the new directory are specified in
+.I columns ,
+which is a NULL-terminated array of strings.
+(There are no default names so
+.I columns
+must be specified.)
+The number of strings determines the number of columns for the directory.
+The capability-set for the new directory is returned in
+.I dir .
+.LP
+NB. It does not enter the new directory into another directory.
+(That is the function of
+.kW "\fIsp_append\fP"
+.I sp_append .
+See
+.I sp_mkdir (L)
+for a simple method of creating and installing a new directory.)
+.rR
+Access to at least one column of the directory given as first argument.
+.DE
+.sH
+sp_delete
+.LP
+.sC
+errstat
+sp_delete(dir, name)
+capset *dir;
+char   *name;
+.eC
+.LP
+.kW "\fIsp_delete\fP"
+.I Sp_delete
+deletes the directory entry (which may itself be a directory capability)
+specified by
+.I name .
+.I Name
+is a path name relative to the directory whose capability-set is given in
+.I dir .
+.rR
+.cW SP_MODRGT
+.fi
+Access to at least one column of the directory containing the entry to be
+deleted.
+.nf
+.DE
+.sH
+sp_discard
+.LP
+.sC
+errstat
+sp_discard(dir)
+capset *dir;
+.eC
+.kW "\fIsp_discard\fP"
+.I Sp_discard
+is equivalent to performing an
+.I std_destroy
+on the specified directory.
+This can only be performed on a directory that is empty (i.e., has no entries
+in it).
+.rR
+.fi
+\*<SP_DELRGT\*> for the directory to be destroyed.
+.br
+Access to at least one column of the directory to be destroyed.
+.nf
+.eR
+\*<SP_NOTEMPTY\*>:	directory to be deleted is not empty.
+.DE
+.sH
+sp_getmasks
+.LP
+.sC
+errstat
+sp_getmasks(dir, name, ncols, cols)
+capset     *dir;
+char       *name;
+int         ncols;
+rights_bits cols[];
+.eC
+.kW "\fIsp_getmasks\fP"
+.I Sp_getmasks
+returns in
+.I cols
+the column rights masks of the directory with path name
+.I name
+relative to the directory with capability-set
+.I dir .
+If
+.I ncols
+is less than the number of columns in the directory,
+only the masks for the first
+.I ncols
+columns will be returned in
+.I cols .
+If
+.I ncols
+is greater than the number of columns in the directory,
+the remaining column masks in
+.I cols
+will be set to zero.
+.rR
+Access to at least one column of the directory containing the entry.
+.eR
+\*<STD_NOTFOUND\*>:	the specified name does not exist.
+.DE
+.sH
+sp_getseqno
+.LP
+.sC
+errstat
+sp_getseqno(dir, seqno)
+capset     *dir;
+sp_seqno_t *seqno;
+.eC
+.kW "\fIsp_getseqno\fP"
+.I Sp_getseqno
+returns in
+.I seqno
+the 64-bit sequence number of the directory with capability-set
+.I dir ,
+if this is supported by the directory server.
+The sequence number is incremented with each directory modification.
+This information is useful for backup programs (e.g.,
+.I starch (U))
+when making an incremental file system dump.
+.rR
+Access to at least one column of the directory.
+.eR
+\*<STD_COMBAD\*>	sequence numbers are not supported by this server.
+.DE
+.sH
+sp_install
+.LP
+.sC
+errstat
+sp_install(n, entries, capsets, oldcaps)
+int         n;
+sp_entry    entries[];
+capset      capsets[];
+capability *oldcaps[];
+.eC
+.kW "\fIsp_install\fP"
+.I Sp_install
+implements atomical update of a set of existing directory entries.
+They may be entries in several different directories.
+The modify right is required for all the affected directories.
+The operation only succeeds if all the capability-sets can be installed.
+Otherwise no changes are made to any of the entries.
+.LP
+The parameter
+.I n
+specifies the number of elements in the three arrays.
+Each element of the array
+.I entries
+contains the
+.I capset
+for the directory containing the entry to be updated and the
+.I name
+of the directory entry within that directory which is to be updated.
+The type
+.I sp_entry
+is defined in
+.I soap.h
+as:
+.sC
+typedef struct {
+	capset se_capset;
+	char  *se_name;
+} sp_entry;
+.eC
+For each directory entry described in
+.I entries
+the corresponding new capability-set in
+.I capsets
+is installed.
+However, this is only done if the corresponding capability in
+.I oldcaps
+is either NULL, or present (possibly as a restricted version)
+in the current capability-set.
+This allows for optimistic concurrency control by letting one read a set of
+values and then ensure that they have not changed when the new values are
+written back.
+.LP
+It is not possible to change the same entry twice in one command,
+since the optimistic
+concurrency control mechanism will reject the second change.
+Note that this can happen if there exist two distinct paths
+to the same directory.
+.LP
+NB.  All the entries specified must be resident on the same \*(Ss.
+.rR
+.fi
+.cW SP_MODRGT
+for the directories containing the entries.
+.br
+Access to at least one column of the directories containing the entries.
+.nf
+.eR
+\*<SP_CLASH\*>:	a value in \fIoldcaps\fP did not match the corresponding
+	current entry.
+.DE
+.sH
+sp_list
+.LP
+.sC
+#include "sp_dir.h"
+
+errstat
+sp_list(dir, dd)
+capset  *dir;
+SP_DIR **dd;
+.eC
+.LP
+.kW "\fIsp_list\fP"
+.I Sp_list
+returns in
+.I dd
+the entire list of directory entries in the directory specified by
+.I dir .
+The
+.cW SP_DIR
+data structure is defined in
+.I sp_dir.h
+as follows:
+.sC
+typedef struct _dirdesc {
+	capset dd_capset;
+	int    dd_ncols;
+	int    dd_nrows;
+	char **dd_colnames;
+	struct sp_direct *dd_rows;
+	int    dd_curpos;
+} SP_DIR;
+.eC
+.sC
+struct sp_direct {
+	char  *d_name;       /* name (up to MAX_NAME + 1)   */
+	int    d_namlen;     /* redundant, but compatible   */
+	long  *d_columns;    /* rights masks in the columns */
+};
+.eC
+.I dd_capset
+is initialized with
+.I dir ,
+.I dd_ncols
+with the number of columns in
+.I dir ,
+and
+.I dd_nrows
+with the number of entries.
+The names of the columns are stored in
+.I dd_colnames ,
+which is a string array of
+.I dd_ncols
+entries.
+The entry
+.I dd_rows
+is an array of
+.I dd_nrows
+entries, describing the (NULL-terminated) name in the row,
+the length of the name, and the rights masks.
+The entry
+.I d_columns
+is an array with
+.I dd_ncols
+entries containing the rights masks for each of the columns.
+The entry
+.I dd_curpos
+is a magic cookie for the implementation of the POSIX directory
+interface (see
+.I sp_dir (L)
+and
+.I posix (L)).
+.rR
+Access to at least one column of the directory to be listed.
+.DE
+.sH
+sp_lookup
+.LP
+.sC
+errstat
+sp_lookup(dir, path, object)
+capset *dir;
+char   *path;
+capset *object;
+.eC
+.kW "\fIsp_lookup\fP"
+.I Sp_lookup
+returns in
+.I object
+the capability-set stored under the name
+.I name
+relative to the directory
+.I dir .
+Warning:
+if the NULL-string is given as the
+.I path
+then the capability in
+.I dir
+is for the directory required and so it is returned without checking to see
+if it is a valid capability.
+.rR
+Access to at least one column of the directory containing the object.
+.DE
+.sH
+sp_replace
+.LP
+.sC
+errstat
+sp_replace(dir, name, cs)
+capset *dir;
+char   *name;
+capset *cs;
+.eC
+.kW "\fIsp_replace\fP"
+.I Sp_replace
+performs a similar function to
+.kW "\fIsp_install\fP"
+.I sp_install
+but for a single directory entry.
+It atomically updates the directory entry with path name
+.I name
+relative to directory
+.I dir .
+It overwrites the capability-set for that entry with the one in
+.I cs .
+.rR
+.cW SP_MODRGT
+Access to at least one column of the directory containing the entry.
+.eR
+.ta 4c
+\*<STD_NOTFOUND\*>:	the specified path name does not exist.
+.DE
+.sH
+sp_setlookup
+.LP
+.sC
+errstat
+sp_setlookup(n, in, out)
+int       n;
+sp_entry  in[];
+sp_result out[];
+.eC
+.kW "\fIsp_setlookup\fP"
+For each directory entry described in
+.I in ,
+the capability-set, the type capability, the update time, and an error
+status are returned in the corresponding entry in
+.I out .
+Both
+.I in
+and
+.I out
+contain
+.I n
+entries.
+The structure
+.I sp_result
+is defined in
+.I soap.h
+as follows:
+.sC
+typedef struct {
+	short      sr_status;
+	capability sr_typecap;
+	long       sr_time;
+	capset     sr_capset;
+} sp_result;
+.eC
+The field
+.I sr_status
+is an error status.
+If it is not equal to
+.cW STD_OK
+then the other data in the structure are invalid.
+The operation is atomic, that is, it returns the situation as it was at
+one moment in time.
+.LP
+NB. Some implementations dictate that all entries have to reside in the
+directory server as specified by the first entry in
+.I in .
+For all entries not available at this server the
+.I sr_status
+field
+will contain
+.cW STD_NOTFOUND .
+.rR
+Access to at least one column of the directory containing each entry.
+.DE
+.sH
+sp_traverse
+.LP
+.sC
+errstat
+sp_traverse(dir, path, last)
+capset *dir;
+char  **path;
+capset *last;
+.eC
+.kW "\fIsp_traverse\fP"
+.I Sp_traverse
+returns in
+.I *path
+a pointer to the last component of the path name initially in
+.I *path .
+It also returns in
+.I last
+the capability for the directory up until the last component of the path
+(relative to the directory
+.I dir ).
+.LP
+There are several special cases.
+The path name
+.I /
+which will return a zero length path name in
+.I path
+and the capability-set for the root directory.
+The names
+.I dot (.)
+and
+.I dot-dot (..)
+at the end of a path name will not be normalized away.
+A path name which contains no
+.I /
+character will return in
+.I last
+the capability-set in
+.I dir
+and
+.I path
+will be unchanged.
+.rR
+Access to at least one column of the directory containing each element of the
+path.
+.DE
+.SH
+See Also
+.LP
+chm(U),
+chbul(A),
+del(U),
+dir(U),
+mkd(U),
+get(U),
+put(U),
+rpc(L),
+soap(A),
+.\" soaplib(L),
+std(L),
+std_age(A),
+std_destroy(U),
+std_info(U),
+std_copy(U),
+std_restrict(U),
+std_touch(U).

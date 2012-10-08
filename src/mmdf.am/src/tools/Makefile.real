@@ -1,0 +1,500 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:42:18
+#
+#
+#	Makefile for MMDF maintenance programs
+#
+MODULES = 	amp checkup checkque cleanque checkaddr nictable setup mailid rem_chans fixtai process-uucp tablelist
+#dbmbuild dbmedit dbmlist
+
+real-default:	amp checkup cleanque checkque checkaddr	nictable setup mailid rem_chans fixtai process-uucp tablelist
+#dbmbuild dbmedit dbmlist 
+
+install:	inst-checkup inst-checkque inst-nictable inst-cleanque inst-setup inst-mailid inst-checkaddr inst-rem_chans inst-fixtai inst-amp inst-process-uucp inst-tablelist
+#inst-dbmbuild inst-dbmedit inst-dbmlist 
+
+lint:	l-amp l-checkup l-cleanque l-checkque l-nictable l-setup l-mailid l-checkaddr l-rem_chans l-fixtai l-process-uucp l-tablelist
+#l-dbmbuild l-dbmedit l-dbmlist \
+
+aminstall:	ainst-checkup ainst-checkque ainst-nictable ainst-cleanque ainst-setup ainst-mailid ainst-checkaddr ainst-rem_chans ainst-fixtai ainst-amp ainst-process-uucp ainst-tablelist
+
+ainst-checkup:
+	$(AINSTALL) $(AINSTALLFLAGS) xcheckup $(LIBDIR)/$(MMPREF)checkup
+ainst-checkque:
+	$(AINSTALL) $(AINSTALLFLAGS) xcheckque $(LIBDIR)/$(MMPREF)checkque
+ainst-nictable:
+	$(AINSTALL) $(AINSTALLFLAGS) xnictable $(LIBDIR)/$(MMPREF)nictable
+ainst-cleanque:
+	$(AINSTALL) $(AINSTALLFLAGS) xcleanque $(LIBDIR)/$(MMPREF)cleanque
+ainst-setup:
+	$(AINSTALL) $(AINSTALLFLAGS) xsetup $(LIBDIR)/$(MMPREF)setup
+ainst-mailid:
+	$(AINSTALL) $(AINSTALLFLAGS) xmailid $(LIBDIR)/$(MMPREF)mailid
+ainst-checkaddr:
+	$(AINSTALL) $(AINSTALLFLAGS) xcheckaddr $(LIBDIR)/$(MMPREF)checkaddr
+ainst-rem_chans:
+	$(AINSTALL) $(AINSTALLFLAGS) xrem_chans $(LIBDIR)/$(MMPREF)rem_chans
+ainst-fixtai:
+	$(AINSTALL) $(AINSTALLFLAGS) xfixtai $(LIBDIR)/$(MMPREF)fixtai
+ainst-amp:
+	$(AINSTALL) $(AINSTALLFLAGS) xamp $(LIBDIR)/$(MMPREF)amp
+ainst-process-uucp:
+	$(AINSTALL) $(AINSTALLFLAGS) xprocess-uucp $(LIBDIR)/$(MMPREF)process-uucp
+ainst-tablelist:
+	$(AINSTALL) $(AINSTALLFLAGS) xtablelist $(LIBDIR)/$(MMPREF)tablelist
+
+#
+#   amp:       test address-mapping code (coerce to RFC733 or RFC822)
+#
+inst-amp:	$(LIBDIR)/$(MMPREF)amp
+
+$(LIBDIR)/$(MMPREF)amp  :  xamp
+	cp xamp $(LIBDIR)/$(MMPREF)amp
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)amp
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)amp
+	-@ls -ls $(LIBDIR)/$(MMPREF)amp
+	-@echo "amp installed normally"; echo ""
+
+amp:	xamp
+xamp:	$(HEAD) amp.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) amp.o $(MMDFLIBS) $(SYSLIBS)
+
+l-amp:
+	$(LINT) $(LFLAGS) amp.c $(LLIBS)
+
+#
+#   checkup:     verify mmdf directory and file setup
+#
+inst-checkup  :   $(LIBDIR)/$(MMPREF)checkup
+
+$(LIBDIR)/$(MMPREF)checkup  :   xcheckup
+	cp xcheckup $(LIBDIR)/$(MMPREF)checkup
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)checkup
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)checkup
+	-@ls -ls $(LIBDIR)/$(MMPREF)checkup
+	-@echo "checkup installed normally"; echo ""
+
+checkup:	xcheckup
+xcheckup:	$(HEAD) checkup.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) checkup.o $(MMDFLIBS) $(SYSLIBS)
+
+l-checkup:
+	$(LINT) $(LFLAGS) checkup.c $(LLIBS)
+
+#
+#   checkque:     summarize status of mail queue
+#
+inst-checkque:	$(LIBDIR)/$(MMPREF)checkque
+
+$(LIBDIR)/$(MMPREF)checkque:	xcheckque
+	cp xcheckque $(LIBDIR)/$(MMPREF)checkque
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)checkque
+	-chmod 04$(PGMPROT) $(LIBDIR)/$(MMPREF)checkque
+	-@ls -ls $(LIBDIR)/$(MMPREF)checkque
+	-@echo "checkque installed normally"; echo ""
+
+checkque:	xcheckque
+xcheckque:	$(HEAD) checkque.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) checkque.o $(MMDFLIBS) $(SYSLIBS)
+
+l-checkque:
+	$(LINT) $(LFLAGS) checkque.c $(LLIBS)
+
+#
+#   dbmbuild:     build the MMDF dbm database
+#
+inst-dbmbuild  :   $(LIBDIR)/$(MMPREF)dbmbuild
+
+$(LIBDIR)/$(MMPREF)dbmbuild  :   xdbmbuild
+	cp xdbmbuild $(LIBDIR)/$(MMPREF)dbmbuild
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)dbmbuild
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)dbmbuild
+	-@ls -ls $(LIBDIR)/$(MMPREF)dbmbuild
+	-@echo "dbmbuild installed normally"; echo ""
+
+dbmbuild:	xdbmbuild
+xdbmbuild:	$(HEAD) dbmbuild.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) dbmbuild.o $(MMDFLIBS) $(SYSLIBS)
+
+l-dbmbuild:
+	$(LINT) $(LFLAGS) dbmbuild.c $(LLIBS)
+
+#
+#   dbmedit:     incrementally change contents of MMDF database
+#
+inst-dbmedit  :   $(LIBDIR)/$(MMPREF)dbmedit
+
+$(LIBDIR)/$(MMPREF)dbmedit  :   xdbmedit
+	cp xdbmedit $(LIBDIR)/$(MMPREF)dbmedit
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)dbmedit
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)dbmedit
+	-@ls -ls $(LIBDIR)/$(MMPREF)dbmedit
+	-@echo "dbmedit installed normally"; echo ""
+
+dbmedit:	xdbmedit
+xdbmedit:	$(HEAD) dbmedit.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) dbmedit.o $(MMDFLIBS) $(SYSLIBS)
+
+l-dbmedit:
+	$(LINT) $(LFLAGS) dbmedit.c $(LLIBS)
+
+#
+#   dbmlist:     dump the contents of the DBM based mail database
+#
+inst-dbmlist:	$(LIBDIR)/$(MMPREF)dbmlist
+
+$(LIBDIR)/$(MMPREF)dbmlist:	xdbmlist
+	cp xdbmlist $(LIBDIR)/$(MMPREF)dbmlist
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)dbmlist
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)dbmlist
+	-@ls -ls $(LIBDIR)/$(MMPREF)dbmlist
+	-@echo "dbmlist installed normally"; echo ""
+
+dbmlist:	xdbmlist
+xdbmlist:	$(HEAD) dbmlist.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) dbmlist.o $(MMDFLIBS) $(SYSLIBS)
+
+l-dbmlist:
+	$(LINT) $(LFLAGS) dbmlist.c $(LLIBS)
+
+#
+#   nictable:     summarize status of mail queue
+#
+inst-nictable  :   $(LIBDIR)/$(MMPREF)nictable
+
+$(LIBDIR)/$(MMPREF)nictable  :   xnictable
+	cp xnictable $(LIBDIR)/$(MMPREF)nictable
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)nictable
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)nictable
+	-@ls -ls $(LIBDIR)/$(MMPREF)nictable
+	-@echo "nictable installed normally"; echo ""
+
+nictable:	xnictable
+xnictable:	$(HEAD) nictable.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) nictable.o $(MMDFLIBS) $(SYSLIBS)
+
+l-nictable:
+	$(LINT) $(LFLAGS) nictable.c $(LLIBS)
+
+#
+#   checkaddr:	Check addresses from lists or as arguments
+#
+inst-checkaddr:	$(LIBDIR)/$(MMPREF)checkaddr
+
+$(LIBDIR)/$(MMPREF)checkaddr  :   xcheckaddr
+	cp xcheckaddr $(LIBDIR)/$(MMPREF)checkaddr
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)checkaddr
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)checkaddr
+	-@ls -ls $(LIBDIR)/$(MMPREF)checkaddr
+	-@echo "checkaddr installed normally"; echo ""
+
+checkaddr:	xcheckaddr
+xcheckaddr:	$(HEAD) checkaddr.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) checkaddr.o $(MMDFLIBS) $(SYSLIBS)
+
+l-checkaddr:
+	$(LINT) $(LFLAGS) checkaddr.c $(LLIBS)
+
+#
+#   mailid:	Program to return mailid of invoker or specified userid
+#
+inst-mailid:	$(LIBDIR)/$(MMPREF)mailid
+
+$(LIBDIR)/$(MMPREF)mailid  :   xmailid
+	cp xmailid $(LIBDIR)/$(MMPREF)mailid
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)mailid
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)mailid
+	-@ls -ls $(LIBDIR)/$(MMPREF)mailid
+	-@echo "mailid installed normally"; echo ""
+
+mailid:	xmailid
+xmailid:	$(HEAD) mailid.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) mailid.o $(MMDFLIBS) $(SYSLIBS)
+
+l-mailid:
+	$(LINT) $(LFLAGS) mailid.c $(LLIBS)
+
+#
+#   cleanque:   Remove old/dangling files from message queue directories
+#
+inst-cleanque    :   $(LIBDIR)/$(MMPREF)cleanque
+
+$(LIBDIR)/$(MMPREF)cleanque  :   xcleanque
+	cp xcleanque $(LIBDIR)/$(MMPREF)cleanque
+	-$(CHOWN) root $(LIBDIR)/$(MMPREF)cleanque
+	-chmod 04$(PGMPROT) $(LIBDIR)/$(MMPREF)cleanque
+	-@echo "***  make sure /etc/rc & overnight cron run this program"
+	-@ls -ls $(LIBDIR)/$(MMPREF)cleanque
+	-@echo "cleanque installed normally"; echo ""
+
+cleanque:	xcleanque
+xcleanque:	$(HEAD) cleanque.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) cleanque.o $(MMDFLIBS) $(SYSLIBS)
+
+l-cleanque:
+	$(LINT) $(LFLAGS) cleanque.c $(LLIBS)
+
+#
+#   fixtai:   Extract the fixed part of an mmdf tailor file
+#
+
+inst-fixtai    :   $(LIBDIR)/$(MMPREF)fixtai
+
+$(LIBDIR)/$(MMPREF)fixtai  :   xfixtai
+	    cp xfixtai $(LIBDIR)/$(MMPREF)fixtai
+	    -$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)fixtai
+	    -chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)fixtai
+	    -@ls -ls $(LIBDIR)/$(MMPREF)fixtai
+	    -@echo "fixtai installed normally"; echo ""
+
+fixtai:   xfixtai
+xfixtai:  $(HEAD) fixtai.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) fixtai.o $(MMDFLIBS) $(SYSLIBS)
+
+l-fixtai:
+	$(LINT) $(LFLAGS) fixtai.c $(LLIBS)
+
+
+#
+#   rem_chans:   Comment out the channel defs from an mmdf tailor file
+#
+inst-rem_chans    :   $(LIBDIR)/$(MMPREF)rem_chans
+
+$(LIBDIR)/$(MMPREF)rem_chans  :   xrem_chans
+	    cp xrem_chans $(LIBDIR)/$(MMPREF)rem_chans
+	    -$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)rem_chans
+	    -chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)rem_chans
+	    -@ls -ls $(LIBDIR)/$(MMPREF)rem_chans
+	    -@echo "rem_chans installed normally"; echo ""
+
+rem_chans:   xrem_chans
+xrem_chans:  $(HEAD) rem_chans.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) rem_chans.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rem_chans:
+	$(LINT) $(LFLAGS) rem_chans.c $(LLIBS)
+
+#
+#   setup:     build mmdf directories
+#
+inst-setup  :   $(LIBDIR)/$(MMPREF)setup
+
+$(LIBDIR)/$(MMPREF)setup  :   xsetup
+	cp xsetup $(LIBDIR)/$(MMPREF)setup
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)setup
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)setup
+	-@ls -ls $(LIBDIR)/$(MMPREF)setup
+	-@echo "setup installed normally"; echo ""
+
+setup:	xsetup
+xsetup:	setup.o $(MMDFLIBS)
+	 $(LD) $(LDFLAGS)  -o $@ $(HEAD) setup.o $(MMDFLIBS) $(SYSLIBS)
+
+
+l-setup:
+	$(LINT) $(LFLAGS) setup.c $(LLIBS)
+
+#
+#   process-uucp:   Process output from pathalias to make channel/domain tables
+#                   Written by David Herron.
+#
+
+inst-process-uucp    :   $(LIBDIR)/$(MMPREF)process-uucp
+
+$(LIBDIR)/$(MMPREF)process-uucp  :   xprocess-uucp
+	    cp xprocess-uucp $(LIBDIR)/$(MMPREF)process-uucp
+	    -$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)process-uucp
+	    -chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)process-uucp
+	    -@ls -ls $(LIBDIR)/$(MMPREF)process-uucp
+	    -@echo "process-uucp installed normally"; echo ""
+
+process-uucp:   xprocess-uucp
+xprocess-uucp:  $(HEAD) process-uucp.o
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) process-uucp.o $(SYSLIBS)
+
+l-process-uucp:
+	$(LINT) $(LFLAGS) process-uucp.c $(LLIBS)
+
+#
+#   tablelist:     List tables used by a tailorfile
+#
+inst-tablelist  :   $(LIBDIR)/$(MMPREF)tablelist
+
+$(LIBDIR)/$(MMPREF)tablelist  :   xtablelist
+	cp xtablelist $(LIBDIR)/$(MMPREF)tablelist
+	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)tablelist
+	-chmod 0$(PGMPROT) $(LIBDIR)/$(MMPREF)tablelist
+	-@ls -ls $(LIBDIR)/$(MMPREF)tablelist
+	-@echo "tablelist installed normally"; echo ""
+
+tablelist:	 xtablelist
+xtablelist:	 $(HEAD) tablelist.o $(MMDFLIBS)
+	    $(LD) $(LDFLAGS) -o $@ $(HEAD) tablelist.o $(MMDFLIBS) $(SYSLIBS)
+
+l-tablelist:
+	$(LINT) $(LFLAGS) tablelist.c $(LLIBS)
+
+
+
+clean:
+	-rm -f x* *.o makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+amp.o: amp.c /usr/proj/amwork/src/h/posix/stdio.h
+amp.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/util.h
+amp.o: /usr/proj/amwork/src/h/posix/stdio.h
+amp.o: /usr/proj/amwork/src/h/posix/ctype.h
+amp.o: /usr/proj/amwork/src/h/posix/setjmp.h
+amp.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+amp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+amp.o: /usr/proj/amwork/src/h/posix/sys/types.h
+amp.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+amp.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+amp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+amp.o: /usr/proj/amwork/src/h/posix/dirent.h
+amp.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+amp.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/ap.h
+checkup.o: checkup.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkup.o: /usr/proj/amwork/src/h/posix/ctype.h
+checkup.o: /usr/proj/amwork/src/h/posix/setjmp.h
+checkup.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkup.o: /usr/proj/amwork/src/h/posix/sys/types.h
+checkup.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+checkup.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkup.o: /usr/proj/amwork/src/h/posix/dirent.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkup.o: /usr/proj/amwork/src/h/posix/pwd.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkup.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+checkup.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+checkup.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/gettys.h ../../h/dm.h
+checkque.o: checkque.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+checkque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkque.o: /usr/proj/amwork/src/h/posix/ctype.h
+checkque.o: /usr/proj/amwork/src/h/posix/setjmp.h
+checkque.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+checkque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkque.o: /usr/proj/amwork/src/h/posix/sys/types.h
+checkque.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+checkque.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+checkque.o: /usr/proj/amwork/src/h/posix/time.h
+checkque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkque.o: /usr/proj/amwork/src/h/posix/dirent.h
+checkque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkque.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+checkque.o: /usr/proj/amwork/src/h/posix/_ARGS.h /usr/include/utmp.h
+checkque.o: ../../h/ch.h /usr/proj/amwork/src/h/posix/stdio.h ../../h/msg.h
+checkque.o: ../../h/adr_queue.h ../../h/phs.h /usr/include/strings.h
+cleanque.o: cleanque.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+cleanque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+cleanque.o: /usr/proj/amwork/src/h/posix/ctype.h
+cleanque.o: /usr/proj/amwork/src/h/posix/setjmp.h
+cleanque.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+cleanque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+cleanque.o: /usr/proj/amwork/src/h/posix/sys/types.h
+cleanque.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+cleanque.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+cleanque.o: /usr/proj/amwork/src/h/posix/time.h
+cleanque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+cleanque.o: /usr/proj/amwork/src/h/posix/dirent.h
+cleanque.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/msg.h
+cleanque.o: ../../h/adr_queue.h ../../h/ch.h
+cleanque.o: /usr/proj/amwork/src/h/posix/stdio.h
+cleanque.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+cleanque.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkaddr.o: checkaddr.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/ctype.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/setjmp.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/sys/types.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+checkaddr.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/time.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/dirent.h
+checkaddr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+nictable.o: nictable.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+nictable.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+nictable.o: /usr/proj/amwork/src/h/posix/ctype.h
+nictable.o: /usr/proj/amwork/src/h/posix/setjmp.h
+nictable.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+nictable.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+nictable.o: /usr/proj/amwork/src/h/posix/sys/types.h
+nictable.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+nictable.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+nictable.o: /usr/proj/amwork/src/h/posix/time.h
+nictable.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+nictable.o: /usr/proj/amwork/src/h/posix/dirent.h
+nictable.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: setup.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: /usr/proj/amwork/src/h/posix/ctype.h
+setup.o: /usr/proj/amwork/src/h/posix/setjmp.h
+setup.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: /usr/proj/amwork/src/h/posix/sys/types.h
+setup.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+setup.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: /usr/proj/amwork/src/h/posix/dirent.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: /usr/proj/amwork/src/h/posix/pwd.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+setup.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+setup.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+setup.o: /usr/proj/amwork/src/h/posix/stdio.h
+mailid.o: mailid.c /usr/proj/amwork/src/h/posix/stdio.h
+mailid.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mailid.o: /usr/proj/amwork/src/h/posix/pwd.h
+mailid.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rem_chans.o: rem_chans.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/ctype.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rem_chans.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/cmd.h
+fixtai.o: fixtai.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+fixtai.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+fixtai.o: /usr/proj/amwork/src/h/posix/ctype.h
+fixtai.o: /usr/proj/amwork/src/h/posix/setjmp.h
+fixtai.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+fixtai.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+fixtai.o: /usr/proj/amwork/src/h/posix/sys/types.h
+fixtai.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/cmd.h ../../h/ch.h
+fixtai.o: /usr/proj/amwork/src/h/posix/stdio.h
+fixtai.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+fixtai.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ap.h ../../h/conf.h
+fixtai.o: /usr/proj/amwork/src/h/posix/time.h
+fixtai.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+fixtai.o: /usr/proj/amwork/src/h/posix/dirent.h
+fixtai.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+process-uucp.o: process-uucp.c /usr/proj/amwork/src/h/posix/stdio.h
+process-uucp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+process-uucp.o: /usr/proj/amwork/src/h/posix/ctype.h
+tablelist.o: tablelist.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+tablelist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tablelist.o: /usr/proj/amwork/src/h/posix/ctype.h
+tablelist.o: /usr/proj/amwork/src/h/posix/setjmp.h
+tablelist.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+tablelist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tablelist.o: /usr/proj/amwork/src/h/posix/sys/types.h
+tablelist.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+tablelist.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+tablelist.o: /usr/proj/amwork/src/h/posix/time.h
+tablelist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tablelist.o: /usr/proj/amwork/src/h/posix/dirent.h
+tablelist.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+tablelist.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h ../../h/chdbm.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

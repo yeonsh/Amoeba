@@ -1,0 +1,57 @@
+.\"	@(#)cpdir.n	1.4	96/02/15 18:06:02
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "cpdir" U
+copy a directory and its subdirectories
+.SH
+Synopsis
+.LP
+.sC L
+cpdir [-mv] srcdir destdir
+.eC
+.SH
+Description
+.LP
+.I Cpdir
+creates the target directory
+.I destdir ,
+goes into it,
+and recursively copies all the files and subdirectories
+from the source directory
+.I srcdir
+to it.
+When it is finished,
+the target directory contains copies of files in the source directory.
+Capabilities for all other objects are also copied,
+and subdirectories are copied recursively.
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+Verbose; cpdir tells what it is doing
+.IP \fB\-m\fP
+Merge; just merge in the files,
+the target directories should already exist.
+.mH
+Warnings
+.LP
+Recursively copying subgraphs which have cycles may well loop for a long time,
+filling the file server's disk in the process.
+.SH
+Example
+.LP
+.sC
+cpdir dir1 dir2
+.eC
+Create
+.I dir2
+and copy
+.I dir1 's
+subdirectories and files into it.

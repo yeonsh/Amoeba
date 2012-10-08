@@ -1,0 +1,192 @@
+.\"	@(#)cc.n	1.5	96/02/15 18:04:25
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: H. van Eck
+	Based On: old C compiler by E.H. Baalbergen, D. Grune, and M. Waage
+	Document: E.H. Baalbergen
+	Modified: Kees Verstoep, 8/11/90 - converted to amoeba manual macros
+					   and more focussed on the end user
+	Modified: Gregory J. Sharp, Oct 1995
+				- language clean up.
+.aE
+.mT "cc" U
+ACK STD C Compiler
+.SH
+Synopsis
+.LP
+.sC L
+cc [options] [file ...]
+.eC
+.SH
+Description
+.LP
+.kW "STD C"
+.kW C
+.kW "\fIack\fP
+.kW ACK
+.kW "compiler"
+.kW "programming language"
+.I Cc
+is a driver that calls the STD C front end and
+Amsterdam Compiler Kit (ACK) back ends
+(see
+.I ack (U))
+to translate a C program into ACK format object code or an \*(Am
+binary.
+By default,
+.I cc
+generates code for the architecture of the compiler itself.
+The program
+.I cc
+is actually a link to the generic driver of ACK
+.I ack (U).
+The only difference is that it provides a C run-time system
+(consisting of
+.I libajax.a
+and
+.I libamoeba.a )
+.kW "\fIled\fP"
+when it is used to link object files (see
+.I led ).
+Here,
+we will only describe the options applicable when compiling C programs.
+.mH
+Options
+.LP
+.IP "\fB\-A\fR[\fIfile\fR]" 8
+.br
+if \fIfile\fR is not given,
+generate a list of
+.I amake (U)
+dependencies,
+consisting of a list of all included files,
+and write them to the standard output.
+If \fIfile\fP is given,
+the dependencies will be generated on file \fIfile\fP.
+.kW "dependency generation"
+Note that the dependency generation takes place
+in addition to compilation itself.
+.IP \fB\-D\fIname\fR=\fItext\fR
+.br
+define \fIname\fR as a macro with \fItext\fR as its replacement text.
+.IP \fB\-D\fIname\fR
+.br
+equivalent to \fB\-D\fIname\fR=1.
+.IP \fB\-I\fIdirname\fR
+.br
+insert \fIdirname\fR in the list of include directories.
+.IP \fB\-M\fR[\fIfile\fR]
+.br
+generate dependencies,
+as with the
+.B \-A
+option,
+only this time generate them in a format suitable as
+.I make (U)
+dependencies, i.e., of the form
+.RS
+.IP "	src.o: header.h"
+.RE
+.IP ""
+where
+.I src.o
+is derived from the source file name.
+.IP \fB\-O\fR
+call the target optimizer after generating assembly code.
+.IP \fB\-O\fInum\fR
+.br
+invoke the EM global optimizer before generating assembly code.
+The integer argument
+.I num
+determines the type and amount of optimizations being performed.
+It can range from 1 to 4;
+the higher the number the more optimization phases.
+.IP \fB\-U\fIname\fR
+.br
+undefine the previously defined macro \fIname\fR.
+.IP \fB\-a\fR
+suppress warnings and strict standard conformance checking.
+.IP \fB\-c\fP
+generate an object file rather than a runnable program.
+The default name for the object file derived from
+.I source.c
+is
+.I source.o .
+The default name for a runnable program is
+.I a.out .
+.IP \fB\-c.\fIsuffix\fP\fR
+.br
+like
+.B \-c ,
+but generate stop when a file with extension \fIsuffix\fP has been produced.
+So
+.B \-c.s
+causes
+.I cc
+to produce an assembly file.
+(See
+.I ack (U)
+for all file types known to ACK.)
+.IP \fB\-i\fR
+when generating dependencies,
+do not include files from
+.I /usr/include .
+.IP "\fB\-o\ \fIname\fR"
+.br
+let the output be called \fIname\fP instead of the default
+.I source.o ,
+or
+.I a.out .
+.IP \fB\-p\fR
+generate code at each procedure entry to call the routine
+.I procentry() ,
+and at each return to call the routine
+.I procexit() .
+These routines are supplied with one parameter,
+a pointer to a string containing the name of the procedure.
+This is normally used for profiling.
+.IP \fB\-s\fR
+suppress strict standard conformance warnings.
+.IP \fB\-w\fR
+suppress all warning messages.
+By default,
+only warning messages complaining about old-style
+(but legal STD C)
+constructions are suppressed.
+.IP \fB\-wn\fR
+do not suppress warnings and stricts about old-style C,
+such as non-prototyped function definitions.
+.LP
+Refer to the ACK STD C front end documentation for a specification
+of the implementation-defined behavior of the ACK STD C compiler.
+.mH
+Diagnostics
+.LP
+All warning and error messages are written on standard error output.
+.mH
+Files
+.LP
+.I /tmp/*
+\- temporary files
+.mH
+Warnings
+.LP
+Although the C front end running on \*(Am is derived
+from the standard conforming ACK C compiler,
+the \*(Am headers and libraries are not all STD C conforming,
+because they are partly adaptations from a pre-standard C library.
+Some standard library functions are missing,
+while others will have slightly different semantics.
+.SH
+See Also
+.LP
+ack(U),
+amake(U),
+make(U),
+.br
+.I "The Link Editor"
+in the Programming Languages section of the Programming Guide.

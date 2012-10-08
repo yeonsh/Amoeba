@@ -1,0 +1,103 @@
+#	
+#	@(#)Amakefile	1.5	96/02/16 15:36:33
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/bootblocks/ibm_at/bootprom/Amake.srclist;
+
+%if (%not ($ARCH == 'i80386'), {
+	echo('You can only compile this for an i80386 target.');
+	echo('Aborting ...');
+	exit();
+});
+
+%include $CONF_ROOT/toolset/generic;
+
+%if ($COMPILER_SET <> ack, {
+	echo('You can only compile this with ACK.');
+	exit();
+});
+
+INCLUDES = {
+	-I$PWD,
+	-I$SRC_ROOT/h/machdep/arch/i80386,
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+# fetch ACKDIR from environment;  if not available take default
+%import ACKDIR;
+%if ($ACKDIR <> '', {
+	ACK_DIR = $ACKDIR;
+}, {
+	ACK_DIR = vpath(lib, { /usr/local/ack, /profile/module/ack });
+});
+
+# some fiddling to find out where led is
+ACK_LIB_DIRS = { $ACK_DIR/lib,  $ACK_DIR/lib.bin, $ACK_DIR/lib/back/any };
+EM_LED_DIR  = vpath(em_led, $ACK_LIB_DIRS);
+%if ($EM_LED_DIR <> '.', {
+	EM_LEDI86 = $EM_LED_DIR/em_led;
+}, {
+	EM_LED_DIR  = vpath(led, $ACK_LIB_DIRS);
+	%if ($EM_LED_DIR <> '.', {
+		EM_LEDI86 = $EM_LED_DIR/led;
+	}, {
+		exit('Cannot find the ack link editor led.');
+	});
+});
+EM_LIBI86  = $ACK_DIR/lib/i86/tail_em;
+
+LDFLAGSI86 = { '-a0:1', '-a1:1', '-a2:1', '-a3:1', '-s' };
+DEFINESI86 = { '-mi86' + $INCLUDES + '-DNDEBUG' };
+
+# WD80X3 boot prom without monitor
+%default prom.wd80x3;
+%cluster {
+	%targets prom.wd80x3[type = program];
+	%sources $R_BOOTROM_START, {$R_DRIVER_WD80X3, $R_BOOTROM};
+	%use	 cc-c(flags => $DEFINESI86),
+		 assembler(flags => $DEFINESI86),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+
+# WD80X3 boot prom with monitor
+%default prom.mon.wd80x3;
+%cluster {
+	%targets prom.mon.wd80x3[type = program];
+	%sources $R_BOOTROM_START, {$R_DRIVER_WD80X3, $R_BOOTROM};
+	%use	 cc-c(flags => $DEFINESI86 + '-DMONITOR'),
+		 assembler(flags => $DEFINESI86 + '-DMONITOR'),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+
+# NE2100 boot prom without monitor
+%default prom.ne2100;
+%cluster {
+	%targets prom.ne2100[type = program];
+	%sources $R_BOOTROM_START, {$R_DRIVER_NE2100, $R_BOOTROM};
+	%use	 cc-c(flags => $DEFINESI86),
+		 assembler(flags => $DEFINESI86),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+
+# NE2100 boot prom with monitor
+%default prom.mon.ne2100;
+%cluster {
+	%targets prom.mon.ne2100[type = program];
+	%sources $R_BOOTROM_START, {$R_DRIVER_NE2100, $R_BOOTROM};
+	%use	 cc-c(flags => $DEFINESI86 + '-DMONITOR'),
+		 assembler(flags => $DEFINESI86 + '-DMONITOR'),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+

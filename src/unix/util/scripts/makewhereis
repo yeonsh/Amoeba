@@ -1,0 +1,65 @@
+#!/bin/sh
+#	
+#	@(#)makewhereis	1.2	94/04/07 14:11:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# A library "function" initiated in the background by each use of amwhereis.
+# It compiled lists of all Amoeba source, conf and doc files.
+# Recompiles the lists whenever they are more than 2 days old, or when
+# user says -m (make).  Several necessary variables are exported from
+# amwhereis to this file, so it is not useable in isolation:
+# They are:
+#	SRC_FILES, XSRC_FILES, CONF_FILES, DOC_FILES, remake & use_x_also
+#
+
+unique=$$
+ROOT=`amdir`
+
+if [ T$remake = TTRUE -o "T`find $SRC_FILES -mtime +2 -print`" != "T" ] &&
+	touch $SRC_FILES	# Prevent any other parallel update
+then
+	echo >&2 "Rebuilding list of source files in background ..."
+	(	cd $ROOT
+		find src/[a-z]* -name '*.[cghHlsSy]*' -print >/tmp/amwhereS$unique
+		cp /tmp/amwhereS$unique $SRC_FILES
+		/bin/rm /tmp/amwhereS$unique
+	) </dev/null >/dev/null 2>&1 &
+fi
+if [ T$remake = TTRUE -o T$use_X_also = TTRUE -a \
+			 "T`find $XSRC_FILES -mtime +2 -print`" != "T" ] &&
+	touch $XSRC_FILES	# Prevent any other parallel update
+then
+	echo >&2 "Rebuilding list of X source files in background ..."
+	(	cd $ROOT
+		find src/X* -name '*.[cghlsy]' -print >/tmp/amwhereX$unique
+		cp /tmp/amwhereX$unique $XSRC_FILES
+		/bin/rm /tmp/amwhereX$unique
+	) </dev/null >/dev/null 2>&1 &
+fi
+if [ T$remake = TTRUE -o "T`find $CONF_FILES -mtime +2 -print`" != "T" ] &&
+	touch $CONF_FILES	# Prevent any other parallel update
+then
+	echo >&2 "Rebuilding list of conf files in background ..."
+	(	cd $ROOT
+		find  conf/amoeba/mc68000.sun conf/unix/mc68000.sun \
+					! \( -name .Amake -prune \) -a \
+					! \( -name RCS -prune \) -a \
+					! \( -name Amakefile \) -a \
+					-type f -a -print >/tmp/amwhereC$unique
+		cp /tmp/amwhereC$unique $CONF_FILES
+		/bin/rm /tmp/amwhereC$unique
+	) </dev/null >/dev/null 2>&1 &
+fi
+if [ T$remake = TTRUE -o "T`find $DOC_FILES -mtime +2 -print`" != "T" ] &&
+	touch $DOC_FILES	# Prevent any other parallel update
+then
+	echo >&2 "Rebuilding list of man files in background ..."
+	(	cd $ROOT
+		find  doc/ref_manual -name "*.n" -print >/tmp/amwhereM$unique
+		cp /tmp/amwhereM$unique $DOC_FILES
+		/bin/rm /tmp/amwhereM$unique
+	) </dev/null >/dev/null 2>&1 &
+fi

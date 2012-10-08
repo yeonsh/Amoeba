@@ -1,0 +1,53 @@
+.\"	@(#)who.n	1.4	96/02/16 11:10:47
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Mike Condict, 1990
+	Document: Gregory J. Sharp, 13 December 1990
+.aE
+.mT "who" U
+report who is logged onto the system
+.SH
+Synopsis
+.LP
+.sC L
+who
+.eC
+.SH
+Description
+.LP
+.kW "whoami"
+.I Who
+prints a list of the login names of the people logged in to \*(Am.
+It determines this by running
+.I aps (U)
+and looking for session servers.
+It extracts some relevant fields from the output of
+.I aps
+and prints them.
+.SH
+Example
+.LP
+.sC
+who
+.eC
+might print
+.sC
+versto    armada00    session -d -a
+keie      armada01    session -a
+geels     armada01    session -a
+phil      armada03    session -a
+sater     armada03    session -a
+leendert  armada03    -session -a /bin/sh
+bahler    armada09    session -a
+ast       armada09    session -a
+kaashoek  vmesa4      session -a
+gregor    vmesc2      session -a
+.eC
+.SH
+See Also
+.LP
+whoami(U).

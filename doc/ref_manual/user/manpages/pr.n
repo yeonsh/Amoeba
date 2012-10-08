@@ -1,0 +1,79 @@
+.\"	@(#)pr.n	1.4	96/02/16 11:06:30
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "pr" U
+print a file
+.SH
+Synopsis
+.LP
+.sC L
+pr [options] [-columns] [+page] [file] ...
+.eC
+.SH
+Description
+.LP
+.I Pr
+formats one or more files for printing.
+The result is written to
+.I stdout .
+If no files are specified,
+.I stdin
+is printed.
+Options are provided for setting the width and height of the page,
+the number of columns to use (default 1),
+and the page to start with,
+among others.
+.mH
+Options
+.LP
+.IP \fB\-\fP\fIcolumns\fP 6
+.br
+Format the output in
+.I columns
+columns.
+.IP \fB\+\fP\fIpage\fP
+.br
+Start at page number
+.I page .
+.IP "\fB\-h\fP \fIstring\fP
+.br
+Use
+.I string
+as the page header.
+Note that if it contains spaces or other characters special to the shell
+then they should be quoted.
+.IP \fB\-l\fP\fIn\fP
+Sets page length to
+.I n
+lines.
+.IP \fB\-n\fP
+Number the output lines.
+.IP \fB\-t\fP
+Do not print page header or trailer.
+.IP \fB\-w\fP\fIn\fP
+Sets line length to
+.I n
+characters.
+.SH
+Examples
+.LP
+.sC
+pr -w72 -l60 file
+.eC
+Use 72 characters per line and 60 lines per page.
+.sC
+pr -3 file
+.eC
+List file three columns to a page.
+.sC
+pr +4 file
+.eC
+Start printing with page 4.

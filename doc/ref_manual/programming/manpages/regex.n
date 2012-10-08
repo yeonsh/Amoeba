@@ -1,0 +1,190 @@
+.\"	@(#)regex.n	1.5	96/02/15 16:54:36
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ozan S. Yigit (oz@nexus.yorku.ca), York University
+	Modified: Ed Keizer, June 1992 - made BSD compatible
+	Document: Ed Keizer, June 1992 - based on comments from the code.
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "regex" L "libamoeba.a"
+BSD regex(3)/ed(U) compatible regular-expression routines
+.SH
+Synopsis
+.LP
+.sC L
+char *re_comp(s)
+int re_exec(s)
+int ignoreCase
+int regex_bopat[10];
+int regex_eopat[10];
+.eC
+.SH
+Description
+.LP
+.kW "\fIre_comp\fP"
+.kW "\fIre_exec\fP"
+.kW "regular expression"
+.kW "searching"
+.kW "pattern matching"
+Public domain routines compatible with the
+BSD regex(3)/ed(U) compatible regular-expression routines.
+.mH
+Functions
+.sH
+re_comp
+.LP
+.sC
+char *
+re_comp(regexp)
+char *regexp;
+.eC
+.kW "\fIre_comp\fP"
+.I Re_comp
+compiles the regular expression in the string argument into an internal
+format that is used by
+.I re_exec
+to perform pattern matching.
+.I Re_comp
+returns a NULL-pointer if the conversion was successful.
+In all other cases
+.I re_comp
+returns a pointer to a string containing the relevant error message.
+.LP
+If
+.I re_comp
+receives a NULL-pointer or an empty string as argument it will
+return a NULL-pointer and leave the previously compiled regular expression
+intact.
+If there was no previous regular expression
+.I re_comp
+will return an error.
+.LP
+.I Re_comp
+can compile the given regular expression into a case-insensitive
+regular expression.
+To achieve this effect the programmer must set the value of the
+global variable
+.I ignoreCase ,
+defined inside the module containing
+.I re_comp ,
+to a non-zero value.
+This is a BSD incompatible feature.
+.LP
+.I Re_comp
+recognizes the following regular expressions:
+.IP "[1]\ \*<char\*>" 13n
+matches itself, unless it is a special
+character (metachar):
+.cW
+\&. \e [ ] * + ^ $
+.R
+.IP "[2]\ \*<.\*>"
+matches any character.
+.IP "[3]\ \*<\e\*>"
+matches the character following it, except
+when followed by a left or right parenthesis,
+a digit \*<1\*> to \*<9\*> or a left or right angle bracket.
+It is used as an escape character for all 
+other meta-characters, and itself.
+When used in a set, it is treated as an ordinary character.
+.IP "[4]\ \*<[set]\*>"
+matches one of the characters in the set.
+If the first character in the set is \*<^\*>,
+it matches a character NOT in the set.
+That is, \*<^\*>
+complements the set.
+A shorthand \*<S-E\*> is used to specify a set of characters \*<S\*> up to 
+\*<E\*>, inclusive.
+The special characters \*<]\*> and \*<-\*> have no special meaning if they
+appear as the first characters in the set.
+.RS
+.DS
+.ta 15n
+examples:	match:
+\*<[a-z]\*>	any lowercase alpha
+\*<[^]-]\*>	any character except \*<]\*> and \*<-\*>
+\*<[^A-Z]\*>	any character except uppercase alpha
+\*<[a-zA-Z]\*>	any alpha
+.DE
+.RE
+.IP "[5]\ \*<*\*>"
+any regular expression form [1] to [4], followed by
+closure character \*<*\*> matches zero or more matches of
+that form.
+.IP "[6]\ \*<+\*>"
+same as [5], except it matches one or more.
+.IP [7]
+a regular expression in the form [1] to [10], enclosed
+as \*<\e(\*>form\*<\e)\*> matches what form matches.
+The enclosure creates a set of tags, used for [8] and for pattern substitution.
+The tagged forms are numbered starting from 1.
+.IP [8]
+a \*<\e\*> followed by a digit 1 to 9 matches whatever a
+previously tagged regular expression ([7]) matched.
+.IP "[9]\ \*<\e<\*>\ \*<\e>\*>"
+a regular expression starting with a \*<\e<\*> construct
+and/or ending with a \*<\e>\*> construct, restricts the
+pattern matching to the beginning of a word, and/or
+the end of a word.
+A word is defined to be a character
+string beginning and/or ending with the characters
+\*<A-Z a-z 0-9\*> and \*<_\*>.
+It must also be preceded and/or
+followed by any character outside those mentioned.
+.IP [10]
+a composite regular expression xy where x and y
+are in the form [1] to [10] matches the longest
+match of x followed by a match for y.
+.IP "[11]\ \*<^\*>\ \*<$\*>"
+a regular expression starting with a \*<^\*> character
+and/or ending with a \*<$\*> character, restricts the
+pattern matching to the beginning of the line,
+or the end of line.
+Elsewhere in the
+pattern, \*<^\*> and \*<$\*> are treated as ordinary characters.
+.sH
+re_exec
+.LP
+.sC
+char *
+re_exec(s)
+char *s;
+.eC
+.kW "\fIre_exec\fP"
+.LP
+.I Re_exec
+matches the regular expression compiled by
+.I re_comp
+to the string
+.I s .
+.I Re_exec
+returns 1 for success, 0 for failure and -1 when the compiled regular
+expression is invalid.
+When the match has been successful
+.I re_exec
+allows access to the tags created by \*<\e(\*> and \*<\e)\*>.
+The values of the tags can be accessed through the arrays
+.I regex_bopat
+and
+.I regex_eopat
+that contain offsets from the beginning of the string
+.I s .
+.I regex_bopat[n]
+points to the first character of the \fIn\fPth tag,
+.I regex_eopat[n]
+points to the last.
+Tag 0 contains the string passed to re_exec.
+The
+.I regex_bopat
+and
+.I regex_eopat
+arrays are not a part of the original BSD interface.
+.SH
+See Also
+.LP
+ed(U),
+grep(U).

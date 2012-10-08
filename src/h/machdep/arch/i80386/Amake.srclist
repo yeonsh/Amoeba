@@ -1,0 +1,27 @@
+#	
+#	@(#)Amake.srclist	1.6	94/04/06 15:56:25
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+H_ARCH_FILES = {
+	$PWD/arch_proto.h,
+	$PWD/asdebug.h,
+	$PWD/asm16.h,
+	$PWD/asm32.h,
+	$PWD/assyntax.h,
+	$PWD/bootinfo.h,
+	$PWD/byteorder.h,
+	$PWD/defarch.h,
+	$PWD/fault.h,
+	$PWD/i80386.h,
+	$PWD/interrupt.h,
+	$PWD/machdep.h,
+	$PWD/mpx_md.H,
+	$PWD/ndp.h,
+	$PWD/processor.h,
+	$PWD/syscall_stub.h,
+	$PWD/trap.h,
+	$PWD/type.h,
+};

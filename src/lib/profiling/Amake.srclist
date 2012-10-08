@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 11:13:38
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# profiling support for ACK:
+L_PROFILING = {
+	$PWD/profile.c,
+};
+# profiling support for GCC:
+L_GPROF = {
+        $PWD/gmon.c,
+        $PWD/prof__main.c,
+};
+# profiling support for GCC when C++ is used:
+L_GPROF_CXX = {
+        $PWD/gmon.c,
+        $PWD/prof_cxx.c,
+};

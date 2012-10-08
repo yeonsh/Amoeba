@@ -1,0 +1,31 @@
+.\"	@(#)sleep.n	1.4	96/02/16 11:07:48
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - style
+.aE
+.mT "sleep" U
+suspend execution for a given number of seconds
+.SH
+Synopsis
+.LP
+.sC L
+sleep seconds
+.eC
+.SH
+Description
+.LP
+The caller is suspended for the indicated number of seconds.
+This command is typically used in shell scripts.
+.SH
+Example
+.LP
+.sC
+sleep 10
+.eC
+Suspend execution for 10 seconds.

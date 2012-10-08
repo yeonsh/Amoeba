@@ -1,0 +1,5 @@
+#!/bin/sh
+#	
+#	@(#)gax	1.1	96/02/27 11:57:34
+#
+ax /profile/util/session -a -b /bin/sh -c "/profile/util/gax $*"

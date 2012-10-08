@@ -1,0 +1,254 @@
+.\"	@(#)b_sunos.n	1.10	96/02/15 17:00:55
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Hans van Staveren, 1991
+	Modified: Gregory J. Sharp, 1994
+			- loadable device drivers
+	Modified: Gregory J. Sharp, Oct 1995
+			- Solaris 2.x support
+.aE
+.nH 2 "Adding \*(Am RPC to a SunOS 5.x\^/\^Solaris 2.x kernel"
+.LP
+.kW SunOS
+.kW Solaris
+If you have SunOS 5.4 (Solaris 2.4) or newer you can add \*(Am RPC as a
+loadable pseudo-device to the kernel while it is running.
+This is done with the aid of a package.
+.nH 3 "Step by step installation"
+.LP
+The first thing to do is to create a binary file to link with the SunOS kernel.
+It is assumed that the configuration tree has been created as described in the
+previous section.
+The compiler to use is either the SUNWspro compiler or the GNU C compiler.
+.LP
+In this example we assume the SUNWspro compiler is used on a Solaris 2.4
+system running on a sun4m machine.
+We also assume that no FLIP driver has been installed yet.
+If that is not the case then the old FLIP driver should be uninstalled
+before proceeding.
+See below for details of how to do this.
+.LP
+In the configuration directory
+.I \(gaamdir\(ga/conf/unix/sparc.sunpro/flip-driver )
+there is an
+.I Amakefile
+that will create the driver and related utilities.
+In this case it will create the files,
+.I amoeba.sun4m.o
+and
+.I flipd .
+.kW amake
+This is done by typing the command
+.sC
+\fBamake -DUNIX_VERSION=sunos5.4\fP
+.eC
+Note that if you have SunOS 5.5 then use
+.cW sunos5.5
+as the
+.cW UNIX_VERSION
+argument.
+The
+.I amake
+command will also create programs called
+.kW "\fIflip_dump\fP"
+.I flip_dump 
+and
+.kW "\fIflip_stat\fP"
+.I flip_stat
+which can be used to get status information from the enhanced
+.UX
+kernel.
+These should be copied to the directory
+.I \(gaamdir\(ga/bin.sol .
+.LP
+To make the package,
+change directory to
+.I PKG
+and run
+.I amake .
+This will create 2 subdirectories,
+.I VUCSflipr
+and
+.I VUCSflipu ,
+which comprise the package.
+Copy these directories to where you normally keep your packages (for example,
+.I /usr/local/packages ).
+This can be done using tar.
+Then run
+.I pkgadd .
+If
+.cW PKGDIR
+is the place where your packages are normally kept then the following
+should achieve the desired result.
+.sC
+\fBtar cf - VUCSflipr VUCSflipu | (cd $PKGDIR ; tar xf - )
+pkgadd -d $PKGDIR VUCSflipu
+pkgadd -d $PKGDIR VUCSflipr\fP
+.eC
+.LP
+If this completes successfully then run the command
+.sC
+\fB/etc/init.d/flip-init start\fP
+.eC
+to load and start the FLIP driver.
+.nH 3 "Uninstalling the FLIP driver"
+.LP
+Before a new FLIP driver can be installed it is necessary to remove any
+active FLIP driver from the kernel.
+This is relatively simple.
+The steps are:
+.IP 1.
+Kill all processes using the FLIP driver (e.g.,
+.I ax (U)).
+.IP 2.
+Kill the
+.I flipd
+process.
+.IP 3.
+Get the module id of the currently loaded FLIP driver.
+It is the first number on the line produced by the command
+.sC
+\fBmodinfo | grep flip\fP
+.eC
+.IP 4.
+Run the command
+.sC
+\fBmodunload\fP \fImodule-id\fP
+.eC
+where
+.I module-id
+is the number found in step 3.
+.IP 5.
+Remove the old package from the kernel.
+.sC
+\fBpkgrm VUCSflipr
+pkgrm VUCSflipu\fP
+.eC
+.\"------------------
+.ne 8
+.nH 2 "Adding \*(Am RPC to a SunOS 4.1.1 kernel"
+.nH 3 "Requirements"
+.LP
+.kW "UNIX FLIP driver"
+.kW RPC
+.kW SunOS
+If you have SunOS release 4.1.1 or higher you can add \*(Am RPC as a
+loadable pseudo-device to the kernel while it is running.
+The kernel must have the VDDRV option installed (which is the default).
+.nH 3 "Step by step installation"
+.LP
+The first thing to do is to create a binary file
+to link with the SunOS kernel.
+It is assumed that the configuration tree has been built as described in the
+previous section.
+.LP
+The FLIP driver for the
+.I sun4m
+will be used as the example in the following description.
+In the configuration directory (for the sun4m this is
+.I \(gaamdir\(ga/conf/unix/sparc.sun/flip-driver )
+there is an
+.I Amakefile
+that will create the driver and related utilities.
+In this case it will create one file,
+.I amoeba.sun4m.o
+for use on the respective kernel architectures for the sun4.
+.kW amake
+This is done by typing the command
+.sC
+\fBamake -DUNIX_VERSION=sunos4.1.1\fP
+.eC
+Note that if you have SunOS 4.1.3 then use
+.cW sunos4.1.3
+as the
+.cW UNIX_VERSION
+argument.
+The
+.I amake
+command will also create programs called
+.kW "\fIflip_dump\fP"
+.I flip_dump 
+and
+.kW "\fIflip_stat\fP"
+.I flip_stat
+which can be used to get status information from the enhanced
+.UX
+kernel.
+Some other programs, for wide area communication might also appear.
+Ignore them.
+Move the file
+.I amoeba.sun4m.o
+into a subdirectory called
+.I vldrv
+in the top level of the \*(Am distribution tree.
+If this directory does not exist then create it.
+Move the programs
+.I flip_stat
+and
+.I flip_dump
+to the directory
+.I bin.sun4
+in the top level of the \*(Am distribution tree.
+.LP
+Now the driver can be installed.
+First become super-user on the machine where the driver is to be installed.
+Then put the top level directories
+.I bin.scripts
+and
+.I bin.sun4
+in your
+.kW PATH
+.cW PATH .
+Then type the command
+.kW loadflipdriver
+.sC
+\fBloadflipdriver\fP
+.eC
+This will, if everything works, create in
+.I /dev
+the entries used to access the network driver.
+Their names all begin with
+.I flip .
+.LP
+.I Loadflipdriver
+should print
+.sC
+vdload
+module loaded; id = 1
+.eC
+The
+.I "module id"
+will be a number higher than one if other loadable device drivers have been
+loaded already.
+Something about a
+.I kid
+(kernel id) might also be printed, depending on the level of debugging in
+the driver.
+If the script prints
+.sC
+flip_stat failed
+.eC
+Then something probably went wrong with the driver or its installation.
+.LP
+If everything seems to have worked then the interface should be tested.
+Make the
+.I .capability
+file and perform the basic tests as described in the introduction.
+.LP
+After the driver has been tested successfully it is probably wise to put the
+.kW loadflipdriver
+.I loadflipdriver
+call in the file
+.I /etc/rc.local
+.kW "/etc/rc.local"
+of the machine so that it is loaded every time the machine is rebooted.
+.LP
+.kW Ethernet
+The driver has been tested on machines with as many as three Ethernet
+interfaces.
+It will automatically function as a FLIP-gateway when there is more than
+one network-interface.

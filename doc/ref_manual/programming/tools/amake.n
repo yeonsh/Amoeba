@@ -1,0 +1,1934 @@
+.\"	@(#)amake.n	1.8	94/04/05 15:13:31
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document:  Kees Verstoep 1990
+	Software:  Kees Verstoep (Jun 1989 - May 1990)
+.aE
+.bp
+.nH 1 "Amake User Reference Manual"
+.nH 2 "Introduction"
+.LP
+.kW amake
+.I Amake
+is a software configuration manager that was designed
+to be a tool in the same spirit as
+.I make ,
+i.e., it is a stand-alone tool that,
+when run by the user,
+should invoke precisely those commands that (re-)create a set of target files,
+according to a description file.
+.kW "configuration management"
+The main idea is to make use of previous results as much as possible.
+Unlike standard
+.kW make
+.I make ,
+.I amake
+is also able to exploit possible parallelism between the commands.
+Although,
+as the name suggests,
+.I amake
+was designed to be used on the \*(Am distributed operating system,
+it also runs under
+.UX .
+.LP
+In contrast to a lot of ``extended makes'' the specification language
+is not a superset of
+.I make 's,
+but a totally new one.
+This paper focuses mainly on the syntax and semantics
+of the various constructs in the language.
+To make it as flexible as possible,
+.I amake
+has no built-in knowledge about specific languages or tools.
+The presence and usage of tools available can be declared in files
+that serve as a library of site-specific
+.I amake
+information.
+In order to make it possible to exchange a software configuration
+between various sites easily,
+a standard tool library is provided.
+.nH 2 "Why Amake"
+.LP
+.I Amake
+is a software configuration manager developed to make use of the capacities
+\(em especially parallelism \(em
+of the Amoeba Distributed Operating System.
+While developing ideas about what features this new tool could and
+(most importantly) should have,
+it was found that keeping upward compatibility with
+.I make
+would constrain
+.I amake
+too much.
+The basic problem was that sticking to a make-like
+description file format would only allow us to introduce rules,
+written in
+.I make
+syntax,
+containing directives having a special meaning to
+.I amake .
+Although this is sufficient to provide the enhanced
+.I make
+with the information that,
+say,
+some additional action has to be taken when updating an explicit rule,
+it does not fundamentally change
+.I make 's
+concepts.
+.LP
+Two aspects of
+.I make
+are especially bothersome.
+First of all there is the (type, suffix) correspondence,
+upon which the implicit-rule construct is based.
+One would like to be able to group source objects
+according to other criteria than just sharing a common suffix.
+Another major problem with
+.I make ,
+when used for large configurations,
+is that the description file is
+.I "task model"
+oriented,
+that is,
+it tells
+.I how
+instead of
+.I which
+things need to be done.
+As a result of this,
+.I make
+description files are system dependent and contain redundant information.
+For example,
+if all programs in a big software project need to be linked
+with some specific set of flags and libraries,
+this information has to be repeated in each Makefile.
+.kW amake
+.LP
+Another problem with
+.I make
+is that its implicit rules,
+which it uses to derive which transformations it should perform automatically,
+only work when the source objects are in the
+.I same
+directory as the
+.I makefile
+and,
+consequently,
+the file objects produced.
+This is extremely bothersome when several versions of the resulting binaries
+have to be kept up-to-date.
+A well-known trick that tries to alleviate this problem is
+the creation of
+.I "shadow trees" ,
+consisting of symbolic links to all the sources.
+However,
+apart from the fact that this takes up a lot of disk space,
+it in turn introduces the problem of keeping the symbolic links up to date
+(e.g.,
+when a source file is added or moved).
+.LP
+As the aspects mentioned are fundamental to
+.I make ,
+it was decided not try to implement
+yet another extended version of the existing program.
+.nH 2 "Overview"
+.LP
+In
+.I amake ,
+a software configuration can be specified by means of one or more
+.I cluster
+definitions.
+A cluster defines the targets to be constructed from a given set of sources.
+It is
+.I amake 's
+task to deduce which
+.I tools
+to use,
+in what order,
+and how to do it efficiently.
+The tools available can be defined by the user,
+but generally a reference to a common tool library
+(by means of a source inclusion mechanism) will suffice.
+In order to be able to decide if some file
+may be used or produced by a certain tool,
+each file is represented internally as an
+.I object
+with a set of valued
+.I attributes .
+(One possible value is ``unknown,''
+indicating the absence of the attribute.)
+.LP
+A tool definition,
+which shows some resemblance to a function definition
+found in common programming languages,
+contains in its header references to the required values of certain attributes,
+such as ``type.''
+Rather than letting the user specify the values of all the attributes needed,
+these values can most of the time be derived by
+.I amake
+itself,
+using
+.I "attribute derivations" .
+A well-known example is the
+.I name-based
+derivation:
+a file having suffix ``\*<.c\*>'' is assumed to be a C source file
+(hence having a \*<type\*> attribute with value \*<C-src\*>),
+unless explicitly specified otherwise.
+The
+.I rules
+defining derivations possible will generally be defined in a library,
+together with the tools that refer to the attribute values in question,
+but the user may of course provide additional ones.
+In derivations,
+as in each
+.I amake
+construct that allows expressions,
+built-in functions and previously declared tools may be used.
+.kW amake
+.nH 2 "Example"
+.LP
+For an illustration of the major differences between
+.I make
+and
+.I amake
+consider the simple compiler
+.I comp
+to be built from the
+source files
+.I parse.y ,
+.I lex.l ,
+.I comp.c ,
+.I defs.h 
+and the library
+.I ident.a .
+A
+.I make
+specification for this configuration is presented
+in figure \*(fN.
+.f1
+.sC
+1 OBJECTS = parse.o scan.o comp.o
+2 LIBES = ident.a
+3
+4 comp: $(OBJECTS) $(LIBES)
+5       $(CC) -o comp $(OBJECTS) $(LIBES)
+6
+7 parse.o scan.o: defs.h
+.eC
+.f2
+Specification of a simple compiler in
+.I make
+.f3
+.LP
+Note that
+.I intermediate
+files stemming from the application of an implicit rule are mentioned,
+rather than the sources themselves.
+This may introduce portability problems,
+because on one system the C-compiler might produce loadable objects
+(``.o files''),
+while on another it may generate assembly (``.s'') files.
+As there is no way to specify an implicit rule combining several files
+(possibly of different kinds as well),
+an explicit rule has to be provided in the manner shown on lines 4 and 5.
+.LP
+Also note the way
+.I "implicit inputs"
+have to be specified in
+.I make .
+Implicit inputs are source files that are read by the tool,
+in addition to the prime source file.
+In the example the files read by the C-compiler (or C-preprocessor)
+as a result of ``#include'' directives are implicit inputs.
+When one of the implicit files
+used in the construction of an intermediate file has changed,
+the associated command has to be re-invoked
+because it might deliver new results
+(i.e.,
+when
+.I defs.h
+is modified,
+both
+.I parse.c
+and
+.I scan.c
+have to be recompiled).
+In
+.I make
+this implicit dependency has to be specified explicitly,
+as is done on line 7.
+.LP
+.kW amake
+To contrast with
+.I amake ,
+consider the
+.I amake
+specification of the same configuration in figure \*(fN.
+.f1
+.sC
+1 %include \fIstd-amake.amk\fP;
+2
+3 %cluster
+4 {
+5     %targets \fIcomp\fP[\fItype\fP = \fIprogram\fP];
+6     %sources \fIparse.y\fP, \fIscan.l\fP, \fIcomp.c\fP, \fIdefs.h\fP, \fIident.a\fP;
+7 };
+.eC
+.f2
+Specification of a simple compiler in
+.I amake .
+Non-keywords are in italics.
+.f3
+The \*<%include\*> directive on line 1 causes
+.I amake
+to read the file ``std-amake.amk'',
+which contains a standard tool set constituting
+a C programming environment (containing a C-compiler,
+loader,
+library maintainer,
+.I Yacc ,
+.I Lex ,
+.I Lint ,
+etc.).
+The cluster definition itself is clear,
+apart from the phrase ``[type = program]'' on line 3,
+which takes care of setting the attribute ``type''
+of file \fIcomp\fP (the
+.I target
+to be constructed) to ``program''.
+.I Amake
+needs this information,
+because,
+in general,
+various kinds of objects may be produced from a given set of sources
+(e.g.,
+loadable objects may be combined to form
+either a runnable program or a library).
+In this example,
+.I amake
+.kW amake
+is able to derive the
+.I type
+attribute of all source objects,
+using only suffixes.
+.LP
+A set of clauses describing implicit inputs is not needed in
+.I amake ,
+because tools with an implicit input concept
+are supposed to deliver a list of them on a report file.
+If the tool is not able to do that,
+it is possible to specify in the tool's definition that another program
+(such as
+.I mkdep
+for C-programs) should be called to deliver the information needed.
+.I Amake
+stores the set of
+.I actual
+inputs encountered
+when the tool was run in a (hidden) statefile,
+so the user is not bothered with keeping this information up-to-date.
+.LP
+Concluding,
+it is felt that
+.I amake 's
+way of describing software configurations is more convenient for the user,
+less system dependent,
+and
+\(em
+thanks to the automated implicit input and compilation flag administration
+\(em
+more secure.
+.nH 2 "Lexical elements"
+.LP
+The lexical elements are described first,
+before turning our attention to the various language constructs,
+one by one.
+The main difference between the syntax of the language used in
+.I amake
+description files and the ones used in common programming languages is the
+fact that \fIkeywords\fP rather than (file name or string) constants are
+quoted (prefixed with the character ``\*<%\*>'' in this case).
+Figure \*(fN shows the keywords of the
+.I amake
+.kW amake
+specification language.
+.f1
+.sC
+%and,     %boolean, %cluster, %computed, %condition,
+%conform, %declare, %default, %derive,   %diag,
+%do,      %export,  %false,   %generic,  %if,
+%ignore,  %import,  %in,      %include,  %instance,
+%list,    %not,     %or,      %out,      %return,
+%sources, %string,  %targets, %tmp,      %tool,
+%trigger, %true,    %unknown, %use,      %when
+.eC
+.f2
+Keywords
+.f3
+.LP
+It should be noted that a large portion of the keywords
+deals with the construction of tool descriptions.
+Most people will just use an already existing tool set,
+so in practice only a small subset of the language will be encountered.
+.LP
+Literals,
+which may be used to serve as a string constant,
+or as (a component of) a file name,
+are sequences of upper- and lower case letters,
+digits,
+dots (``\*<.\*>''),
+minus-signs (``\*<\-\*>'')
+and underlines (``\*<_\*>'').
+When a string containing special (but printable) characters needs
+to be specified,
+it has to be quoted by adding
+apostrophes (``\*<\'\*>'') to the beginning and end of it.
+Apostrophes contained within a quoted string have to be doubled,
+so the string
+.I "I'm ready"
+has to be specified as \*<'I''m ready'\*>.
+.LP
+The names of global variables and parameters closely resemble literals,
+except that they may not contain dots or minus-signs.
+A reference to a previously defined parameter or variable can be made
+by prefixing the name with a dollar-sign (``\*<$\*>'').
+Note that in the declaration of a parameter or variable
+no dollar-sign is used,
+as is the case for the Bourne shell and
+.I make .
+.LP
+The operators and delimiters composed of special characters are shown
+in figure \*(fN.
+.kW amake
+.f1
+.sC
+.ps+1
+=       ==      <>      =>      +       ?
+&       :       ,       ;       /       \e
+(       )       {       }       [       ]
+.eC
+.f2
+Operators and delimiters
+.f3
+.LP
+Comments are introduced with the (unquoted) character ``\*<#\*>'' and
+continue till the end of the line.
+White space (spaces,
+tabs and newlines) is not significant,
+other than as a means to separate tokens.
+.nH 2 "Amake Constructions"
+.LP
+The most important constituents of an
+.I amake
+``program'' are the
+.I cluster
+and
+.I "tool definitions" ,
+and the
+.I "attribute derivation rules" .
+They describe,
+respectively,
+the software configurations to be managed,
+the tools available,
+and how some attribute of an object could be computed,
+if it were still unknown.
+These basic constructs are used as an information base
+in the process of determining what actions
+.I amake
+has to perform,
+when updating a configuration.
+Although they may be considered as \fIdeclarative\fP language
+constructs (like \fIfacts\fP in logic programs),
+the order of definition is sometimes significant,
+e.g.,
+derivations rules are tried in the order
+in which they are declared.
+.LP
+Formally,
+at the highest level an
+.I amake
+specification file has the structure shown in figure \*(fN.
+.kW amake
+Note that each \fIamake-def\fP must be followed by a semicolon.
+.f1
+.sC
+.ps+1
+.ta 10, 20, 25
+\fIamake-program\fP ::=	\fIamake-def-list\fP
+\fIamake-def-list\fP ::=	[ \fIamake-def\fP ";" ]*
+
+\fIamake-def\fP ::=	[ \fIcluster-def\fP	| \fIdefault-def\fP
+	| \fItool-def\fP	| \fIderivation-rule\fP
+	| \fIassignment\fP	| \fIdeclaration\fP
+	| \fIsource-inclusion\fP	| \fIconditional\fP
+	| \fIgeneric\fP	| \fIinstantiation\fP
+	| \fIimport\fP	| \fIexport\fP
+	]
+.eC
+.f2
+Global structure
+.f3
+.LP
+In order to make it possible to share data between
+several constructs within a description file
+(e.g.,
+clusters having partly the same sources)
+and among independent description files (a common tool library,
+for instance)
+there are also some imperative constructs available.
+They include the \fIassignment\fP,
+\fIsource code inclusion\fP,
+\fIconditional definition\fP,
+a facility to create and instantiate
+\fIgeneric\fP pieces of
+.I amake
+code,
+and \fIenvironment\fP interaction.
+.LP
+Almost all top-level constructs may contain general expressions.
+In order to avoid getting too technical right away,
+expressions will be defined more formally in a later section.
+We will first go through the top-level language elements available.
+.nH 2 "Clusters"
+.LP
+Clusters are used to describe a \fIconfiguration\fP of sources
+and targets that have to be created from the former.
+It is
+.I amake 's
+task to determine which tools it has to apply
+to achieve this.
+.kW amake
+If there is more than one way to do this
+\(em
+for instance,
+two different compilers for the same language could be defined
+\(em
+.I amake
+points out the conflict,
+and the user will have to provide additional information,
+enabling
+.I amake
+to find a unique solution.
+The syntax of cluster definitions,
+as well as their semantics will be presented at the end of this section,
+but first a non-trivial example.
+.SH
+Example
+.LP
+To show a bit more of
+.I amake 's
+capabilities,
+consider the extended software configuration of figure \*(fN.
+.f1
+.sC
+ 1 %include std-amake.amk;
+ 2
+ 3 SRC = { parse.y, scan.l, comp.c, defs.h, comp.a };
+ 4 FLAGS = '-DAMOEBA';
+ 5
+ 6 %cluster   # made by default.
+ 7 {
+ 8   %targets comp[type = program];
+ 9   %sources $SRC;
+10   %use     cc-c(f\&lags => $FLAGS, optimize => %true);
+11 };
+12
+13 %cluster   # only made when asked for.
+14 {
+15   %targets comp_debug[type = program];
+16   %sources $SRC + debug.c;	# extra source
+17   %use     cc-c(f\&lags => $FLAGS + '-DDEBUG');
+18 };
+.eC
+.f2
+Extended configuration example
+.f3
+.LP
+.kW amake
+This definition describes a common software development situation:
+we have a fast ``production'' version (defined on lines 6 through 11) and a
+debug version (defined on lines 13 through 18),
+which probably has some additional capabilities.
+Common
+.I make
+practice when we want to switch
+from a debug- to a fast version is the following procedure:
+.IP 1)
+execute \*<make clean\*>,
+which ought(!) to throw away previously produced files
+.IP 2)
+execute \*<make CFLAGS=-O\*>,
+which creates the version wanted.
+.LP
+In contrast,
+.I amake
+maintains its own \fIobject pool\fP of files generated,
+without the user having to notice it (other than that
+some builds might be unexpectedly quick).
+Besides the advantage of not
+having to look at a directory cluttered up with objects that are
+\(em or should be! \(em
+of no interest to the programmer,
+this gives
+.I amake
+the opportunity to retain intermediate objects
+that may be of use in later runs.
+.LP
+It is even possible to maintain both (fast and debug) versions in one run:
+there is an internal locking mechanism that allows both clusters to be
+updated.
+(If there are sufficient pool processors,
+one might as well use it).
+If this kind of use is intended,
+the targets must have different names or destination directories,
+of course.
+.LP
+As a final remark,
+situations as above,
+where some constructs
+\(em clusters in this case \(em are repeated with minor differences,
+can be handled more conveniently by making use of
+.I generics ,
+which are described later on.
+.SH
+Syntax
+.LP
+.kW amake
+The syntax of a cluster definition is shown in figure \*(fN.
+.f1
+.sC
+.ps+1
+\fIcluster-def\fP		::= \fB%cluster\fP \fIcluster-name\fP ?
+			    "{"
+			    [ \fB%targets\fP \fIexpression-list\fP ";" ]?
+			    [ \fB%sources\fP \fIexpression-list\fP ";" ]?
+			    [ \fB%use\fP     \fItool-usage-list\fP ";"
+			    | \fB%do\fP      \fIstatement-list\fP
+			    ]?
+			    "}"
+
+\fIcluster-name\fP	::= \fIexpression\fP
+
+\fItool-usage-list\fP	::= \fItool-usage\fP [ "," \fItool-usage\fP ]*
+\fItool-usage\fP		::= \fIidentifier\fP "(" \fIargument-list\fP ")"
+
+\fIstatement-list\fP	::= [ \fIstatement\fP ";" ]*
+\fIstatement\fP		::= \fIexpression\fP
+.eC
+.f2
+Cluster definition syntax
+.f3
+.LP
+Note that the cluster name may be an expression
+\(em rather than just a literal \(em which has to evaluate to
+a string.
+This makes it possible to include a cluster definition in a
+.I generic ,
+which is handy in case a lot of similarly looking clusters have
+to be defined.
+We will give an example of this construct when generics are defined.
+.LP
+Cluster names can be given as argument to
+.I amake ,
+in order to specify another cluster than the default one
+(see the section on defaults).
+A cluster name may also be absent,
+in which case
+.I amake
+takes the cluster to be a candidate for use as \fIsubcluster\fP.
+Subclusters create targets that are sources of other clusters.
+Given the clusters to be updated,
+the subclusters are recursively determined.
+.LP
+.kW amake
+The need for this construct arises when either
+a tool hierarchy creating the targets from the sources cannot be
+constructed or \(em a much more common case \(em
+when the user wants to create a \fIset\fP of targets,
+each defined by its own cluster containing its private sources,
+without having to specify them all on the command line.
+.LP
+The \*<%targets\*> and \*<%sources\*> specification each require an expression
+delivering a list of objects.
+Note that these expressions also may contain attribute assignments.
+In this case they are taken to be \fIlocal\fP attributes,
+i.e.,
+it is possible in
+.I amake
+to let an object have type \*<C-src\*> in one cluster,
+and
+type \*<text\*> in another.
+.LP
+The \*<%use\*> clause serves two purposes.
+Firstly,
+it may be used to specify different
+defaults than supplied by the tool definition itself.
+Secondly,
+it can be used to remove a conflict that arises when
+.I amake
+finds that there is no unique set of tools that create
+the targets from the sources.
+Normally,
+when the standard tool set is used,
+this should not be necessary.
+.LP
+The \*<%do\*> clause gives an opportunity to override
+.I amake 's
+default behavior of deciding which tools to run.
+It resembles
+.I make's
+explicit rule mechanism.
+The \fIstatement-list\fP is just a boolean expression to be evaluated;
+the semicolons are interpreted as \*<%and\*> operators.
+This statement list will generally consist of an \*<exec\*> call,
+which is executed each time the cluster is run.
+Alternatively an explicit tool invocation can be made.
+In this case it is only executed when the inputs of the tool (usually
+consisting of all the sources of the cluster) have changed.
+If the statement list does not evaluate to \*<%true\*>,
+the build of the cluster is said to have \fIfailed\fP,
+which will be reported.
+.LP
+.kW amake
+Clusters that have neither a \*<%use\*> nor a \*<%do\*> clause,
+are handled as \*<%use\*> clause clusters that do not change defaults,
+and thus let
+.I amake
+find out which tools it has to run in what order.
+.SH
+Default Clusters
+.LP
+As
+.I amake
+allows multiple clusters to be declared,
+there has to be a way to tell it which clusters are to be brought up to date.
+Apart from specifying clusters to be built as argument when
+.I amake
+is invoked,
+it is also possible to mark some of the clusters as ``default''.
+They will be constructed in case no cluster is mentioned.
+Default clusters are specified with the following syntax:
+.sC
+.ps+1
+\fIdefault-def\fP ::= \fB%default\fP \fIexpression\fP
+.eC
+The expression given as argument should evaluate to the names
+of the clusters (or corresponding targets) to be built by default.
+Multiple default definition are allowed.
+.nH 2 "Attribute Derivation Rules"
+.LP
+When
+.I amake
+has to decide whether a certain object may be used as the
+input or output of some tool,
+it first looks at attributes already known about the object.
+If the value of an attribute that is needed is not present,
+.I amake
+tries to
+.I derive
+it,
+using the \fIattribute derivations rules\fP relevant for that attribute.
+Such a rule has two parts:
+a specification of the attribute/value pairs to be attached,
+and a \fIcondition\fP which places a restriction on the rule's applicability.
+A derivation is introduced as follows:
+.sC
+.ps+1
+\fIderivation-rule\fP ::=	\fB%derive\fP \fIidentifier\fP "[" \fIattr-spec-list\fP "]"
+				\fB%when\fP \fIexpression\fP
+.eC
+.kW amake
+The identifier (say ``id'') serves as a parameter to the derivation rule,
+so that it can be referred to (by ``$id'') in the rest of the rule.
+When a rule is tried,
+the parameter is instantiated to the object
+for which the attribute(s) have to be computed.
+.LP
+Derivations rules are tried one by one,
+in the order in which they are defined.
+If one of the derivations \fIsucceeds\fP,
+i.e.,
+its condition evaluates to \*<%true\*>,
+the values specified are permanently attached to the object.
+If,
+however,
+the attribute can not be derived,
+the special value \*<%unknown\*> is given by default.
+.LP
+An often used derivation is that of the suffix based ``type'' attribute.
+Consider the examples in the next figure.
+.f1
+.sC
+%derive f[type = C-src]  %when matches($f, '%.c');
+%derive f[type = C-incl] %when matches($f, '%.h');
+%derive f[C-src-or-incl] %when $f ? type == C-src
+                         %or   $f ? type == C-incl;
+%derive f[any-src]       %when %true;
+.eC
+.f2
+Derivation rule examples
+.f3
+.LP
+The third derivation is especially interesting.
+Tool definitions
+(described in the next section) require the attributes of in- and output
+objects to be explicitly defined;
+there is no way to specify that an object has
+got to have value ``C-incl'' \fIor\fP value ``C-src'' for attribute ``type''.
+By introducing new attributes and corresponding derivation rules,
+one can work around this restriction.
+The final derivation shows how we can prevent
+.I amake
+setting an attribute to \*<%unknown\*>,
+by default.
+.nH 2 "Tool definitions"
+.LP
+The existence and characteristics of tools that might be used by
+.I amake
+.kW amake
+have to be made known by means of \fItool definitions\fP.
+Tool definitions form an interface to a set of commands (defined
+in the tool body) that are to be executed.
+They also provide more semantic information than the (textual)
+commands themselves.
+.LP
+The main properties of a tool definition are:
+.IP \(bu
+It describes what attribute values the input objects
+are supposed to have.
+The attributes are examined in the algorithm
+.I amake
+uses to decide
+whether the tool should be applied to source or intermediate objects.
+.IP \(bu
+It describes what attribute values will be attached
+to the output objects.
+This information is needed because the files produced
+possibly require processing by subsequent tools.
+The attributes can also be used to determine what name
+the default output objects will have.
+It often happens to be the case that the default output file
+has the same
+.I basename
+as one of the inputs.
+.IP \(bu
+It is possible to create a relatively system independent interface
+by introducing boolean,
+string,
+or string list parameters,
+which may influence tool behavior.
+.IP \(bu
+Temporary files can be specified so that
+.I amake
+can take measures
+not to let two tools,
+using the same file,
+interfere.
+.IP \(bu
+It is possible to supply default values for most of the parameters,
+so that only differences with the standard behavior are to
+be specified in the cluster's \*<%use\*> clause.
+.SH
+Example
+.LP
+We will first give an example before turning to the general case.
+Figure \*(fN contains a tool definition of the
+.UX
+.kW amake
+program ``lex'',
+which produces a lexical scanner (in C) from a description file.
+.f1
+.sC
+1  %tool lex (
+2      src:   %in     [type = lex-src];
+3      dest:  %out    [type = C-src]    => match($src);
+4      temp:  %tmp                      => lex.yy.c;
+5      flags: %string %list             => {};
+6      prog:  %in     [type = command]  => /usr/bin/lex;
+7  )
+8  {
+9      exec($prog, args => $flags + $src);
+10     move($temp, $dest);
+11 }
+.eC
+.f2
+A tool definition for Lex
+.f3
+.LP
+As can be seen from this example,
+tool definitions have a lot in common
+with functions or procedures found in common imperative programming languages.
+Lines 1-7 form the \fItool header\fP,
+giving the name of the tool and
+(in the parameter list)
+describing the kind of objects used as in- and outputs,
+side-effects and options of the tool.
+Lines 8-11 contain the \fItool body\fP,
+describing the actions to be executed.
+In this case,
+the result of the tool invocation is the boolean result
+of the evaluation of the tool body.
+.LP
+Going through the header,
+we notice that the parameter \*<src\*>
+is the only parameter which does not have a default.
+This should not be too surprising,
+because this parameter represents a possible lex input file
+\(em note it is marked \*<%in\*> \(em
+and it is
+.I amake 's
+very job to find out whether this tool can be applied
+to one of the files given as source in a cluster.
+Many tool definitions
+(e.g.,
+the ones currently present in the standard tool definition set)
+have the same basic structure as the one presented here.
+.kW amake
+.LP
+The next parameter (\*<dest\*> on line 3) is of type \*<%out\*>,
+i.e.,
+it denotes a file which is supposed to be generated by the
+command block of the tool.
+The default name for this file is computed
+by the built-in \*<match\*> function.
+Actually,
+this function needs some help provided by a derivation rule,
+but this will be described in a later section.
+The result,
+however,
+is that an input file \*<lexer.l\*> will cause
+an output file \*<lexer.c\*> to be created.
+.LP
+Line 4 makes the hard-wired temporary file ``\*<lex.yy.c\*>'' explicit.
+As
+.I amake
+has a locking mechanism,
+which takes care of tool synchronization,
+this will prevent it to run 2 invocations of Lex at the same time.
+.LP
+The various options of the tool are represented on line 5 by
+the parameter \*<flags\*> of type \*<%string %list\*>.
+As the \fIcommand\fP Lex only has few options an alternative
+\(em perhaps more convenient,
+or at least more portable \(em
+approach would be to introduce a parameter of type \*<%boolean\*>,
+one for each option.
+The reason why this is not done here,
+is probably lazyness on part of the
+.I amake
+programmer.
+.LP
+The syntax of
+.I amake 's
+tool definitions is presented in figure \*(fN.
+.f1
+.sC
+.ps+1
+\fItool-def\fP		::= \fItool-header\fP \fItrigger\fP? \fItool-body\fP
+\fItool-header\fP		::= \fB%tool\fP \fIidentifier\fP "(" [ \fIparam-decl\fP ";" ]* ")"
+
+\fIparam-decl\fP		::= \fIidentifier\fP ":" \fItype-spec\fP
+			    [ "=>" \fB%computed\fP \fIparam-ref\fP
+			    | "=>" \fIdefault-spec\fP
+			    ]?
+			    [ "=>" \fB%conform\fP \fIparam-ref\fP ]?
+
+\fItype-spec\fP		::= \fIbase-type\fP \fB%list\fP ? [ "[" \fIattr-spec-list\fP "]" ]?
+\fIbase-type\fP		::= \fB%boolean\fP | \fB%string\fP | \fB%in\fP | \fB%out\fP | \fB%tmp\fP
+
+\fIdefault-spec\fP	::= \fIexpr-designator\fP
+\fItrigger\fP		::= \fB%trigger\fP \fIexpression\fP
+\fItool-body\fP		::= "{" \fIstatement-list\fP "}"
+\fIparam-ref\fP		::= "$"\fIidentifier\fP
+.eC
+.f2
+Tool definition syntax
+.f3
+.LP
+A tool returns the value resulting from the evaluation of its body,
+unless a \*<%return\*> directive is used as file argument.
+In that case
+the result consists of the contents of this file (which can be referred
+to in the tool body by the parameter name) after the body has been executed.
+.SH
+Input and output objects
+.LP
+The input and output objects are described by a set of attributes,
+possibly including the \*<type\*> attribute,
+as was the case in the example above.
+.kW amake
+The main advantage of having some special ``type'' attribute is
+that it allows us to create \fIgeneric\fP,
+suffix-based,
+derivation rules (generics are described in a later section).
+Note that an \fIattribute class\fP may contain more than
+one ``attribute = value'' pair,
+so that we can specify that a tool only takes,
+say,
+non-generated C-source files as input.
+.\"
+.\" Why define all the input (types)
+.LP
+It also is of prime importance that a tool definition describes all
+the inputs a certain invocation has,
+otherwise a tool might be started before all inputs
+(which might be generated by other tools;
+think about parser generators)
+are available.
+.LP
+Not specifying all inputs also means that
+.I amake
+cannot check whether all inputs are the same as in previous invocations.
+E.g.,
+if in the example the parameter ``prog'' is left out,
+the tool lex will not be rerun when a new version
+of the program ``/usr/bin/lex'' is installed.
+It is possible,
+however,
+that this behavior is convenient in some cases,
+e.g.,
+when a command which often changes
+(because it is being currently developed)
+is used.
+.\"
+.\" Conditional side effect
+.LP
+A \*<%conform\*> clause makes it possible to describe commands where the
+creation of a file is dependent on the value of a parameter.
+In this case,
+the tool should be given a boolean parameter (probably with a
+default value) telling whether the side-effect should occur.
+In the tool body,
+the value of the boolean parameter can be used to decide
+which flag the command should be provided with.
+.SH
+Computed Inputs
+.LP
+.kW amake
+.I Amake
+contains a very useful feature,
+allowing tools to make known the \fIactual\fP
+inputs it has read during a certain invocation.
+This can be specified with the \*<%computed\*> clause.
+Figure \*(fN contains an example of this construct.
+It is an adaptation of the C-compiler tool definition currently used
+in the construction of Amoeba libraries and utilities.
+.f1
+.sC
+%tool cc-c (
+    src:   %in       [type = C-src];
+    obj:   %out      [type = loadable]  => match($src);
+    flags: %string %list                => $CFLAGS;
+    prog:  %in       [type = command]   => $CC;
+    deps:  %out      [type = dependents]=> match($src);
+    incl:  %in %list [C-incl,implicit]  => %computed $deps;
+)
+{
+    exec($prog, args=> '-d'$deps + '-c' + $flags + $src);
+};
+.eC
+.f2
+A tool definition with computed inputs
+.f3
+For a source file \*<f.c\*>,
+the parameter ``deps'' will expand to \*<f.dep\*>.
+The \*<-d\*> option requests the C-compiler
+to report (on file \*<f.dep\*>)
+the header files encountered.
+This list of implicit inputs will,
+as soon as the tool body has been completed,
+be assigned to parameter ``incl''.
+.LP
+When a tool,
+making use of this feature,
+is invoked for the first time,
+.I amake
+is
+.I pessimistic
+(or at least not overly optimistic)
+in that it lets the tool wait until all the objects that could
+\fIpossibly\fP be inputs are available.
+This is important because some of them might be generated by other tools.
+For example,
+the tool Yacc may produce a header file
+included by several C source files.
+.LP
+.kW amake
+If the same invocation is to be checked in a later
+.I amake
+run,
+.I amake
+knows both the specified and the computed input objects,
+and the tool only has to be rerun when one of these has changed.
+As each tool invocation reports the objects that were read,
+.I amake
+will never erroneously fail to recompile a source file,
+in the event that some of the header files have changed.
+.nH 2 "Expressions"
+.LP
+Expressions in
+.I amake
+are typed.
+The types available are \fIboolean\fP,
+\fIstring\fP,
+\fIobject\fP,
+\fIunknown\fP and \fIlists\fP of these.
+Arguments of operators,
+functions and tools are automatically converted to
+the type required,
+if possible.
+.SH
+Overview
+.LP
+Objects are
+.I amake 's
+internal representation of
+(not necessarily existing) files.
+Properties of the files that are of interest to
+.I amake
+are represented as attributes.
+We must stress that the correspondence is not very strict:
+the ``physical'' object may have certain attributes
+which are not represented internally (e.g.,
+contents,
+although it \fIis\fP possible to represent it),
+while the internal object will have attributes
+(such as type,
+and other properties used in
+.I amake 's
+algorithms)
+which are not necessarily represented anywhere on the file system.
+The hierarchical structure,
+which most file systems have,
+is represented internally,
+however.
+.kW amake
+.LP
+As in
+.UX
+and \*(Am,
+objects are identified with their \fIpath name\fP.
+It is important to note that
+.I amake
+(in contrast to,
+e.g.,
+the Bourne Shell and
+.I make )
+interprets the character ``\*</\*>'' as a real
+\fIselection\fP operator,
+rather than just a character which is part of a path name.
+This has the advantage that an
+.I amake
+specification file might also be used,
+without change,
+in an OS environment that uses a different way to represent the file hierarchy.
+.LP
+In
+.I amake ,
+strings and booleans are used mainly as
+attribute value and options to tools or commands.
+Boolean expressions can also be used to force
+control flow within a tool invocation.
+A special ``unknown'' value is given to an attribute
+whose value is neither set explicitly,
+nor derivable.
+.SH
+Expression Syntax and Semantics
+.LP
+Figure \*(fN shows how expression are built up,
+recursively.
+.f1
+.sC
+.ps+1
+.ta 10, 10, 10
+\fIexpression\fP ::=	\|  \fIliteral\fP
+	| \fIstring\fP
+	| \fIvar-reference\fP
+	| \fB%true\fP
+	| \fB%false\fP
+	| \fB%unknown\fP
+	| \fIidentifier\fP "(" \fIargument-list\fP ? ")"
+	| "{" \fIexpression-list\fP ? "}"
+	| "(" \fIexpression\fP ")"
+	| \fIexpression\fP "[" \fIattr-spec-list\fP "]"
+	| \fIexpression binop\fP ? \fIexpression\fP
+	| \fB%not\fP \fIexpression\fP
+	| "/" \fIexpression\fP ?
+	| \fIexpression\fP "/"
+	
+\fIbinop\fP ::=	\fB+\fP | \fB\e\fP | \fB==\fP | \fB<>\fP | \fB&\fP | \fB/\fP | \fB?\fP | \fB%and\fP | \fB%or\fP
+
+\fIargument-list\fP ::=	\fIargument-spec\fP [ "," \fIargument-spec\fP ]*
+\fIargument-spec\fP ::=	[ \fIidentifier\fP "=>" ]? \fIexpr-designator\fP
+\fIexpr-designator\fP ::=	\fIexpression\fP | \fIdesignator\fP
+\fIdesignator\fP ::=	\fB%ignore\fP | \fB%return\fP | \fB%diag\fP
+\fIexpression-list\fP ::=	\fIexpression\fP [ "," \fIexpression\fP ]*
+
+\fIattr-spec-list\fP ::=	\fIattr-spec\fP [ "," \fIattr-spec\fP ]*
+\fIattr-spec\fP ::=	\fIliteral\fP [ "=" \fIexpression\fP ]?
+.eC
+.f2
+Expression syntax
+.f3
+.LP
+.kW amake
+Literals,
+strings and variable or parameter references
+were introduced in the section on lexical elements.
+The possible confusion whether the string ``\*<\'a\'\*>'' or the
+object ``\*<a\*>'' is meant,
+disappears when the value is used,
+for example when it appears as source of a cluster.
+The meaning of \*<%true\*>,
+\*<%false\*> and \*<%unknown\*> should be clear.
+The next entry represents both built-in function call and
+tool invocation.
+Lists (of objects,
+strings etc.) can be built with
+curly brackets  (``\*<{\*>'' and ``\*<}\*>'').
+Parentheses can be used to force a grouping,
+differing from the default one.
+.LP
+Attributes can be attached to objects by means of the
+special ``['' operator.
+The literal in the \fIattr-spec\fP is the name of the attribute to be set.
+If the expression specifying the value of the attribute is absent,
+the value \*<%true\*> is assumed by default.
+When evaluated,
+the attribute assignment expression puts the attributes on
+its right hand side on the object(s) on its left hand side,
+which also becomes the result of the expression.
+This makes it possible to let list building coincide with attribute setting,
+for example as in
+.sC
+SRC = { fool.c[C-src = %false], real.c } [author = versto];
+.eC
+The operators,
+their priority and their interpretation are
+summarized in the table of figure \*(fN.
+.kW amake
+.KF
+.f1
+.TS
+center allbox;
+c || c | c | c | c
+c || n | c | c | c.
+operator	priority	interpretation	domain	range
+_
+\fB%not\fP	8	not	boolean	boolean
+\fB/\fP	7	select	object x string	object
+\fB&\fP	6	concat	string x string	string
+\fB+\fP	5	append	list x list	list
+\fB?\fP	5	get	object x attribute	type
+\fB[\fP	5	put	object x attribute x value	object
+\fB\e\fP	4	remove	list x list	list
+\fB==\fP	3	equal	type x type	boolean
+\fB<>\fP	3	unequal	type x type	boolean
+\fB%and\fP	2	and	boolean x boolean	boolean
+\fB%or\fP	1	or	boolean x boolean	boolean
+.TE
+.f2
+Operators and their interpretation
+.f3
+.KE
+If the binary operator is omitted,
+it is interpreted as a concatenation.
+The ``?'' operator delivers the value of the attribute on its right
+hand side argument for the object on its left hand side.
+If it is not present,
+.I amake
+tries to derive it first.
+If that does not succeed either,
+the result is \*<%unknown\*>.
+.LP
+The \*<%and\*> and \*<%or\*> operators have the same interpretation as
+the \*<&&\*> and \*<||\*> operators in the C programming language, i.e,
+.sC
+\fIeval\fP(\fIb1\fP %and \fIb2\fP) = if \fIeval\fP(\fIb1\fP) then \fIeval\fP(\fIb2\fP) else \*<%false\*> f\&i
+\fIeval\fP(\fIb1\fP %or \fIb2\fP)  = if \fIeval\fP(\fIb1\fP) then %true else \fIeval\fP(\fIb2\fP) f\&i
+.eC
+.LP
+Two lists are equal if and only if their respective components are equal,
+i.e., the order and multiplicity of elements \fIdoes\fP matter.
+Lists within lists are flattened,
+so ``\*<{ a, { b } }\*>'' evaluates to ``\*<{ a, b }\*>''.
+Be careful not to forget the commas separating the components in a list
+expression:
+the expression ``\*<{ bet ray }\*>'' evaluates to ``\*<{ betray }\*>'',
+because of an
+.I invisible
+concatenation operator between the two strings.
+.kW amake
+.LP
+Since,
+as noted before,
+the slash is an ordinary operator,
+white space \fIis\fP allowed (but ignored)
+in path expressions.
+The entries in the grammar specification for
+expression containing the slash operator are there so that
+.UX
+path names can be accepted without change: a slash on its
+own denotes the root directory,
+so ``\*</comp\*>'' selects ``\*<comp\*>'' within the
+root directory.
+A trailing slash is ignored.
+.SH
+Type Conversion
+.LP
+Type conversion is done automatically when needed;
+the conversions possible are summarized in figure \*(fN.
+.f1
+.TS
+center allbox;
+c || c | c | c | c.
+from	unknown	string	object	boolean
+_
+unknown	*	'unknown'
+string	'unknown'	*	./\fIcomponent\fP	'true', 'false'
+object		\fIpath name\fP	*
+boolean		'true', 'false'		*
+.TE
+.f2
+Conversion table
+.f3
+.LP
+In words: types boolean and unknown are converted to and from
+strings by means of 'true',
+'false' and 'unknown',
+i.e.,
+the keywords without the ``\*<%\*>''.
+Conversion from object to strings delivers the
+path name of the object.
+If the object resides in the current directory
+or one of its subdirectories,
+a relative path name is generated,
+otherwise an absolute path name.
+Conversion from string to object is done
+by assuming that an object within the current directory is meant.
+.LP
+.kW amake
+When an operator or function expects a list argument,
+atomic arguments are automatically converted
+to the corresponding ``singleton,''
+so ``\*<{ a, b } + c\*>'' is converted to ``\*<{ a, b } + { c }\*>'',
+which in turn evaluates to ``\*<{ a, b, c }\*>''.
+.SH
+Built-in functions and Tools
+.LP
+There are two kinds of calls:
+built-in function call and tool invocation.
+Tool definitions have been introduced in a previous section.
+Most of a tool's parameters will generally be provided with defaults,
+and the (Ada-like) invocation syntax reflects this:
+only a subset has to be specified,
+and both positional and named argument syntax are accepted.
+Figure \*(fN shows the built-in functions currently available.
+.f1
+.cW
+.TS
+center allbox tab(:);
+cfR | cfR | cfR
+l | l | lfR .
+function:arguments:meaning
+_
+exec:T{
+(prog, args,
+stdin, stdout, stderr)
+T}:T{
+execute a command
+with possible redirection
+T}
+if:(condition, then, else):conditional evaluation
+echo:(strings):print arguments on \fIamake stdout\fP
+def\&ined:(variable):has a variable been assigned to?
+exit:(integer):exit amake prematurely
+move:(from, to):rename a file on the file system
+select:(list, attr, value):select objects specified
+get:(object, attribute):return value of attribute, or %unknown
+vpath:(name, dirs):first d in dirs for which d/name exists
+lcomp:(object):last component of path
+basename:(object, pattern):remove prefix and/or suffix
+matches:(string, pattern):%true iff strings matches pattern
+match:(object):match basenames of objects
+.TE
+.\" new definition for match: match(input-objects, output-objects)
+.\" head:(list):first value in list, or %unknown
+.\" tail:(list):list without head, or {}
+.R
+.f2
+Built-in functions
+.f3
+.kW amake
+.SH
+The Exec Function
+.LP
+The function \*<exec\*> takes care of the actual execution of a command
+on the system.
+It resembles the way a single command is specified in the
+Bourne shell \(em with syntax adapted to
+.I amake 's,
+of course \(em but we
+considered it general enough to be used as a system-independent interface.
+Just like tools,
+the exec function contains defaults to make life
+easier.
+Parameter \*<args\*>,
+requiring a string list,
+is used to specify
+file arguments and command options,
+and defaults to the empty list.
+Standard input is by default redirected
+to an empty file,
+and both standard output and
+standard error are redirected to a temporary diagnostic file.
+.LP
+.kW amake
+.KF
+The following example illustrates the use of defaults and call syntax:
+.sC
+exec(/bin/cc, args => '-E' + $base.c, stdout => $base.e)
+.eC
+.KE
+After the command has finished,
+the diagnostic files are examined,
+and their contents shown on
+.I amake 's
+standard output.
+The reason why
+they are redirected by default in the first place,
+is to prevent
+output of several parallel jobs to appear intermixed on the terminal,
+thereby probably confusing the user.
+.LP
+The designators \*<%ignore\*>,
+\*<%diag\*> and \*<%return\*> can be
+used as file arguments to the exec function and tool invocations,
+and have special semantics.
+The keyword \*<%ignore\*> acts as
+.I /dev/null
+on
+.kW amake
+.UX ,
+i.e.,
+empty file when used as input,
+and ``kitchen sink'' when used as output file.
+Diagnostic files,
+to be shown on standard output when the command or tool has finished,
+are created with \*<%diag\*>.
+Usually,
+evaluation of commands and tools delivers a boolean value,
+indicating success or failure.
+Supplying \*<%return\*> as argument causes
+redirection to a temporary file,
+whose contents will be returned
+as a string list \(em the file is supposed to contain readable output \(em so
+.sC
+exec(/bin/cat, args => hello, stdout => %return)
+.eC
+effectively works as a ``contents'' function.
+Note that this is equivalent to the command
+.sC
+\(ga/bin/cat hello\(ga
+.eC
+in the Bourne shell.
+.SH
+General Utility Functions
+.LP
+.kW amake
+Conditional evaluation is possible with the \*<if\*> function.
+If its first argument evaluates to \*<%true\*>,
+it delivers the value its
+second argument,
+otherwise that of its third.
+Only the argument to be
+delivered is evaluated (for other functions all arguments are evaluated first).
+The third argument is optional:
+a default value (empty list,
+empty string,
+or \*<%true\*>) will be assumed,
+depending on the type of the second argument.
+.LP
+When creating a description file that is supposed to be suitable for
+different environments,
+it is sometimes convenient
+to be able to act upon the fact whether some variable has been set.
+This can be achieved with the use of the function \*<defined\*>,
+usually in combination with the \*<if\*> function.
+.LP
+The function \*<echo\*> can be used to write a informative message on
+.I amake 's
+standard output.
+It delivers \*<%true\*> as return value.
+The \*<exit\*> function also prints its arguments,
+but after that it forces a premature
+.I amake
+exit.
+This is useful when,
+for example,
+some vital variable has not been set.
+Examples:
+.sC
+if ($OS == AMOEBA, ainstall($prog))
+if (defined(OPTIMIZE), $OPTIMIZE, '-O')
+if (%not defined(OS), exit('$OS not defined'), echo('O.K.'))
+.eC
+The function \*<get\*> is an alias for the ``?'' operator,
+i.e., it returns the value of a certain attribute of an object,
+possibly after deriving it.
+.\" It is only present for backward compatibility,
+.\" and its use is not encouraged.
+.LP
+There is also a function \*<select\*>,
+which filters precisely those objects from an object list that have a
+particular value for some attribute.
+Note that the attribute referred to might have to be derived first.
+For example:
+.kW amake
+.sC
+select({parse.y, scan.c}, type, C-src) == {scan.c}
+.eC
+As the example indicates,
+this function can be handy when some
+special cluster only needs to have a subset from all sources as input
+(e.g., only the ``lintable'' sources).
+.SH
+Object functions
+.LP
+Sometimes it is not known in advance where a file resides
+(e.g., its place might change from time to time).
+The function \*<vpath\*> (the ``v'' stands for ``view'')
+returns the \fIfirst\fP occurrence of a file in a list of directories,
+having a specified string as last component.
+Example:
+.sC
+PATH = { /usr/local/bin, /bin, /usr/bin, /usr/ucb/bin };
+CC = vpath(cc, $PATH);
+.eC
+.LP
+It is common practice that system commands create output objects based
+on the name of the input(s).
+To give some way to describe this within a tool definition,
+and also to allow tools themselves to implement this kind of behavior,
+the function \*<basename\*> is provided.
+It can be used to strip off a known prefix and/or suffix.
+.LP
+The predicate \*<matches\*> returns a boolean telling
+whether its first argument
+matches the pattern given as second parameter.
+This function is often used in a derivations of the \*<type\*> attribute.
+.LP
+The function \*<match\*> (not to be confused with the previous one)
+involves some special trickery,
+and can only be used in tool contexts
+to derive the name of an output object based on that of an input object.
+This will be described in a later section.
+.LP
+Examples:
+.sC
+basename(f\&ile.c, '%.c') == f\&ile
+basename(pre.f\&ile.post, 'pre.%.post') == f\&ile
+basename(f\&ile.c, '%.y') == f\&ile.c
+.eC
+.sC
+matches('down.under', '%.under') == %true
+matches('down.under', '%.above') == %false
+.eC
+.kW amake
+Notice that an unmatching pattern causes basename to return
+its first argument.
+.nH 2 "Assignments and Declarations"
+.LP
+In
+.I amake ,
+variables are primarily used to avoid having to repeat lists of
+strings or objects in different places.
+The variables are \fInot\fP textual macros,
+so assignments expect an expression as right hand side.
+.sC
+.ps+1
+\fIassignment\fP ::= [ \fIidentifier\fP "=" ]? \fIexpression\fP
+.eC
+As expressions are typed,
+so are variables.
+Note that there are no restrictions on the kind of expressions:
+tools may also be called,
+for instance.
+Variables may be assigned more than once.
+.LP
+Assignments are not necessarily executed directly the moment they are read;
+they might be cached until their value is used,
+or all input has been read.
+If an expression should evaluated because of its side effect
+rather than its resulting value,
+it is allowed just to mention the expression itself.
+In that case,
+the expression is evaluated right away.
+Example:
+.sC
+%if (%not defined(TOOLSET), {
+   exit('panic: TOOLSET not defined'); # exit right away
+});
+.eC
+.LP
+Values of variables can also be taken from the environment and put in the
+environment of commands executed.
+See the section on import and export for details.
+The following variables have a special interpretation:
+.TS
+center box;
+l | l.
+PWD	the directory containing current file being read
+AMAKELIB	the search path for files to be %included
+ROOT	the root object, ``/''
+.TE
+.LP
+.kW amake
+The variable \*<PWD\*> is particularly useful:
+it makes it possible to maintain
+.I amake
+source descriptions,
+completely independent of the place where the targets are built.
+The source description file,
+residing in the same directory as the sources,
+can refer to the sources by means of ``\*<$PWD/sourcename\*>''.
+An \*<Amakefile\*> in the configuration directory can then
+include the source lists required,
+and specify what should be constructed out of it.
+.SH
+Declarations
+.LP
+Declarations can be used to attach attributes to a list of objects.
+.sC
+.ps+1
+\fIdeclaration\fP ::= \fB%declare\fP \fIexpression-list\fP
+.eC
+Each expression in the expression list is required to be an attribute
+assignment.
+The expressions are evaluated one by one,
+which has the effect of the attributes being set.
+Example:
+.sC
+%declare $SRC[author = versto], foo.c[author = nobody];
+.eC
+It should be noted that the same effect could be achieved by
+means of assignments,
+but the advantage of using declarations
+is that they do not require invention of a variable name
+that is not used afterwards.
+.LP
+A possible application is the situation where a \fIderivation rule\fP
+is used to set the value of some attribute by default,
+and a \fIdeclaration\fP takes care of setting the attributes
+to some different value for the exceptions.
+So a more generic version of the example above would be:
+.sC
+%derive f[author = versto] %when %true; # default case
+%declare foo.c[author = nobody];        # exception
+.eC
+.nH 2 "Source Inclusions"
+.LP
+The primary tool in structuring description files is the re-use of
+tool definitions,
+derivation rules,
+etc.,
+by means of source file inclusion:
+.kW amake
+.sC
+.ps+1
+\fIsource-inclusion\fP ::= \fB%include\fP \fIexpression-list\fP
+.eC
+The expression-list should evaluate to a list of
+.I amake
+source file names.
+If the resulting name is just a component,
+.I amake
+will read the first object with that last component,
+found in the search list described by the variable \*<AMAKELIB\*>.
+If a file to be included cannot be found,
+a fatal error will be triggered.
+.LP
+Conceptually the \*<%include\*> directive is replaced by the concatenation
+of the contents of the files.
+However,
+a file will never be included more than once.
+.LP
+The search path can be altered in various ways:
+.IP \(bu
+simply assign it in the specification file itself.
+This is convenient
+if a certain configuration needs some non-standard set of description files.
+.IP \(bu
+define AMAKELIB on the command line.
+This is useful when looking for the differences between two description sets.
+See the manual page for the exact syntax.
+.IP \(bu
+insert a path in front of the standard path list with another option.
+This is handy when temporary use of a few private tool descriptions
+(placed in the directory mentioned) is desired.
+Again see the manual page for specifics.
+.nH 2 "Generics"
+.LP
+Generics can be used to avoid having to repeat definitions
+that are equal up to some values (strings,
+objects,
+booleans).
+Generics have
+to be defined in a \*<%generic\*> clause,
+before they can be instantiated with an \*<%instance\*> directive,
+which contains the generic's name and the values for its parameters.
+.kW amake
+.f1
+.sC
+.ps+1
+\fIgeneric\fP	::= \fB%generic\fP \fIidentifier\fP "(" \fIid-list\fP ")" "{" \fIamake-def-list\fP "}"
+\fIid-list\fP	::= \fIidentifier\fP [ "," \fIidentifier\fP ]*
+\fIinstance\fP	::= \fB%instance\fP \fIidentifier\fP "(" \fIargument-list\fP ")"
+.eC
+.f2
+Syntax of generics
+.f3
+.LP
+In the current implementation,
+instantiation of a generic has the effect
+of making (global) assignments to the parameters,
+followed by a copy of the body of the generic.
+This means that care must be taken not to let a generic's parameters coincide
+with one of other variables.
+.\" (Generics might be considered to be a somewhat restricted macro:
+.\" the parentheses have to match, etc.)
+.LP
+We will give two examples where the use of generics
+makes the specification simpler,
+and less error prone.
+The first deals with derivations,
+and is used in many tool libraries.
+The definition,
+which is part of the standard tool set,
+is shown in figure \*(fN.
+.f1
+.sC
+1 %generic deftypesuffix(tp, pat) {
+2    %derive f [type = $tp]     %when matches($f, $pat);
+3    %derive f [def-pat = $pat] %when $f ? type == $tp;
+4 };
+5
+6 %derive f [base = basename($f, $f ? def-pat)]
+7 %when   $f ? def-pat <> %unknown;
+.eC
+.f2
+Example use of generics (1)
+.f3
+.LP
+A possible instantiation (in this case for the cc-c tool) would be:
+.sC
+%instance deftypesuffix(C-src,    '%.c');
+%instance deftypesuffix(C-incl,   '%.h');
+%instance deftypesuffix(loadable, '%.o');
+.eC
+.kW amake
+.LP
+An instantiated version of
+.I deftypesuffix
+takes care of linking the
+.I type
+and the
+.I def-pat
+(short for ``default-pattern'')
+attribute of an object.
+The first derivation of the generic (line 2) is used to derive the type of
+an object when its name matches some pattern (e.g.,
+an object with name matching ``\*<%.c\*>''
+is considered to have ``\*<type = C-src\*>''
+by default).
+The other derivation included in the generic (line 3)
+has to do with the rather special semantics of the \*<match\*> function.
+This function is used to specify names of generated objects,
+having the basename with the input in common.
+To be able to do this,
+it requires
+.IP \(bu
+the
+.I def-pat
+attribute of the generated object,
+supplying prefix and/or suffix of the name of the generated objects.
+.IP \(bu
+the
+.I base
+attribute of the source object,
+which replaces the ``%'' in the pattern for the generated object.
+.LP
+The irony \(em or perhaps confusing detail \(em is,
+that the
+.I base
+attribute of the \fIsource\fP object is also derived,
+using the
+.I def-pat
+attribute (see lines 6 and 7).
+.LP
+The second example deals with clusters.
+Consider the case when
+we have a whole bunch of programs to maintain,
+all using tools with the same defaults.
+Of course we could introduce a cluster for each configuration
+and copy the \*<%use\*> clauses.
+This has the problem that we have to change
+each cluster when we would like to override one tool default.
+A better way to do this is therefore first to create a generic as is done in
+figure \*(fN.
+.kW amake
+.f1
+.sC
+%generic gencluster(tar, src) {
+     %default $tar;
+     %cluster
+     {
+         %targets $tar;
+         %sources $src;
+         %use     tool1(flags => $MYFLAGS1),
+                  tooln(flags => $MYFLAGSn);
+     };
+};
+.eC
+.f2
+Example use of generics (2)
+.f3
+.LP
+In the instantiations we then only need to specify target and sources,
+for
+each of the configurations to be maintained.
+Note that in the definition
+of
+.I gencluster
+a \*<%default\*> clause is included in order to let \fIall\fP
+instances created with this definition to be updated by default.
+.LP
+Of course this generic can also be extended to have a number of tool parameters
+as argument,
+to use conditionals (see below),
+or to define several other clusters \(em such as
+.I print ,
+.I install ,
+.I lint ,
+etc. \(em as well.
+For all not too complicated configurations,
+an
+.I amake
+specification along the lines of the example in figure \*(fN
+would then be sufficient.
+.kW amake
+.f1
+.sC
+SRCDIR=/home/joe/src/prog;        # source directory
+
+%include  toolset.amk;            # shared tool set
+%include  mygenerics.amk;         # gencluster etc.
+%include  $SRCDIR/Amake.srclist;  # source list
+
+%instance gencluster(prog1, $SRC_PROG1);
+%instance gencluster(prog2, $SRC_PROG2);
+.eC
+.f2
+Example use of generics (3)
+.f3
+.XE
+.nH 2 "Conditional"
+.LP
+There is also a top-level conditional available,
+comparable to the ``#if''-construct in the C-preprocessor.
+It has the almost same syntax as the conditional expression
+(although it is debatable if that is really an advantage):
+.sC
+.ps+1
+\fIconditional\fP	::= \fB%if\fP "(" \fIexpression\fP "," \fIdef-list\fP ["," \fIdef-list\fP]? ")"
+\fIdef-list\fP	::= "{" \fIamake-def-list\fP "}"
+.eC
+The condition may be an arbitrary boolean expression.
+Note that,
+in contrast to conditional expressions,
+the ``else'' part is optional.
+This is equivalent to defining the else part as being empty.
+Also note that the ``then''
+and ``else'' part are arbitrary sequences of
+.I amake
+definitions,
+so nested conditionals are allowed.
+.LP
+A possible application is to assign default values for variables
+used in tool definitions.
+As the variables might well be defined before the tool itself is included,
+the default assignment in the tool library has to be shielded off.
+Examples:
+.kW amake
+.sC
+%if (%not def\&ined(CFLAGS), {
+    CFLAGS = { '-O' };
+});
+.eC
+.sC
+%if (%not def\&ined(TOOLSET), {
+    exit('fatal error: TOOLSET not defined');
+});
+.eC
+.nH 2 "Import and Export"
+.LP
+.I Amake
+also has two constructs dealing with the string environment
+each process has.
+Importing an
+.I amake
+variable is done by retrieving the
+corresponding value from
+.I amake 's
+environment,
+thereby converting it to an
+.I amake
+value.
+Exporting an variable is the opposite action,
+which causes processes started up by
+.I amake
+to have a corresponding value in their environment.
+The syntax is:
+.sC
+.ps+1
+\fIimport\fP ::= \fB%import\fP \fIidentifier\fP \fIstring\fP?
+\fIexport\fP ::= \fB%export\fP \fIidentifier\fP \fIstring\fP?
+.eC
+.LP
+Because there is no system-enforced list element separator in the environment
+\(em not under
+.UX ,
+at least \(em
+the constructs have an optional string argument specifying it
+(each variable has its own list separator).
+The default separator is \*<':'\*>,
+because that is the one used for the various PATH variables
+interpreted by the Bourne shell and utilities.
+Example:
+.kW amake
+.sC
+%import PATH;
+%import HOME;
+CFLAGS = { '-DAMOEBA', '-DACK' };
+PATH = $PATH + $HOME/amakebin;
+%export PATH;
+%export CFLAGS ' ';
+.eC
+.LP
+Note that the variable CFLAGS has been export with the space as separator.
+Otherwise it would have resulted in the value ``\*<-DAMOEBA:-DACK\*>''.
+.nH 2 "Concluding Remarks"
+.LP
+.\"If you encountered things not explained (enough) in this reference manual,
+.\"please report them to \*<amake@cs.vu.nl\*>.
+For information about the actual invocation of
+.I amake
+(options,
+notes about the implementation,
+etc.),
+refer to the manual page.

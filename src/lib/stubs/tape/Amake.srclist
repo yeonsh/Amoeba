@@ -1,0 +1,23 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 11:12:10
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_TAPE = {
+	$PWD/tape_erase.c,
+	$PWD/tape_fskip.c,
+	$PWD/tape_load.c,
+	$PWD/tape_read.c,
+	$PWD/tape_rewind.c,
+	$PWD/tape_rskip.c,
+	$PWD/tape_status.c,
+	$PWD/tape_unload.c,
+	$PWD/tape_why.c,
+	$PWD/tape_wr_eof.c,
+	$PWD/tape_fpos.c,
+	$PWD/tape_rpos.c,
+	$PWD/tape_write.c
+};

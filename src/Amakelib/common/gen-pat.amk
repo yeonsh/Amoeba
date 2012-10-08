@@ -1,0 +1,30 @@
+#	
+#	@(#)gen-pat.amk	1.1	94/04/06 10:33:25
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# tool needed to create the ACK peephole optimiser
+%if (%not defined(MKTAB), {
+	MKTAB = mktab;
+});
+
+%if (%not defined(PATTERN_C), {
+	PATTERN_C = pattern.c;
+});
+
+%include $PWD/cpplib.amk;
+
+%tool pattern-gen (
+	src:	%in  [pattern-file];
+	dest:	%out [type = C-src]	=> $PATTERN_C;
+	prog:	%in  [type=command]	=> $MKTAB;
+	temp:   %tmp			=> pattern.tmp;
+)
+{
+	exec($CPPLIB/cpp, args => $src, stdout => $temp);
+	exec($MKTAB, stdin => $temp, stdout => $dest);
+	exec(rm, $temp);
+};
+

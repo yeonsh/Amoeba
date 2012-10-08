@@ -1,0 +1,7 @@
+/*	@(#)mmu.init	1.2	94/02/09 14:30:02 */
+TRAPS initmm
+initmm MMU
+initmm SEGINIT
+initmm SEG_KERNEL_DONE
+initmm MMU_INIT
+SEG MMU

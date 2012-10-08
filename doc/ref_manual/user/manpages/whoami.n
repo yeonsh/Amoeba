@@ -1,0 +1,46 @@
+.\"	@(#)whoami.n	1.7	96/03/19 13:10:08
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren, Feb '90
+	Document: Siebren, Feb '90
+	Modified: Gregory J. Sharp, Mar 1996
+.aE
+.mT "whoami" U
+print user's login name
+.SH
+Synopsis
+.LP
+.sC L
+whoami
+.eC
+.SH
+Description
+.LP
+.kW "ROOT environment variable"
+.kW "user name"
+.I Whoami
+tells in which protection domain it is run.
+This is done by comparing the
+.cW ROOT
+capability environment variable
+with the capabilities in
+.I /profile/group/users .
+.mH
+Environment Variables
+.LP
+.cW ROOT
+\- the capability searched for, i.e., the capability for ``/\^''.
+.mH
+Files
+.LP
+.I /profile/group/users
+\- the directory with users root directories.
+.SH
+See Also
+.LP
+who(U).

@@ -1,0 +1,79 @@
+.\"  An example of how to layout an Amoeba manual page
+#	
+#	@(#)TEMPLATE	1.5	96/02/15 16:33:54
+#
+.\" The title for a man page depends on the type of entry
+.\" You can figure out the appropriate class of .mT line to use
+.\" Delete all troff comments and the irrelevant .mT lines
+.\" Add any .kW keyword entries near where they are relevant.
+.\"   ---------------Cut------------
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Names of Authors, date \" if known
+	Document: Names of Authors, date
+.\"
+.\"	a modification history and other info may appear here, but please
+.\"	use the above keywords since it makes grepping easier
+.aE
+.\" An optional 3rd parameter is printed in parentheses for the first 3.
+.\" The main use for this is the string "UNIX ONLY" for utilities or servers
+.\" that don't run under native amoeba
+.mT "title" A \" tools and general admin
+.mT "title" H \" include file
+.mT "title" L "<library names separated by commas>" \" library routine/module
+.mT "title" T \" test program
+.mT "title" U \" utility
+<here you should put a one line description but no more than one line>
+.SH
+Synopsis
+.LP
+.sC L
+<put synopsis here in a constant width code segment>
+.eC
+.SH
+Description
+.LP
+<a brief introduction>
+.mH
+Options \" delete if not relevant
+.LP
+<describe each option using .IP>
+.mH
+Diagnostics
+.LP
+<describe error messages, especially confusing ones>
+.mH
+Environment Variables \" delete if not relevant
+.LP
+<describe any relevant environment variables and their effect>
+.\" don't forget capability environment variables
+.mH
+Files \" delete if not relevant
+.LP
+<any files especially relevant to the command should be listed>
+.mH
+Warnings \" delete if not relevant
+.LP
+<describe limitations and traps for unsuspecting users>
+\" do not describe genuine bugs.  instead use the program report-bug
+\" to register the bug so that it will be repaired.
+.SH
+Programming Interface Summary \"server only
+.LP
+.SH
+Administration  \" server only
+.LP
+.\" Server administration
+.SH
+File Formats \" delete if not relevant
+.LP
+.SH
+Example \" if multiple examples call it Examples
+.LP
+.SH
+See Also \"delete if not relevant
+.LP

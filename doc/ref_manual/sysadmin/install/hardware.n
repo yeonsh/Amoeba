@@ -1,0 +1,320 @@
+.\"	@(#)hardware.n	1.11	96/02/15 17:03:46
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Supported Hardware Configurations"
+.LP
+.nH 2 "General Requirements"
+.LP
+.kW "hardware requirements"
+The \*(Am distributed operating system can run on many different types
+and brands of computers.
+It is intended that it should run on a network with
+.B "at least"
+five computers.
+Although it is technically possible to run \*(Am with just a single processor,
+it is not a satisfactory way to use the system.
+It is,
+after all,
+a
+.I distributed
+operating system.
+To get good results from the system you should have a separate machine for the
+file server,
+one workstation per user (to run the user interface) and a group of pool
+processors to perform the actual work and to run various servers.
+In general,
+at least five hosts are needed for pleasurable computing.
+All the \*(Am hosts must be connected by a network so that they can communicate
+with each other,
+although they need not necessarily be all on the same network,
+as long as all the networks are connected via gateways.
+.SH
+Networking
+.LP
+.kW Ethernet
+.kW "networking"
+.kW "network considerations"
+Currently \*(Am only has drivers for Ethernet but other network
+drivers are under consideration.
+\*(Am sets no upper limit on the number of computers on a local network
+but in some cases it is limited by the network bandwidth or topology.
+(More commonly, it is limited by the hardware budget.)
+.B "Note well" :
+\*(Am does not demand exclusive use of the network.
+It can use the same network as computers running other operating systems.
+However it is in the nature of distributed systems to consume more network
+bandwidth than centralized systems.
+It is therefore a good idea to isolate the \*(Am hosts behind a bridge if
+the other hosts on the network are performing important functions which require
+good network response.
+.SH
+Heterogeneity
+.LP
+\*(Am is reasonably portable and has run on five architectures.
+However it is currently only available on the following architectures:
+.kW i80386
+.kW MC680x0
+.kW SPARC
+the Motorola MC680x0 family, the Intel 80386 family and certain
+members of the SPARC family.
+.LP
+.kW big-endian
+It should be noted that some of these architectures are big-endian and others
+.kW little-endian
+little-endian.
+A mixture of different endian machines should not be a
+problem as standard servers and utilities deal with this.
+Combinations of different architectures only requires that the binaries are
+available for all the architectures.
+Processor pools may contain processors of more than one architecture.
+The run server (see
+.kW "\fIrun\fP"
+.I run (A))
+chooses the optimal processor for the architectures for which the binaries
+are available.
+.LP
+There are several configurations supported for the three architectures.
+This is to provide the various types of processor required:
+pool, workstation and specialized server.
+.SH
+File Servers
+.LP
+.kW "Bullet Server"
+The file server distributed with \*(Am is called the \*(Bs.
+It uses a large buffer cache to provide very high performance.
+Thus the file server should be run on a machine with a large amount of RAM,
+and, of course, a disk.
+.LP
+For the file, server the more memory present, the better the performance.
+However on the Sun 3/60, \*(Am can use a maximum of 12 MB
+due to restrictions in the memory management code.
+The following table shows for each architecture the
+.I minimum
+amount of memory
+needed for a file server host.
+It also shows the largest main memory support by the kernel.
+In most cases this will not be supported by the physical machine.
+.f1
+.TS
+center, box, tab(:);
+c | c | c
+l | c | c.
+Architecture:Minimum Memory:Software Limit
+:Requirement:on Memory
+=
+MC680x0:12 MB: 12 MB
+_
+i80x86:16 MB: 64 MB
+_
+SPARC:16 MB:512 MB
+_
+.TE
+.f2
+Minimum memory requirements for file server machines and maximum
+memory configurations supported by \*(Am.
+.f3
+On the various 80x86 machines it may be possible to insert up to
+128\ MB\|\v'-0.2v'\s-1\(dg\s0\v'0.2v',
+.FS
+\(dg The current BIOS call to obtain the memory size only returns
+16 bits of information \- enough to represent 64\ MB.
+The rest of the kernel can cope with much more.
+This limit will be fixed when the new BIOS call for larger memories becomes
+known to the \*(Am developers.
+.FE
+depending on the machine.
+.kW SPARCstation
+.kW SPARCclassic
+In older SPARCstations it should be possible to insert up to 64 MB and in
+SPARCclassics up to 96 MB.
+See the hardware documentation for the physial limits of your hardware.
+.SH
+Workstations
+.LP
+.kW workstation
+The primary function of workstations is to run the user interface (for example
+.kW "X windows"
+the X window system) and so they do not require large amounts of memory.
+8\ MB is enough for color X servers and 4\ MB for monochrome X
+servers.
+It is also possible to use an X\ terminal as a workstation.
+.kW "X terminal"
+(If the X\ terminal does not understand the \*(Am network protocol
+.kW "TCP/IP"
+it will be necessary to use a TCP/IP server to convert network protocols which
+reduces perceived performance.)
+.LP
+If no bitmap display is available a regular terminal can be used.
+It will not run X windows, of course.
+.SH
+Pool Processors
+.LP
+.kW "processor pool"
+Nearly all the computing occurs on the pool processors.
+There is no virtual memory in \*(Am so it is important that pool processors
+have enough memory to run the processes entirely in core.
+Between 3 and 4 MB of memory is the minimum for normal use.
+If large programs such as matrix multiplication or \*(Tx are to be run then
+more memory will be required.
+Each processor pool should have at least 4 or 5 processors to do any useful
+work.
+.nH 2 "Supported Hardware"
+.LP
+Below is a summary of the machines and related equipment for which \*(Am is
+currently available.
+.SH
+SPARC Systems
+.LP
+.kW SPARC
+.kW Sun
+.kW SPARCstation
+.kW SPARCclassic
+\*(Am runs on the Sun4c and the Sun4m MicroSPARC families of processors.
+It has been tested on the following Sun4c machines: SPARCstation 1, 1+, 2, SLC, IPC and ELC.
+It will probably also work on the IPX.
+A should work on the following MicroSPARC I & II machines:
+the SPARCclassic, SPARCstation LX, SPARCstation 4 and SPARCstation 5.
+.LP
+.kW audio
+The audio hardware is not supported.
+.kW SBus
+Nor is the ``le/buffer'' Ethernet/SCSI SBus card.
+All the other standard devices are supported.
+.kW CG3
+.kW BW2
+.kW SBus
+Of the SBus graphics cards, the BW2 and CG3 are supported.
+.kW CGX
+The CGX will work but the graphics accelerator is not used (since there is
+no documentation available on how to drive it).
+.SH
+Intel 80386 Systems
+.LP
+.kW i80386
+.kW i80486
+.kW Pentium
+\*(Am runs on Intel 80386, 80486 and Pentium-based machines with an ISA bus
+(i.e., an IBM PC\ AT bus).
+It has also successfully run on PCI-bus and VL-bus machines.
+However, it does not take advantage of ``plug-and-play'' facilities.
+The following devices are supported.
+.kW ESDI
+.kW IDE
+.kW SCSI
+.kW "disk controller"
+.IP "Disk controllers:"
+.br
+SCSI, ESDI and EIDE.
+If the controller contains intelligence\|/\|caching, it may be necessary
+to turn the intelligence off to get it to work with \*(Am.
+The supported SCSI cards are the Adaptec 154X cards.
+These include the Adaptec 1540, 1542A, 1542B 1542C and 1542CF cards.
+SCSI tapes are also supported.
+.IP "Graphics cards:"
+.br
+.kW "VGA graphics card"
+.kW "EGA graphics card"
+.kW "CGA graphics card"
+.kW "Hercules graphics card"
+CGA, Hercules, EGA, and VGA.
+(See notes on X windows below.)
+.IP "Floppy Drives:"
+.br
+.kW "floppy drive"
+Floppy drives of 1.44\ MB and 1.2\ MB are supported,
+and the driver allows floppy disks with the following
+densities to be used: 360\ KB, 720\ KB, 1.2\ MB, and 1.44\ MB.
+2.88\ MB floppy drives may work; they are treated as 1.44\ MB floppy drives.
+.IP "Network cards:"
+.br
+.kW "NE2100 Ethernet card"
+.kW "NE2000 Ethernet card"
+.kW "NE1000 Ethernet card"
+.kW Ethernet
+Novell NE1000, NE2000, NE2100
+.br
+.kW "WD 8003E Ethernet card"
+.kW "WD 8013EB Ethernet card"
+.kW "WD 8013EP Ethernet card"
+WD\ 8003E, WD\ 8013EB, and WD\ 8013EP.
+.br
+.kW "SMC 8013EPC Ethernet card"
+SMC\ 8013EPC.
+.br
+.kW "3Com Ethernet card"
+3Com 503 Etherlink II.
+.LP
+Note:
+.kW "IRQ assignments"
+The Ethernet cards normally use IRQ 3 and IRQ 5 in \*(Am.
+If that is inconvenient then alternate IRQ levels can be used.
+Below is a table showing the default IRQ allocations.
+To use different IRQs for Ethernet it will be necessary to alter the file
+.I etherconf.c
+in the kernel templates and recompile the kernel (see the section on building
+kernels for more details).
+.TS
+box, center;
+c | c | c
+c | c | c
+c | c | l.
+interrupt	bus	devices using
+vector number	pin	interrupt
+=
+0	-	clock
+1	-	keyboard
+2	-	expansion PIC (see IVN 9)
+3	IRQ3	serial port 2
+4	IRQ4	serial port 1
+5	IRQ5	not used
+6	IRQ6	floppy controller
+7	IRQ7	parallel port
+8	IRQ8	real time clock
+9	IRQ2	not used (wired to IVN 2)
+10	IRQ10	not used
+11	IRQ11	Adaptec SCSI controller (optional)
+12	IRQ12	not used
+13	IRQ13	iAPX387 math co-processor
+14	IRQ14	hard disk controller
+15	IRQ15	not used
+.TE
+.LP
+.kW "X windows"
+The Xfree version of X windows is provided.
+It runs on most commercially available video cards.
+.kW "VGA graphics card"
+A VGA controller is recommended.
+One of the following mice is also required for X windows:
+Logitech Bus mouse (at IRQ level 5),
+Mouse System's mouse or
+Microsoft mouse (serial).
+Note that the color X server needs 8 MB to run effectively.
+.SH
+MC680x0 Systems
+.LP
+.kW MC680x0
+.kW Sun
+\*(Am kernels exist for the Sun 3/60, Sun 3/50 and various MC68020 and MC68030
+CPU boards.
+In particular the Force30 board is supported.
+.LP
+.I "Sun 3/50 and Sun 3/60"
+.LP
+The following devices are supported:
+.IP \(bu
+.kW Ethernet
+.kW lance
+Lance-based Ethernet interface
+.IP \(bu
+.kW bitmap
+The monochrome bitmap display
+.IP \(bu
+The uart/timer devices
+.IP \(bu
+.kW SCSI
+The SCSI interface to winchester disks and cartridge tape drives
+.LP
+\*(Am can currently only take advantage of up to 12 MB of memory in a Sun 3/60.

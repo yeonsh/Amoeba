@@ -1,0 +1,41 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 10:02:32
+#
+S_MODDISK = {
+	$PWD/moddisk.c,
+	$PWD/moddisk.h,
+};
+
+S_MODNVRAM = {
+	$PWD/modnvram.c,
+	$PWD/modnvram.h,
+};
+
+S_DIRSVR = {
+	$PWD/dirsvr.c,
+	$PWD/dirsvr.h,
+
+	$PWD/grpmain.c,
+	$PWD/grpmain.h,
+	$PWD/main.h,
+
+	$PWD/sp_adm_cmd.c,
+	$PWD/sp_adm_cmd.h,
+
+	$PWD/recover.c,
+	$PWD/recover.h,
+
+	$PWD/sp_print.c,
+	$PWD/sp_print.h,
+
+	$PWD/modlist.c,
+	$PWD/modlist.h,
+
+	$PWD/barrier.c,
+	$PWD/barrier.h,
+
+	$S_MODDISK,
+
+	$S_MODNVRAM,
+};
+

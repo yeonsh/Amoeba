@@ -1,0 +1,56 @@
+#	
+#	@(#)driver_cc.amk	1.1	96/02/15 15:58:17
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  cc-c tool for executables
+#
+%instance deftypesuffix(C-src, '%.c');
+%instance deftypesuffix(C-h-incl, '%.h');
+%instance deftypesuffix(C-H-incl, '%.H');
+%instance deftypesuffix(loadable, '%.o');
+%instance deftypesuffix(dependents, '%.d');
+
+#  This is to make the ctags tool work for both kernel and other amake files
+#  (since the kernel has both .h and .H files).
+
+%derive f[C-incl] %when (get($f, type) == C-h-incl)
+			   %or (get($f, type) == C-H-incl);
+
+%if (%not defined(CC), {
+    CC = cc;
+});
+
+%if (%not defined(CFLAGS), {
+    CFLAGS = {};
+});
+
+%include /usr/proj/amwork/src/Amakelib/sun/../common/ackcpplib.amk;
+
+# Special tool for the amoeba driver in unix
+%tool driver_cc-c (
+    src:         %in         [type = C-src];
+    object:      %out        [type = loadable]		=> match($src);
+    flags:       %string %list				=> $CFLAGS;
+    unixversion: %string;
+    objflags:    %string %list				=>
+		    if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:     %in         [type = command]		=> $CC;
+    deps:        %out        [type = dependents]        => match($src);
+    incl:        %in %list   [C-incl, implicit]	        => %computed $deps;
+)
+{
+    %if ( $unixversion == sunos5.4 %or $unixversion == sunos5.5,
+
+	exec($program, args => 
+		'-c' + $flags + $objflags + $src)
+	,
+	
+	echo('Do not know how to make amoeba driver for ' + $unixversion)
+    );
+};
+
+%include cc-c.amk;

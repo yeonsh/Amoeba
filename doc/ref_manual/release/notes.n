@@ -1,0 +1,618 @@
+.\"	@(#)notes.n	1.21	96/03/20 12:00:00
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.EQ
+delim @@
+.EN
+.LP
+.cH "Change Notes"
+Below is the information about upgrading between various releases of \*(Am,
+and the changes between the the past few releases of \*(Am.
+Following this are possible  changes for future releases.
+.SH
+Warning
+.br
+.IP
+Both SunOS 4 and SunOS 5 (Solaris 2) are supported in \*(Am 5.3.
+This is the last release of \*(Am that will support the
+.UX
+FLIP driver in SunOS 4.
+The compilers and other tools of SunOS 4 will also cease to be supported
+in future releases.
+.IP
+This is the last release in which the Sun 3 \*(Am kernels will be supported.
+The Amakefiles may continue to be available in future releases but they
+probably will not have been tested.
+.SH
+Upgrade Information
+.LP
+Upgrading to \*(Am 5.3 from versions lower than 5.2 may not work and is
+not recommended.
+It is possible to upgrade from \*(Am 5.2 to \*(Am 5.3.
+The upgrade is not simple and a special package has been provided with the
+distribution.
+This package contains a script to update the directory graph structure and a
+.cW README
+file with the instructions about how to perform the upgrade.
+Failure to follow the instructions will almost certainly result in the
+loss of data.
+.LP
+It is necessary to install new versions of the
+.I boot (A)
+and
+.I soap (A)
+servers.
+.LP
+Programs that ran under \*(Am 5.2 or earlier might not run under \*(Am 5.3
+so it is better to recompile them.
+.LP
+The version of X Windows source required for \*(Am 5.3 is X11R6, patch level 13.
+.LP
+Below is a list of important changes between releases that might affect
+you.
+Other minor bug fixes are not listed.
+.nH 1 "Major Changes from \*(Am 5.2 to \*(Am 5.3"
+.LP
+The following changes have been made in \*(Am 5.3:
+.IP 1.
+The directory layout has changed in important ways to enhance system
+security.
+It is possible to convert the old directory graph to the new layout.
+The script
+.I amupgrade
+has been provided for this purpose.
+.IP 2.
+Most of the include files have been modified for ANSI C and POSIX name-space
+pollution conformance.
+Library function names now begin with an underscore in almost every case.
+.IP 3.
+The include file
+.I src/h/disk.h
+is obselete.
+It will be removed in the next release.
+Its contents has been moved to
+.I src/h/server/disk/disk.h .
+Clients of the disk server should include
+.I src/h/module/disk.h
+to obtain client stub prototypes and data structures.
+.IP 4.
+The include file
+.I src/h/proc.h
+is obselete.
+It will be removed in the next release.
+Its contents has been moved to
+.I src/h/server/process/proc.h .
+Clients of the process server should include
+.I src/h/module/proc.h
+to obtain client stub prototypes and data structures.
+.IP 5.
+The include file
+.I src/h/tape.h
+is obselete.
+It will be removed in the next release.
+Its contents has been moved to
+.I src/h/server/tape/tape.h .
+Clients of the tape server should include
+.I src/h/module/tape.h
+to obtain client stub prototypes and data structures.
+.IP 6.
+Under the direction of the
+.I run (A)
+server,
+the process server in each kernel regularly changes the capability it accepts
+for executing new processes.
+This means that just because somebody was able to execute a process on a
+particular host at time T, they will not be able to do so at time T+\(*D
+unless the system is still willing to allow access to that host.
+.IP 7.
+It is now possible to provide SPARCstations with secret numbers in the
+NVRAM in the IDPROM, from which an unpredictable host capability can be made.
+This, in combination with the changes to the process server, allows for
+security of kernel directories and hosts.
+.IP 8.
+The program
+.I rip2icmp (A)
+has been replaced with the program
+.I irdpd (A).
+.IP 9.
+The
+.I grp_create
+(see
+.I grp (L))
+function no longer includes the header size as part of the buffer size.
+.IP 10.
+The program
+.I chkbuild (A)
+has been provided for helping to analyze the output of
+.I build (A).
+.IP 11.
+Orca has been unbundled from \*(Am.
+A new more efficient version of Orca should be available for \*(Am in
+the second quarter of 1996.
+.IP 12.
+The command-line interfaces to the IP server administrative programs like
+.I add_route (A)
+have been unified.
+See the manual pages for details.
+.IP 13.
+The
+.I soap (A)
+server has been modified.
+It now keeps a version number for each directory.
+This is used by
+.I starch (U)
+for making incremental backups.
+The new
+.I soap
+server recognizes old soap directories and upgrades them automatically.
+The upgrade process however can take several days.
+.IP 14.
+.I Starch (U)
+has been modified.
+It is now able to make incremental dumps, in addition to full dumps.
+See the manual page for details.
+.IP 15.
+A FLIP driver for SunOS 5.X (Solaris 2.X) is now available.
+.IP 16.
+The TCPIP server is much more robust.
+Telnet and FTP clients and servers are provided.
+.IP 17.
+Many customers had problems booting Amoeba on PCI-bus machines and sometimes
+on AT-bus machines.
+The main symptom was that the kernel gave a ``panic: interrupt queue overflow''
+while trying to do the disk server initialization.
+This problem has been resolved.
+It was due to the SCSI driver falsely believing it had found a SCSI card.
+.IP 18.
+The i80386 kernel Ethernet ``configuration warning'' messages now only appear
+if the kernel is booted with the
+.cW -netdebug:1
+flag.
+.IP 19.
+The scheduling time-slice has been reduced from 100ms to 10ms.
+.IP 20.
+The source code for a fault-tolerant, self-replicating version of the
+\*(Bs, known as the Group \*(Bs, has been provided with the sources.
+The code has not been thoroughly tested but is included for those seeking
+examples of how to write such a server.
+The source can be found in
+.I src/kernel/server/gbullet .
+.IP 21
+The source code for a fault-tolerant, self-replicating version of the
+\*(Ss, known as the Group \*(Ss, has been provided with the sources.
+The code has not been thoroughly tested but is included for those seeking
+examples of how to write such a server.
+The source can be found in
+.I src/admin/gsoapsvr .
+.\"----------------------------------------------------------
+.nH 1 "Major Changes from \*(Am 5.1 to \*(Am 5.2"
+.IP 1.
+The System Administration Guide now contains a section on how to upgrade
+an existing \*(Am system to the new distribution.
+The Guide has also been revised in the light of comments from customers
+and newly supported hardware.
+.IP 2.
+The SPARC\(rg port for the Sun4c and Sun4m (V8 SPARC) is available.
+It is a beta-test version (caveat emptor!).
+At present there is no audio driver and as yet no support for the
+.I reboot (A)
+command.
+The floppy driver for the Sun4m will appear shortly.
+.IP 3.
+The \*(Am i80386 X server has been integrated into the standard XFree
+distribution.
+A number of X utilities have been added to the binary distribution
+and several additional graphics and mouse drivers are now supported.
+.IP 4.
+The POSIX conformance has been significantly improved.
+See
+.I posix (L)
+for details of conformance.
+.IP 5.
+Various bugs in the FLIP group communication have been fixed.
+.IP 6.
+The Novell NE2000 and NE1000 Ethernet cards and the 3Com503 Etherlink II
+Ethernet card are now supported for the i80386 architecture.
+.IP 7.
+The speed of bootstrapping from floppy disk on the i80386 has been
+dramatically improved.
+.IP 8.
+.I Fdisk (A)
+was wasting a cylinder per disk partition.
+This has been repaired.
+.IP 9.
+The numbering of physical disk devices has been altered to be more logical.
+Formerly they were in reverse natural order.
+.IP 10.
+The GNU C compiler is available for native \*(Am for all supported
+architectures.
+.IP 11.
+A suite of test programs has been added to the distribution.
+The programs are described in the
+.I "System Administration"
+guide.
+The binaries can be found in the directory sub-graph
+.I /public/module/test .
+.IP 12.
+The group error codes in the left column below have been removed from \*(Am.
+In their place the group communication returns the error code listed
+in the right column.
+Any code that tests for the obsolete error conditions should be changed.
+The function
+.I err_why (L)
+now supports the remaining BC_ error codes.
+.TS
+center,tab(:);
+c c
+l l.
+Obsolete Error:Replaced By
+BC_OK:STD_OK
+BC_NOMEM:STD_NOMEM
+BC_ILLARG:STD_ARGBAD
+BC_EXIST:STD_EXISTS
+.TE
+.IP 13.
+In addition to the RPC and Group communication interfaces there is now
+a system-call interface to the raw FLIP layer of \*(Am.
+This makes it possible to implement network protocols on top of FLIP in
+user space.
+This should provide a valuable teaching tool for computer networking classes.
+See
+.I rawflip (L)
+for details of how to use this interface.
+.IP 14.
+System security has been improved so that \*(Am is more suitable for use in
+a teaching environment.
+It is now possible to set the permissions on host capabilities to values
+other than
+.cW FF:FF:FF .
+A value of
+.cW FF:2:4
+is recommended.
+The new value should be set for all processor capabilities including those
+in the processor pools.
+Unprivileged users should then no longer be able to access kernel memory
+or virtual disks.
+Nor should they be able to kill processes they do not own using
+.I stun (U).
+The session server (see
+.I session (U))
+has been modified to implement the directory
+.I /dev/proc
+internally (i.e., it is no  longer in the Soap server) and it maintains
+there the capabilities for all processes created during that session.
+If a user wishes to stun a process then they can access the capabilities for
+their own processes via the directory
+.I /dev/proc .
+System administrators should read the new session server manual page carefully.
+.IP 15.
+The program
+.I aminstall (A)
+is now available under \*(Am to install the system binaries compiled under
+\*(Am.
+.IP 16.
+In previous versions of \*(Am processes that were dying sometimes remained
+hanging in ``stunned'' state.
+This should no longer occur.
+.IP 17.
+The
+.I format (U)
+command has been added to format floppy disks.
+The command
+.I eject (U)
+is used to extract floppy disks from the Sun\ 4 floppy drives.
+.IP 18.
+The GNU debugger has been ported to \*(Am, including support for
+multi-threaded programs.
+It is available with the third-party software.
+.IP 19.
+AIL has been modified to provide better support for arrays.
+It produces, as a result, slightly different functions.
+The old functionality can be obtained with the
+.IP 20
+Support has been added to the i80386 for the Adaptec AHA-154X SCSI cards.
+This makes it possible to load the distribution from tape.
+.B "\-v 3.5"
+option.
+.nH 1 "Changes from \*(Am 5.0 to \*(Am 5.1"
+.LP
+.IP 1.
+Support for the GNU C compiler and assembler for compiling \*(Am under
+.UX
+has been added.
+This consists of a new Amake toolset and various changes to the
+\*(Am sources to eliminate compiler warnings and to support the GNU assembler
+syntax.
+The additional sources needed for the GNU compiler and loader to make
+\*(Am binaries are available in the third-party software.
+.IP
+Note that no binaries will be distributed that have been made with GNU
+compilers.
+It is up to customers to compile \*(Am with the GNU toolset if they wish
+to take advantage of the extra performance that can be gained from using the
+GNU compiler.
+.IP 2.
+Support for profiling of user programs has been added to
+.I ack (U).
+The program must be compiled with the
+.B \-p
+option and may be linked with standard libraries or profiling libraries,
+depending on the degree of profiling required.
+See
+.I profiling (L)
+and the
+.B \-p
+option of
+.I ack (U)
+for details.
+.IP 3.
+The X11R5.am tree structure has been modified to contain the directory
+.I mit
+and its siblings.
+When the configuration is made it is then able to build the
+.I contributed
+X programs as well.
+.IP
+NOTE: The \*(Am version of X11R5 assumes patch-level 17 or higher for the
+original X sources.
+.IP 4.
+The Xfree 386 X server accelerator has been incorporated into \*(Am.
+Several bugs in the \*(Am version of the i80386 X server, including the
+occasional disappearance of the mouse cursor, have been resolved
+as a consequence.
+.IP 5.
+Hardware floating-point support has been added to the i80386 port.
+If floating-point hardware is present then user programs can be compiled
+without the software floating-point option.
+.IP 6.
+.I Amake
+has been modified so that it is no longer dependent upon other programs
+such as
+.I mkproto
+for its compilation.
+It uses the
+.I stdio
+library instead of various ACK modules.
+Therefore it should be much simpler to port it to other operating systems and
+architectures.
+.IP 7.
+A security bug has been removed from
+.I login (A).
+The bug will not be described here since it may compromise security at sites
+not yet upgraded to \*(Am 5.1.
+.IP 8
+The program
+.I be (U)
+has been removed from the distribution.
+Those desirous of an Emacs-like editor can use
+.I jove (U).
+.nH 1 "Changes from \*(Am 4.0 to \*(Am 5.0"
+.LP
+.IP 1.
+The FLIP network protocol has replaced the \*(Am 4.0 network protocol.
+FLIP not only provides RPC,
+it also provides reliable broadcast for group communication.
+See
+.I rpc (L)
+and
+.I grp (L)
+for full details of how to use the remote procedure call and group
+communication.
+.IP
+Advantages of FLIP:
+.RS
+.IP \(bu
+FLIP has a higher throughput than the old protocol.
+.IP \(bu
+It provides internetworking.
+.IP \(bu
+Transactions size may be up to @2 sup 31@ are possible,
+although the current RPC layer does not yet support the larger transactions.
+.IP \(bu
+It provides reliable broadcast.
+.RE
+.IP
+Disadvantages of FLIP:
+.RS
+.IP \(bu
+Small RPCs are slightly slower.
+.IP \(bu
+FLIP kernels use lots of buffers and require more memory than the old
+\*(Am kernels.
+.RE
+.IP 2.
+The semantics of
+.I ports
+have changed.
+The F-boxes described in many papers have been implemented in software in
+the FLIP layer.
+There is now a difference between
+.I get-ports
+and
+.I put-ports .
+The routine
+.I priv2pub (L)
+is used to convert a
+.I get-port
+to a
+.I put-port .
+.I Getreq
+and
+.I rpc_getreq
+must be called with the
+.I get-port
+in the header parameter and
+.I trans
+and
+.I rpc_trans
+must be called with a
+.I put-port
+in the header.
+See the relevant manual pages and the section on writing clients and servers
+in the
+.I "Programming Guide"
+for more details.
+.IP 3.
+There are two new standard routines:
+.I std_getparams
+and
+.I std_setparams
+for setting the values of server parameters.
+Parameters can be set per server or per object, depending upon the
+implementation of the server.
+.IP 4.
+The ANSI C and POSIX conformance have been improved.
+Total POSIX conformance is not yet possible.
+.IP 5.
+The performance and functionality of the TCP/IP server has been improved.
+There are also more support utilities and library routines.
+.IP 6.
+The boot server
+(see
+.I boot (A))
+now has the ``after'' clause to specify dependencies.
+The most common use for this is to make the server wait until it has started
+the name server before attempting to start all the programs that depend on it.
+.IP 7.
+The load balancing server
+(see
+.I run (A))
+now supports heterogeneous processor pools.
+That is,
+pools containing processors of more than one type of architecture.
+It first calculates the intersection of architectures in the pool and the
+architectures for which there is a binary for the desired program.
+It then selects the most appropriate machine from that subset according to
+the algorithm provided.
+The parameters for the algorithm can be set on a per-pool basis by the
+system administrator.
+.IP 8.
+The Swiss Army Knife (SAK) Server has been included.
+It allows RPCs to be delayed until after some event.
+This is used to provide
+.I cron (U)
+and
+.I at (U)
+utilities,
+although there are many other possibilities.
+See
+.I sak (A)
+for more information.
+.IP 9
+An
+.I f\^77 (U)
+front end has been added to ACK.
+It is implemented using the program
+.I f\^2c (U).
+This converts Fortran 77 to C.
+.IP 10
+\*(Tx has been ported to \*(Am.
+It requires large amounts of memory to process even moderately sized
+documents but is otherwise fully functional.
+.IP 11
+The mail transport facility MMDF II and its associated utilities have been
+ported to \*(Am.
+It is available to those who qualify under its redistribution restrictions.
+.IP 12
+The X11R5 Window system has been ported to \*(Am.
+.IP 13
+Major structural improvements have been made to the name server
+(see
+.I soap (A)).
+.IP 14
+The command
+.I aman (U)
+provides on-line manuals and keyword searching thereof.
+.IP 15
+The command
+.I mkbootpartn (A)
+has been provided for constructing bootable floppies and hard disk partitions.
+.IP 16
+Each manual now has an index.
+The index is generated automatically based on keywords embedded in the text.
+It is simple to add extra index entries.
+.IP 17
+The command
+.I chm (U)
+takes its parameters in a different order and format so that it can accept
+multiple object names.
+.IP 18
+The command
+.I mkhost (A)
+has been modified slightly to match the restoration of the basic kernel
+directory security.
+This means that it is necessary to remake all the host capabilities!
+.IP 19
+The command
+.I disklabel (A)
+has been modified so that it can run on any host
+and correctly label disks attached to any other \*(Am host in the system.
+This replaces the old
+.I disklabel.sun
+and
+.I disklabel.ibm_at
+programs.
+.IP 20
+A bug in the i80386 disk labeling has been detected and removed.
+Sites with a previously installed version of \*(Am should either rerun
+.I disklabel (A)
+and adjust their disk partitioning or reinstall \*(Am from the coldstart.
+.IP 21
+The command
+.I reboot (A)
+has been modified to accept multiple host names to reboot and it also
+allows special arguments to be passed to the kernel, such as the
+.B \-noreboot:1
+argument for the i80386 kernels.
+.IP 22
+Several bugs in the
+.UX
+FLIP driver have been fixed.
+In particular, that the size of the reply buffer for
+.I trans
+was ignored, sometimes resulting in overwriting the client's memory.
+.IP 23
+The bug in the
+.I boot (A)
+server whereby it failed to restart a dead service, even though it had
+detected that the service needed booting, has been fixed.
+.nH 1 "Expected Changes in Future Releases"
+.LP
+The following changes are expected in future releases of \*(Am:
+.IP 1.
+Bigger capabilities - this implies that you must use the routines for
+manipulating capabilities and not directly access their contents!
+It also requires extreme caution with unsigned 16-bit types such as
+.cW bufsize
+and
+.cW command .
+They will become signed and 32-bit in future releases.
+Macros are provided for converting them to
+.cW errstat .
+.IP 2.
+Service timeouts on RPCs are being considered.
+.I Getreq
+will be able to listen to a set of ports instead of just one port.
+.IP 3.
+New process Management - we hope that the high level interface will stay the
+same but that the use of system calls will decrease.
+In addition, stacks should grow automatically.
+At present the stack size is fixed at link time.
+.IP 3.
+Process migration should become possible at any point in a process' execution.
+At present it is only possible when a process is not doing a system call.
+N.B. Although technically possible, process migration is
+.B not
+implemented.
+.IP 4.
+Paging or swapping may be added.
+At present, processes which do not fit completely in memory will not run.
+.LP
+In addition to these major changes there will be internal improvements to
+various servers to overcome known deficiencies.
+.EQ
+delim off
+.EN

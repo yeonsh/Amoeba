@@ -1,0 +1,16 @@
+/*	@(#)console.init	1.3	94/04/06 09:17:57 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+/*
+ * console.init
+ *
+ * The console must be initialized very early in the initialization
+ * process since its being used to display error message.
+ */
+MMU inituart
+inituart initinterrupts
+inituart CONSOLE

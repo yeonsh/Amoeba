@@ -1,0 +1,115 @@
+.\"	@(#)pd_read.n	1.6	96/02/15 16:54:01
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, Greg Sharp, 1988-1989
+	Modified: Kees Verstoep, June 1991 (multi arch & removed static buffer)
+	Document: Guido van Rossum, March 1990
+	Modified: Kees Verstoep (pd_read_multiple)
+		  Gregory J. Sharp, Feb 1996 - polished
+.aE
+.mT "pd_read" L "libamoeba, libamunix.a, libkernel.a"
+read a process descriptor from a file
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/proc.h"
+
+process_d *
+pd_read(file)
+capability *file;
+
+errstat
+pd_read_multiple(cap, pd_array, npd)
+capability  *cap;
+process_d ***pd_array;
+int         *npd;
+.eC
+.SH
+Description
+.LP
+.kW "\fIpd_read\fP"
+.kW "\fIpd_read_multiple\fP"
+.kW "process descriptor"
+.kW "\fIpdmalloc\fP"
+.kW "\fIbuf_get_pd\fP"
+.I Pd_read
+reads a process descriptor from a file using
+.I b_read
+(see
+.I bullet (L)).
+The argument specifies a capability for the file.
+It converts the data read from the file from standard byte order to
+native byte order using
+.I pdmalloc
+and
+.I buf_get_pd
+(see
+.I process_d (L)),
+and returns a pointer to the malloced buffer containing the converted
+process descriptor.
+.LP
+.I Pd_read_multiple
+is used in heterogeneous process startup.
+It reads a
+.I set
+of process descriptors,
+one per architecture available.
+The argument
+.I cap
+may be the capability for either a file or a directory.
+If
+.I cap
+designates a file,
+.I pd_read_multiple
+behaves like
+.I pd_read
+and it will return a single process descriptor.
+If
+.I cap
+designates a directory,
+it should contain one or more binary files named ``\*<pd.\*>\fIarch\fR'',
+each holding a process descriptor for architecture
+.I arch ,
+respectively.
+The process descriptors are returned in the output parameter
+.I pd_array
+by means of a dynamically allocated
+array of pointers to the process descriptors.
+Its length is returned in the output parameter
+.I npd .
+.LP
+The segment descriptors in the process descriptors returned by
+.I pd_read_multiple
+are patched to refer to the corresponding binary files.
+For backward compatibility reasons,
+the caller of
+.I pd_read
+is supposed to do this himself.
+.mH
+Diagnostics
+.LP
+.I Pd_read
+returns a NULL-pointer if an error occurred;
+this includes errors reported by
+.I b_read ,
+.I pdmalloc
+and
+.I buf_get_pd .
+.LP
+.I Pd_read_multiple
+returns
+.cW STD_OK
+if it could read and allocate at least one process descriptor.
+Otherwise it returns a standard error code telling what went wrong.
+.SH
+See Also
+.LP
+bullet(L),
+exec(L),
+process_d(L).

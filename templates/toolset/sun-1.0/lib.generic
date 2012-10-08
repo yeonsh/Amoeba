@@ -1,0 +1,33 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)lib.generic	1.3	94/04/05 17:11:53
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+LINTLIBNAME = llib-l$LIBNAME.ln;
+
+%default lib$LIBNAME.a, $LINTLIBNAME;
+
+%cluster
+{
+	%targets lib$LIBNAME.a[type = archive];
+	%sources $SOURCEFILES;
+};
+
+%cluster
+{
+	%targets $LINTLIBNAME[type = lint-library];
+        %sources select($SOURCEFILES, lint-source, %true);
+};
+
+%cluster
+{
+        %targets tags[type = ctags-output];
+        %sources select($SOURCEFILES, lint-source, %true);
+};
+
+%cluster files
+{
+        %do exec(mkfiles, args => $SOURCEFILES, stdout => files);
+};

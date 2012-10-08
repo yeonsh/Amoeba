@@ -1,0 +1,184 @@
+.\"	@(#)amdirstr.n	1.2	96/03/19 13:08:42
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, Oct 1994
+	Modified: Gregory J. Sharp, Mar 1996 - path name change
+.aE
+.nH 2 "The /super Directory Graph Structure"
+.LP
+.kW "directory graph structure"
+When \*(Am is installed it creates a cyclic, directed, directory graph
+structure.
+Some parts of this graph look the same for all users and some parts are
+customizable per user.
+In addition,
+there are some parts of the directory graph that normal users never see.
+These are accessible via a special directory called
+.I /super .
+This capability is normally only available to system administrators,
+known also as
+.I super-users .
+In the description below, users without the
+.I /super
+capability will be referred to as
+.I "normal users" .
+.LP
+Super-users see all the same things as normal users, as described in the
+introduction to the User Guide.
+In addition they also see the special subtree called
+.I /super .
+Below is a description of what the \*(Am directory graph looks like from
+.I /super .
+.mH
+/super
+.LP
+Only trusted users should be given a copy of the capability for the directory
+.I /super .
+This directory gives read/write access to the entire directory graph.
+All copies of the capability for this directory should always have the mode
+.cW FF:0:0
+to prevent other users from gaining access to the ``hidden''
+parts of the directory structure.
+.mH
+/super/admin
+.LP
+This directory is not visible to normal users.
+It contains data and commands for administration of the system.
+This directory contains the hostname information for the system,
+the
+.I /Environ
+file template used by
+.I newuser (A)
+and several subdirectories.
+The important subdirectories are:
+.LP
+.RS
+.IP \fIbin\fP 12n
+\- the binaries for system administration.
+.IP \fIbootinfo\fP
+\- this directory contains the
+.I boot (A)
+server binary,
+the
+.I soap(A)
+server binary and the
+.I boot
+server's database.
+.IP \fIkernel\fP
+\- the various kernels (for example, workstation, pool) and secondary
+bootstraps are stored here.
+.IP \fImodule\fP
+\- various system servers with sensitive data (for example, the run server)
+can store it in a subdirectory of this directory.
+.IP \fItftpboot\fP
+\- this directory contains links to entries in
+.I /super/admin/kernel .
+The entries in this directory which conform to the naming requirements of
+the
+.I tftp (A)
+server will be used for booting hosts that boot using
+.cW TFTP .
+.RE
+.mH
+/super/cap
+.LP
+.kW /super/cap
+This contains subdirectories, one for each system server that needs to
+present a capability to users.
+For example, the capabilities for the various \*(Bss are stored in
+.I /super/cap/bulletsvr .
+Normal users have read-only links to most of the subdirectories of
+.I /super/cap .
+They access it via the name
+.I /profile/cap .
+One entry which users do not normally have a link to is
+.I /super/cap/bulletsvr .
+Usually each user has a private directory
+.kW "bullet server"
+.kW /profile/cap
+.I /profile/cap/bulletsvr
+with a copy of one of the \*(Bs capabilities registered under the name
+.I default .
+This can then be easily changed on a per user basis to help balance the
+disk usage and the load on the file servers.
+.mH
+/super/group
+.LP
+.kW /super/group
+.kW /profile/group
+This directory contains only subdirectories.
+Each subdirectory contains the root capabilities for the members of a group.
+For example,
+the root capability for each PhD student can be found in
+.I /super/group/phd .
+Furthermore, each capability in
+.I /super/group/phd
+grants access to the second column (i.e., group access) of the directory.
+In this way all the members of a group have group access to each others'
+root directories.
+.LP
+There is one exception to this and that is the directory
+.I /super/group/users .
+This contains the capability for the root directory of all users and
+provides access to the 3rd column.
+.LP
+Each user has a read-only link to
+.I /super/group
+called
+.I /profile/group .
+.mH
+/super/module
+.LP
+.kW /super/module
+This directory is used by various modules in the system to store publicly
+available data and binaries.
+Normal users have a read-only link to it called
+.I /profile/module .
+Examples of information stored here include the
+X window system, the MMDF mail system, various compilers and their accompanying
+libraries and include files, python and the timezone data base.
+.mH
+/super/pools
+.LP
+Each subdirectory of this directory contains a processor pool as
+recognized by the
+.I run (A)
+server.
+.mH
+/super/unixroot
+.LP
+.kW /super/unixroot
+This directory contains several subdirectories necessary for the
+.UX
+emulation.
+This path provides write permission to the various files in the
+.UX
+emulation.
+Normal users have directories such as
+.I /bin
+and
+.I /etc
+which are in fact read-only links to
+.I /super/unixroot/bin
+and
+.I /super/unixroot/etc ,
+respectively.
+.mH
+/super/users
+.LP
+This directory contains the root directories of all the users.
+It is a link to
+.I /super/group/users .
+.mH
+/super/util
+.LP
+This directory contains the binaries for \*(Am specific programs which
+are not shell scripts and do not form part of the
+.UX
+emulation.
+Normal users have a read-only link to this called
+.I /profile/util .

@@ -1,0 +1,47 @@
+.\"	@(#)which.n	1.4	94/04/05 16:14:17
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "which" U
+examine PATH to see which file will be executed
+.SH
+Synopsis
+.LP
+.sC L
+which name
+.eC
+.SH
+Description
+.LP
+.kW "PATH environment variable"
+The
+.cW PATH
+environment variable controls the search rules for executables.
+If a command
+.I a.out
+is given,
+the shell first tries to find an executable file in the working directory.
+If that fails,
+it looks in various directories,
+according to the value of
+.cW PATH .
+The
+.I which
+command makes the same search,
+and gives the absolute path of the program that will be chosen,
+followed by other occurrences of the file name along the path.
+.SH
+Example
+.LP
+.sC
+which a.out
+.eC
+Reports the path name of the program
+.I a.out
+that will be executed.

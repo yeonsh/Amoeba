@@ -1,0 +1,18 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 14:42:03
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_M4 = {
+	$PWD/eval.c,
+	$PWD/expr.c,
+	$PWD/extr.h,
+	$PWD/look.c,
+	$PWD/main.c,
+	$PWD/mdef.h,
+	$PWD/misc.c,
+	$PWD/patchlevel.h,
+	$PWD/serv.c
+};

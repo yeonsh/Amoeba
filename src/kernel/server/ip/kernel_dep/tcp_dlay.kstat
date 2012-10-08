@@ -1,0 +1,4 @@
+/*	@(#)tcp_dlay.kstat	1.2	96/02/27 14:20:13 */
+U tcp_delay_up		"increase tcp delay (x2)"	SYS_RGT_CONTROL
+D tcp_delay_down	"decrease tcp delay (/2)"	SYS_RGT_CONTROL
+d tcp_delay_enable	"enable/disable tcp delay"	SYS_RGT_CONTROL

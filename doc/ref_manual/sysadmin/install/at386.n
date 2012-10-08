@@ -1,0 +1,526 @@
+.\"	@(#)at386.n	1.23	96/02/15 17:03:27
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Leendert van Doorn, May 1991
+	Revised for Amoeba 5.0, January 1992
+	Modified: Gregory J. Sharp, July 1993
+			new style & new hardware support.
+		  Gregory J. Sharp, Jan 1996
+			new hardware, improvements in readability
+.aE
+.bp
+.nH 2 "Installing \*(Am on Intel 80386 Systems"
+.LP
+.kW i80386
+.kW i80486
+.kW Pentium
+.kW "i80386 installation"
+The \*(Am version for the i80386 ISA bus systems will also run on i80486 and
+Pentium ISA, PCI and VL-bus systems.
+It uses the standard partition table
+format which is common among these types of machines.
+This allows one to have partitions containing other operating systems
+.kW MS-DOS
+(such as MS-DOS).
+If partitions for other operating systems are desired,
+install these before installing \*(Am.
+.kW "disk space requirements"
+Remember to leave an empty partition of at least 70\ MB to hold \*(Am.
+300 MB or more is recommended for a system with many users or
+if X windows is to be installed.
+Once this is done the following describes how to install \*(Am.
+.LP
+The binary distribution for \*(Am on the 386 consists of five floppy disks
+containing the binaries for a tiny \*(Am system, and a large tar file containing the
+remaining images.
+.LP
+.kW "floppy disk"
+The floppy disk labeled
+.I KERNELS
+contains a number of bootable kernels,
+among others the installation kernel.
+The floppy disks labeled
+.I "RAMDISK-IMAGE"
+contain a ramdisk image that will be used by the installation kernel.
+The remaining floppies, labeled
+.I "AMOEBA" ,
+hold a
+.kW starch
+.I starch (U)
+image containing all the system binaries to be installed.
+.LP
+To use these floppy disks the following hardware is required:
+.IP \h'1n'\(bu
+.kW ISA
+An i80386 or i80486 computer with an ISA (AT) bus architecture.
+The computer should be equipped with at least 16 MB of memory.
+The more the better!
+.IP \h'1n'\(bu
+A 1.44 MB floppy disk drive.
+.IP \h'1n'\(bu
+A hard disk of at least 70\|\|MB.\v'-0.3v'\s-21\s0\v'0.3v'
+.FS
+1. Note that if using an Adaptec SCSI controller it should be configured
+with I/O address 0x330 and IRQ 11.
+.FE
+.IP \h'1n'\(bu
+.kW Ethernet
+.kW NE2100
+One (or more) of the following Ethernet boards:
+.RS
+.IP \h'1n'\(bu
+A Novell NE2100 or compatible.\v'-0.3v'\s-22\s0\v'0.3v'
+.FS
+2. The Novell NE2100 should be configured with I/O address 0x300 and IRQ
+level 3.
+.FE
+Note that it is not possible to put more than one NE2100 board in a machine.
+If a gateway is to be built, one of the following boards can be used as the
+second board.
+They can also be used as the primary board but have poorer performance than the
+NE2100 board.
+.IP \h'1n'\(bu
+.kW "WD\ 8003E"
+.kW "WD\ 8013EB"
+.kW "WD\ 8013EP"
+.kW "Western Digital"
+.kW "SMC"
+A WD\ 8003E, WD\ 8013EB, WD\ 8013 Elite,
+WD\ 8013EP or SMC\ 8013EPC.\v'-0.3v'\s-23\s0\v'0.3v'
+The SMC\ 8013EPC will give the best performance of the SMC
+(formerly Western Digital) Ethernet boards.
+.FS
+3. The SMC/Western Digital Ethernet boards should be configured with
+I/O address 0x280, IRQ level 3, and memory base address 0xD0000.
+If a second Ethernet board is added it should be at I/O address 0x300,
+IRQ level 5 , and memory base address 0xD4000.
+.FE
+.IP \h'1n'\(bu
+.kW NE2000
+.kW NE1000
+A Novell NE1000 or NE2000 or compatible.\v'-0.3v'\s-24\s0\v'0.3v'
+The NE2000 gives much better performance than the NE1000.
+.FS
+4. The NE1000 or NE2000 should be configured with I/O address 0x280 and IRQ
+level 3 or I/O address 0x300 and IRQ level 5.
+.FE
+.IP \h'1n'\(bu
+.kW "3Com Ethernet card"
+.kW 3Com503
+A 3Com 503 Etherlink II or compatible.\v'-0.3v'\s-25\s0\v'0.3v'
+The performance is poorest of the cards listed.
+16-bit 3Com cards may work but have not been tested.
+.FS
+5. The 3Com 503 should be configured at I/O address 0x280 and IRQ level 3.
+The share memory should be enabled at any free address (e.g., 0xCC000).
+.FE
+.RE
+.LP
+.kW installation
+In the instructions below the
+.B bold
+font will be used for what you have to type at the computer,
+and the
+.cW "standard font"
+for what the computer types back at you.
+A \(=> marks the beginning of each step.
+.SH
+Preliminaries
+.IP \(=> 1.6c
+Before starting with the installation procedures write down the Ethernet
+address of your computer.
+This address is used later on in the installation phase.
+If the address cannot be obtained easily,
+boot a workstation kernel from the
+.I KERNELS
+floppy and write down the Ethernet address which
+is printed as part of the standard banner.
+How to bootstrap a workstation kernel is explained below.
+.IP \(=> 1.6c
+Choose a name for the new \*(Am host.
+Host names should be chosen with care.
+The host name must be a single word containing no spaces or tabs.
+Ideally, it should consist only of letters and digits.
+Other characters may be interpreted by the shell when typing the host name.
+.SH
+The Installation
+.LP
+.IP \(=> 1.6c
+Power on the machine and boot from the floppy labeled
+.I "KERNELS" .
+The following message will appear:
+.sC L
+Amoeba 5.3 Standalone Boot Program
+
+Default kernel: coldstart (just press <ENTER> or wait ~30 seconds)
+
+boot:
+.eC
+.LP
+The
+.I "KERNELS"
+floppy contains a number of \*(Am kernels.
+To get an overview type a single question mark (`?').
+This will display a list of available kernels, the values between
+the parenthesis denote the offset and the size (in blocks) of the
+kernel.
+.sC L
+boot: \fB?\fP
+Bootable kernel(s):
+    coldstart (1:499)
+    smbul (500:900)
+    pool (1400:700)
+    workstation (2100:700)
+.eC
+To start any kernel, just type its name followed by
+.kW "i80386 installation"
+.I return
+(sometimes known also as
+.I enter ).
+An exception to this mechanism is the default kernel which is
+booted if no name is given (just a return), or
+when there has been no keyboard activity for approximately thirty
+seconds.
+.IP \(=> 1.6c
+To setup an \*(Am system, boot the kernel named
+.I coldstart .
+This is the default kernel so simply press return.
+Booting this kernel causes the system to display some descriptive messages
+(version, creator, creation data, some device driver information).
+.IP \(=> 1.6c
+After a few moments a request for a floppy will appear.
+Remove the
+.I KERNELS
+floppy,
+insert the
+.I "RAMDISK-IMAGE-0"
+floppy and press return.
+When it prompts for the next floppy remove the
+.I "RAMDISK-IMAGE-0"
+floppy,
+insert the
+.I "RAMDISK-IMAGE-1"
+floppy and press return.
+.LP
+Once both floppy disks have been loaded,
+the
+.I coldstart
+kernel will start the necessary servers for the installation.
+While this is going on, various messages that look like errors
+might be displayed.
+If at this time or any other time the message:
+.sC L
+WARNING: winchester multi sector I/O functionality turned off
+.eC
+is displayed,
+do not be alarmed.
+It is simply that the hard disk will perform a little more slowly because it
+was not able to handle the maximum performance demanded by the disk software.
+Please report this to your \*(Am distributor if it occurs during normal
+system operation.
+Do not worry about other messages.
+They are either initialization information or from servers that do not
+understand a system that is only partially running.
+.IP \(=> 1.6c
+Eventually, after some minutes, a shell prompt will appear:
+.kW "i80386 installation"
+.sC L
+Welcome to standalone Amoeba
+#
+.eC
+Remove the
+.I "RAMDISK-IMAGE-1"
+floppy at this point.
+.IP
+Verify that everything works by listing the contents of the machine directory.
+This will provide a list of all devices that are available
+during the installation phase.
+.sC L
+# \fBdir\0\-l\0/super/hosts/coldstart\fP
+bootp:00                        @  1289736 KB
+bootp:01                        @     2439 KB
+floppy:00                       @     1440 KB
+proc                            process/segment server
+ps                              %--1234
+random                          random number server
+tod                             TOD server
+tty:00                          +
+vdisk:80                        @     2288 KB
+vdisk:81                        @       99 KB
+vdisk:82                        @       49 KB
+.eC
+The entry marked
+.cW "bootp:00"
+is the name of the hard disk attached to your machine.
+.LP
+At this point the disk must be partitioned and labeled.
+As already mentioned,
+the \*(Am version for the AT/386 uses the standard partition table
+format which is common among these types of machines.
+.LP
+.kW "i80386 installation"
+The partitioning procedure is divided into two steps.
+The first step consists of creating a partition table entry for \*(Am.
+The partition should be large enough to hold an \*(Am system
+(at least 70\|\|MB), and should be made active.
+Partitions are created using
+.I fdisk (A).
+.I Fdisk
+is menu driven and allows you create and delete partitions, activate partition
+table entries and scan the disk for bad blocks.
+.IP \(=> 1.6c
+To start
+.I fdisk
+type:
+.sC L
+# \fBfdisk\0/super/hosts/coldstart/bootp:00\fP
+.eC
+See the
+.I fdisk
+manual page for details on how to partition the disk.
+.IP
+.B Note:
+if you have a hard disk with more than 63 sectors/track, or
+more than 63 heads, or more than 2048 cylinders it important to place
+the bootable kernel vdisk within the first 2048
+cylinders of the disk.
+This is necessary since the BIOS can only boot systems from the first
+2048 cylinders.
+.LP
+Having partitioned the disk, the second
+step is to sub-partition the \*(Am partition.
+For bootstrap purposes the following four virtual disks are required.
+They should each consist of one sub-partition.
+.IP vdisk:01 10
+This is used for booting from disk and should have room to contain one or
+more kernels.
+In almost all normal circumstances 2\|MB is recommended.
+Minimum 1\ MB.
+.IP vdisk:02
+This is used by the
+.I boot (A)
+server, and 100\ KB is sufficient.
+.IP vdisk:03
+This is for the administration of the directory server.
+A 1\ MB partition will hold over 30000 directories and should
+be sufficient for most purposes.
+.IP vdisk:04
+This will hold the files for the first \*(Bs started.
+It should be at least 65\ MB.
+If the machine has only 16\ MB of main memory then make this partition at
+most 900\ MB.
+Larger partitions may work but if it is much larger than this there may be
+insufficient core to cache the inode table when a full \*(Bs is started later.
+If more main memory is present then the size of the partition can be
+proportionally larger.
+.LP
+If any disk is left after that, put it in vdisk:05.
+.IP \(=> 1.6c
+Having planned the sizes for the partitions,
+call the disklabel program:
+.kW "\fIdisklabel\fP"
+.sC L
+# \fBdisklabel\0coldstart\fP
+.eC
+This is an interactive program and is described in
+.I disklabel (A).
+.IP
+NB.
+When labeling it is important to realize that the disk
+.I bootp:01
+is
+.B not
+a physical disk and should not be selected for labeling!
+.IP
+When creating the \*(Am sub-partitioning the `a' partition
+corresponds to vdisk:01, `b' to vdisk:02, etc.
+.kW "i80386 installation"
+.IP \(=> 1.6c
+After the disk is labeled reset the machine and boot the
+.I coldstart
+kernel from floppy again.
+To do this, insert the
+.I "\*(Am kernels"
+floppy in the floppy drive and press the keys
+\fB<CRTL> <ALT> <DEL>\fP simultaneously.
+The process of loading the ramdisk images must be repeated now.
+.IP
+When the machine is up and running verify that the
+virtual disks were indeed created, by listing the kernel directory again with
+.I dir (U).
+.IP \(=> 1.6c
+Now check the time and date by typing the command:
+.sC L
+# \fBdate\fP
+.eC
+If it is not correct,
+set the time and date in the time of day server using the command:
+.sC L
+# \fBdate\0\-s\0/super/hosts/coldstart/tod\fP yyyymmddhhmm[.ss]
+.eC
+where
+.I yyyy
+is the year,
+.I mm
+the month, etc.
+.IP \(=> 1.6c
+Start the rest of the installation by:
+.sC L
+# \fB.\0\0installit
+.eC
+This script will prompt you for the name of the machine and for its Ethernet
+address,
+.kW "i80386 installation"
+e.g.,
+.B 0:0:c0:0:12:34 .
+It is important that you choose the name for the machine carefully.
+In general, \*(Am systems comprise many hosts so use common sense when
+selecting host names.
+In particular make sure that the name is one word, since it will be
+entered in the directory
+.kW "/super/hosts"
+.I /super/hosts .
+.IP
+Note that if there is more than one Ethernet interface then give the address
+of the connection to the \*(Am network.
+.IP \(=> 1.6c
+After some descriptive messages of programs and services that are started
+by the installation script,
+.kW starch
+.I starch (U)
+will ask you to insert the floppy disks labeled
+.I "AMOEBA" .
+It will be necessary to change floppies after a few minutes.
+They are numbered in the order in which they should be inserted, beginning
+with zero.
+.IP \(=> 1.6c
+After the script finishes it will print
+.sC L
+Installation complete
+.eC
+Now you can boot \*(Am from the hard disk.
+To do this remove any floppy in the floppy drive and press
+\fB<CRTL> <ALT> <DEL>\fP simultaneously.
+The boot program on hard disk will work exactly like the boot program on the
+.I KERNELS
+floppy.
+Note that the
+.I installit
+script installed one kernel.
+Start this kernel.
+.IP \(=> 1.6c
+After a minute or two an \*(Am login message will appear.
+(Be careful,
+it might be lost in the verbose boot server output.)
+Log in as user
+.kW Daemon
+.I Daemon .
+There is no password,
+so at the
+.cW Password:
+prompt just press the return key.
+.IP \(=> 1.6c
+The login name
+.I Daemon
+has the super capability giving access to the entire directory graph so it is
+important to protect this login against misuse.
+Once logged in, set the password for the login name
+.I Daemon
+using the command
+.kW chpw
+.I chpw (U).
+.LP
+It is still necessary to install the bulk of the utilities for \*(Am.
+However, before doing that, it may be necessary to install the FLIP driver in a
+.kW "UNIX FLIP driver"
+.UX
+kernel.
+This will be dealt with first and then the installation of the remaining utilities
+under \*(Am will be described.
+.IP \(=> 1.6c
+Install the
+.UX
+FLIP driver as described in the chapter entitled, ``\*(Am and
+.UX ''.
+When convinced that the FLIP driver works correctly,
+Daemon's \*(Am capability under must be installed on
+.UX
+so that the binaries can be downloaded to \*(Am from
+.UX .
+The following command executed under \*(Am obtains Daemon's capability:
+.kW c2a
+.kW ASCII
+.sC L
+amoeba% \fBc2a\0/\fP
+<ASCII representation of capability>
+.eC
+.IP
+This information should be kept secret.
+Do not let others see it.
+To install this capability under
+.UX ,
+then do the following:
+.kW a2c
+.sC L
+unix% \fBa2c\0\(aa\|<ASCII representation of capability>\|\(aa\0\-\0\0>\0$HOME\|/\|.capability\fP
+unix% \fBchmod\0400\0$HOME\|/\|.capability\fP
+.eC
+.IP
+Test this by running the
+.I dir (U)
+command under
+.UX .
+The
+.I dir (U)
+command gives an overview of
+.I Daemon 's
+root directory.
+.IP \(=> 1.6c
+The remaining \*(Am binaries should now be installed.
+These are in the tar file
+.I BinTree.tar
+that came with the distribution.
+.kW SCSI
+If you have a SCSI-based disk system and a tape unit, the rest of the binaries
+can be loaded from the tape unit.
+Simply put the
+.I BinTree.tar
+file on a tape (if it is not already) and load it using the following command:
+.sC
+.B
+cd /
+tar -kxf /super/hosts/\fIhost\fP/tape:00
+.cW
+.eC
+where
+.I host
+is the name of the host given to
+.I installit .
+There will be various error messages about its refusal to overwrite extant
+files.
+Ignore these.
+Once the tape is loaded proceed to the section on setting the time.
+.IP
+If you do not have a tape drive then the rest of the binaries can be loaded
+over the network from
+.UX .
+First untar the
+.I BinTree.tar
+file under
+.UX .
+The following commands run under
+.UX
+will then install the binaries.
+Note that it may easily take up to an hour, depending on performance
+of the computers and the network.
+.kW "\fIamdumptree\fP"
+.sC L
+unix% \fBSPMASK=0xff:0x2:0x4 export SPMASK\fP
+unix% \fBamdumptree\0\(ga\|pwd\|\(ga/\|BinTree.am\ \ /\fP
+.eC
+.LP
+Now go on to the section on setting the time.

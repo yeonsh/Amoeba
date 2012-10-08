@@ -1,0 +1,78 @@
+.\"	@(#)mkd.n	1.4	96/02/16 11:04:20
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Kees Verstoep, 1/04/92: added column name option
+.aE
+.mT "mkd" U
+make a new directory
+.SH
+Synopsis
+.LP
+.sC L
+mkd [-c column] pathname ...
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "create directory"
+.kW "make directory"
+.I Mkd
+uses
+.I sp_mkdir (L)
+to create new directories with the given
+.I pathnames .
+.mH
+Options
+.IP "\fB\-c\fP column" 10
+By default,
+.I mkd
+creates directories with three columns:
+.I owner ,
+.I group ,
+and
+.I other .
+A different directory structure can be forced by specifying
+the column names with the
+.B \-c
+option explicitly,
+one for each column.
+.SH
+Examples
+.LP
+.sC
+mkd /home/newdir
+.eC
+will create a new directory named
+.I newdir ,
+under the
+.I /home
+directory,
+which must exist before this command is invoked.
+.LP
+The command
+.sC
+mkd -c myself -c group /home/mydir
+.eC
+will create a directory named
+.I mydir
+having two columns,
+named
+.I myself
+and
+.I group ,
+respectively.
+.SH
+See Also
+.LP
+chm(U),
+dir(U),
+get(U),
+del(U),
+put(U).

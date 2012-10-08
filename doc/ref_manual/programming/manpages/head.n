@@ -1,0 +1,143 @@
+.\"	@(#)head.n	1.4	96/02/15 16:50:00
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen (VAX) and others, 1987-1989
+	Document: Jack Jansen, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "head" L "head.o/libamoeba.a"
+C run-time start-off
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "caplist.h"
+
+extern char *environ[];
+extern struct caplist capv[];
+
+main(argc, argv, envp, capv)
+int argc;
+char *argv[];
+char *envp[];
+struct caplist capv[];
+
+_stackfix(sp)
+.eC
+.SH
+Description
+.LP
+.kW "run-time start-off"
+.kW "caplist.h"
+.kW "main calling sequence"
+.kW "main"
+.kW "_stackfix"
+.kW "argc"
+.kW "argv"
+.kW "envp"
+.kW "capv"
+.kW "environ"
+.kW "shell variables"
+.kW "capability environment"
+.kW "stack format"
+This document describes the way the C main program is called.
+The
+.I main
+routine is called with four arguments:
+.IP \fIargc\fP
+is the number of arguments;
+.IP \fIargv\fP
+is an array of strings containing the arguments, with
+.I argv[0]
+the name of the program;
+.IP \fIenvp\fP
+is a NULL-terminated array of strings containing the string environment
+(all exported shell variables, usually);
+.IP \fIcapv\fP
+is unique to \*(Am and contains the capability environment.
+See
+.I getcap (L)
+for a description of standard capability environment entries.
+.LP
+Since the string and capability environment are often needed by
+other library modules their addresses are also stored in the global
+variables
+.I environ
+and
+.I capv ,
+respectively.
+In the light of compatibility with STD C,
+this is the recommended way of accessing them.
+.mH
+Stack format
+.LP
+The format of the stack segment `on the wire', i.e., as it is created
+by
+.kW "\fIbuildstack\fP"
+.I buildstack (L),
+is in the byte order of the host that built it.
+From high to low addresses, the stack contains the capabilities,
+the names of the capabilities, the NULL-terminated
+.I capv
+array (with pointers to the previous items),
+the environment strings, the NULL-terminated
+.I envp
+array (with pointers to the environment strings),
+the argument strings, the
+.I argv
+array (with pointers to the argument strings), a pointer to the
+.I capv
+array, a pointer to the
+.I envp
+array, a pointer to the
+.I argv
+array and the argument count.
+Note that all addresses are real pointers, so the address
+where the stack segment will be mapped has to be known beforehand.
+.LP
+Since the stack is created in the byte-order of the originating machine
+it may have to be fixed before it can be handed to
+.I main .
+The routine
+.I _stackfix
+does this.
+It gets a pointer to the stack described
+above as an argument, checks
+.I argc
+to determine the byte order of
+the stack segment (argc is always supposed to be less than 2^16), and
+swaps all pointers and integers if needed.
+Note that checkstack can only
+handle big-endian and little-endian architectures.
+.mH
+Implementation
+.LP
+The run-time start-off routine is very simple.
+First, it executes some
+architecture-dependent code to setup registers and terminate the
+frame pointer chain.
+Next, it calls
+.I _stackfix
+to fix the stack.
+Then it calls
+.I main
+with the aforementioned arguments.
+Finally it
+calls
+.I exit
+(see
+.I ansi_C (L))
+with the return value from main as argument.
+.SH
+See Also
+.LP
+buildstack(L),
+exitprocess(L),
+getcap(L),
+ansi_C(L).

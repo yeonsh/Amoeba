@@ -1,0 +1,275 @@
+.\"	@(#)exec.n	1.7	96/02/15 16:48:54
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, Mike Condict, 1988-1990, Kees Verstoep 1991
+	Document: Guido van Rossum, March 1990
+	Modified: Kees Verstoep, July 1991 (heterogeneous process startup)
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "exec_file" L "libamoeba.a, libamunix.a"
+start execution of a process
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+#include "am_exerrors.h"
+
+errstat exec_file (
+    capability     *prog,
+    capability     *host,
+    capability     *owner,
+    int             stacksize,
+    char          **argv,
+    char          **envp,
+    struct caplist *caps,
+    capability     *process_ret
+);
+
+errstat exec_pd (
+    process_d      *pd,
+    int             pdlen,
+    capability     *host,
+    capability     *owner,
+    int             stacksize,
+    char          **argv,
+    char          **envp,
+    struct caplist *caps,
+    capability     *process_ret
+);
+.eC
+.SH
+Description
+.LP
+.kW "\fIexec_file\fP"
+.kW "\fIexec_pd\fP"
+.kW "\fIexec_findhost\fP"
+.kW "\fIpro_exec\fP"
+.kW "am_exerrors.h"
+.kW "proc.h"
+.kW "processor"
+.kW "processor pool"
+.kW "program arguments"
+.kW "string environment"
+.kW "capability environment"
+.kW "process"
+.kW "process owner"
+.kW "process creation"
+.kW "process descriptor"
+.kW "executable file"
+.kW "checkpoint"
+.kW "a.out"
+The description of the process interface is split into several parts.
+The process descriptor data structure and its basic access methods are
+described in
+.I process_d (L).
+The low-level kernel process server interface is described in
+.I process (L).
+The high-level process execution interface is described here.
+See also
+.I pd_read (L).
+.LP
+.I Exec_file
+starts the execution of a new process.
+It takes many arguments,
+allowing precise control over the execution,
+but chooses sensible defaults for input parameters that are zero or
+NULL-pointers.
+Its first argument can be the capability of either an executable file
+or of a
+.I directory .
+The latter is used to implement heterogeneous process startup
+(i.e., executing a program without prescribing the architecture on
+which it is to be run).
+The directory should contain a set of one or more binaries,
+each for a different architecture.
+Of course,
+in order for this to work properly,
+the programs must be semantically the same
+(for example,
+files used or created by the program
+should be in byteorder independent format).
+.kW "host"
+.kW "run server"
+The
+.I run (A)
+server is used to determine
+\(em given the architectures of the process descriptors available \(em
+which host is the most suitable to be used.
+.LP
+.kW "\fIexec_pd\fP"
+.I Exec_pd
+has,
+with the exception of heterogeneity,
+the same functionality as
+.kW "\fIexec_file\fP"
+.I exec_file ,
+but it uses a process descriptor passed as an
+argument instead of a capability for the executable.
+.LP
+The arguments have the following meaning:
+.IP \fIprog\fP \w'process_ret\0'u
+.I "(exec_file only)"
+Capability of the binary file or directory containing process descriptors
+to be executed (see
+.I pd_read (L)
+for a description of the directory format required).
+If this is a NULL-pointer,
+the capability named by argv[0] is looked up.
+.IP "\fIpd, pdlen\fP"
+.kW "\fIexec_pd\fP"
+.I "(exec_pd only)"
+The process descriptor (in native byte order) and its length (in bytes).
+The process descriptor will be converted to standard network byte order by
+.I pro_exec
+(see
+.I process (L)).
+.IP \fIhost\fP
+.kW "host"
+Capability for the process server where the process should execute.
+The process server capability can be found by looking up
+.kW "PROCESS_SVR_NAME"
+.cW PROCESS_SVR_NAME
+(defined in
+.I proc.h ,
+typically ``proc'') in the processor directory.
+If this is a NULL-pointer,
+the selection of a suitable pool processor (and the corresponding process
+descriptor) is left to
+.kW "\fIexec_multi_findhost\fP"
+.I exec_multi_findhost (L).
+.IP \fIowner\fP
+Capability of the process owner; a ``checkpoint'' transaction is sent to
+this capability if the process exits,
+receives a signal or causes an exception;
+see
+.I process (L).
+If this is a NULL-pointer, the owner found in the program's process
+descriptor, if any, is retained (this is usually a NULL-capability,
+meaning the process has no owner).
+.kW "stack size"
+.IP \fIstacksize\fP
+Stack size, in bytes.
+If this is zero, the size of the stack segment in the process descriptor
+is used;
+if that is also zero,
+a default is used (currently 16K).
+.IP \fIargv\fP
+Null-terminated array of program argument strings, starting with the
+program name (using the same convention as for calling main).
+If this is a NULL-pointer, a single ``\-'' is used as 0-th parameter.
+For
+.kW "\fIexec_file\fP"
+.I exec_file ,
+if the default for
+.I prog
+is to be taken from
+.I argv
+then
+.I argv
+and
+.I argv [0]
+must not be NULL-pointers.
+.IP \fIenvp\fP
+Null-terminated array of shell environment variables.
+Each string must be of the form
+.I NAME=value.
+If this is a NULL-pointer, the calling program's shell environment is
+used, taken from the global variable
+.I environ.
+.IP \fIcaps\fP
+Capability environment.
+This is an array of
+.I "struct caplist"
+entries,
+the last of which should have
+.cW "cl_name\ ==\ NULL" ;
+see
+.I getcap (L).
+If this is a NULL-pointer, the calling program's capability environment
+is used, taken from the global variable
+.I capv.
+If this variable is also NULL (typically the case on
+.UX ),
+an error is returned.
+.IP \fIprocess_ret\fP
+Should point to a variable where the capability for the new process
+is stored, if it was actually started.
+If this is a NULL-pointer, the process capability is lost.
+.LP
+If the run server is used to select a host,
+and the process cannot be executed because of lack of memory
+on the selected host,
+a new host is tried a couple of times.
+.eR
+.ta 20n
+\*<AMEX_NOPROG\*>	no program given
+\*<AMEX_PDLOOKUP\*>	cannot find program
+\*<AMEX_PDREAD\*>	cannot read process descriptor
+\*<AMEX_PDSHORT\*>	not all bytes read from process descriptor
+\*<AMEX_PDSIZE\*>	inconsistent process size
+\*<AMEX_NOCAPS\*>	no capability environment
+\*<AMEX_NOHOST\*>	cannot find suitable host processor
+\*<AMEX_GETDEF\*>	the call to pro_getdef() failed (see \fIprocess\fP(L))
+\*<AMEX_MALLOC\*>	cannot make local stack segment
+\*<AMEX_STACKOV\*>	env+args too big for stack
+\*<AMEX_SEGCREATE\*>	cannot create stack segment
+.DE
+.kW "AMEX_NOPROG"
+.kW "AMEX_PDLOOKUP"
+.kW "AMEX_PDREAD"
+.kW "AMEX_PDSHORT"
+.kW "AMEX_PDSIZE"
+.kW "AMEX_NOCAPS"
+.kW "AMEX_NOHOST"
+.kW "AMEX_GETDEF"
+.kW "AMEX_MALLOC"
+.kW "AMEX_STACKOV"
+.kW "AMEX_SEGCREATE"
+These constants are defined in
+.I am_exerrors.h .
+Standard and RPC errors may also be produced, with conventional meaning;
+these are usually passed on from
+.I pro_exec
+(see
+.I process (L)).
+.SH
+Example
+.LP
+To execute the file
+.I a.out
+in a default environment, the following call suffices:
+.kW "\fIexec_file\fP"
+.sC
+static char *arglist[] = {"a.out", (char *)0};
+capability   process;
+errstat      err;
+
+err = exec_file((capability *)0,     /* prog */
+                (capability *)0,     /* host */
+                (capability *)0,     /* owner */
+                0,                   /* stacksize */
+                arglist,             /* argv */
+                (char **)0,          /* envp */
+                (struct caplist *)0, /* caps */
+                &process             /* process_ret */
+               );
+.eC
+.SH
+See Also
+.LP
+ainstall(U),
+ax(U),
+buildstack(L),
+exec_findhost(L),
+getcap(L),
+pd_read(L),
+process(L),
+process_d(L),
+rpc(L).

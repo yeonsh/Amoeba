@@ -1,0 +1,224 @@
+.\"	@(#)telnetd.n	1.2	96/02/15 17:54:25
+.aU
+.\" Copyright (c) 1983 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)telnetd.8	6.8 (Berkeley) 4/20/91
+.\"
+.\".TH TELNETD 8 "April 20, 1991"
+	Modified: Gregory J. Sharp, Feb 1994 - converted manual page to Amoeba
+					       format and brought it up to date
+.aE
+.mT telnetd A
+DARPA TELNET protocol daemon
+.SH
+Synopsis
+.LP
+.sC L
+telnetd [-debug] [-D (options|report|netdata|ptydata|exercise)]
+	 [-h] [-l] [port]
+.eC
+.SH
+Description
+.LP
+.kW telnet
+.I Telnetd
+is a server which supports the DARPA standard
+.cW TELNET
+virtual terminal protocol.
+Under \*(Am
+.I telnetd
+can only be invoked via the
+.I telnetsvr (A)
+server,
+normally for requests to connect to the
+.cW TELNET
+port as indicated by the
+.I /etc/services
+file.
+.\"(see
+.\".IR services (5)).
+It
+.B cannot
+be started from the command line with an alternate TCP port number
+.I port .
+To do this it is necessary to modify the
+.I telnetsvr
+to pass extra arguments to the
+.I telnetd .
+The rest of the description below is purely for information only.
+.LP
+.I Telnetd
+implements the various commands and a pseudo-terminal and
+creates a login process which has the slave side of the pseudo-terminal as 
+.I stdin ,
+.I stdout ,
+and
+.I stderr .
+.I Telnetd
+manipulates the master side of the pseudo-terminal,
+implementing the
+.cW TELNET
+protocol and passing characters
+between the remote client and the login process.
+When a
+.cW TELNET
+session is started up, 
+.I telnetd
+sends
+.cW TELNET
+options to the client side indicating
+a willingness to do
+.I "remote echo"
+of characters, to
+.I "suppress go"
+.I ahead ,
+to do
+.I "remote flow"
+.I control ,
+and to receive
+.I "terminal type"
+.I information ,
+.I "terminal speed"
+.I information ,
+and
+.I "window size information"
+from the remote client.
+If the remote client is willing, the remote terminal type is
+propagated in the environment of the created login process.
+The pseudo-terminal in the telnet server operates in \*(lqcooked\*(rq mode.
+.LP
+.I Telnetd
+is willing to
+.I do :
+.I echo ,
+.I binary ,
+.I "suppress go"
+.I ahead ,
+and
+.I timing
+.I mark .
+.I Telnetd
+is willing to have the remote client
+.I do :
+.I linemode ,
+.I binary ,
+.I terminal
+.I type ,
+.I terminal
+.I speed ,
+.I window
+.I size ,
+.I "toggle flow"
+.I control ,
+.I environment ,
+.I "X display"
+.I location ,
+and
+.I "suppress go"
+.I ahead .
+.mH
+Options
+.LP
+.IP \fB\-debug\fP 7
+Causes debugging information to be printed.
+.IP \fB\-D\fP\fIflag\fP
+This option is used to selectively enable various diagnostics.
+This allows
+.I telnet
+to print out debugging information
+to the connection, allowing the user to see what
+.I telnetd
+is doing.
+There are several
+.I flags :
+.RS
+.IP \fIoptions\fP 9
+prints information about the negotiation
+of
+.cW TELNET
+options.
+.IP \fIreport\fP
+prints the
+.I options
+information, plus
+some additional information about what processing is going on.
+.IP \fInetdata\fP
+displays the data stream received by
+.I telnetd .
+.IP \fIptydata\fP
+displays data written to the pty.
+.IP \fIexercise\fP
+does nothing at present.
+.RE
+.IP \fB\-h\fP
+causes the host information banner not to be sent to the client on startup.
+.IP \fB\-l\fP
+always use
+.I linemode
+where possible.
+.mH
+Environment Variables
+.LP
+The string environment variable
+.cW TCPIP_CAP
+must be set to the output of
+.I c2a
+of the capability of the already open TCP/IP channel to used.
+The already open channel is provided by
+.I telnetsvr .
+.mH
+Warnings
+.LP
+Some
+.cW TELNET
+commands are only partially implemented.
+.LP
+Because of bugs in the original 4.2 BSD
+.I telnet ,
+.I telnetd
+performs some dubious protocol exchanges to try to discover if the remote
+client is, in fact, a 4.2 BSD
+.I telnet .
+.LP
+The terminal type name received from the remote client is converted to
+lower case.
+.LP
+.I Telnetd
+never sends
+.cW TELNET
+.I "go ahead"
+commands.
+.SH
+See Also
+.LP
+telnetsvr(A),
+ttn(U).

@@ -1,0 +1,11 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:42:54
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_MSG_CLIENT = $PWD/msg_client.c;
+T_MSG_SERVER = $PWD/msg_server.c;
+T_MSG_GRP1 = $PWD/msg_grp1.c;
+T_MSG_GRP2 = $PWD/msg_grp2.c;

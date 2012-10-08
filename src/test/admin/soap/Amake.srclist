@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:32:55
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_SOAP_SOAP = {
+	$PWD/Tsoap.h,
+	$PWD/Tsoap.c,
+	$PWD/tsp_append.c,
+	$PWD/tsp_masks.c,
+	$PWD/tsp_create.c,
+	$PWD/tsp_lookup.c,
+	$PWD/tsp_replace.c,
+	$PWD/tsp_delete.c,
+	$PWD/tsp_traverse.c,
+	$PWD/tsp_discard.c,
+	$PWD/tsp_reject.c
+};
+

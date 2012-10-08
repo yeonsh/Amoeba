@@ -1,0 +1,81 @@
+.\"	@(#)nm.n	1.4	96/02/16 11:05:34
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Kees Verstoep, adapted from Minix version by Dick van Veen
+        Document: Kees Verstoep
+	Modified: Gregory J. Sharp, Nov 1995 - updated for new release
+.aE
+.mT "nm" U
+print the symbol table of \*(Am executables
+.SH
+Synopsis
+.LP
+.sC L
+nm [-dgnopru] [file] ...
+.eC
+.SH
+Description
+.LP
+.kW "symbol table"
+.I Nm
+prints the symbol table of the \*(Am executables given as argument.
+When no argument is given,
+the symbol table of file
+.I a.out
+will be given.
+By default,
+all symbols are printed in alphabetic order,
+and each will be preceded by its address (in hexadecimal notation)
+and a letter telling the type of the symbol.
+.LP
+The type letters have the following meaning:
+.LP
+.IP \fBA\fP
+absolute value
+.IP \fBB\fP
+symbol in bss segment
+.IP \fBD\fP
+symbol in data segment
+.IP \fBT\fP
+symbol in text segment
+.IP \fBU\fP
+undefined symbol
+.LP
+When the letter is printed in lower case,
+it means that the symbol is local rather than global.
+.mH
+Options
+.LP
+.IP \fB\-d\fP
+print addresses in decimal.
+.IP \fB\-g\fP
+print only global symbols.
+.IP \fB\-n\fP
+sort numerically by address rather than alphabetically by name.
+.IP \fB\-o\fP
+prepend the file name to each line rather than only once.
+.IP \fB\-p\fP
+print symbols in symbol table order.
+.IP \fB\-r\fP
+sort in reverse order.
+.IP \fB\-u\fP
+print only undefined symbols.
+.SH
+Example
+.LP
+.sC
+nm /bin/nm/pd.i80386
+.eC
+Prints the symbol table of
+.I nm
+itself.
+A small subset of the output could be:
+.sC
+00017bd8 B _n_flag
+00002efa T _name_lookup
+00009392 t _newseg
+.eC

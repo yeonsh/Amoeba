@@ -1,0 +1,92 @@
+.\"	@(#)uue.n	1.3	94/04/05 16:14:03
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "uue" U
+encode a binary file to ASCII (e.g., for mailing)
+.SH
+Synopsis
+.LP
+.sC L
+uue [-n] file [-]
+.eC
+.SH
+Description
+.LP
+.kW uuencode
+.kW uudecode
+.kW "\fIuud\fP"
+.I Uuencode
+is a famous program that converts an arbitrary (usually binary)
+.kW ASCII
+file to an encoding using only 64 ASCII characters.
+Uudecode converts it back to the original file.
+The
+.I uue
+and
+.I uud (U)
+programs are enhanced versions of these programs,
+and are compatible with the
+.UX
+ones.
+The files produced can even be sent successfully over BITNET,
+which is notorious for mangling files.
+.LP
+It is possible to have
+.I uue
+automatically split the encoded file up into chunks
+small enough to fit into mail messages.
+The output files then get the suffixes
+.I .uaa ,
+.I .uab ,
+etc.,
+instead of
+.I .uue .
+When
+.I uud
+is given
+.I file.uaa
+to decode,
+it automatically includes the subsequent pieces.
+The encoding takes 3 bytes (24 bits)
+from the input file and renders it as 4 bytes in the output file.
+.mH
+Options
+.LP
+.IP \fB\-n\fP
+.I n
+is a decimal integer specifying how many lines to put in each output file.
+.SH
+Examples
+.LP
+.sC
+uue file
+.eC
+Encode
+.I file
+to
+.I file.uue .
+.sC
+uue file - > x
+.eC
+Encode
+.I file
+and write the result on
+.I stdout .
+.sC
+uue -800 file
+.eC
+Output on
+.I file.uaa ,
+.I file.uab
+etc.
+.SH
+See Also
+.LP
+uud(U).

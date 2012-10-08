@@ -1,0 +1,40 @@
+.\"	@(#)copyright.n	1.5	96/02/15 16:59:34
+.cH "Copyright and Licence Information"
+.LP
+The files distributed with the Amoeba Distributed Operating System are all
+subject to copyright.
+All files are subject to the following copyright unless some other
+copyright notice is included in the file.
+.LP
+\(co copyright 1989,1990,1991,1992,1993,1994,1996 Vrije Universiteit and Stichting Mathematisch Centrum
+.LP
+Permission to use, sell, duplicate or disclose this software must be
+obtained in writing from:
+.sC
+.R
+Dr. Andrew S. Tanenbaum
+Faculteit Wiskunde en Informatica
+Vrije Universiteit
+De Boelelaan 1081a
+1081 HV  Amsterdam
+.eC
+.LP
+Files which are copyright the Vrije Universiteit that come from ACK
+(The Amsterdam Compiler Kit) are subject to the following copyright.
+.LP
+\(co copyright 1987,1990,1991,1992 by the Vrije Universiteit, Amsterdam, The Netherlands.
+.LP
+Permission to use, sell, duplicate or disclose this software must be
+obtained in writing.
+Requests for such permissions may be sent to
+.sC
+.R
+Dr. Andrew S. Tanenbaum
+Faculteit Wiskunde en Informatica
+Vrije Universiteit
+De Boelelaan 1081a
+1081 HV  Amsterdam
+The Netherlands
+.eC
+.LP
+Any other copyright restrictions are as described in individual files.

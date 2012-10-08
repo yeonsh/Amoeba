@@ -1,0 +1,24 @@
+#	
+#	@(#)Amake.srclist	1.3	96/02/27 10:15:15
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+A_TELNET_SVR = {
+	$PWD/../ftpd/ftpsvr.c[flags = -DTELNETSVR],
+};
+
+A_TELNET_DAEMON = {
+	$PWD/global.c,
+	$PWD/slc.c,
+	$PWD/state.c,
+	$PWD/telnetd.c,
+	$PWD/termstat.c,
+	$PWD/utility.c,
+	$PWD/sys_term.c,
+	$PWD/am_util.c,
+	$PWD/am_cmd.c,
+	$PWD/am_ttysvr.c,
+	$PWD/am_netsvr.c,
+};

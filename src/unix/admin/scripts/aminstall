@@ -1,0 +1,398 @@
+#!/bin/sh
+#	
+#	@(#)aminstall	1.7	94/04/07 13:59:55
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# Install all Amoeba executables from the Amoeba conf directory on Unix
+# in a heterogeneous binary target tree.
+# By default the target tree (typically /super) is assumed to be on Amoeba.
+# When the -u flag is given, the target tree is on Unix.
+# Use this when you want to create a new BinTree.am.
+#
+# By default this script assumes the process descriptor directories are
+# already present.  Give the -m flag to generate them on the fly.
+#
+# example usage:
+#   aminstall /super /amoeba/conf/amoeba /amoeba/src mc68000 sun sun3
+#
+trap "exit 2" 1 2 3 15
+
+PROG=`basename $0`
+USAGE="Usage: $PROG [-m] [-u] amoeba-super conf-root src-root arch compiler-set [machtype]"
+
+# do not create new directories by default:
+do_mkdir=false
+
+# default target system is Amoeba:
+unix_target_sys=false
+
+# for debugging: allow partial aminstall
+do_all=true
+do_util=$do_all
+do_admin=$do_all
+do_scripts=$do_all
+do_tests=$do_all
+
+# first get options
+while [ $# -gt 0 ]
+do
+        case "$1" in
+        -m)     do_mkdir=true	     ;;
+	-u)	unix_target_sys=true ;;
+        *)      break                ;;
+        esac
+        shift
+done
+
+if [ $# -lt 5 -o $# -gt 6 ]
+then
+	echo $USAGE
+	exit 1
+fi
+
+TARGET_ROOT=$1
+AMOEBA_SRC=$3
+ARCH=$4
+COMPILER=$5
+AMOEBA_CONF=$2/$ARCH.$COMPILER
+
+ECHO=/bin/echo
+if $unix_target_sys
+then
+	# Get the full pathname of acv
+	cd /
+	ACV=`which acv`
+
+	RM="/bin/rm -f"
+	CP="/bin/cp"
+	MKDIR="/bin/mkdir"
+	TDIR_EXISTS="/bin/test -d"
+	TFILE_EXISTS="/bin/test -f"
+	IS_AM_PD=`which am_pd`
+	AINSTALL=${AINSTALL-$ACV}
+	LN="/bin/ln"
+	CHMOD="/bin/chmod 644"
+else
+	# Get full pathnames for the Amoeba specific commands we use
+	# to avoid trying to execute an Amoeba binary on Unix!
+	cd /
+	AX=`which ax`
+	DEL=`which del`
+	CP=`which tob`
+	GET=`which get`
+	PUT=`which put`
+	MKDIR=`which mkd`
+	AINST=`which ainstall`
+
+	RM="$DEL -f"
+	TDIR_EXISTS="$AX /bin/test -d"
+	TFILE_EXISTS="$AX /bin/test -f"
+	IS_AM_PD=`which am_pd`
+	AINSTALL=${AINSTALL-$AINST}
+	CHMOD=: # The spmask below will set the modes correctly
+
+	SPMASK=0xff:2:2
+	export SPMASK
+fi
+
+DIRLIST="
+$TARGET_ROOT
+$TARGET_ROOT/admin
+$TARGET_ROOT/admin/bin
+$TARGET_ROOT/util
+$TARGET_ROOT/unixroot
+$TARGET_ROOT/unixroot/bin
+$TARGET_ROOT/module
+$TARGET_ROOT/module/test"
+
+if $do_mkdir
+then
+    for dirname in $DIRLIST
+    do
+	if [ ! -d $dirname ]
+	then
+		$ECHO "Creating directory " $dirname
+		$MKDIR $dirname
+	fi
+    done
+fi
+
+# Install the admin programs:
+S_TARG=$TARGET_ROOT/admin/bin
+cd $AMOEBA_CONF/admin
+
+if $do_admin
+then
+
+if [ $# -eq 6 ]
+then
+	_LIST="bootblocks/$6"
+else
+	_LIST=""
+fi
+
+$ECHO
+$ECHO "Installing servers from $AMOEBA_CONF/admin"
+$ECHO "                     to $S_TARG:"
+for pd in $_LIST [a-zA-Z]* ; do
+	if [ ! -d $pd ]; then continue ; fi
+	target_dir=$S_TARG
+
+	###### SHARED
+	(cd $pd
+	for p in [a-zA-Z]* ; do
+		if [ ! -f $p ] ; then continue; fi
+
+		installit=""
+		if $IS_AM_PD $p $ARCH
+		then	installit="$CP"
+		else	if [ -x $p ]
+			then	installit="$AINSTALL"
+			fi
+		fi
+
+		if [ "X$installit" != "X" ]
+		then
+			if [ $p = Amake ]
+			then	tdir="$target_dir/amake"
+			else	tdir="$target_dir/$p"
+			fi
+			if $TDIR_EXISTS $tdir 2>/dev/null
+			then	: $ECHO directory $tdir already exists
+			else
+				if $do_mkdir
+				then
+					if $MKDIR $tdir
+					then	$ECHO created directory $tdir
+					else	$ECHO cannot create dir $tdir
+						continue;
+					fi
+				else
+					$ECHO no directory $tdir
+					continue;
+				fi
+			fi
+
+			$RM $tdir/pd.$ARCH 2>/dev/null
+			$ECHO install $tdir/pd.$ARCH
+			$installit $p $tdir/pd.$ARCH
+			$CHMOD $tdir/pd.$ARCH
+		fi
+	done
+	)
+	###### END SHARED
+done
+
+fi # do_admin
+
+#
+# Install the shell scripts from the source directory tree:
+#
+cd $AMOEBA_SRC/admin/scripts
+
+if $do_scripts
+then
+
+$ECHO
+$ECHO "Installing shell scripts from $AMOEBA_SRC/admin/scripts:"
+$ECHO "                           to $S_TARG:"
+for f in * ; do
+	case "$f" in
+	   RCS)	;;
+	   SCCS);;
+	   Markfile);;
+	   *.sh) ;;
+	   *)	$ECHO $f
+		$RM $S_TARG/$f 2>/dev/null
+		$CP $f $S_TARG/$f
+		$CHMOD $S_TARG/$f ;;
+	esac
+done
+
+fi # do_scripts
+
+# The following directories contain the user-callable utilites:
+cd $AMOEBA_CONF/util
+B_TARG=$TARGET_ROOT/unixroot/bin
+U_TARG=$TARGET_ROOT/util
+
+if $do_util
+then
+
+$ECHO
+$ECHO "Installing utilities from $AMOEBA_CONF/util"
+$ECHO "                       to $B_TARG and $U_TARG:"
+for pd in [a-zA-Z]* ; do
+	if [ ! -d $pd ]; then continue ; fi
+	if [ "$pd" = ajax ]; then
+		target_dir=$B_TARG	# Ajax utils go here.
+	else
+		target_dir=$U_TARG	# All other utils go here.
+	fi
+
+	###### SHARED
+	(cd $pd
+	for p in [a-zA-Z]* ; do
+		if [ ! -f $p ] ; then continue; fi
+
+		installit=""
+		if $IS_AM_PD $p $ARCH
+		then	installit="$CP"
+		else	if [ -x $p ]
+			then	installit="$AINSTALL"
+			fi
+		fi
+
+		if [ "X$installit" != "X" ]
+		then
+			if [ $p = Amake ]
+			then	tdir="$target_dir/amake"
+			else	tdir="$target_dir/$p"
+			fi
+			if $TDIR_EXISTS $tdir 2>/dev/null
+			then	: $ECHO directory $tdir already exists
+			else
+				if $do_mkdir
+				then
+					if $MKDIR $tdir
+					then	$ECHO created directory $tdir
+					else	$ECHO cannot create dir $tdir
+						continue;
+					fi
+				else
+					$ECHO no directory $tdir
+					continue;
+				fi
+			fi
+
+			$RM $tdir/pd.$ARCH 2>/dev/null
+			$ECHO install $tdir/pd.$ARCH
+			$installit $p $tdir/pd.$ARCH
+			$CHMOD $tdir/pd.$ARCH
+		fi
+	done
+	)
+	###### END SHARED
+done
+
+#
+# Install aliases for various commands:
+#
+
+while read dir dest src
+do
+	$ECHO create link from $dir/$src to $dir/$dest
+
+	if $unix_target_sys
+	then
+		$RM $dir/$dest/pd.$ARCH 2>/dev/null
+		$LN $dir/$src/pd.$ARCH $dir/$dest/pd.$ARCH
+	else
+		$DEL -d $dir/$dest 2>/dev/null
+		$GET $dir/$src | $PUT $dir/$dest
+	fi
+done <<EOF
+$B_TARG	[	test
+$B_TARG	awk	bawk
+$B_TARG	ex	elvis
+$B_TARG	vi	elvis
+$B_TARG	zcat	compress
+$B_TARG	uncompress	compress
+$B_TARG	egrep	grep
+$U_TARG	lex	flex
+EOF
+
+fi # do_util
+
+#
+# Install the shell scripts from the source directory tree:
+#
+cd $AMOEBA_SRC/util/scripts
+
+if $do_scripts
+then
+
+$ECHO
+$ECHO "Installing shell scripts from $AMOEBA_SRC/util/scripts:"
+$ECHO "                           to $B_TARG:"
+for f in * ; do
+	case "$f" in
+	   RCS)	;;
+	   SCCS);;
+	   Markfile);;
+	   *.sh) ;;
+	   *)	$ECHO $f
+		$RM $B_TARG/$f 2>/dev/null
+		$CP $f $B_TARG/$f
+		$CHMOD $B_TARG/$f ;;
+	esac
+done
+
+fi # do_scripts
+
+# Install the test programs:
+if $do_tests
+then
+
+S_TARG=$TARGET_ROOT/module/test
+cd $AMOEBA_CONF/test
+
+
+$ECHO
+$ECHO "Installing servers from $AMOEBA_CONF/test"
+$ECHO "                     to $S_TARG:"
+target_dir=$S_TARG
+find . \( -name .Amake -a -prune \) -o -type d -print |
+
+    while read pd
+    do
+	###### SHARED
+	(cd $pd
+	for p in [a-zA-Z]* ; do
+		if [ ! -f $p ] ; then continue; fi
+
+		installit=""
+		if $IS_AM_PD $p $ARCH
+		then	installit="$CP"
+		else	if [ -x $p ]
+			then	installit="$AINSTALL"
+			fi
+		fi
+
+		if [ "X$installit" != "X" ]
+		then
+			if [ $p = Amake ]
+			then	tdir="$target_dir/amake"
+			else	tdir="$target_dir/$p"
+			fi
+			if $TDIR_EXISTS $tdir 2>/dev/null
+			then	: $ECHO directory $tdir already exists
+			else
+				if $do_mkdir
+				then
+					if $MKDIR $tdir
+					then	$ECHO created directory $tdir
+					else	$ECHO cannot create dir $tdir
+						continue;
+					fi
+				else
+					$ECHO no directory $tdir
+					continue;
+				fi
+			fi
+
+			$RM $tdir/pd.$ARCH 2>/dev/null
+			$ECHO install $tdir/pd.$ARCH
+			$installit $p $tdir/pd.$ARCH
+			$CHMOD $tdir/pd.$ARCH
+		fi
+	done
+	)
+	###### END SHARED
+    done
+
+fi # do_tests

@@ -1,0 +1,127 @@
+.\"	@(#)monitor.n	1.3	96/02/15 16:52:44
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren
+	Document: Gregory J. Sharp, July 1992
+.aE
+.mT "monitor.h" H
+monitoring macros and defines
+.SH
+Synopsis
+.LP
+.sC L
+#include "monitor.h"
+
+#define MON_EVENT(what)
+#define MON_SETBUF(buffer, size)
+
+#define getreq
+#define putrep
+#define trans
+.eC
+.SH
+Description
+.LP
+.kW "\fImonitor.h\fP"
+.kW "\fIMON_EVENT\fP"
+.kW "\fIMON_SETBUF\fP"
+The monitoring package provides a way of collecting statistics from a
+server using a simple instrumentation mechanism.
+It is possible to put in calls to the macro
+.cW MON_EVENT .
+Each time the macro is called during the execution of the program
+a counter corresponding to that ``event'' is incremented.
+The event is specified with an arbitrary string.
+The string used should be unique within the program for each distinguishable
+event to be monitored.
+.LP
+When
+.I monitor.h
+.kW RPC
+is included it redefines the RPC routines
+.I trans ,
+.I getreq
+and
+.I putrep
+(see
+.I rpc (L))
+so that they automatically keep a count of the number of times each is called.
+Furthermore,
+.I getreq
+has been modified to accept extra commands so that the statistics gathered
+can be requested and manipulated by the program
+.I monitor(U).
+.LP
+The monitoring information is stored in a buffer allocated using
+.I malloc (L).
+If for some reason it is not possible to use
+.I malloc
+in a program or a larger or smaller buffer is desired than is used per
+default then before any calls to
+.cW MON_EVENT ,
+.I trans ,
+.I getreq
+or
+.I putrep
+a call to
+.cW MON_SETBUF
+should be made with as arguments a buffer and the size of the buffer.
+The buffer must be statically allocated (i.e., a global variable) or allocated
+with
+.I malloc .
+.SH
+Example
+.LP
+The following shows a simple server that uses monitoring.
+Many details are left out to avoid obscuring the relevant part of the example.
+The include file
+.I mysvr.h
+contains the definitions of
+.cW CMD1
+and
+.cW CMD2 .
+.sC
+#include "amoeba.h"
+#include "monitor.h"
+#include "mysvr.h"
+
+extern port getport;
+
+server()
+{
+    bufsize n;
+    header hdr;
+
+    for (;;) {
+	hdr.h_port = getport;
+	n = getreq(&hdr, NILBUF, 0);
+	if (ERR_STATUS(n)) {
+	    MON_EVENT("getreq failed");
+	    continue;
+	}
+	switch (hdr.h_command) {
+	case CMD1:
+	    MON_EVENT("Command one");
+	    do_command1(&hdr);
+	    break;
+	case CMD2:
+	    MON_EVENT("Command two");
+	    do_command2(&hdr);
+	    break;
+	default:
+	    MON_EVENT("Bad command");
+	    break;
+	}
+	putrep(&hdr, NILBUF, 0);
+    }
+}
+.eC
+.SH
+See Also
+.LP
+malloc(L),
+monitor(U).

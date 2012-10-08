@@ -1,0 +1,72 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)unix.cmds	1.1	96/02/16 15:56:48
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/generic;
+
+%if (%not defined(DEFINES), {
+	DEFINES = {};
+});
+
+%if (%not defined(INCLUDES), {
+	INCLUDES = {};
+});
+
+%if (%not defined(AIL_FLAGS), {
+	AIL_FLAGS = { '-p', '/usr/ccs/lib/cpp', '-f13', '-lansi' }; # let ail generate ANSI code
+});
+
+%include $PWD/unix.defines;
+%include $PWD/sunprobin.amk;
+
+CC = $PWD/do_cc;
+CFLAGS =
+{
+	-O,
+	$SUNPROBIN_FLAGS,
+	-unix,
+	-D'_VOIDSTAR=void*',
+	-D$ARCH,
+	$DEFINES,
+	-I$SRC_ROOT/h/toolset/sunpro,
+	$INCLUDES,
+	$UNIX_INCLUDE,			# in case not present in $INCLUDES
+};
+AS = $PWD/do_as;
+ASFLAGS =
+{
+	$SUNPROBIN_FLAGS,
+	$DEFINES,
+	$INCLUDES
+};
+LD = $PWD/do_cc;			# do_ld instead?
+#LD = cc;
+
+%if (%not defined(LDFLAGS), {
+	LDFLAGS = {};
+});
+LDFLAGS =
+{
+	$SUNPROBIN_FLAGS,
+	-unix,
+        $LDFLAGS,
+};
+LINT = lint;
+LINTFLAGS =
+{
+	$DEFINES,
+	-I$SRC_ROOT/h/toolset/sunpro,
+	$INCLUDES
+};
+AR = ar;
+ARFLAGS = cr;
+
+LIB_AMUNIX = $CONF_ROOT/lib/amunix/libamunix.a;
+LIB_MATH = -lm;
+
+LINT_AMUNIX = $CONF_ROOT/lib/amunix/llib-lamunix.ln; 
+
+%include std_tools.amk;

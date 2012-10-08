@@ -1,0 +1,499 @@
+.\"	@(#)ctime.n	1.6	96/02/15 16:48:18
+.aU
+	Software: Arthur D. Olson and many others
+	Document: Arthur D. Olson and many others
+	Document: Updated by Guido van Rossum, February 1990
+.aE
+.mT ctime L "libamoeba"
+convert date and time to ASCII
+.SH
+Synopsis
+.LP
+.sC L
+extern char *tzname[2];
+
+void tzset()
+
+#include <sys/types.h>
+
+char *ctime(clock)
+time_t *clock;
+
+double difftime(time1, time0)
+time_t time1;
+time_t time0;
+
+#include <time.h>
+
+char *asctime(tm)
+struct tm *tm;
+
+struct tm *localtime(clock)
+long *clock;
+
+struct tm *gmtime(clock)
+long *clock;
+
+time_t mktime(tm)
+struct tm *tm;
+.eC
+.SH
+Description
+.LP
+.kW "\fItzset\fP"
+.kW "\fItzname\fP"
+.kW "\fIctime\fP"
+.kW "\fIdifftime\fP"
+.kW "\fIasctime\fP"
+.kW "\fIlocaltime\fP"
+.kW "\fIgmtime\fP"
+.kW "\fImktime\fP"
+.kW "time_t"
+.kW "sys/types.h"
+.kW "struct tm"
+.kW "TZ environment variable"
+.kW "tzfile"
+.kW "timezone"
+.kW "GMT"
+.kW "time"
+.kW "summer time"
+.kW "standard time"
+.kW "local time"
+.kW "zoneinfo"
+.kW "POSIX"
+.I Tzset
+uses the value of the environment variable
+.cW TZ
+to set time conversion information used by
+.I localtime .
+If
+.cW TZ
+does not appear in the environment,
+the best available approximation to local wall clock time, as specified
+by the
+.I tzfile -format
+(see
+.kW "zic"
+.I zic (A))
+file
+.B localtime
+in the system time conversion information directory, is used by
+.I localtime .
+If
+.cW TZ
+appears in the environment but its value is a NULL-string,
+.kW "Coordinated Universal Time"
+.kW "UTC"
+Coordinated Universal Time (UTC) is used (without leap second correction).
+If
+.kW "TZ environment variable"
+.cW TZ
+appears in the environment and its value is not a NULL-string:
+.IP
+if the value begins with a colon, it is used as a path name of a file
+from which to read the time conversion information;
+.IP
+if the value does not begin with a colon, it is first used as the
+path name of a file from which to read the time conversion information,
+and, if that file cannot be read, is used directly as a specification of
+the time conversion information.
+.LP
+When
+.cW TZ
+is used as a path name, if it begins with a slash,
+it is used as an absolute path name; otherwise,
+it is used as a path name relative to a system time conversion information
+directory.
+The file must be in the format specified in
+.kW "zic"
+.I zic (A).
+.LP
+When
+.cW TZ
+is used directly as a specification of the time conversion information,
+it must have the following syntax (spaces inserted for clarity):
+.IP
+\fIstd\|offset\fR[\fIdst\fR[\fIoffset\fR][\fB,\fIrule\fR]]
+.LP
+Where:
+.RS
+.IP "\fIstd and dst\fP" 15
+Three or more bytes that are the designation for the standard
+(\fIstd\fP)
+or summer
+(\fIdst\fP)
+timezone.
+Only
+.I std
+is required; if
+.I dst
+is missing, then summer time does not apply in this locale.
+Upper- and lowercase letters are explicitly allowed.
+Any characters except a leading colon
+.RB ( : ),
+digits, comma
+.RB ( , ),
+minus
+.RB ( \(mi ),
+plus
+.RB ( \(pl ),
+and ASCII NUL are allowed.
+.IP "\fIoffset\fP"
+Indicates the value one must add to the local time to arrive at
+.kW "Coordinated Universal Time"
+Coordinated Universal Time.
+The
+.I offset
+has the form:
+.RS
+.IP
+\fIhh\fR[\fB:\fImm\fR[\fB:\fIss\fR]]
+.RE
+.IP
+The minutes
+(\fImm\fP)
+and seconds
+(\fIss\fP)
+are optional.
+The hour
+(\fIhh\fP)
+is required and may be a single digit.
+The
+.I offset
+following
+.I std
+is required.
+If no
+.I offset
+follows
+.I dst ,
+summer time is assumed to be one hour ahead of standard time.
+One or more digits may be used; the value is always interpreted as a decimal
+number.
+The hour must be between zero and 24, and the minutes (and
+seconds) \(em if present \(em between zero and 59.
+If preceded by a
+.RB `` \(mi '',
+the timezone shall be east of the Prime Meridian; otherwise it shall be
+west (which may be indicated by an optional preceding
+.RB `` \(pl '').
+.TP "\fIrule\fP"
+Indicates when to change to and back from summer time.
+The
+.I rule
+has the form:
+.RS
+.IP
+\fIdate\fB/\fItime\fB,\fIdate\fB/\fItime\fR
+.RE
+.IP
+where the first
+.I date
+describes when the change from standard to summer time occurs and the second
+.I date
+describes when the change back happens.
+Each
+.I time
+field describes when, in current local time, the change to the other
+time is made.
+.IP
+The format of
+.I date
+is one of the following:
+.RS
+.IP "\fBJ\fP\fIn\fP" 10
+The Julian day
+.I n
+(1\ \(<=\fI\ n\ \fP\(<=\ 365).
+Leap days are not counted; that is, in all years \(em including leap
+years \(em February 28 is day 59 and March 1 is day 60.
+It is
+impossible to explicitly refer to the occasional February 29.
+.IP "\fIn\fP"
+The zero-based Julian day
+(0\ \(<=\fI\ n\ \fP\(<=\ 365).
+Leap days are counted, and it is possible to refer to February 29.
+.IP "\fBM\fP\fIm\fP\fB.\fP\fIn\fP\fB.\fP\fId\fP
+The
+.I d' th
+day
+(0\ \(<=\fI\ d\ \fP\(<=\ 6)
+of week
+.I n
+of month
+.I m
+of the year
+(1\ \(<=\fI\ n\ \fP\(<=\ 5,
+1\ \(<=\fI\ m\ \fP\(<=\ 12,
+where week 5 means ``the last
+.I d
+day in month
+.I m ''
+which may occur in either the fourth or the fifth week).  Week 1 is the
+first week in which the
+.I d' th
+day occurs.  Day zero is Sunday.
+.RE
+.IP "" 15
+The
+.I time
+has the same format as
+.I offset
+except that no leading sign
+.RB (`` \(mi ''
+or
+.RB `` \(pl '')
+is allowed.  The default, if
+.I time
+is not given, is
+.B 02:00:00 .
+.RE
+.LP
+If no
+.I rule
+is present in
+.kW "TZ environment variable"
+.cW TZ ,
+the rules specified
+by the
+.I tzfile -format
+file
+.B posixrules
+in the system time conversion information directory are used, with the
+.kW "UTC"
+standard and summer time offsets from UTC replaced by those specified by
+the
+.I offset
+values in
+.kW "TZ environment variable"
+.cW TZ .
+.LP
+For compatibility with System V Release 3.1, a semicolon
+.RB ( ; )
+may be used to separate the
+.I rule
+from the rest of the specification.
+.LP
+If the
+.kW "TZ environment variable"
+.cW TZ
+environment variable does not specify a
+.I tzfile -format
+and cannot be interpreted as a direct specification,
+.kW "UTC"
+UTC is used with the standard time abbreviation set to
+the value of the
+.cW TZ
+environment variable
+(or to the leading characters of its value if it is lengthy).
+.LP
+.kW "\fIctime\fP"
+.I Ctime\^
+converts a long integer, pointed to by
+.I clock ,
+representing the time in seconds since
+.kW "UTC"
+00:00:00 UTC, January 1, 1970,
+and returns a pointer to a
+26-character string
+of the form
+.br
+.ce
+.eo
+Thu Nov 24 18:22:48 1986\n\0
+.ec
+.br
+All the fields have constant width.
+.LP
+.I Localtime\^
+and
+.I gmtime\^
+return pointers to ``tm'' structures, described below.
+.I Localtime\^
+corrects for the timezone and any timezone adjustments
+.kW "Daylight Saving Time"
+(such as Daylight Saving Time in the U.S.A.).
+Before doing so,
+.I localtime\^
+calls
+.I tzset\^
+(if
+.I tzset\^
+has not been called in the current process).
+After filling in the ``tm'' structure,
+.I localtime
+sets the
+.B tm_isdst 'th
+element of
+.kW "\fItzname\fP"
+.B tzname
+to a pointer to an
+ASCII string that is the timezone abbreviation to be used with
+.kW "\fIlocaltime\fP"
+.I localtime 's
+return value.
+.LP
+.kW "\fIgmtime\fP"
+.I Gmtime\^
+.kW "Coordinated Universal Time"
+converts to Coordinated Universal Time.
+.LP
+.kW "\fIasctime\fP"
+.I Asctime\^
+converts a time value contained in a
+``tm'' structure to a 26-character string,
+as shown in the above example,
+and returns a pointer
+to the string.
+.LP
+.kW "\fImktime\fP"
+.I Mktime\^
+converts the broken-down time,
+expressed as local time,
+in the structure pointed to by
+.I tm
+into a calendar time value with the same encoding as that of the values
+returned by the
+.I time
+function.
+The original values of the
+.B tm_wday
+and
+.B tm_yday
+components of the structure are ignored,
+and the original values of the other components are not restricted
+to their normal ranges.
+(A positive or zero value for
+.B tm_isdst
+causes
+.I mktime
+.kW "Daylight Saving Time"
+to presume initially that summer time (for example, Daylight Saving Time
+in the U.S.A.)
+respectively,
+is or is not in effect for the specified time.
+A negative value for
+.B tm_isdst
+causes the
+.I mktime
+function to attempt to divine whether summer time is in effect
+for the specified time.)
+On successful completion, the values of the
+.B tm_wday
+and
+.B tm_yday
+components of the structure are set appropriately,
+and the other components are set to represent the specified calendar time,
+but with their values forced to their normal ranges; the final value of
+.B tm_mday
+is not set until
+.B tm_mon
+and
+.B tm_year
+are determined.
+.I Mktime\^
+returns the specified calendar time;
+If the calendar time cannot be represented,
+it returns
+.B -1 .
+.LP
+.kW "\fIdifftime\fP"
+.I Difftime\^
+returns the difference between two calendar times,
+.I time1
+-
+.I time0,
+expressed in seconds.
+.LP
+Declarations of all the functions and externals, and the ``tm'' structure,
+are in the
+.B <time.h>\^
+header file.
+The structure (of type)
+.B "struct tm"
+includes the following fields:
+.RS
+.LP
+.ne 11
+.nf
+.ta .5i +\w'long tm_gmtoff;\0\0'u
+	int tm_sec;	/\(** seconds (0 - 60) \(**/
+	int tm_min;	/\(** minutes (0 - 59) \(**/
+	int tm_hour;	/\(** hours (0 - 23) \(**/
+	int tm_mday;	/\(** day of month (1 - 31) \(**/
+	int tm_mon;	/\(** month of year (0 - 11) \(**/
+	int tm_year;	/\(** year \- 1900 \(**/
+	int tm_wday;	/\(** day of week (Sunday = 0) \(**/
+	int tm_yday;	/\(** day of year (0 - 365) \(**/
+	int tm_isdst;	/\(** is summer time in effect? \(**/
+.fi
+.RE
+.LP
+.I Tm_isdst\^
+is non-zero if summer time is in effect.
+.LP
+.I Tm_gmtoff
+is the offset (in seconds) of the time represented
+.kW "UTC"
+from UTC, with positive values indicating east
+of the Prime Meridian.
+.mH
+FILES
+.LP
+.ta \w'/profile/module/time/zoneinfo/posixrules\0\0'u
+/profile/module/time/zoneinfo	timezone information directory
+.br
+/profile/module/time/zoneinfo/localtime	local timezone file
+.br
+.kW "TZ environment variable"
+/profile/module/time/zoneinfo/posixrules	used with POSIX-style TZ's
+.br
+.kW "UTC"
+/profile/module/time/zoneinfo/GMT	for UTC leap seconds
+.sp
+If
+.I /profile/module/time/zoneinfo/GMT
+is absent,
+.kW "UTC"
+UTC leap seconds are loaded from
+.I /profile/module/time/zoneinfo/posixrules .
+.mH
+Warnings
+.LP
+The return values point to static data
+whose content is overwritten by each call.
+The
+.B tm_zone
+field of a returned
+.B "struct tm"
+points to a static array of characters, which
+will also be overwritten at the next call
+(and by calls to
+.I tzset ).
+.LP
+Avoid using out-of-range values with
+.I mktime
+when setting up lunch with promptness sticklers in Riyadh.
+.SH
+Example
+.LP
+The following program prints the current local time:
+.sC
+#include <stdio.h>
+#include <time.h>
+main()
+{
+    time_t t;
+    time(&t);
+    printf("%s", ctime(&t));
+    exit(0);
+}
+.eC
+.SH
+See Also
+.LP
+posix(L),
+ansi_C(L),
+date(U),
+tod(L),
+zic(A).

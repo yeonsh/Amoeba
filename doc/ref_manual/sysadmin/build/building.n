@@ -1,0 +1,117 @@
+.\"	@(#)building.n	1.7	96/02/15 17:01:50
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June-July 1990
+	Modified: Gregory J. Sharp, May 1991 - finally into a usable form
+		  Gregory J. Sharp, Jan 1996 - polishing
+.aE
+.cH "Building \*(Am Configurations"
+.nH 1 "Introduction"
+.LP
+.kW "configuration"
+This section describes how to build the complete \*(Am distribution from the
+source code.
+There are several ways different sections of the distribution which can be
+built separately depending on your requirements.
+.LP
+The four major sections are:
+.IP \h'1n'\(bu
+The \*(Am kernel.
+.IP \h'1n'\(bu
+The servers and utility programs for native \*(Am.
+.IP \h'1n'\(bu
+The \*(Am RPC driver for the
+.UX
+kernel.
+.IP \h'1n'\(bu
+The servers and utilities that run under
+.UX
+that use \*(Am RPC.
+.LP
+Building of the last two is described in the chapter
+.I "\*(Am and UNIX"
+later in this manual.
+.LP
+Since \*(Am can be built for many architectures and machines the configurations
+are not built in the source code tree.
+Instead, special tools
+(see
+.kW "\fIamoebatree\fP"
+.kW "\fIkerneltree\fP"
+.I amoebatree (A),
+.I kerneltree (A)
+and
+.kW "\fIdoctree\fP"
+.I doctree(A))
+exist for building configuration trees which are
+parameterized by architecture and, in the case of kernels, by machine type.
+One of the requirements of \*(Am is that all machines of a particular
+architecture (that is, CPU type) run exactly the same binaries.
+This means that the user programs are made per architecture and not per
+machine type.
+For example,
+the user and administration programs compiled for the
+.I mc68000
+architecture run on Sun\ 3/60s,
+Motorola MVME 134 processor boards and Force 30 boards.
+Each board has a CPU of the same architecture but a different memory management
+unit or CPU version.
+The kernels for these different machines are naturally all different.
+.LP
+In addition to these requirements,
+different compilers have different implementations of various aspects of the
+C language and require different include files (for example, in relation to
+.I setjmp
+and
+.I longjmp ).
+Also,
+.kW "STD C"
+the differences between STD C and old-style C can play a role.
+Therefore it is also necessary to specify which compiler tools are to be used
+to build the system.
+.LP
+This is all taken into account by the programs that build the system
+configurations.
+They work by copying the
+.I templates
+directory tree structure.
+Each leaf directory contains an
+.I Amakefile
+(see
+.kW amake
+.I amake (U))
+which is edited as part of the tree cloning process to contain the parameters
+such as architecture and machine type wherever these are relevant.
+On the basis of these parameters, the source code appropriate for a particular
+architecture or machine is selected from the source tree.
+Note that the sources are never copied but simply referred to by the
+.I Amakefile .
+.SH
+Toolsets
+.LP
+.kW toolset
+In addition, the configuration programs select a set of compiler tools known as
+the
+.I toolset
+and place a copy of it in the configuration directory tree.
+\*(Am is set up in such a way that it is possible to cross-compile for several
+different architectures using several different compilers.
+For example,
+.kW ACK
+you can use the Amsterdam Compiler Kit (ACK) to construct a version of
+\*(Am to run on the i80386
+and the Sun C compiler, loader, archiver, etc\. to construct a version
+for the Motorola 68000 architecture.
+.kW template
+To support this there are templates and parameter files for each set of
+compiler tools.
+The directory
+.I templates/toolset
+contains a directory of
+.kW amake
+.I amake
+tools for each supported compiler set.

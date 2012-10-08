@@ -1,0 +1,79 @@
+.\"	@(#)b_ux_driver.n	1.3	94/04/05 15:16:30
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, June 1991 - a little more up to date
+.aE
+.nH 1 "The Unix \*(Am Driver"
+.LP
+.kW "UNIX FLIP driver"
+The following two sections describe how to install the \*(Am network protocol
+in a
+.UX
+kernel.
+The version of
+.UX
+currently supported is
+SunOS (version 4.0.3 and higher).
+The driver for \*(Am 4.0 worked in
+Irix 3.3 and Ultrix (version 2.2 and higher) and there is a reasonable chance
+that it could be made to work in those versions of
+.UX .
+The installation procedures for the different systems follow.
+.LP
+Note that once the driver is installed in the
+.UX
+kernel and the kernel is running, a capability will still be needed to
+access \*(Am.
+Therefore, once the \*(Am driver is installed return to these instructions
+which explain how to obtain the required capability.
+.LP
+Normally the capability for each user's \*(Am root directory (that is,
+.I / )
+is stored in the file
+.I $HOME/.capability
+under
+.UX .
+There is a shell script
+.kW "\fIsendcap\fP"
+.I sendcap (A)
+provided which runs under
+.UX
+and which mails this file to a new user.
+(Note that only users with the
+.I super
+capability can run
+.I sendcap .)
+The problem is getting the first capability for the system administrator.
+This is done as follows.
+Log in to \*(Am as yourself.
+The following obtains the capability:
+.kW ASCII
+.sC L
+amoeba% \fBc2a /\fP
+<ASCII representation of capability>
+.eC
+.LP
+This information should be kept secret.
+Do not let others see it.
+.kW ".capability file"
+To install this capability under
+.UX ,
+then do the following:
+.kW a2c
+.sC L
+unix% \fBa2c \(aa<ASCII representation of capability>\(aa \-\ > $HOME/.capability\fP
+unix% \fBchmod 400 $HOME/.capability\fP
+.eC
+.LP
+Test this by running the
+.I dir (U)
+command under
+.UX .
+All the commands that access \*(Am from
+.UX
+should now work.

@@ -1,0 +1,264 @@
+.\"	@(#)newuser.n	1.7	96/02/15 17:48:55
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Modified: Kees Verstoep - new pool structure, extra checks, init passwd
+		  Gregory J. Sharp, Aug 1994 - total reorganization due to
+					       security additions
+	Document: Gregory J. Sharp, 13/02/90
+	Modified: Gregory J. Sharp, Sept 1994
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "newuser" A
+generate the home directory structure for a new user
+.SH
+Synopsis
+.LP
+.sC L
+newuser username o|g|go -b bulletsvr -g group1 [-g group2 ...]
+	-p pooldir [-u unixroot|-n]
+.eC
+.SH
+Description
+.LP
+.I Newuser
+creates the directory structure required for a new user.
+The new directory structure is added under
+.I /super/users/ \*<username\*>.
+.I Username
+has a maximum length of
+.cW MAX_LOGNAME_SZ
+as defined in
+.I ampolicy.h
+(typically 20 characters).
+The rights on the user's links to the various publicly accessible directories
+is specified by the second parameter.
+Possible values are:
+.IP \fBg\fP 4
+specifies that the user gets links with just
+.I group
+permission.
+.IP \fBo\fP
+specifies that the user gets links with just
+.I other
+permission.
+.IP \fBog\fP
+specifies that the user gets links with both
+.I group
+and
+.I other
+permission.
+.LP
+The remaining arguments can be given in any order and are described in below.
+.LP
+.kW "default Bullet server"
+.IP "\fB\-b\fP \fIbulletsvr\fP"
+.br
+Specifies the capability of the bullet server for the new user,
+relative to
+.I /super/cap/bulletsvr .
+A restricted version of this capability will be stored in the new user's
+.I /profile/cap/bulletsvr
+directory under the name
+.I default .
+Each user has their own
+.I /profile/cap/bulletsvr
+directory so altering a user's default \*(Bs is possible at any time.
+.IP "\fB\-g\fP \fIgroup\fP"
+.br
+.kW "groups"
+Specifies the groups to which the new user belongs.
+At least one must be specified.
+For each group specified,
+the new user's root directory will be entered under
+.I /super/group/ \*<group/username\*>
+with group permission.
+Further, a restricted copy of
+.I /super/group/ \*<group\*>
+will be entered in the new user's
+.I /profile/group
+directory.
+.IP "\fB\-p\fP \fIpooldir\fP"
+.br
+Specifies the pool directory for the new user.
+The name must be relative to the directory
+.I /super/pools .
+.IP "\fB\-u\fP \fIunixroot\fP and \fB\-n\fP"
+.br
+Along with the connections to the standard \*(Am directory environment
+there are optional
+.UX
+emulation directories.
+If the
+.B \-u
+option is given,
+links are also made from
+.in 1.25c
+unixroot\fI/bin\fP to
+.I /super/users/ username\fI/bin\fP
+.br
+unixroot\fI/etc\fP to
+.I /super/users/ username\fI/etc\fP
+.br
+unixroot\fI/lib\fP to
+.I /super/users/ username\fI/lib\fP
+.br
+unixroot\fI/usr\fP to
+.I /super/users/ username\fI/usr\fP.
+.in
+.IP
+The argument
+.I unixroot
+can also be specified as \-,
+in which case the default path
+.I /super/unixroot
+is used.
+If the
+.B \-u
+option is omitted it is equivalent to
+.B  "\-u \-" .
+.IP
+If no
+.UX
+emulation is desired then the
+.B \-n
+option should be given.
+Do not do this unless except in exceptional circumstances.
+Without
+.UX
+emulation it is not possible to run a shell and other basic tools.
+.LP
+After the directory structure of the user has been added to the Soap graph,
+the file
+.I /super/admin/Environ 
+(see
+.I login (A))
+is copied to the user's root directory and
+.I /super/admin/profile
+is copied to the user's
+.I home
+directory .
+Finally,
+.I newuser
+requests an initial password for the new user.
+.LP
+The directory structure generated for each user is as follows:
+.LP
+.I /dev
+.IP
+This is partly for
+.UX
+emulation but also to store the capabilities of various servers.
+.LP
+.I /home
+.IP
+This is the user's home directory.
+.LP
+.I /profile
+.IP
+This is a subgraph specifying the user's working environment.
+It can select subsets of pool processors, etc.
+.LP
+.I /profile/cap
+.IP
+This contains restricted copies of the directory capabilities in
+.I /super/cap ,
+except for
+.I /profile/cap/bulletsvr ,
+described above.
+However the user is free to build a private
+.I cap
+subgraph (which they must maintain themselves)
+which selects other servers as defaults.
+.LP
+.I /profile/group
+.IP
+This directory contains capabilities for the groups to which the new user
+belongs.
+These capabilities are restricted to group rights and they come from the
+directory
+.I /super/group .
+.LP
+.I /profile/module
+.IP
+This directory is a restricted link to
+.I /super/module .
+This typically contains modules such as X windows, MMDF and compilers.
+.LP
+.I /profile/pool
+.IP
+This is the directory linked to the
+.I pooldir
+parameter.
+It should contain one subdirectory of processors per architecture,
+as well as a run server capability corresponding to the pool directory
+(see
+.I run (A)
+and
+.I makepool (U)).
+.LP
+.I /profile/util
+.IP
+This is a link to the
+.I /super/util
+directory,
+but can be substituted with an alternative set of utilities.
+.LP
+.I /tmp
+.IP
+This is for temporary files.
+.mH
+Diagnostics
+.LP
+If
+.cW username
+already exists,
+.I newuser
+will complain and refuse to add the new user.
+.LP
+Other diagnostics are those of
+.I mkd ,
+.I chm ,
+.I std_restrict ,
+.I put
+and
+.I get .
+Under normal circumstances there should not be any, however.
+.mH
+Environment Variables
+.LP
+.cW SPMASK
+is set for the duration of the command script to provide the correct protection.
+.SH
+Example
+.LP
+.sC
+newuser mikhail g -b bullet0 -p /super/pool -g staff
+.eC
+will create a new directory structure under
+.I /super/users/mikhail
+with
+.I group
+access to the public directories and with the pool directory
+.I /profile/pool
+being a restricted link to
+.I /super/pool
+and with the
+.UX
+emulation subgraph from
+.I /super/unixroot .
+.I Mikhail
+will be a member of the group
+.I staff .
+.SH
+See Also
+.LP
+deluser(A),
+login(A),
+makepool(U),
+newsoapgraph(A),
+run(A).

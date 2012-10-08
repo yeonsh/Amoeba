@@ -1,0 +1,38 @@
+.\"	@(#)tty.n	1.4	96/02/16 11:10:06
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "tty" U
+print the device name of this tty
+.SH
+Synopsis
+.LP
+.sC L
+tty [-s]
+.eC
+.SH
+Description
+.LP
+Print the name of the controlling tty.
+.mH
+Options
+.LP
+.IP \fB\-s\fP
+Silent mode: return status only.
+.SH
+Example
+.LP
+.sC
+tty
+.eC
+Might print
+.I /dev/tty .
+This name does not actually appear in the directory graph,
+but it is a name which is recognized by the POSIX emulation.

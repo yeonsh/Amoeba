@@ -1,0 +1,32 @@
+#	
+#	@(#)archiver.amk	1.2	94/04/06 10:31:29
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(AR), {
+	AR = ar;
+});
+
+%if (%not defined(ARFLAGS), {
+	ARFLAGS = cr;
+});
+
+%if (%not defined(RANLIB), {
+	RANLIB = ranlib;
+});
+
+%tool archiver (
+    object_files: %in %list	[type = loadable];
+    library:	  %out		[type = archive];
+    templib:	  %tmp		[type = archive]	=> new-library.a;
+    flags:	  %string %list				=> $ARFLAGS;
+    program:	  %in		[type = command]	=> $AR;
+    ranlib:	  %in		[type = command]	=> $RANLIB;
+)
+{
+    exec($program, args => $flags + $templib + $object_files) %and
+    exec($ranlib, args => $templib) %and
+    move($templib, $library);
+};

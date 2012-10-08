@@ -1,0 +1,78 @@
+.\"	@(#)grep.n	1.5	96/02/16 11:01:21
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "grep" U
+search a file for lines containing a given pattern
+.SH
+Synopsis
+.LP
+.sC L
+grep [-insv] [-e] pattern [file ...]
+.eC
+.SH
+Description
+.LP
+.I Grep
+searches one or more files (by default,
+.I stdin )
+and selects out all the lines that match the
+.I pattern .
+All the regular expressions accepted by
+.I ed (U)
+are allowed.
+In addition,
+``+'' can be used instead of ``*'' to mean 1 or more occurrences and
+``?'' can be used to mean 0 or 1 occurrences.
+between two regular expressions to mean either one of them.
+Parentheses can be used for grouping.
+If a match is found,
+exit status 0 is returned.
+If no match is found,
+exit status 1 is returned.
+If an error is detected,
+exit status 2 is returned.
+.mH
+Options
+.LP
+.IP "\fB\-e\fP pattern"
+.br
+This is the same as
+.I pattern .
+The
+.B \-e
+is useful for patterns starting with `-',
+.IP \fB\-i\fP
+Does case-insensitive matching.
+That is,
+no distinction is made between upper and lower-case letters.
+.IP \fB\-n\fP
+Print line numbers as well as the matching lines.
+.IP \fB\-s\fP
+Sets the exit status only,
+no printed output.
+.IP \fB\-v\fP
+Select lines that do not match the specified pattern.
+.SH
+Examples
+.LP
+.sC
+grep mouse file
+.eC
+Find lines in file containing mouse.
+.sC
+grep [0-9] file
+.eC
+Print lines containing a digit.
+.SH
+See Also
+.LP
+cgrep(U),
+fgrep(U).

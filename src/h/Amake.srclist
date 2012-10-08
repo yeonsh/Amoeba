@@ -1,0 +1,73 @@
+#	
+#	@(#)Amake.srclist	1.6	94/04/06 15:37:34
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/sys/Amake.srclist;
+%include $PWD/module/Amake.srclist;
+%include $PWD/protocols/Amake.srclist;
+
+H_USER_FILES = {
+	$H_MODULE_FILES,
+	$H_PROTO_FILES,
+	$PWD/ailamoeba.h,
+	$PWD/am_exerrors.h,
+	$PWD/amoeba.h,
+	$PWD/ampolicy.h,
+	$PWD/amtools.h,
+	$PWD/caplist.h,
+	$PWD/capset.h,
+	$PWD/circbuf.h,
+	$PWD/cmdreg.h,
+	$PWD/disk.h,
+	$PWD/exception.h,
+	$PWD/fastskeldef.h,
+	$PWD/file.h,
+	$PWD/flexskelcom.h,
+	$PWD/flexskeldef.h,
+	$PWD/gateway.h,
+	$PWD/hscreen.h,
+	$PWD/lastat.h,
+	$PWD/malloctune.h,
+	$PWD/thread.h,
+	$PWD/monitor.h,
+	$PWD/netstd.h,
+	$PWD/pnstat.h,
+	$PWD/portstat.h,
+	$PWD/proc.h,
+	$PWD/profile.h,
+	$PWD/semaphore.h,
+	$PWD/server/bullet/bullet.h,
+	$PWD/server/bullet/inode.h,
+	$PWD/server/bullet/superblk.h,
+	$PWD/server/direct/direct.h,
+	$PWD/server/disk/conf.h,
+	$PWD/server/random/random.h,
+	$PWD/server/soap/soap.h,
+	$PWD/server/soap/soapsvr.h,
+	$PWD/server/soap/super.h,
+	$PWD/server/systask/systask.h,
+	$PWD/server/tape/conf.h,
+	$PWD/server/tcpip/amdefs.h,
+	$PWD/server/tcpip/whatami.h,
+	$PWD/server/tod/tod.h,
+	$PWD/server/tty/term.h,
+	$PWD/server/tty/tty.h,
+	$PWD/server/vdisk/disklabel.h,
+	$PWD/server/vdisk/disktype.h,
+	$PWD/server/vdisk/vdisk.h,
+	$PWD/sp_dir.h,
+	$PWD/stdcom.h,
+	$PWD/stderr.h,
+	$PWD/syscall.h,
+	$PWD/tape.h,
+	$PWD/vc.h,
+	$PWD/window/attributes.h,
+	$PWD/window/copy.h,
+	$PWD/window/cursor.h,
+	$PWD/window/font.h,
+	$PWD/window/locator.h,
+	$PWD/window/wtypes.h
+};

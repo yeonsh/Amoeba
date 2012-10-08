@@ -1,0 +1,31 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/07 10:39:32
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/../../generic/string/Amake.srclist;
+L_LIBC_MACHDEP_STRING = {
+	$PWD/../../generic/string/strcat.c,
+	$PWD/../../generic/string/strchr.c,
+	$PWD/../../generic/string/strcmp.c,
+	$PWD/../../generic/string/strcoll.c,
+	$PWD/strcpy.S,
+	$PWD/../../generic/string/strcspn.c,
+	$PWD/strlen.S,
+	$PWD/../../generic/string/strncat.c,
+	$PWD/../../generic/string/strncmp.c,
+	$PWD/strncpy.S,
+	$PWD/../../generic/string/strpbrk.c,
+	$PWD/../../generic/string/strrchr.c,
+	$PWD/../../generic/string/strspn.c,
+	$PWD/../../generic/string/strstr.c,
+	$PWD/../../generic/string/strtok.c,
+	$PWD/../../generic/string/strxfrm.c,
+};
+L_LIBC_MACHDEP_STRING_LLIB = {
+	$PWD/../../generic/string/strcpy.c,
+	$PWD/../../generic/string/strlen.c,
+	$PWD/../../generic/string/strncpy.c,
+};

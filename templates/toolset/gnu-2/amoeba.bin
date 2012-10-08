@@ -1,0 +1,10 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)amoeba.bin	1.2	94/04/05 17:01:54
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/amoeba.cmds;
+%include $PWD/exec.generic;
+%include $PWD/ail.generic;

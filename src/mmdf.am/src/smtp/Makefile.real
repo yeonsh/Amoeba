@@ -1,0 +1,213 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:40:50
+#
+#
+#   smtp:    ArpaNet-based channel transmission
+#
+MODULES = 	ch_smtp qu2sm_send sm_wtmail tcp.${SYSTEM} \
+		smtpsrvr smtpd
+
+real-default:	smtp smtpd smtpsrvr
+
+install: inst-smtp inst-smtpd inst-smtpsrvr
+
+aminstall: ainst-smtp ainst-smtpd ainst-smtpsrvr
+
+lint:	l-smtp l-smtpd l-smtpsrvr
+
+inst-smtp:	$(CHANDIR)/smtp
+$(CHANDIR)/smtp:	xsmtp
+	cp xsmtp $(CHANDIR)/smtp
+	-$(CHOWN) $(MMDFLOGIN) $(CHANDIR)/smtp
+	-chmod 0$(PGMPROT) $(CHANDIR)/smtp
+	-@ls -ls $(CHANDIR)/smtp
+	-@echo "smtp channel installed normally"; echo ""
+
+ainst-smtp:
+	$(AINSTALL) $(AINSTALLFLAGS) xsmtp $(CHANDIR)/smtp
+
+smtp: xsmtp
+xsmtp:	$(HEAD) ch_smtp.o qu2sm_send.o sm_wtmail.o tcp.${SYSTEM}.o $(MMDFLIBS)
+#socket.o setsockopt.o getsockopt.o getsockname.o socketpair.o
+		$(LD) $(LDFLAGS) -o $@ \
+		$(HEAD) ch_smtp.o qu2sm_send.o sm_wtmail.o tcp.${SYSTEM}.o $(MMDFLIBS) $(SYSLIBS)
+#socket.o setsockopt.o getsockopt.o getsockname.o socketpair.o\
+		
+l-smtp:
+	$(LINT) $(LFLAGS) $(TCPINCL) \
+		ch_smtp.c qu2sm_send.c sm_wtmail.c tcp.${SYSTEM}.c $(LLIBS)
+
+inst-smtpsrvr: $(CHANDIR)/smtpsrvr
+
+ainst-smtpsrvr: 
+	$(AINSTALL) $(AINSTALLFLAGS) xsmtpsrvr $(CHANDIR)/smtpsrvr
+
+$(CHANDIR)/smtpsrvr:  xsmtpsrvr
+	cp xsmtpsrvr $(CHANDIR)/smtpsrvr
+	-$(CHOWN) $(MMDFLOGIN) $(CHANDIR)/smtpsrvr
+	-chmod 0$(PGMPROT) $(CHANDIR)/smtpsrvr
+	-@ls -ls $(CHANDIR)/smtpsrvr
+	-@echo "smtp server installed normally"; echo " "
+
+
+smtpsrvr : xsmtpsrvr
+xsmtpsrvr: $(HEAD) smtpsrvr.o $(MMDFLIBS) 
+	$(LD) $(LDFLAGS) -o $@ \
+		$(HEAD) smtpsrvr.o $(MMDFLIBS) $(SYSLIBS)
+
+l-smtpsrvr:
+	$(LINT) $(LFLAGS) smtpsrvr.c $(LLIBS)
+
+inst-smtpd: $(CHANDIR)/smtpd
+
+ainst-smtpd: 
+	$(AINSTALL) $(AINSTALLFLAGS) xsmtpd $(CHANDIR)/smtpd
+
+$(CHANDIR)/smtpd: xsmtpd
+	cp xsmtpd $(CHANDIR)/smtpd
+	-$(CHOWN) $(MMDFLOGIN) $(CHANDIR)/smtpd
+	-chmod 0$(PGMPROT) $(CHANDIR)/smtpd
+	-@ls -ls $(CHANDIR)/smtpd
+	-@echo "smtp daemon installed normally";echo " "
+
+smtpd : xsmtpd
+xsmtpd: $(HEAD) smtpd.o $(MMDFLIBS) 
+	$(LD) $(LDFLAGS) -o $@ \
+		$(HEAD) smtpd.o $(MMDFLIBS) $(SYSLIBS)
+
+l-smtpd:
+	$(LINT) $(LFLAGS) smtpd.c $(LLIBS)
+
+clean:
+	-rm -f x* *.o x.c makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+# DEPENDENCIES MUST END AT END OF FILE
+
+ch_smtp.o: ch_smtp.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/ctype.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/setjmp.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/sys/types.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+ch_smtp.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/dirent.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/signal.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ch.h
+ch_smtp.o: /usr/proj/amwork/src/h/posix/stdio.h
+qu2sm_send.o: qu2sm_send.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/ctype.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/setjmp.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/sys/types.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+qu2sm_send.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/time.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/dirent.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+qu2sm_send.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/ap.h ../../h/smtp.h
+sm_wtmail.o: sm_wtmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+sm_wtmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/time.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/stdio.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/signal.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/phs.h ../../h/ap.h
+sm_wtmail.o: ../../h/dm.h ../../h/smtp.h /usr/proj/amwork/src/h/posix/stdio.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/string.h
+sm_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sm_wtmail.o: /usr/proj/amwork/src/h/amoeba.h /usr/proj/amwork/src/h/circbuf.h
+sm_wtmail.o: /usr/proj/amwork/src/h/vc.h /usr/proj/amwork/src/h/class/tcpip.h
+sm_wtmail.o: /usr/proj/amwork/src/h/class/stdinfo.h
+sm_wtmail.o: /usr/proj/amwork/src/h/class/stdstatus.h
+tcp.4.2.o: tcp.4.2.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/ctype.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/setjmp.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/sys/types.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+tcp.4.2.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/dirent.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/string.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/_ARGS.h /usr/proj/amwork/src/h/amoeba.h
+tcp.4.2.o: /usr/proj/amwork/src/h/circbuf.h /usr/proj/amwork/src/h/vc.h
+tcp.4.2.o: /usr/proj/amwork/src/h/class/tcpip.h
+tcp.4.2.o: /usr/proj/amwork/src/h/class/stdinfo.h
+tcp.4.2.o: /usr/proj/amwork/src/h/class/stdstatus.h
+tcp.4.2.o: /usr/proj/amwork/src/h/posix/stdio.h
+smtpsrvr.o: smtpsrvr.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/ctype.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/setjmp.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/sys/types.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+smtpsrvr.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/time.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/dirent.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/ap.h ../../h/phs.h
+smtpsrvr.o: ../../h/smtp.h /usr/proj/amwork/src/h/posix/stdio.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/signal.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/pwd.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/string.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpsrvr.o: /usr/proj/amwork/src/h/amoeba.h /usr/proj/amwork/src/h/circbuf.h
+smtpsrvr.o: /usr/proj/amwork/src/h/class/tcpip.h
+smtpsrvr.o: /usr/proj/amwork/src/h/class/stdinfo.h
+smtpsrvr.o: /usr/proj/amwork/src/h/class/stdstatus.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/fcntl.h
+smtpsrvr.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ns.h
+smtpsrvr.o: /usr/proj/amwork/src/h/cmdreg.h /usr/proj/amwork/src/h/stdcom.h
+smtpsrvr.o: ../../h/smtpsrvr.h /usr/proj/amwork/src/h/stderr.h
+smtpd.o: smtpd.c /usr/proj/amwork/src/h/amoeba.h
+smtpd.o: /usr/proj/amwork/src/h/posix/stdio.h
+smtpd.o: /usr/proj/amwork/src/h/posix/_ARGS.h /usr/proj/amwork/src/h/circbuf.h
+smtpd.o: /usr/proj/amwork/src/h/vc.h /usr/proj/amwork/src/h/class/tcpip.h
+smtpd.o: /usr/proj/amwork/src/h/class/stdinfo.h
+smtpd.o: /usr/proj/amwork/src/h/class/stdstatus.h /usr/proj/amwork/src/h/proc.h
+smtpd.o: /usr/proj/amwork/src/h/caplist.h /usr/proj/amwork/src/h/am_exerrors.h
+smtpd.o: ../../h/ns.h /usr/proj/amwork/src/h/cmdreg.h
+smtpd.o: /usr/proj/amwork/src/h/stdcom.h ../../h/smtpsrvr.h
+smtpd.o: /usr/proj/amwork/src/h/stderr.h /usr/proj/amwork/src/h/monitor.h
+smtpd.o: /usr/proj/amwork/src/h/posix/sys/wait.h
+smtpd.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/hton.h
+smtpd.o: /usr/proj/amwork/src/h/machdep/arch/mc68000/byteorder.h
+smtpd.o: /usr/proj/amwork/src/h/byteorder/big_endian.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/types.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/tcpip.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/tcp_io.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/gen/in.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/gen/tcp.h
+smtpd.o: /usr/proj/amwork/src/h/server/ip/gen/tcp_io.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

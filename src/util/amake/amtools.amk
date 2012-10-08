@@ -1,0 +1,89 @@
+#	
+#	@(#)amtools.amk	1.2	94/04/07 14:46:18
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+AMK_TOOL_DIR = $PWD;
+
+#-------------
+#   m a k e t o k f i l e   &  - c a s e
+
+MAKE_TOKFILE = $AMK_TOOL_DIR/make.tokfile;
+MAKE_TOKCASE = $AMK_TOOL_DIR/make.tokcase;
+
+%tool gen_tokens (
+    csrc:    %in   [type = C-src, gen_tokens, persistent];
+    tokfile: %out  [type = LLgen-src]	=> get($csrc, LL-dest);
+    symbols: %out  [type = C-src]	=> get($csrc, cc-dest);
+    mktok:   %in   [type = executable]  => $MAKE_TOKFILE;
+    mkcase:  %in   [type = executable]  => $MAKE_TOKCASE;
+)
+{
+    exec($mktok,  stdin => $csrc, stdout => $tokfile);
+    exec($mkcase, stdin => $csrc, stdout => $symbols);
+    echo({$tokfile, 'and', $symbols, 'created'});
+};
+
+#-------------
+#    m a k e a l l o c d   &   m a k e n e x t  (should be combined)
+
+%instance deftypesuffix(hh-src, '%.hh');
+%instance deftypesuffix(cc-src, '%.cc');
+
+%derive f[generates-C-src] %when $f ? type == hh-src %or $f ? type == cc-src;
+
+MAKE_ALLOCD = $AMK_TOOL_DIR/make.allocd;
+MAKE_NEXT   = $AMK_TOOL_DIR/make.next;
+
+%tool hh_to_h (
+    hhsrc: %in  [type = hh-src, persistent];
+    incl:  %out	[type = C-incl]    	    => match($hhsrc);
+    prog:  %in  [type = executable] 	    => $MAKE_ALLOCD;
+)
+{
+    exec($prog, stdin => $hhsrc, stdout => $incl);
+    echo({$incl, 'created'});
+};
+
+%tool cc_to_c (
+    ccsrc: %in  [type = cc-src, persistent];
+    csrc:  %out	[type = C-src]	    	    => match($ccsrc);
+    prog:  %in  [type = executable] 	    => $MAKE_ALLOCD;
+)
+{
+    exec($prog, stdin => $ccsrc, stdout => $csrc);
+    echo({$csrc, 'created'});
+};
+
+%tool make_next ( # with this tool, the .cc's and .hh's are really `eaten'
+    ccsrc: %in %list [type = cc-src];
+    hhsrc: %in %list [type = hh-src];
+    next:  %out      [type = C-src, compare] => next.c;
+    prog:  %in	     [type = executable]     => $MAKE_NEXT;
+)
+{
+    exec($prog, args => $ccsrc + $hhsrc, stdout => $next);
+    echo({$next, 'created'});
+};
+
+#   g e n e r a t e    p r o t o t y p e s
+
+%instance deftypesuffix(proto, '%.pro');
+
+MAKE_PROTO = makeproto;
+
+# prototype files are C-incl files ('C-incl' attr is used instead of type)
+%derive f[C-incl] %when get($f, type) == proto;
+
+%tool gen_proto (
+    csrc:    %in       [type = C-src, persistent];
+    proto:   %out      [type = proto, compare]	   => match($csrc);
+    prog:    %in       [type = executable] 	   => $MAKE_PROTO;
+)
+{
+    exec($prog, stdin => $csrc, stdout => $proto);
+    echo({$proto, 'created'});
+};
+

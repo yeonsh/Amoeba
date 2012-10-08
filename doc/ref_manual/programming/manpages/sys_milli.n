@@ -1,0 +1,66 @@
+.\"	@(#)sys_milli.n	1.6	96/02/15 16:56:51
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1989
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "sys_milli" L "libamoeba.a"
+return time in milliseconds
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/syscall.h"
+
+unsigned long
+sys_milli()
+.eC
+.SH
+Description
+.LP
+.kW "\fIsys_milli\fP"
+.kW "millisecond"
+.kW timing
+.I Sys_milli
+returns the number of milliseconds since an unknown origin.
+It wraps after 2 ** 32 milliseconds,
+which is about 50 days.
+It is used for measuring time intervals by calling it once at the start of an
+event and again at the end and comparing the difference.
+.mH
+Warnings
+.LP
+The granularity of the hardware clock is sometimes bigger than a millisecond.
+.SH
+Example
+.LP
+This function returns the time it takes to compute
+the sine of its argument, in milliseconds.
+By computing it several times, it increases the accuracy of the measurement
+by reducing errors due to the granularity of the system clock.
+.sC L
+#define MUCH 10000
+
+unsigned long sin_time(f)
+    double f;
+{
+    unsigned long start;
+    register int i;
+    double r, sin();
+
+    start = sys_milli();
+    for (i = MUCH; i--; r = sin(f))
+	;
+    return (sys_milli() - start + MUCH / 2) / MUCH;
+}
+.eC
+.SH
+See Also
+.LP
+sun4m_timer(L).

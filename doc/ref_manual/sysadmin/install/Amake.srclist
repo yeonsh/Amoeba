@@ -1,0 +1,25 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/15 17:02:33
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+ADMIN_INSTALL = {
+	$PWD/intro.n,
+	$PWD/hardware.n,
+	$PWD/upgrade.n,
+	$PWD/distr.n,
+	$PWD/at386.n,
+	$PWD/sun4.n,
+	$PWD/sun3-60.n,
+	$PWD/time.n,
+	$PWD/src.n,
+	$PWD/man.n,
+	$PWD/amdirstr.n,
+	$PWD/dirstruct.n,
+	$PWD/thirdp.n,
+	$PWD/Xwindows.n,
+	$PWD/mmdf.n,
+	$PWD/tex.n
+};

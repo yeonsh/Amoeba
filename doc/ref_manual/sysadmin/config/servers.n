@@ -1,0 +1,296 @@
+.\"	@(#)servers.n	1.7	96/02/15 17:02:13
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Documentation:  Gregory J. Sharp, 1990-1995
+.aE
+.nH 1 "Server Configuration" nobp
+.LP
+.kW "configuring servers"
+There are several servers which are essential to the good health and
+continuous operation of an \*(Am system.
+Some of them are built into the kernel but most of them run in user space.
+It is important to ensure that they are all highly available.
+This is done by either replicating the servers,
+by making sure that they are rapidly restarted in the event of failure, or both.
+.LP
+Let us begin with rapid recovery.
+There is a server, known as the
+.kW "\fIboot\fP"
+.I boot
+server, whose function is to ensure that servers registered with it are running.
+It does this by regularly polling each server.
+The frequency with which it polls each server is set at registration time.
+If the server does not reply within a specified period it attempts to restart
+the server.
+For details of how to register a server with the
+.I boot
+server see
+.I boot (A).
+The system as installed from tape has a
+.I boot
+server.
+This is started from the kernel as the first user process and its first
+function is to start the directory server and the login daemon.
+It is,
+of course,
+possible to have two or more
+.I boot
+servers and for each
+.I boot
+server to register with another so that if one of them goes down it will be
+restarted.
+.LP
+Unfortunately it is not yet possible to ensure that a kernel is downloaded
+onto a machine using the
+.I boot
+server.
+This must still be done by hand.
+This problem might be addressed in a future release of \*(Am,
+although some aspects of it may be beyond software control, such as resetting
+a machine that has crashed, or detecting that there has been a hardware failure
+on the machine in question.
+.LP
+.kW replication
+Replication of objects,
+and in particular servers, is a very effective way of providing high
+availability.
+Certain services are crucial to the functioning of the system.
+They are
+.kW "run server"
+the
+.I run
+server,
+.kW "time of day server"
+the time of day server,
+.kW "random number server"
+the random number server,
+.kW "Bullet Server"
+.kW SOAP
+the \*(Bs and the \*(Ss.
+.LP
+.kW "run server"
+One server that is essential for \*(Am's performance is the
+.I run (A)
+server.
+The function of this server is to select a processor on which a process is
+to be run.
+If the
+.I run
+server is not present then this can take a long time.
+It is also responsible for implementing the exclusive access features of
+the reservation server (see
+.I reserve_svr (A)).
+The
+.I run
+server should be started by the
+.I boot
+server after the directory server is running.
+It should preferably not run on the same host as the file server.
+See the manual page for the run server for details on how to put the various
+processor pools under its control.
+This is not automatic.
+.LP
+The time of day server and the random number server are kernel-based servers and
+so they are available if the kernel containing them is up.
+However it is perfectly possible to have these servers in more than one
+kernel.
+In fact it is strongly recommended.
+The server that everyone uses is known as the
+.I default
+server.
+In the case of the time of day server it is registered as
+.I /profile/cap/todsvr/default .
+However,
+if the host containing the time of day server goes down for any reason the
+many programs that rely on this server will fail if a new server is not
+quickly installed.
+The best way to do this is to have a second server available and let the
+various
+.I boot
+servers regularly poll the capability
+.I /super/cap/todsvr/default .
+The first one to detect the absence of the server can immediately replace the
+capability there with the capability of a time of day server that is still up.
+An identical strategy is required for the random number server.
+.LP
+The login program is called
+.kW "\fIlogin\fP"
+.I login (A).
+This can also be started by the
+.I boot
+server.
+It is normally only used on a conventional terminal.
+If the workstation is running an X windows server then
+.I xlogin
+should be used.
+It is also a good idea to let the
+.I boot
+.kW "X windows"
+server ensure that an X server is running on the workstation which the
+.I xlogin
+must operate on.
+Note that
+.I xlogin
+need not run on the workstation upon which it operates but it
+is more reliable that way.
+Then the login program will be present whenever the workstation is up.
+It will be relying on the minimum amount of other software and hardware
+functioning correctly.
+.kW "X terminal"
+In the case of an X terminal this is not possible and
+.I xlogin
+must run on some other processor.
+.LP
+It is possible to have more than one \*(Bs in a system.
+At present there is exactly one
+.I default
+\*(Bs but it is possible to register many capabilities in the directory
+.I /super/cap/bulletsvr
+under the name of each server and then link one of them to the name
+.I default .
+Then if the default goes down it is possible to use the
+.I boot
+server to switch automatically to an alternate server.
+Alas, the files that are on the crashed server will be unavailable until it
+is restarted.
+It is also possible to let different users have a different default \*(Bs (and
+other default servers, for that matter) by making different versions of the
+.I /super/cap
+directory and installing them in a particular user's
+.I /profile/cap
+directory,
+since this is the path name the users use to access the information.
+.LP
+There are several advantages to having more than one \*(Bs.
+It means that a server that explicitly uses a \*(Bs for storing data can
+replicate it on a second server.
+Then if one \*(Bs goes down the server can continue functioning.
+Since the \*(Ss allows multiple capabilities for an object to be stored in a
+single directory entry there is another advantage to having more than one \*(Bs.
+It is possible to do lazy replication of files from one \*(Bs to another so
+that using only one directory entry, either the original or its replica
+can be recovered depending on the availability of the file servers.
+.kW replication
+To aid in replicating objects there is a special server called the object
+manager
+(see
+.kW "\fIom\fP"
+.I om (A))
+.kW "garbage collection"
+which supports replication and garbage collection.
+It will be described shortly.
+.LP
+The Soap directory server (see
+.kW SOAP
+.I soap (A))
+is at the heart of management of objects under \*(Am.
+.kW ASCII
+.kW "capability-set"
+It maps an ASCII string to a capability-set for an object.
+The \*(Ss can be configured in a large variety of ways, depending on the
+available hardware and the service availability requirements.
+Along with the \*(Bs, it is one of the most important servers on the system
+since it provides access to all the objects.
+It is dependent on a time of day server, a random server and at least one
+\*(Bs.
+Note that it does not use the default servers but its choice of servers is
+fixed when it is started.
+.LP
+It is possible to duplicate a \*(Ss.
+If correctly installed,
+it is possible that two copies of
+.I soap
+share the same data base and handle requests.
+(Each keeps its own administration, however.)
+Updates are passed on to the partner via a special protocol.
+If either one of the servers goes down the other will continue to handle
+requests.
+When the other comes back up it will first bring its copy of the
+administration data up to date before proceeding.
+.LP
+The \*(Ss can also duplicate its data base on more than one \*(Bs.
+This can be done regardless of whether or not the \*(Ss is duplicated.
+There is also a special command
+.kW "\fIchbul\fP"
+.I chbul (A)
+to change either of the two \*(Bss that
+.I soap
+is using.
+.LP
+Starting
+.I soap
+is quite a difficult business and is usually best accomplished by the
+.I boot
+server.
+(In fact, in the absence of another \*(Ss, the
+.I boot
+server is the only way to start
+.I soap !)
+It is vital that when installing a new version of the \*(Ss that you get it
+right first time if you have only one \*(Ss.
+If
+.I soap
+is run in two-copy mode then it is possible to kill one of the servers
+and try to replace it with the new version.
+If that fails there is still another \*(Ss running to allow a second chance
+at getting the installation correct.
+Note that this mechanism also allows installation of a new directory server
+with almost zero down-time.
+First replace one of the servers and bring up the new version.
+Then kill the other and bring up the new version.
+The only time the service is off the air is during the synchronization between
+the two servers when the second one starts and this is normally a matter of a
+few seconds.
+.LP
+The object manager
+(see
+.I om (A))
+is used for two primary functions.
+The first is to replicate objects on multiple servers.
+.kW "garbage collection"
+The second is to support garbage collection.
+(The latter is necessary since servers have no way of knowing which of their
+objects are still required.
+If someone loses a capability for an object it could continue to consume
+resources forever since the server will never hear of the loss.
+See the chapter
+.I "Routine Maintenance"
+for more details.)
+.kW "\fIom\fP"
+.I Om
+works by regularly traversing the entire Soap directory graph and
+examining each entry.
+If it contains an object for a server that it must replicate, it replicates it.
+It also
+.I touches
+each object (see
+.kW touch
+.kW "garbage collection"
+.I std (L)).
+This resets the life-time of each
+.I touched
+object to maximum.
+(This also happens whenever an object is accessed.)
+.kW aging
+Once it has touched all the objects it then issues a command to the relevant
+servers to
+.I age
+all its objects by reducing their life-time by one.
+Any object whose life-time reaches zero is destroyed by its server.
+.LP
+.kW "TCP/IP"
+The TCP/IP server
+(see
+.I ipsvr (A))
+is used to convert between the \*(Am network protocol and
+TCP/IP.
+.kW Internet
+This is very useful for communicating with hosts on the Internet,
+X terminals or other operating systems on the same network.
+To install a TCP/IP server follow the instructions in the server manual page.
+.\".LP
+.\"Configuring your wide-area network?

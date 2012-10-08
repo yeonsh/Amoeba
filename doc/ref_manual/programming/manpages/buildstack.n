@@ -1,0 +1,74 @@
+.\"	@(#)buildstack.n	1.4	96/02/15 16:47:54
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1988-1989
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT buildstack L "libamoeba, libamunix.a"
+build a stack segment for a process to be executed
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+
+unsigned long buildstack(buf, buflen, start, argv, envp, caps)
+char *buf;
+long buflen;
+unsigned long start;
+char **argv;
+char **envp;
+struct caplist *caps;
+.eC
+.SH
+Description
+.LP
+.kW "\fIbuildstack\fP"
+.kW "stack segment"
+.kW "stack pointer"
+.kW "\fIexec_file\fP"
+.kW "program arguments"
+.kW "string environment"
+.kW "capability environment"
+.I Buildstack
+is a low-level utility function used by
+.I exec_file (L).
+It fills the buffer with a stack segment for a process to be executed.
+(`Stack' segment is a slight misnomer \- the information filled in is
+better described as environment, but it happens to be placed above the
+stack in memory, and the rest of the segment is used as the stack for
+the main thread.)
+.LP
+.I Buildstack
+places the arguments, the string and capability environments and
+pointers to them in the buffer, starting from the high end, all as
+expected by the C run-time start-off,
+.I head (L).
+The argument
+.I start
+indicates the address where
+.I buf
+will be mapped in the new process's
+virtual memory.
+See
+.I head (L)
+for a description of the lay-out.
+.LP
+The return value is the stack pointer to be used when starting the
+process.
+.mH
+Diagnostics
+.LP
+A NULL-pointer is returned if the buffer was too short.
+.SH
+See Also
+.LP
+exec_file(L),
+head(L).

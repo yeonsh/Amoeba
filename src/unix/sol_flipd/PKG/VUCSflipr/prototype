@@ -1,0 +1,13 @@
+#	
+#	@(#)prototype	1.2	96/03/26 16:34:43
+#
+i pkginfo
+i copyright
+i postinstall
+i preremove
+i depend
+d none /etc ? ? ?
+d none /etc/init.d ? ? ?
+f none /etc/init.d/flip-init 0744 root sys
+d none /etc/rc2.d ? ? ?
+l none /etc/rc2.d/S85flip-init=/etc/init.d/flip-init

@@ -1,0 +1,12 @@
+#	
+#	@(#)Amake.srclist	1.1	91/04/11 09:47:31
+#
+U_BAWK = {
+	$PWD/bawk.c,
+	$PWD/bawk.h,
+	$PWD/bawkact.c,
+	$PWD/bawkdo.c,
+	$PWD/bawkpat.c,
+	$PWD/bawksym.c
+};
+

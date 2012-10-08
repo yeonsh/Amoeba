@@ -1,0 +1,44 @@
+.\"	@(#)printenv.n	1.5	96/02/16 11:06:40
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "printenv" U
+print out the current string environment
+.SH
+Synopsis
+.LP
+.sC L
+printenv
+.eC
+.SH
+Description
+.LP
+.kW "string environment"
+.I Printenv
+can be used to print out the string environment of a program,
+mostly the shell.
+.SH
+Example
+.LP
+.sC
+printenv
+.eC
+This might print
+.sC
+TCP_SERVER=/profile/cap/tcpipsvr/vmesc1
+SPMASK=0xff:0x2:0x4
+DISPLAY=klepper:0
+ARCHITECTURE=mc68000
+HOME=/home
+PATH=:/home/bin:/bin:/profile/util:/profile/module/ack/bin
+USER=versto
+TERM=xterm
+SHELL=/bin/sh
+_WORK=/home
+.eC

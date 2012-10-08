@@ -1,0 +1,103 @@
+.\"	@(#)ls.n	1.5	96/02/16 11:02:20
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+			- the options were a little off :-(
+.aE
+.mT "ls" U
+list the contents of a directory
+.SH
+Synopsis
+.LP
+.sC L
+ls [-1ACFRacdfgilrstu] name ...
+.eC
+.SH
+Description
+.LP
+.kW SOAP
+.kW "directory listing"
+For each file argument,
+list it.
+For each directory argument,
+list its contents,
+unless
+.B -d
+is present.
+When no argument is present,
+the working directory is listed.
+.mH
+Options
+.LP
+.IP \fB\-1\fP
+Make a single column listing.
+.IP \fB\-A\fP
+All entries are listed, except . and ..
+.IP \fB\-C\fP
+Multicolumn listing (default).
+.IP \fB\-F\fP
+Put / after directory names.
+.IP \fB\-R\fP
+Recursively list subdirectories.
+.IP \fB\-a\fP
+All entries are listed, even file names starting with a ``.''.
+.IP \fB\-c\fP
+Print the i-node last change time.
+This is same to the last modified time in \*(Am.
+.IP \fB\-d\fP
+Do not list contents of directories.
+.IP \fB\-f\fP
+List argument as unsorted directory.
+.IP \fB\-g\fP
+Group id given instead of user id.
+.IP \fB\-i\fP
+Print the object number of the directory entry.
+This is not unique since two objects of different types may have the
+same object number.
+.IP \fB\-l\fP
+Long listing: mode, links, owner, size and time.
+.IP \fB\-r\fP
+Reverse the sort order.
+.IP \fB\-s\fP
+Give size in blocks (including indirect blocks).
+.IP \fB\-t\fP
+Sort by time, latest first.
+.IP \fB\-u\fP
+Use last usage time instead of modification time.
+This is same to the last modified time in \*(Am.
+.mH
+Warning
+.LP
+.I Ls
+uses the POSIX emulation which attempts to map \*(Am protection information
+to POSIX protection information.
+On the whole such mappings are difficult to get right.
+For example,
+objects that are neither directory or file are often described by
+.I ls
+as character special devices.
+To discover the true type and protection of an object use
+.I dir (U).
+.SH
+Examples
+.LP
+.sC
+ls -l
+.eC
+List files in current directory.
+.sC
+ls -Rs /home/bin
+.eC
+List
+.I /home/bin
+recursively with object sizes, where known.
+.SH
+See Also
+.LP
+dir(U).

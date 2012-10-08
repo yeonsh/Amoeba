@@ -1,0 +1,52 @@
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+#	
+#	@(#)unix.cmds	1.2	94/04/05 17:07:27
+#
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(CFLAGS), {
+	CFLAGS = { -O };
+});
+
+%if (%not defined(DEFINES), {
+	DEFINES = {};
+});
+
+%if (%not defined(INCLUDES), {
+	INCLUDES = {};
+});
+
+CC = cc;
+CFLAGS =
+{
+	$CFLAGS,
+	$DEFINES,
+	-I$SRC_ROOT/h/toolset/irix,	# to get correct stdlib.h
+	$INCLUDES
+};
+AS = cc;
+ASFLAGS =
+{
+	-c,
+	$CFLAGS
+};
+LD = cc;
+LINT = lint;
+LINTFLAGS =
+{
+	$DEFINES,
+	-I$SRC_ROOT/h/toolset/irix,	# to get correct stdlib.h
+	$INCLUDES
+};
+AR = ar;
+ARFLAGS = cr;
+
+LIB_AMUNIX = $CONF_ROOT/lib/amunix/libamunix.a;
+LIB_MATH = -lm;
+
+LINT_AMUNIX = $CONF_ROOT/lib/amunix/llib-lamunix.ln; 
+
+%include $PWD/generic;
+%include std_tools.amk;

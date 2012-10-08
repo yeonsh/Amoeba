@@ -1,0 +1,195 @@
+.\"	@(#)amoebatree.n	1.7	96/02/15 17:06:50
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "amoebatree" A
+build a configuration tree for \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+amoebatree [-v] [-s subtree]
+	conf-root src-root template-root arch toolset
+
+unixtree [-v] [-s subtree]
+	conf-root src-root template-root arch toolset
+.eC
+.SH
+Description
+.LP
+.kW "amake"
+.kW "configuration"
+.kW "\fIbuild\fP"
+.kW "\fIunixtree\fP"
+.I Amoebatree
+and
+.I unixtree
+are used to construct the configuration trees for building the binaries of
+\*(Am.
+.I Amoebatree
+creates the tree for the binaries that run under \*(Am and
+.I unixtree
+creates the tree for the binaries that run under
+.UX .
+Note that they do not perform the actual build but merely create the hierarchy
+with the necessary
+.kW toolset
+.I toolset
+and
+.I Amakefiles .
+The configuration system has been designed so that versions for different
+architectures can be easily managed and that cross-compiling is
+straight-forward.
+.LP
+The configuration is constructed by cloning a template configuration tree
+which contains the directory structure and necessary
+.I toolset
+and
+.I Amakefiles .
+If the configuration tree specified does not exist it will be created.
+If it already exists, then it will be brought up to date.
+Note that any parts that are no longer in the template tree will not be deleted.
+If any files in the configuration are different from those in the templates then
+the program will enquire as to whether it should overwrite the file or not.
+If you respond by typing
+.I q
+then no change will be made and the program will terminate.
+If you type
+.I d
+then it will show the differences.
+If you type
+.I y
+the change will be made.
+Any other response will be interpreted as ``do not overwrite but continue''.
+.LP
+The
+.I conf-root
+specifies the place where the configuration should be built.
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+.LP
+The
+.I src-root
+specifies the source code from which the system is to be built.
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+.LP
+The
+.I template-root
+specifies where to get the templates for the
+.I Amakefiles .
+If it is not an absolute path name then the output of the
+.I amdir (U)
+command will be prepended to it.
+Otherwise it will be used as is.
+The
+.I Amakefiles
+will be parameterized with the
+.I conf-root ,
+.I src-root
+and the target architecture for which you are compiling.
+.LP
+Note that if a relative path name is used with the above three arguments, 
+.I amdir
+is prepended to the path name.
+If the resultant path name begins with
+.I /profile
+(as will typically be the case under \*(Am)
+and the user has the directory
+.I /super
+then the path will be converted to use
+.I /super
+since this has more chance of having write permission in the directory
+tree to be  created\|/\|updated.
+.LP
+The
+.I arch
+argument specifies the target architecture for which you are compiling.
+Currently valid values are
+.I mc68000 ,
+.I i80386 ,
+and
+.I sparc .
+Other values will be defined as \*(Am is ported to other architectures.
+The user programs and libraries are architecture dependent.
+Only kernels are also machine dependent.
+.LP
+The
+.I toolset
+argument specifies which compiler, loader, archiver, etc. are to be used
+to build the system.
+Under \*(Am this is typically
+.I ack(U) .
+Under
+.UX
+this will be one of the compilers available with the
+.UX
+system.
+All the tools will be placed in a directory in the configuration tree and
+included from there by the
+.I Amakefiles .
+.mH
+Options
+.LP
+.IP "\fB\-s\fP subtree" 10
+This option causes it to create/replace only the subtree specified.
+At present the
+.I toolset
+will always be done in addition to any subtree specified here.
+It is not possible to give multiple subtrees in one command.
+.IP \fB\-v\fP
+The verbose option.
+This causes the program to print details of everything it is doing.
+This is should be avoided except for debugging purposes or with the
+.B \-s
+option since it creates an enormous number of files and directories.
+.SH
+Example
+.LP
+.sC L
+amoebatree /amoeba/conf/amoeba /amoeba/src /amoeba/templates \e
+	i80386 ack
+.eC
+will create under the directory
+.I /amoeba/conf/amoeba/i80386.ack
+a tree structure containing all the
+.I Amakefiles
+to build the libraries and binaries for \*(Am.
+If the command
+.I amdir
+produces
+.I /amoeba
+then
+.sC L
+amoebatree conf/amoeba src templates i80386 ack
+.eC
+is equivalent.
+.sC L
+unixtree /amoeba/conf/unix /amoeba/src /amoeba/templates i80386 ack
+.eC
+will create under the directory
+.I /amoeba/conf/unix/i80386.ack
+a tree structure containing all the
+.I Amakefiles
+to build the libraries and binaries for \*(Am programs that run under
+.UX
+with an \*(Am-driver.
+.SH
+See Also
+.LP
+amake(U),
+amdir(U),
+build(A),
+doctree(A),
+kerneltree(A).

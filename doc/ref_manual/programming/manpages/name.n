@@ -1,0 +1,369 @@
+.\"	@(#)name.n	1.7	96/02/15 16:53:09
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Anonymous (distant past)
+	Document: Michael N. Condict, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "name" L "libamoeba.a, libamunix.a"
+name-based functions for manipulating directories
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/name.h"
+
+errstat cwd_set(path)
+errstat name_append(path, object)
+char *name_breakpath(path, dir)
+errstat name_create(path)
+errstat name_delete(path)
+errstat name_lookup(path, object)
+errstat name_replace(path, object)
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "directory server"
+.kW "name.h"
+.kW "capability"
+.kW "directory functions"
+This module provides a portable, name-oriented interface to directory servers.
+It has the advantage of being independent of the particular directory server in
+use, but it does not make available all the functionality of every
+directory server, e.g., SOAP.
+It is similar to the module containing the
+same set of functions but with the prefix ``dir_'' instead of ``name_''.
+The main difference is that the ``dir_'' functions take an extra argument,
+.I origin ,
+which is the capability for a directory relative to which the given
+.I path
+is to be interpreted.
+.LP
+In each function, the
+.I path
+should be a ``path name'' that specifies a
+directory or directory entry.
+To these functions, a directory is simply
+a finite mapping from character-string names to capabilities.
+Each (name, capability) pair in the mapping is a ``directory entry''.
+The capability
+can be for any object, including another directory; this allows arbitrary
+directory graphs
+(the graphs are not required to be trees).
+A capability can be entered
+in multiple directories or several times (under different names) in the
+same directory, resulting in multiple links to the same object.
+Note that some directory servers may have more complex notions of a directory,
+but all that is necessary in order to access them from this module is that
+they satisfy the above rules.
+.LP
+A path name is a string of printable characters.
+It consists of a sequence of 0 or more ``components'', separated by ``/''
+characters.
+Each component is a string of printable characters not containing ``/''.
+As a special case, the path name may begin with a  ``/'', in which case the
+first component starts with the next character of the path name.
+Examples:
+.I a/silly/path ,
+.I /profile/group/cosmo-33 .
+.LP
+If the path name begins with a ``/'', it is an ``absolute'' path name, otherwise
+it is a ``relative'' path name.
+.LP
+The interpretation of relative path names is relative to the current
+working directory.
+(Each \*(Am process has an independent capability for a
+current working directory, usually inherited from its creator \(em
+see
+.kW "\fIcwd_set\fP"
+.I cwd_set
+below.)
+.LP
+In detail, the interpretation of a path name relative to a directory
+.I d
+is as follows:
+.IP (1) 5
+If the path has no components (is a zero-length string), it specifies the
+directory
+.I d ;
+.IP (2) 5
+Otherwise, the first
+component in the path name specifies the name of an entry in directory
+.I d
+(either an existing name, or one that is to be added to the mapping);
+.IP (3) 5
+If there are any subsequent components in the path name, the first
+component must map to the capability of a directory, in which case
+the rest of the components are recursively interpreted as a path name
+relative to that directory.
+.LP
+The interpretation of absolute path names is the same, except that the
+portion of the path name after the ``/'' is interpreted
+relative to the user's ``root'' directory, rather than to the current
+working directory of the process.
+(Each user is given a capability for a single directory from which all other
+directories and objects are reached.
+This is called the user's root directory.)
+.LP
+The components ``.'' and ``.\|.'' have special meaning.
+Paths containing occurrences of
+these components are syntactically evaluated to a normal form not containing
+any such occurrences before any directory operations take place.
+See
+.I path_norm (L)
+for the meaning of these special components.
+.mH
+Errors
+.LP
+All functions return the error status of the operation.
+They all involve transactions and so in addition to the errors
+described below, they may return any of the standard RPC error codes.
+.IP "\*<STD_OK\*>:" 16
+the operation succeeded;
+.IP "\*<STD_CAPBAD\*>:"
+an invalid capability was used;
+.IP "\*<STD_DENIED\*>:"
+one of the capabilities encountered while parsing
+the path name did not have sufficient access rights (for example, the
+directory in which the capability is to be installed is unwritable);
+.IP "\*<STD_NOTFOUND\*>:"
+one of the components encountered while parsing the path name does not
+exist in the directory specified by the preceding components
+(the last component need not exist for some of the functions, but the other
+components must refer to existing directories).
+.mH
+Functions
+.sH
+name_append
+.LP
+.sC
+errstat
+name_append(path, object)
+char *path;
+capability *object;
+.eC
+.kW "\fIname_append\fP"
+.I Name_append
+.ft R
+adds the
+.I object
+capability to the directory server under
+.I path ,
+where it can subsequently be retrieved by giving the same name to
+.I name_lookup .
+The path up to, but not including the last
+component of
+.I path
+must refer to an existing directory.
+This directory
+is modified by adding an entry consisting of the last component of
+.I path
+and the
+.I object
+capability.
+There must be no existing entry with the same name.
+.rR
+\*<SP_MODRGT\*> in the directory that is to be modified
+.eR
+\*<STD_EXISTS\*>:	\fIname\fR already exists
+.DE
+.sH
+name_replace
+.LP
+.sC
+errstat
+name_replace(path, object)
+char *path;
+capability *object;
+.eC
+.kW "\fIname_replace\fP"
+.I Name_replace
+replaces the current capability stored under
+.I path
+with the specified
+.I object
+capability.
+The
+.I path
+must refer to an existing directory entry.
+This directory entry
+is changed to refer to the specified
+.I object
+capability as an atomic action.
+The entry is not first deleted then appended.
+.rR
+\*<SP_MODRGT\*> in the directory that is to be modified
+.DE
+.sH
+name_breakpath
+.LP
+.sC
+char *
+name_breakpath(path, dir)
+char *path;
+capability *dir;
+.eC
+.kW "\fIname_breakpath\fP"
+.I Name_breakpath
+stores the capability for the directory allegedly containing the object
+specified by
+.I path
+in
+.I dir ,
+and returns the name under which the object is stored,
+or would be stored if it existed.
+It is intended for locating the directory that must be modified to install
+an object in the directory service under the given
+.I path .
+In detail,
+.I name_breakpath
+does the following:
+.LP
+If the
+.I path
+is a path name containing only one component,
+.I name_breakpath
+stores the capability for either the current working directory (if the path name
+is relative) or the user's root directory (if the path name is absolute)
+in
+.I dir ,
+and returns the
+.I path
+(without any leading ``/'').
+.LP
+Otherwise, the
+.I path
+is parsed into two path names, the first consisting of
+all but the last component and the second a relative path name consisting of
+just the last component.
+.I Name_breakpath
+stores the capability for the
+directory specified by the first in
+.I dir
+and returns the second.
+The first path name must refer to an existing directory.
+.sH
+cwd_set
+.LP
+.sC
+errstat
+cwd_set(path)
+char *path;
+.eC
+.kW "\fIcwd_set\fP"
+.I Cwd_set
+changes the current working directory to that specified by
+.I path.
+.rR
+.cW NONE
+.eR
+\*<STD_NOTFOUND\*>:	the directory does not exist
+.DE
+.sH
+name_create
+.LP
+.sC
+errstat
+name_create(path)
+char *path;
+.eC
+.kW "\fIname_create\fP"
+.I Name_create
+creates a directory and stores its capability in a directory server
+under
+.I path .
+If
+.I path
+is a relative path name, the new directory
+is created using the server containing the current working directory,
+otherwise the new directory is created using the server containing
+the user's root directory.
+(Note that either of these might be different from the server that contains
+the directory which is to be modified by adding the new directory.)
+.LP
+The path up to, but not including the last
+component of
+.I path
+must refer to an existing directory.
+This directory
+is modified by adding an entry consisting of a new directory, named by
+the last component of
+.I path .
+There must be no existing entry with the same name.
+.rR
+\*<SP_MODRGT\*> in the directory that is to be modified
+.eR
+\*<STD_EXISTS\*>:	\fIname\fR already exists in the directory server
+.DE
+.sH
+name_delete
+.LP
+.sC
+errstat
+name_delete(path)
+char *path;
+.eC
+.kW "\fIname_delete\fP"
+.I Name_delete
+deletes the entry
+.I path
+from the directory server.
+The object specified by the capability associated with
+.I path
+in the directory entry is not destroyed.
+If desired, it should be
+separately destroyed (see
+.I std_destroy (L)).
+.rR
+\*<SP_MODRGT\*> in the directory that is to be modified
+.DE
+.sH
+name_lookup
+.LP
+.sC
+errstat
+name_lookup(path, object)
+char *path;
+capability *object;
+.eC
+.kW "\fIname_lookup\fP"
+.I Name_lookup
+finds the capability named by
+.I path
+and stores it in
+.I object .
+.br
+.ne 21
+.SH
+Examples
+.LP
+.sC L
+/* Change the name /home/abc to /home/xyz: */
+capability mod_dircap, object;
+char *old_name = "/home/abc";
+char modify_dir[NAME_MAX+1];
+char *entry_name = name_breakpath(old_name, &mod_dircap);
+
+if (entry_name != NULL) {
+	strncpy(modify_dir, old_name, entry_name - old_name);
+	modify_dir[entry_name - old_name] = '\e0';
+	if (cwd_set(modify_dir) == STD_OK &&
+			name_lookup(entry_name, &object) == STD_OK &&
+			name_append("xyz", &object) == STD_OK &&
+			name_delete(entry_name) == STD_OK) {
+		fprintf(stderr, "Successful name change\en");
+		return;
+	}
+}
+fprintf(stderr, "Error -- no name change\en");
+.eC
+.SH
+See Also
+.LP
+direct(L).

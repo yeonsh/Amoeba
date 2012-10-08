@@ -1,0 +1,12 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 10:11:52
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_AM_PRV = {
+	$PWD/prv_decode.c,
+	$PWD/prv_encode.c,
+	$PWD/prv_number.c
+};

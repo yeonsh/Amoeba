@@ -1,0 +1,130 @@
+.\"	@(#)getinfo.n	1.4	96/02/15 16:49:42
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, pre-1990
+	Document: Jack Jansen, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "getinfo" L "libamoeba.a"
+get information about the current process
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+
+int getinfo(retcap, procbuf, len)
+capability *retcap;
+process_d *procbuf
+int len;
+.eC
+.SH
+Description
+.LP
+.kW "\fIgetinfo\fP"
+.kW "proc.h"
+.kW "process"
+.kW "process descriptor"
+.kW "segment map"
+.kW "virtual memory layout"
+.kW "process descriptor"
+.kW "segment identifier"
+.kW "segment"
+.kW "process capability"
+.I Getinfo
+returns information about the calling process.
+If
+.I retcap
+is not a NULL-pointer the capability for the current process (with all right
+bits set) will be stored there.
+If
+.I len
+is non-zero
+.I procbuf
+should point to an area of
+.I len
+bytes.
+Upon return,
+.I procbuf
+will be filled with a stripped-down process
+descriptor for the current process.
+The process descriptor contains all the static information and the segment map,
+but it does not contain a thread map.
+The process descriptor is returned in native byte order.
+See
+.I process_d (L)
+for a description of the process descriptor.
+.I Getinfo
+returns the size of the process descriptor.
+.LP
+Note that the
+.I "segment identifiers"
+used by
+.kW "\fIseg_map\fP"
+.I seg_map
+and friends (see
+.I seg_map (L))
+are indices into the array of segment descriptors
+returned as part of the process descriptor.
+.mH
+Warnings
+.LP
+If
+.I procbuf
+is not big enough to contain the complete segment mapping
+table no segments will be returned at all.
+So,
+if
+.I getinfo
+is used to obtain a segment map the value of
+.I pd_nseg
+should be checked to see whether the call was successful.
+.SH
+Example
+.LP
+The following program uses
+.I getinfo
+to get a segment map,
+searches for the segment that contains the stack of the current
+thread and unmaps that segment.
+It is left to the imagination what will happen after
+the
+.I seg_unmap
+call returns.
+.sC
+#include "amoeba.h"
+#include "module/proc.h"
+
+#define MAXPD 1000
+
+main() {
+    char pdbuf[MAXPD];
+    process_d *pd = (process_d *)pdbuf;
+    segment_d *sd;
+    segid i, seg_to_unmap;
+    char c;
+
+    getinfo((capability *)0, pd, MAXPD);
+    if (pd->pd_nseg == 0) error("buffer too small\en");
+    for (i=0; i<pd->pd_nseg; i++) {
+	sd = &PD_SD(pd)[i];
+	if ((char *)sd->sd_addr <= &c &&
+	    (char *)sd->sd_addr + sd->sd_len-1 >= &c)
+		seg_to_unmap = i;
+    }
+    printf("Unmapping segment %d\en", seg_to_unmap);
+    seg_unmap(seg_to_unmap, (capability *)0);
+    printf("We will not get here\en");
+}
+.eC
+.SH
+See Also
+.LP
+process_d(L),
+seg_map(L).

@@ -1,0 +1,77 @@
+.\"	@(#)fgrep.n	1.4	96/02/16 10:58:04
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - brought into line with reality.
+					       (Reality was also adjusted :-)
+.aE
+.mT "fgrep" U
+fast grep
+.SH
+Synopsis
+.LP
+.sC L
+fgrep [-chlnsv] [[-e special-string] | [-f file] | string] [file] ...
+.eC
+.SH
+Description
+.LP
+.kW "\fIgrep\fP"
+.I Fgrep
+is essentially the same as
+.I grep ,
+except that it only searches for lines containing literal
+.I string s
+(no wildcard characters),
+and it is faster.
+.LP
+If no
+.I file
+names are given it searches standard input.
+The following options modify the behavior of
+.I fgrep .
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+Count matching lines and only print count, not the lines.
+.IP "\fB\-e\fP \fIspecial-string\fP
+.br
+Used when the string to search for begins with a ``-'' character.
+.IP "\fB\-f\fP \fIfile\fP
+.br
+Take strings from file named in following argument.
+.IP \fB\-h\fP
+Omit file headers from printout.
+.IP \fB\-l\fP
+List file names once only.
+.IP \fB\-n\fP
+Each line is preceded by its line number.
+.IP \fB\-s\fP
+Status only, no output.
+.IP \fB\-v\fP
+Print only lines not matching.
+.SH
+Examples
+.LP
+.sC
+fgrep % prog.c
+.eC
+Print lines containing a % sign.
+.sC
+fgrep -f pattern prog.c
+.eC
+Print all the lines in
+.I prog.c
+that contain lines matching the string in the file
+.I pattern .
+.SH
+See Also
+.LP
+cgrep(U),
+grep(U).

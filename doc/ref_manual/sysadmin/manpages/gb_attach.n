@@ -1,0 +1,40 @@
+.\"	@(#)gb_attach.n	1.1	96/02/15 17:21:06
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer
+	Document: E.G. Keizer, 95/11/6
+.aE
+.mT "gb_attach" A
+add member to group bullet server
+.SH
+Synopsis
+.LP
+.sC L
+gb_attach server_cap new_member_cap
+.eC
+.SH
+Description
+.LP
+.kW "Group Bullet Server"
+.I Gb_attach
+is used to add a new member to an existing group bullet server.
+The disk used by the new member must be initialized by
+.I gb_mkfs
+as an additional server.
+The
+.I server_cap
+can be indicate the super capability of the whole group or of
+an individual member.
+The result is that the new member receives enough information from the
+existing group to finish initializing the disk.
+After the new member disk has been initialized it announces itself
+to the existing group as an active member.
+.SH
+See Also
+.LP
+gbullet(A),
+gb_mkfs(A).

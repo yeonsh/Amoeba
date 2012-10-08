@@ -1,0 +1,64 @@
+.\"	@(#)format.n	1.3	96/02/16 10:58:42
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, June 1993
+	Document: Gregory J. Sharp, July 1993
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "format" U
+format a physical disk
+.SH
+Synopsis
+.LP
+.sC L
+format disk-cap
+.eC
+.SH
+Description
+.LP
+This command is used to format disks.
+It is primarily intended for formatting floppy disks.
+Attempts to apply the command to virtual disks will fail.
+It should be applied only to the capability for the entire device.
+In the case of hard disks this is the
+.I bootp:nn
+capability.
+In the case of floppies it is the
+.I floppy:nn
+capability.
+.LP
+Unlike other systems,
+no progress reports are printed during formatting.
+It is a single command to the virtual disk server.
+.mH
+Warnings
+.LP
+Formatting disks is dangerous.
+It will destroy any data present on the disk.
+.LP
+Some disk drivers do not support formatting.
+.mH
+Diagnostics
+.LP
+The driver for the specified disk may not support formatting.
+In this case the error
+.cW STD_COMBAD
+(bad command) will be returned.
+All other errors can arise due to insufficient permission or removal of the
+media during the formatting process.
+.SH
+Example
+.LP
+.sC
+format /super/hosts/jumbo/floppy:00
+.eC
+will format the floppy disk in drive 0 on the host
+.I jumbo .
+.SH
+See Also
+.LP
+vdisk(A).

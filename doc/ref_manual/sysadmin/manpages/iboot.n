@@ -1,0 +1,146 @@
+.\"	@(#)iboot.n	1.5	94/04/05 15:32:35
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, April 1990
+	Document: Siebren van der Zee, April 1990
+.aE
+.mT "iboot" A
+inspect or install the boot server's virtual disk
+.SH
+Synopsis
+.LP
+.sC L
+iboot [-b bincap] [-c confblk] [-d datablk]
+       [-f conffile] [-l] [-s supercap] [-v] vdisk
+.eC
+.SH
+Description
+.LP
+.kW "boot server configuration"
+.I Iboot
+reads, modifies, or writes the virtual disk
+.I vdisk
+used by
+.I boot (A).
+Without any options, it prints the configuration file on disk.
+The options allow you to modify portions of the data, as follows:
+.mH
+Options
+.LP
+.IP "\fB\-b\fP bincap" 11
+This changes the capability for the boot server's executable.
+In other words, you need this to install a new version of the boot server.
+.IP "\fB\-c\fP confblk"
+This assigns the block of the virtual disk where the configuration data starts.
+.IP "\fB\-d\fP datablk"
+This tells at which block the boot server can store its own data.
+.IP "\fB\-f\fP conffile"
+This tells
+.I iboot
+on which file the configuration data are stored.
+On
+.UX ,
+this must be a
+.UX -file,
+on \*(Am this must be a bullet-file.
+.IP \fB\-l\fP
+This is the option you need to start using a new  virtual disk.
+Without this option,
+.I iboot
+verifies that the magic string at block zero of the disk is correct.
+.IP "\fB\-s\fP supercap"
+This sets the super-capability of the boot server to
+.I supercap .
+.IP \fB\-v\fP
+With this option,
+.I iboot
+prints the information in block zero of the virtual disk in addition to the
+configuration file.
+.LP
+After running
+.I iboot
+run the command
+.kW "\fIboot_reinit\fP"
+.sC
+boot_reinit /super/cap/bootsvr/\fIxxx\fP
+.eC
+where
+.I xxx
+is the name of the boot server.
+This should indicate success if the
+.I Bootfile
+was valid.
+If not then do not reboot the system under any circumstance.
+Rather run
+.kW "\fIstd_status\fP"
+.sC
+std_status /super/cap/bootsvr/xxx
+.eC
+to find out the problem and then correct the
+.kW bootfile
+.I Bootfile
+and repeat the installation process with
+.I iboot .
+.mH
+Files
+.LP
+The format of the virtual disk is defined in
+.I src/h/server/boot/bsvd.h .
+It contains a header in block 0, some space for the boot server,
+and the configuration file.
+The format of the configuration file is explained in
+.I "boot" (A).
+.mH
+Diagnostics
+.LP
+The error messages of
+.I iboot
+are self-explanatory.
+The exit status is 0 on success, 2 in case of a command line error,
+and 1 for other problems.
+.mH
+Warning
+.LP
+Use the
+.B \-l
+option with care.
+It will overwrite the specified virtual disk without any sanity checks!
+.SH
+Examples
+.LP
+To read the configuration file on the virtual disk
+.I /profile/hosts/mark/vdisk:02 ,
+type:
+.sC L
+.ps-1
+iboot /profile/hosts/mark/vdisk:02
+.ps
+.eC
+.LP
+To install
+.I newboot
+as the new boot server executable, type:
+.sC L
+.ps-1
+iboot -b newboot /profile/hosts/mark/vdisk:02
+.ps
+.eC
+.LP
+The first time you start using a virtual disk as boot-disk, type:
+.sC L
+.ps-1
+makecap boot.cap
+iboot -b /bin/boot -f boot.config -s boot.cap /profile/hosts/mark/vdisk:02
+.ps
+.eC
+.SH
+See Also
+.LP
+boot(A),
+boot_reinit(A),
+makecap(U).

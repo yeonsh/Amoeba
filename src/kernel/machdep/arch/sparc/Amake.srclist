@@ -1,0 +1,20 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 09:00:18
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_ARCH = {
+	$PWD/arch.kstat,
+	$PWD/arch.init,
+	$PWD/as.S,
+	$PWD/cpu.c,
+	$PWD/syscalls.c,
+	$PWD/divide.s,
+	$PWD/rem.s,
+	$PWD/multiply.s,
+	$PWD/umultiply.s
+};
+
+K_ARCH_LINTLIB = $PWD/lintlib.c;

@@ -1,0 +1,562 @@
+.\"	@(#)ip_udp.n	1.1	96/02/15 16:52:08
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, 1991
+	Document: Philip Homburg, Sept 3, 1991
+	Modified: Gregory J. Sharp and Philip Homburg, March 1992
+		  - merged with udp(L) and made a little more complete.
+		  Gregory J. Sharp, April 1992
+		  - updated keywords for auto index generation
+		  Gregory J. Sharp, May 1995
+		  - made into 4 manual pages with some better hints on
+		    how to use this stuff.
+		  Gregory J. Sharp, Feb 1996
+		  - polish up
+.aE
+.mT "ip_udp" L "libamoeba.a"
+Internet Protocol server's UDP client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "server/ip/udp_io.h"
+#include "server/ip/types.h"
+#include "server/ip/gen/in.h"
+#include "server/ip/gen/udp.h"
+#include "server/ip/gen/udp_io.h"
+
+errstat udp_close(chan_cap, flags)
+errstat udp_connect(udp_cap, chan_cap, srcport, dstport, dstaddr, flags)
+errstat udp_destroy(chan_cap, flags)
+errstat udp_ioc_getopt(cap, udpopt)
+errstat udp_ioc_setopt(cap, udpopt)
+errstat udp_read_msg(chan_cap, msg, msglen, actlen, flags)
+errstat udp_reconnect(chan_cap, srcport, dstport, dstaddr, flags)
+errstat udp_write_msg(chan_cap, msg, msglen, flags)
+.eC
+.kW "\fIudp_close\fP"
+.kW "\fIudp_connect\fP"
+.kW "\fIudp_destroy\fP"
+.kW "\fIudp_ioc_getopt\fP"
+.kW "\fIudp_ioc_setopt\fP"
+.kW "\fIudp_read_msg\fP"
+.kW "\fIudp_reconnect\fP"
+.kW "\fIudp_write_msg\fP"
+.SH
+Description
+.LP
+.kW "IP"
+.kW "Internet Protocol"
+.kW "UDP"
+.kW "udp"
+These routines give access to the UDP protocol of the IP server (see
+.I ipsvr (A)).
+Access to this service is provided using two types of capabilities:
+a server capability and channel capabilities.
+The server capability is called
+.I udp .
+The server capability is used to obtain a channel to the corresponding
+server.
+This is done with
+.I tcpip_open
+(see
+.I ip (L)).
+The channel capability can be used to transfer data using the protocol
+implemented by the server.
+This is also done with the generic
+.I tcpip_read
+and
+.I tcpip_write
+routines.
+Since their semantics vary slightly depending on channel type, these routines
+are described briefly below.
+There is also a more convenient interface for reading and writing described
+in the
+.I "UDP Library Functions"
+section below.
+.LP
+The
+.I udp_
+routines are used to manage the options and status of the UDP channel.
+.LP
+Before they are described, a brief introduction to the various types is given.
+The general-purpose types and rights in the capabilities are described in
+.I ip (L).
+.mH
+UDP Types
+.IP server/ip/gen/udp.h
+.br
+defines
+.I udpport_t
+and
+.I Udpport_t
+for use in prototypes.
+.IP server/ip/gen/udp_io.h
+.br
+defines struct nwio_udpopt (\fInwio_udpopt_t\fP).
+.IP server/ip/gen/udp_hdr.h
+.br
+defines struct udp_hdr (\fIudp_hdr_t\fP) and struct udp_io_hdr
+(\fIudp_io_hdr_t\fP).
+.mH
+General Functions
+.LP
+A more convenient interface to read and write UDP packets is described
+in the
+.I "UDP Library Functions"
+section below.
+The following interface is described for completeness.
+.LP
+.B NB.
+The TCP/IP server sends and receives the
+.I udp_io_hdr
+in network byte-order.
+This includes the
+.I uih_ip_opt_len
+and
+.I uih_data_len
+fields.
+The following two
+.I tcpip_
+routines do not decode these or any other fields to the local byte-order.
+The
+.I udp_read_msg
+and
+.I udp_write_msg
+functions do decode the length fields of the header making them
+simpler and safer to use.
+.sH
+tcpip_read
+.LP
+.sC
+errstat
+tcpip_read(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_read\fP"
+.I Tcpip_read
+reads UDP packets from the UDP channel specified by
+.I chan_cap
+into
+.I buffer ,
+which is of size
+.I nbytes .
+The call blocks until a complete packet is available.
+If successful it returns the number of bytes read.
+.LP
+It is possible to obtain just the data from the UDP packets or the
+data plus UDP headers.
+See
+.I udp_ioc_setopt
+below for details.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<STD_INTR\*>
+\*<TCPIP_BADMODE\*>
+.DE
+.sH
+tcpip_write
+.LP
+.sC
+errstat
+tcpip_write(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_write\fP"
+.I Tcpip_write
+writes the UDP packet in
+.I buffer ,
+of size
+.I nbytes
+to the UDP channel specified by
+.I chan_cap .
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<TCPIP_BADMODE\*>
+.DE
+.ne 9
+.mH
+UDP Functions
+.LP
+.sH
+udp_ioc_getopt
+.LP
+.sC
+errstat
+udp_ioc_getopt(cap, conf)
+capability *cap;
+struct nwio_udpopt *conf;
+.eC
+.kW "\fIudp_ioc_getopt\fP"
+.I Udp_ioc_getopt
+returns the current options that result from the default options and the
+options set with
+.kW "\fIudp_ioc_setopt\fP"
+.I udp_ioc_setopt
+When
+.cW NWUO_LP_SEL
+or
+.cW NWUO_LP_SET
+is selected the local port is returned in
+.I nwuo_locport .
+When
+.cW NWUO_RP_SET
+is selected the remote port is returned in
+.I nwuo_remport .
+The local address is always returned in
+.I nwuo_locaddr ,
+and when
+.cW NWUO_RA_SET
+is selected the remote address is returned in
+.I nwuo_remaddr .
+.sH
+udp_ioc_setopt
+.LP
+.sC
+errstat
+udp_ioc_setopt(cap, conf)
+capability *cap;
+struct nwio_udpopt *conf;
+.eC
+.kW "\fIudp_ioc_setopt\fP"
+A UDP channel must be configured using
+.I udp_ioc_setopt
+before any data can be read or written.
+.I Udp_ioc_setopt
+takes two parameters, a pointer to the capability of the UDP channel and
+pointer to a
+.I nwio_udpopt
+structure that describes the requested configuration.
+The
+.I nwio_udpopt
+structure is defined in
+.I server/ip/gen/udp_io.h
+as:
+.sC
+typedef struct nwio_udpopt
+{
+	unsigned long nwuo_flags;
+	udpport_t nwuo_locport;
+	udpport_t nwuo_remport;
+	ipaddr_t nwuo_locaddr;
+	ipaddr_t nwuo_remaddr;
+} nwio_udpopt_t;
+.eC
+.sC
+#define NWUO_NOFLAGS            0x0000L
+#define NWUO_ACC_MASK           0x0003L
+#define         NWUO_EXCL               0x00000001L
+#define         NWUO_SHARED             0x00000002L
+#define         NWUO_COPY               0x00000003L
+#define NWUO_LOCPORT_MASK       0x000CL
+#define         NWUO_LP_SEL             0x00000004L
+#define         NWUO_LP_SET             0x00000008L
+#define         NWUO_LP_ANY             0x0000000CL
+#define NWUO_LOCADDR_MASK       0x0010L
+#define         NWUO_EN_LOC             0x00000010L
+#define         NWUO_DI_LOC             0x00100000L
+.eC
+.sC
+#define NWUO_BROAD_MASK         0x0020L
+#define         NWUO_EN_BROAD           0x00000020L
+#define         NWUO_DI_BROAD           0x00200000L
+#define NWUO_REMPORT_MASK       0x0100L
+#define         NWUO_RP_SET             0x00000100L
+#define         NWUO_RP_ANY             0x01000000L
+#define NWUO_REMADDR_MASK       0x0200L
+#define         NWUO_RA_SET             0x00000200L
+#define         NWUO_RA_ANY             0x02000000L
+#define NWUO_RW_MASK            0x1000L
+#define         NWUO_RWDATONLY          0x00001000L
+#define         NWUO_RWDATALL           0x10000000L
+#define NWUO_IPOPT_MASK         0x2000L
+#define         NWUO_EN_IPOPT           0x00002000L
+#define         NWUO_DI_IPOPT           0x20000000L
+.eC
+A UDP channel is considered configured when one flag in each category has been
+selected.
+Thus one of
+.cW NWUO_EXCL ,
+.cW NWUO_SHARED
+or
+.cW NWUO_COPY ,
+one of
+.cW NWUO_LP_SEL ,
+.cW NWUO_LP_SET
+or
+.cW NWUO_LP_ANY ,
+one of
+.cW NWUO_EN_LOC
+or
+.cW NWUO_DI_LOC ,
+one of
+.cW NWUO_EN_BROAD ,
+or
+.cW NWUO_DI_BROAD ,
+one of
+.cW NWUO_RP_SET ,
+or
+.cW NWUO_RP_ANY ,
+one of
+.cW NWUO_RA_SET ,
+or
+.cW NWUO_RA_ANY ,
+one of
+.cW NWUO_RWDATONLY ,
+or
+.cW NWUO_RWDATALL ,
+and one of
+.cW NWUO_EN_IPOPT ,
+or
+.cW NWUO_DI_IPOPT .
+The
+.cW NWUO_ACC
+flags control the access to a certain UDP port.
+.cW NWUO_EXCL
+means exclusive access:
+no other channel can use this port.
+.cW NWUO_SHARED
+means shared access:
+only channels that specify shared access can use this port,
+and all packets that are received are handed to at most one channel.
+.cW NWUO_COPY
+imposes no access restriction and all channels get a copy of every received
+packet for that port.
+.LP
+The
+.cW NWUO_LOCPORT
+flags control the selection of the UDP port for this channel.
+.cW NWUO_LP_SEL
+requests the server to pick a port.
+This port will be in the range from 32768 to 65535 and it will be unique.
+.cW NWUO_LP_SET
+sets the local port to the value of the
+.I nwuo_locport
+field.
+.cW NWUO_LP_ANY
+does not select a port.
+Reception of data is therefore not possible but it is
+possible to send data.
+(See
+.I tcpip_read,
+and
+.I tcpip_write
+above).
+.LP
+The
+.cW NWUO_LOCADDR
+flags control the reception of packets.
+.cW NWUO_EN_LOC
+enables the reception of packets with the local IP address as destination.
+.cW NWUO_DI_LOC
+disables the reception of packets for the local IP address.
+.LP
+The
+.cW NWUO_BROAD
+flags control the reception of broadcast packets.
+.cW NWUO_EN_BROAD
+enables the reception of broadcast packets and
+.cW NWUO_DI_BROAD
+disables the reception of broadcast packets.
+.LP
+The
+.cW NWUO_REMPORT
+flags let the client specify one specific remote UDP port or
+allow any remote port.
+.cW NWUO_RP_SET
+sets the remote UDP port to the value of
+.I nwuo_remport .
+Only packets with a matching remote port will be delivered
+and all packets will be sent to that port.
+.cW NWUO_RP_ANY
+allows reception of packets from any port and when transmitting packets the
+remote port must be specified.
+.LP
+The
+.cW NWUO_REMADDR
+flags control the remote IP address.
+.cW NWUO_RA_SET
+sets the remote IP address to the value of
+.I nwuo_remaddr.
+Only packets from that address will be delivered and all packets will be sent
+to that address.
+.cW NWUO_RA_ANY
+allows reception of packets from any host and when transmitting packets the
+remote host has to be specified.
+.LP
+The
+.cW NWUO_RW
+flags control the format of the data to be sent or received.
+With
+.cW NWUO_RWDATONLY
+only the data part of a UDP packet is sent to the server and only the data
+part is received from the server.
+This option can only be set if the header information is completely specified
+by the other options.
+Otherwise
+.cW NWUO_RWDATALL
+must be used.
+The
+.cW NWUO_RWDATALL
+mode presents the data part of a UDP packet with a header that contains
+the source and destination IP address, source and destination UDP ports,
+the IP options, etc.
+The server expects such a header to be present in front of the data to be
+transmitted.
+.LP
+The
+.cW NWUO_IPOPT
+flags control the delivery and transmission of IP options.
+When
+.cW NWUO_EN_IPOPT
+is set, IP options will be delivered and sent.
+When
+.cW NWUO_DI_IPOPT
+is set, IP options will be stripped from received packets and no IP options
+will be sent.
+.mH
+UDP Library Functions
+.LP
+The following routines provide a somewhat easier to use interface to UDP than
+the routines described above (\fItcpip_open\fP, \fIudp_ioc_setopt\fP,
+\fItcpip_read\fP and \fItcpip_write\fP).
+.sH
+udp_connect
+.LP
+.sC
+errstat
+udp_connect(udp_cap, chan_cap, srcport, dstport, dstaddr, flags)
+capability *udp_cap;
+capability *chan_cap;
+udpport_t srcport;
+udpport_t dstport;
+ipaddr_t dstaddr;
+int flags;
+.eC
+.kW "\fIudp_connect\fP"
+\fIUdp_connect\fP combines the functionality of \fItcpip_open\fP and
+\fIudp_ioc_setopt\fP.
+A pointer to a UDP server capability should be passed in \fIudp_cap\fP, and
+the channel capability will be returned in the capability pointed to by
+\fIchan_cap\fP.
+If \fIsrcport\fP is 0 then an unused port will be selected, otherwise the local
+port will be set to \fIsrcport\fP.
+If \fIdstport\fP is non-zero then communication will be restricted to remote
+ports equal to \fIdstport\fP, otherwise any data can be sent to or received
+from any remote port.
+The same applies to \fIdstaddr\fP: if \fIdstaddr\fP is non-zero then
+only \fIdstaddr\fP can be reached.
+Currently no flags are defined so \fIflags\fP should be 0.
+.sH
+udp_reconnect
+.LP
+.sC
+errstat
+udp_reconnect(chan_cap, srcport, dstport, dstaddr, flags)
+capability *chan_cap;
+udpport_t srcport;
+udpport_t dstport;
+ipaddr_t dstaddr;
+int flags;
+.eC
+.kW "\fIudp_reconnect\fP"
+\fIUdp_reconnect\fP is the same as \fIudp_connect\fP except that an existing
+channel capability is (re)used.
+.sH
+udp_read_msg
+.LP
+.sC
+errstat
+udp_read_msg(chan_cap, msg, msglen, actlen, flags)
+capability *chan_cap;
+char *msg;
+int msglen;
+int *actlen;
+int flags;
+.eC
+.kW "\fIudp_read_msg\fP"
+\fIUdp_read_msg\fP delivers a UDP packet.
+The data part of the UDP packet is
+prepended with a \fIudp_io_hdr\fP.
+The actual length of the (possibly truncated) packet is returned in \fIactlen\fP.
+No flags are defined so \fIflags\fP should be 0.
+.sH
+udp_write_msg
+.LP
+.sC
+errstat
+udp_write_msg(chan_cap, msg, msglen, flags)
+capability *chan_cap;
+char *msg;
+int msglen;
+int flags;
+.eC
+.kW "\fIudp_write_msg\fP"
+A UDP packet can be sent with \fIudp_write_msg\fP.
+\fIMsg\fP should point to a \fIudp_io_hdr\fP followed by the data part of the
+UDP packet.
+The \fIuih_dst_addr\fP and \fIuih_dst_port\fP fields of the \fIudp_io_hdr\fP
+should be filled in if no values were specified in the \fIudp_connect\fP,
+or \fIudp_reconnect\fP call.
+.sH
+udp_close
+.LP
+.sC
+errstat
+udp_close(chan_cap, flags)
+capability *chan_cap;
+int flags;
+.eC
+.kW "\fIudp_close\fP"
+\fIUdp_close\fP cleans up the administration kept by the UDP library but does
+not destroy the capability.
+This function should be used if the capability was passed to another process
+and should continue to exist.
+No flags are defined so \fIflags\fP should be 0.
+.sH
+udp_destroy
+.LP
+.sC
+errstat
+udp_destroy(chan_cap, flags)
+capability *chan_cap;
+int flags;
+.eC
+.kW "\fIudp_destroy\fP"
+\fIUdp_destroy\fP not only cleans up the administration kept by the UDP library
+but also destroys the channel capability.
+.mH
+Diagnostics
+.LP
+The complete set of error codes is described in
+.I ip (L).
+.\".SH
+.\"Examples
+.\".LP
+.\"XXX
+.SH
+See Also
+.LP
+error(L),
+ip(L),
+ip_eth(L),
+ip_ip(L),
+ip_tcp(L),
+ipsvr(A).

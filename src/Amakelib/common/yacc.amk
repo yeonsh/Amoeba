@@ -1,0 +1,47 @@
+#	
+#	@(#)yacc.amk	1.3	96/02/15 15:59:09
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%instance deftypesuffix(yacc-src, '%.y');
+
+%if (%not defined(YACC), {
+	# YACC = yacc;
+	YACC = byacc;	# prefer the public domain yacc
+});
+
+%if (%not defined(YACCREPORT), {
+	YACCREPORT = %false;
+});
+
+%if (%not defined(YACCTOKENFILE), {
+	YACCTOKENFILE = %true;
+});
+
+# The files generated from a yacc source can be used as input for lint:
+%derive f[generates-C-src] %when $f ? type == yacc-src;
+
+#
+%tool yacc (
+    report:	%boolean		=> $YACCREPORT;
+    tokenfile:	%boolean		=> $YACCTOKENFILE;
+
+    src:	%in  [type = yacc-src];
+    parser:	%out [type = C-src]	=> match($src);
+    defs:	%out [type = C-incl, compare]
+					=> match($src)   %conform $tokenfile;
+    conflicts:	%out [type = ASCII]	=> %diag;
+    youtput:	%out [type = ASCII]	=> y.output      %conform $report;
+    ytabc:	%tmp			=> y.tab.c;
+    ytabh:	%tmp			=> y.tab.h;
+
+    program:	%in  [type = command]	=> $YACC;
+)
+{
+    exec($program,
+	args => if ($report, {'-v'}, {}) + if ($tokenfile, {'-d'}, {}) + $src);
+    move(y.tab.c, $parser);
+    if ($tokenfile, move(y.tab.h, $defs), %true);
+};

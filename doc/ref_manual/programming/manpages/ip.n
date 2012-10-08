@@ -1,0 +1,479 @@
+.\"	@(#)ip.n	1.7	96/02/15 16:51:53
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, 1991
+	Document: Philip Homburg, Sept 3, 1991
+	Modified: Gregory J. Sharp and Philip Homburg, March 1992
+		  - merged with udp(L) and made a little more complete.
+		  Gregory J. Sharp, April 1992
+		  - updated keywords for auto index generation
+		  Gregory J. Sharp, May 1995
+		  - made into 4 manual pages with some better hints on
+		    how to use this stuff.
+		  Gregory J. Sharp, Feb 1996
+		  - typos, grammar, etc.
+.aE
+.mT "ip" L "libamoeba.a"
+Internet Protocol server's general-purpose client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "stddef.h"
+#include "amoeba.h"
+
+#include "server/ip/hton.h"
+
+u16_t htons(host_word)
+u32_t htonl(host_dword)
+u16_t ntohs(network_word)
+u32_t ntohl(network_dword)
+u16_t HTONS(host_word)
+u32_t HTONL(host_dword)
+u16_t NTOHS(network_word)
+u32_t NTOHL(network_dword)
+
+#include "server/ip/gen/oneCsum.h"
+
+u16_t oneC_sum(prev, data, size)
+
+#include "server/ip/tcpip.h"
+
+char *tcpip_why(err)
+errstat tcpip_keepalive(chan_cap, respite)
+errstat tcpip_keepalive_cap(cap)
+errstat tcpip_mkcap(tcpip_cap, obj, cap)
+errstat tcpip_open(tcpip_cap, chan_cap)
+errstat tcpip_read(chan_cap, buffer, bytes)
+errstat tcpip_unkeepalive_cap(cap)
+errstat tcpip_write(chan_cap, buffer, bytes)
+.eC
+.kW "\fIhtons\fP"
+.kW "\fIhtonl\fP"
+.kW "\fIntohs\fP"
+.kW "\fIntohl\fP"
+.kW "\fIHTONS\fP"
+.kW "\fIHTONL\fP"
+.kW "\fINTOHS\fP"
+.kW "\fINTOHL\fP"
+.kW "\fIoneC_sum\fP"
+.kW "\fItcpip_why\fP"
+.kW "\fItcpip_keepalive\fP"
+.kW "\fItcpip_keepalive_cap\fP"
+.kW "\fItcpip_mkcap\fP"
+.kW "\fItcpip_open\fP"
+.kW "\fItcpip_read\fP"
+.kW "\fItcpip_unkeepalive_cap\fP"
+.kW "\fItcpip_write\fP"
+.SH
+Description
+.LP
+.kW "IP"
+.kW "Internet Protocol"
+.kW "TCP"
+.kW "UDP"
+.kW "RARP"
+.kW "TCP/IP"
+.kW "tcp"
+.kW "ip"
+.kW "eth"
+.kW "udp"
+The Internet Protocol (IP) server implements four network protocols, as
+described in
+.I ipsvr (A).
+The four supported protocols are ETH, IP, TCP and UDP.
+The general-purpose routines described here and the protocol specific routines
+described in
+.I ip_eth (L),
+.I ip_ip (L),
+.I ip_tcp (L)
+and
+.I ip_udp (L)
+give access to the protocols of the IP server.
+Access to these services is provided using two types of capabilities:
+server capabilities and channel capabilities.
+The server capabilities are called
+.I eth ,
+.I ip ,
+.I tcp ,
+.I udp ,
+which correspond to the ETH, IP, TCP and UDP interfaces, respectively.
+The server capabilities can be used to obtain a channel to the corresponding
+server.
+This is done with
+.I tcpip_open.
+The channel capability can be used to transfer data using the protocol
+implemented by the server.
+This can typically be done with the
+.I tcpip_
+routines since they are generic to all interfaces.
+However the semantics of
+.I tcpip_read
+and
+.I tcpip_write
+vary slightly, depending on the protocol in use.
+The routines specific for each protocol server and the exact semantics of
+the
+.I tcpip_
+functions are described in the corresponding
+.I ip_ xxx(L)
+manual page.
+.LP
+The descriptions of the various routines are divided into categories according
+to whether they are for byte-order conversion or general-purpose (i.e., they
+are used with all four interfaces).
+Before they are described, a brief introduction to the various types is given.
+.mH
+Types (general)
+.LP
+.IP server/ip/types.h
+.br
+defines
+.I u8_t ,
+.I u16_t ,
+.I u32_t
+and
+.I i32_t
+(and
+.I U8_t ,
+.I U16_t ,
+.I U32_t
+and
+.I I32_t
+for use in prototypes).
+.mH
+Rights
+.LP
+The following rights are defined in
+.I server/ip/tcpip.h :
+.IP \*<IP_RIGHTS_OPEN\*> 5c
+The right to do a
+.I tcpip_open
+(this indicates a server capability).
+.IP \*<IP_RIGHTS_RWIO\*>
+The right to do I/O (this indicates a channel capability).
+.IP \*<IP_RIGHTS_DESTROY\*>
+The right to destroy a connection.
+.IP \*<IP_RIGHTS_LINGER\*>
+The right keeps the server from destroying the connection when it is not
+used for  some time.
+.IP \*<IP_RIGHTS_SUPER\*>
+The right to get existing capabilities (using
+.I tcpip_mkcap ).
+.mH
+Byte Order Conversion
+.sH
+htons, htonl, ntohs, ntohl
+.LP
+.sC
+u16_t
+htons(host_word)
+u16_t host_word;
+
+u32_t
+htonl(host_dword)
+u32_t host_dword;
+
+u16_t
+ntohs(network_word)
+u16_t network_word;
+
+u32_t
+ntohl(network_word)
+u32_t network_word;
+.eC
+.kW "\fIhtons\fP"
+.kW "\fIhtonl\fP"
+.kW "\fIntohs\fP"
+.kW "\fIntohl\fP"
+.kW "\fIHTONS\fP"
+.kW "\fIHTONL\fP"
+.kW "\fINTOHS\fP"
+.kW "\fINTOHL\fP"
+These macros convert 16-bit and 32-bit quantities to and from the network
+byte order used by the TCP/IP protocols.
+The function of the macros is encoded in their name.
+.I H
+means host byte order,
+.I n
+means network byte order,
+.I s
+means a 16-bit quantity and
+.I l
+means a 32-bit quantity.
+Thus
+.I htons
+converts a 16-bit quantity from host byte order to network byte order.
+The difference between the lower case and upper case variants is that
+the lower case variants evaluate the argument at most once and the
+upper case variants can be used for constant folding.
+That is,
+.sC
+htonl(f(x))
+.eC
+will call f(x) at most once and
+.sC
+HTONS(0x10)
+.eC
+will be equivalent to 0x10 on a big-endian machine and 0x1000 on a
+little-endian machine.
+.mH
+General Functions
+.sH
+oneC_sum
+.LP
+.sC
+u16_t
+oneC_sum(prev, data, size)
+u16_t prev;
+u16_t *data;
+size_t size;
+.eC
+.kW "\fIoneC_sum\fP"
+.I OneC_sum
+is used to calculate the one's complement checksum needed for IP network
+packets.
+The IP checksum is described in RFC-1071 (Computing the Internet checksum).
+.LP
+.I One_Csum
+expects three parameters:
+.IP prev 10
+The checksum of previous blocks of data that are to be included in the
+checksum.
+The value of prev in first call to
+.I oneC_sum
+should be 0.
+.IP data
+A pointer to the block of data.
+The data is interpreted as a series of 16-bit numbers in network byte order, but
+an odd number of bytes is also allowed.
+.IP size
+The size of the data in bytes.
+.sH
+tcpip_why
+.LP
+.sC
+char *
+tcpip_why(err)
+errstat err;
+.eC
+.kW "\fItcpip_why\fP"
+This routine returns a pointer to a statically allocated string describing
+the error code
+.I err .
+If
+.I err
+is not one of the errors as described in the
+.I Diagnostics
+section below then
+.I tcpip_why
+will return the same string as
+.I err_why
+.kW "\fIerr_why\fP"
+(see
+.I error (L)).
+.sH
+tcpip_keepalive
+.LP
+.sC
+errstat
+tcpip_keepalive(chan_cap, respite)
+capability *chan_cap;
+int *respite;
+.eC
+.kW "\fItcpip_keepalive\fP"
+.I Tcpip_keepalive
+makes sure that a channel capability is not prematurely destroyed.
+In general channel capabilities are destroyed when not used for a while.
+.I Tcpip_keepalive
+returns the destruction timeout in
+.I respite.
+It is sufficient to call
+.I tcpip_keepalive
+again within
+.I respite
+milliseconds to prevent the channel from being destroyed.
+.LP
+See also
+.I tcpip_keepalive_cap .
+.sH
+tcpip_keepalive_cap
+.LP
+.sC
+errstat
+tcpip_keepalive_cap(cap)
+capability *cap;
+.eC
+.kW "\fItcpip_keepalive_cap\fP"
+.I Tcpip_keepalive_cap
+provides a more convenient interface to
+.I tcpip_keepalive .
+Each time a new TCP/IP capability is created, it can be handed to
+.I tcpip_keepalive_cap .
+.I Tcpip_keepalive_cap
+will keep the capability alive until it is either destroyed,
+.I tcpip_unkeepalive_cap
+is called for that capability, or the program exits.
+The first time
+.I tcpip_keepalive_cap
+is called, it creates a separate thread to manage all the capabilities that
+should be kept alive.
+.sH
+tcpip_unkeepalive_cap
+.LP
+.sC
+errstat
+tcpip_unkeepalive_cap(cap)
+capability *cap;
+.eC
+.kW "\fItcpip_unkeepalive_cap\fP"
+.I Tcpip_unkeepalive_cap
+removes the capability \fIcap\fP from the list of capabilities that should
+receive a \fItcpip_keepalive\fP.
+Normally the IP server will destroy that capability after a while unless
+some other process keeps the capability alive.
+.sH
+tcpip_mkcap
+.LP
+.sC
+errstat
+tcpip_mkcap(tcpip_cap, obj, cap)
+capability *tcpip_cap;
+objnum obj;
+capability *cap;
+.eC
+.kW "\fItcpip_mkcap\fP"
+A channel capability can be lost, or can be kept inside a process.
+.I Tcpip_mkcap
+recreates the capability which has object number
+.I obj .
+This provides a way to obtain an otherwise lost capability.
+To work out the object number of a particular channel use the
+.I std_status (U)
+command.
+.sH
+tcpip_open
+.LP
+.sC
+errstat
+tcpip_open(tcpip_cap, chan_cap)
+capability *tcpip_cap;
+capability *chan_cap;
+.eC
+.kW "\fItcpip_open\fP"
+.I Tcpip_open
+creates a new channel for a server capability.
+A pointer to the server capability must be passed via the first argument and
+the new channel capability is stored in the object pointed to by be the second
+argument.
+.sH
+tcpip_read
+.LP
+.sC
+errstat
+tcpip_read(chan_cap, buffer, bytes)
+capability *chan_cap;
+char *buffer;
+size_t bytes;
+.eC
+.kW "\fItcpip_read\fP"
+.I Tcpip_read
+transfers data from the TCP/IP server to the client.
+The call blocks until enough data is available.
+The semantics of
+.I tcpip_read
+are different for each of the servers.
+See the
+.I tcpip_read
+section in the
+.I ip_ xxx(L)
+manual pages for the exact semantics.
+.sH
+tcpip_write
+.LP
+.sC
+errstat
+tcpip_write(chan_cap, buffer, bytes)
+capability *chan_cap;
+char *buffer;
+size_t bytes;
+.eC
+.kW "\fItcpip_write\fP"
+.I Tcpip_write
+transfers data from the client to the TCP/IP server.
+The call blocks until enough buffer space is available.
+The semantics of
+.I tcpip_write
+are different for each of the servers.
+See the
+.I tcpip_write
+section in the
+.I ip_ xxx(L)
+manual pages for the exact semantics.
+.mH
+Diagnostics
+.LP
+The TCP/IP server introduces several new error codes.
+These are defined in
+.I server/ip/tcpip.h .
+.IP \*<TCPIP_PACKSIZE\*> 5c
+This indicates an attempt to read (\fItcpip_read\fP) or write
+(\fItcpip_write\fP) with a buffer that is too large or too small.
+.IP \*<TCPIP_OUTOFBUFS\*>
+The TCP/IP server has insufficient memory to execute the request.
+.IP \*<TCPIP_BADIOCTL\*>
+This indicates an attempt to execute a command the particular server
+does not understand.
+For example, a
+.I tcp_ioc_getconf
+on an ETH channel.
+.IP \*<TCPIP_BADMODE\*>
+The request was refused because the channel is not fully configured, in the
+wrong state or the parameters are invalid.
+.IP \*<TCPIP_BADDEST\*>
+This indicates an illegal destination address for a packet.
+.IP \*<TCPIP_DSTNORCH\*>
+The destination was not reachable.
+.IP \*<TCPIP_ISCONN\*>
+The channel is already connected so a second request is refused.
+.IP \*<TCPIP_ADDRINUSE\*>
+This address is in use.
+.IP \*<TCPIP_CONNREFUSED\*>
+The connection was refused by the other side.
+.IP \*<TCPIP_CONNRESET\*>
+The connection was reset (non-gracefully terminated) by the other side.
+.IP \*<TCPIP_TIMEDOUT\*>
+The connection was terminated due to an expired timer.
+.IP \*<TCPIP_URG\*>
+Urgent data is present and the current receive mode does not allow urgent data
+to be transferred.
+.IP \*<TCPIP_NOURG\*>
+No urgent data is present and a request came for urgent data.
+.IP \*<TCPIP_NOTCONN\*>
+The request requires a connected channel and the channel is not connected.
+.IP \*<TCPIP_SHUTDOWN\*>
+The connection was shutdown.
+That is, a
+.I tcp_ioc_shutdown
+has been executed so no more data can be transmitted.
+.IP \*<TCPIP_NOCONN\*>
+The connection does not exist.
+.IP \*<TCPIP_ERROR\*>
+A generic error code for extremely weird cases.
+.\".SH
+.\"Examples
+.\".LP
+.\"XXX
+.SH
+See Also
+.LP
+error(L),
+ip_eth(L),
+ip_ip(L),
+ip_tcp(L),
+ip_udp(L),
+ipsvr(A).

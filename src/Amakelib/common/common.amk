@@ -1,0 +1,16 @@
+#	
+#	@(#)common.amk	1.2	94/04/06 10:32:23
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%generic deftypesuffix(tp, pat) {
+    %derive f[type = $tp]     %when matches($f, $pat);
+    %derive f[def-pat = $pat] %when get($f, type) == $tp;
+};
+
+%derive f [base = basename($f, $f ? def-pat)]
+%when   $f ? def-pat <> %unknown;
+
+%include $PWD/viewpath.amk;

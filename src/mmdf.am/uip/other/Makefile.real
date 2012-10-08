@@ -1,0 +1,549 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:43:02
+#
+#
+#		User Interface Processes (UIP)
+#
+#   Instructions to Make, for compilation of UIP processes
+#
+# C programs that live in the current directory and do not need
+# explicit make lines.
+#
+PROGS	= xcheckmail xemactovi xmalias xmlist xnewmail xnewssend xrcvalert \
+	  xrcvimpart xrcvfile xrcvprint xrcvtrip xresend xsendmail xv6mail
+
+MODULES = checkmail emactovi malias mlist newmail newssend rcvalert \
+	  rcvimpart rcvfile rcvprint rcvtrip resend sendmail v6mail
+
+INSTALLS = inst-xcheckmail inst-xemactovi inst-xmalias inst-xmlist \
+	   inst-xnewmail inst-xnewssend inst-xrcvalert inst-xrcvfile \
+	   inst-xrcvprint inst-xrcvtrip inst-xresend inst-xsendmail \
+	   inst-xrcvimpart inst-xv6mail
+
+real-default:	${PROGS}
+
+install: ${INSTALLS}
+
+
+aminstall: ainst-xcheckmail ainst-xemactovi ainst-xmalias ainst-xmlist \
+	   ainst-xnewmail ainst-xnewssend ainst-xrcvalert ainst-xrcvfile \
+	   ainst-xrcvprint ainst-xrcvtrip ainst-xresend ainst-xsendmail \
+	   ainst-xrcvimpart ainst-xv6mail
+
+lint:	l-checkmail l-emactovi l-malias l-mlist l-newmail l-newssend \
+	l-rcvalert l-rcvfile l-rcvprint l-rcvtrip l-resend l-sendmail \
+	l-rcvimpart l-v6mail
+
+clean:
+	-rm -f x* *.o core make.out
+
+
+###########################################################
+#
+#   checkmail:   what messages are in queue
+#
+inst-xcheckmail:  $(BINDIR)/checkmail
+
+ainst-xcheckmail:  
+	$(AINSTALL) $(AINSTALLFLAGS) xcheckmail $(BINDIR)/checkmail
+
+$(BINDIR)/checkmail:  xcheckmail
+	cp xcheckmail $@
+	-$(CHOWN) mmdf $@
+	-chmod 04$(PGMPROT) $@
+
+xcheckmail :   $(HEAD) checkmail.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) checkmail.o $(MMDFLIBS) $(SYSLIBS)
+
+l-checkmail:
+	lint $(LFLAGS) checkmail.c $(LLIBS)
+
+###########################################################
+#
+#   emactovi:   convert two files into one for msg
+#
+inst-xemactovi:  $(BINDIR)/emactovi
+
+ainst-xemactovi:  
+	$(AINSTALL) $(AINSTALLFLAGS) xemactovi $(BINDIR)/emactovi
+
+$(BINDIR)/emactovi:  xemactovi
+	cp xemactovi $@
+	-$(CHOWN) mmdf $@
+	-chmod 0$(PGMPROT) $@
+
+xemactovi :   $(HEAD) emactovi.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) emactovi.o $(MMDFLIBS) $(SYSLIBS)
+
+l-emactovi:
+	lint $(LFLAGS) emactovi.c $(LLIBS)
+
+###########################################################
+#
+#   malias: alias checkup routine
+#
+inst-xmalias: $(LIBDIR)/$(PREF)malias
+
+ainst-xmalias: 
+	$(AINSTALL) $(AINSTALLFLAGS) xmalias $(LIBDIR)/$(PREF)malias
+
+$(LIBDIR)/$(PREF)malias: xmalias
+	cp xmalias $@
+	-chmod $(PGMPROT) $@
+
+xmalias:	$(HEAD) malias.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) malias.o $(MMDFLIBS) $(SYSLIBS) $(DBM)
+
+l-malias:
+	lint $(LFLAGS) malias.c $(LLIBS)
+
+###########################################################
+#
+#   mlist: mailing list maintainer
+#
+inst-xmlist: $(BINDIR)/$(PREF)mlist
+
+ainst-xmlist: 
+	$(AINSTALL) $(AINSTALLFLAGS) xmlist $(BINDIR)/$(PREF)mlist
+
+$(BINDIR)/$(PREF)mlist: xmlist
+	cp xmlist $@
+	-$(CHOWN) mmdf $@
+	-chmod 04$(PGMPROT) $@
+
+xmlist:	$(HEAD) mlist.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) mlist.o $(MMDFLIBS) $(SYSLIBS) $(DBM)
+
+l-mlist:
+	lint $(LFLAGS) mlist.c $(LLIBS)
+
+###########################################################
+#
+#   newmail: check for newmail
+#
+inst-xnewmail: $(BINDIR)/$(PREF)newmail
+
+ainst-xnewmail: 
+	$(AINSTALL) $(AINSTALLFLAGS) xnewmail $(BINDIR)/$(PREF)newmail
+
+$(BINDIR)/$(PREF)newmail: xnewmail
+	cp xnewmail $@
+	-$(CHOWN) mmdf $@
+	-chmod 0$(PGMPROT) $@
+
+xnewmail:	$(HEAD) newmail.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) newmail.o $(MMDFLIBS) $(SYSLIBS) $(DBM)
+
+l-newmail:
+	lint $(LFLAGS) newmail.c $(LLIBS)
+
+###########################################################
+#
+#   v6mail:   v6mail command replacement
+#
+
+inst-xv6mail:  $(LIBDIR)/$(PREF)v6mail
+
+ainst-xv6mail:  
+	$(AINSTALL) $(AINSTALLFLAGS) xv6mail $(LIBDIR)/$(PREF)v6mail
+
+$(LIBDIR)/$(PREF)v6mail:  xv6mail
+	cp xv6mail $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xv6mail:	$(HEAD) v6mail.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) v6mail.o $(MMDFLIBS) $(SYSLIBS)
+
+l-v6mail:
+	lint $(LFLAGS) v6mail.c $(LLIBS)
+
+###########################################################
+#
+#   rcvalert:   Alert user of incoming new mail
+#
+
+inst-xrcvalert:  $(RCVDIR)/$(PREF)rcvalert
+
+ainst-xrcvalert:  
+	$(AINSTALL) $(AINSTALLFLAGS) xrcvalert $(RCVDIR)/$(PREF)rcvalert
+
+$(RCVDIR)/$(PREF)rcvalert:  xrcvalert
+	cp xrcvalert $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xrcvalert:	$(HEAD) rcvalert.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) rcvalert.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rcvalert:
+	lint $(LFLAGS) rcvalert.c $(LLIBS)
+
+###########################################################
+#
+#   rcvimpart:   Alert user of incoming new mail
+#
+
+inst-xrcvimpart:  $(RCVDIR)/$(PREF)rcvimpart
+
+ainst-xrcvimpart:  
+	$(AINSTALL) $(AINSTALLFLAGS) xrcvimpart $(RCVDIR)/$(PREF)rcvimpart
+
+$(RCVDIR)/$(PREF)rcvimpart:  xrcvimpart
+	cp xrcvimpart $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xrcvimpart:	$(HEAD) rcvimpart.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) rcvimpart.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rcvimpart:
+	lint $(LFLAGS) rcvimpart.c $(LLIBS)
+
+#############################################################
+#
+#   rcvfile: archive body of incoming mail into file named in subject
+#
+
+inst-xrcvfile:  $(RCVDIR)/$(PREF)rcvfile
+
+ainst-xrcvfile:  
+	$(AINSTALL) $(AINSTALLFLAGS) xrcvfile $(RCVDIR)/$(PREF)rcvfile
+
+$(RCVDIR)/$(PREF)rcvfile: xrcvfile
+	cp xrcvfile $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xrcvfile:	$(HEAD) rcvfile.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) rcvfile.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rcvfile:
+	lint $(LFLAGS) rcvfile.c $(LLIBS)
+
+############################################################
+#
+#   resend:  resend a message using RESEND-xxx notation
+#
+
+inst-xresend:  $(BINDIR)/resend
+
+ainst-xresend:  
+	$(AINSTALL) $(AINSTALLFLAGS) xresend $(BINDIR)/resend
+
+$(BINDIR)/$(PREF)resend: xresend
+	cp xresend $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xresend:	$(HEAD) resend.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) resend.o $(MMDFLIBS) $(SYSLIBS)
+
+l-resend:
+	lint $(LFLAGS) resend.c $(LLIBS)
+
+############################################################
+#
+#   newssend:  Program to repost Netnews (USENET) news articles
+#	       into an RFC822 mail world.  (based on resend)
+#
+
+inst-xnewssend:  $(LIBDIR)/$(PREF)newssend
+
+ainst-xnewssend:  
+	$(AINSTALL) $(AINSTALLFLAGS) xnewssend $(LIBDIR)/$(PREF)newssend
+
+$(LIBDIR)/$(PREF)newssend: xnewssend
+	cp xnewssend $@
+	-$(CHOWN) mmdf $@
+	-chmod 04$(PGMPROT) $@
+
+xnewssend:	$(HEAD) newssend.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) newssend.o $(MMDFLIBS) $(SYSLIBS)
+
+l-newssend:
+	lint $(LFLAGS) newssend.c $(LLIBS)
+
+############################################################
+#
+#   rcvprint: send a copy of the body of the message to opr
+#
+
+inst-xrcvprint:  $(RCVDIR)/$(PREF)rcvprint
+
+ainst-xrcvprint:  
+	$(AINSTALL) $(AINSTALLFLAGS) xrcvprint $(RCVDIR)/$(PREF)rcvprint
+
+$(RCVDIR)/$(PREF)rcvprint: xrcvprint
+	cp xrcvprint $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xrcvprint:	$(HEAD) rcvprint.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) rcvprint.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rcvprint:
+	lint $(LFLAGS) rcvprint.c $(LLIBS)
+
+##########################################################
+#
+#   rcvtrip: tell message senders of recipient unavailability
+#
+
+inst-xrcvtrip:  $(RCVDIR)/rcvtrip
+
+ainst-xrcvtrip:  
+	$(AINSTALL) $(AINSTALLFLAGS) xrcvtrip $(RCVDIR)/rcvtrip
+
+$(RCVDIR)/$(PREF)rcvtrip: xrcvtrip
+	cp xrcvtrip $@
+	-$(CHOWN) mmdf $@
+	-chmod $(PGMPROT) $@
+
+xrcvtrip:	$(HEAD) rcvtrip.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) rcvtrip.o $(MMDFLIBS) $(SYSLIBS)
+
+l-rcvtrip:
+	lint $(LFLAGS) rcvtrip.c $(LLIBS)
+
+###########################################################
+#
+#   sendmail:   A fake for the Berkeley /usr/lib/sendmail
+#
+inst-xsendmail:  $(LIBDIR)/sendmail #/usr/lib/sendmail
+
+ainst-xsendmail:  
+	$(AINSTALL) $(AINSTALLFLAGS) xsendmail $(LIBDIR)/sendmail #/usr/lib/sendmail
+
+#/usr/lib/sendmail:  
+$(LIBDIR)/sendmail: xsendmail
+	-if test ! -f $@.orig; then cp $@ $@.orig; fi
+	cp xsendmail $@
+	-$(CHOWN) mmdf $@
+	-chmod 04$(PGMPROT) $@
+
+xsendmail :   $(HEAD) sendmail.o $(MMDFLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(HEAD) sendmail.o $(MMDFLIBS) $(SYSLIBS)
+
+l-sendmail:
+	lint $(LFLAGS) sendmail.c $(LLIBS)
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+checkmail.o: checkmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+checkmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+checkmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+checkmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+checkmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+checkmail.o: /usr/proj/amwork/src/h/posix/time.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkmail.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+checkmail.o: /usr/proj/amwork/src/h/posix/pwd.h
+checkmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+checkmail.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/msg.h
+checkmail.o: ../../h/adr_queue.h
+emactovi.o: emactovi.c /usr/proj/amwork/src/h/posix/stdio.h
+emactovi.o: /usr/proj/amwork/src/h/posix/_ARGS.h /usr/include/strings.h
+emactovi.o: /usr/proj/amwork/src/h/posix/ctype.h
+malias.o: malias.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+malias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+malias.o: /usr/proj/amwork/src/h/posix/ctype.h
+malias.o: /usr/proj/amwork/src/h/posix/setjmp.h
+malias.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+malias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+malias.o: /usr/proj/amwork/src/h/posix/sys/types.h
+malias.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+malias.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+malias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+malias.o: /usr/proj/amwork/src/h/posix/dirent.h
+malias.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+malias.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h
+malias.o: /usr/proj/amwork/src/h/posix/pwd.h
+malias.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: mlist.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/ctype.h
+mlist.o: /usr/proj/amwork/src/h/posix/setjmp.h
+mlist.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/sys/types.h
+mlist.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+mlist.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/dirent.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+mlist.o: /usr/proj/amwork/src/h/posix/stdio.h
+mlist.o: /usr/proj/amwork/src/h/posix/pwd.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/signal.h
+mlist.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mlist.o: /usr/proj/amwork/src/h/posix/stdio.h
+newmail.o: newmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+newmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+newmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+newmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+newmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+newmail.o: /usr/proj/amwork/src/h/posix/errno.h
+newmail.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+newmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ./../msg/msg.h
+newssend.o: newssend.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newssend.o: /usr/proj/amwork/src/h/posix/ctype.h
+newssend.o: /usr/proj/amwork/src/h/posix/setjmp.h
+newssend.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newssend.o: /usr/proj/amwork/src/h/posix/sys/types.h
+newssend.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+newssend.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+newssend.o: /usr/proj/amwork/src/h/posix/time.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newssend.o: /usr/proj/amwork/src/h/posix/dirent.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+newssend.o: /usr/proj/amwork/src/h/posix/signal.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+newssend.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+newssend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvalert.o: rcvalert.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/ctype.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+rcvalert.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/time.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/dirent.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/pwd.h
+rcvalert.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvimpart.o: rcvimpart.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/ctype.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+rcvimpart.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/time.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/dirent.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/pwd.h
+rcvimpart.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: rcvfile.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/ctype.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+rcvfile.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/dirent.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/pwd.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+rcvfile.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvprint.o: rcvprint.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/ctype.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+rcvprint.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/time.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/dirent.h
+rcvprint.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvtrip.o: rcvtrip.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/ctype.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/setjmp.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/sys/types.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+rcvtrip.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/dirent.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ap.h ../../h/ch.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/hdr.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/pwd.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+rcvtrip.o: /usr/proj/amwork/src/h/posix/stdio.h
+resend.o: resend.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+resend.o: /usr/proj/amwork/src/h/posix/ctype.h
+resend.o: /usr/proj/amwork/src/h/posix/setjmp.h
+resend.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+resend.o: /usr/proj/amwork/src/h/posix/sys/types.h
+resend.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+resend.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+resend.o: /usr/proj/amwork/src/h/posix/dirent.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+resend.o: /usr/proj/amwork/src/h/posix/pwd.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+resend.o: /usr/proj/amwork/src/h/posix/signal.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+resend.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+resend.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sendmail.o: sendmail.c /usr/proj/amwork/src/h/posix/signal.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sendmail.o: /usr/proj/amwork/src/h/posix/pwd.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/util.h
+sendmail.o: /usr/proj/amwork/src/h/posix/stdio.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sendmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+sendmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+sendmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sendmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+sendmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+sendmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+sendmail.o: /usr/proj/amwork/src/h/posix/time.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+sendmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+sendmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+v6mail.o: v6mail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+v6mail.o: /usr/proj/amwork/src/h/posix/ctype.h
+v6mail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+v6mail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+v6mail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+v6mail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+v6mail.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+v6mail.o: /usr/proj/amwork/src/h/posix/dirent.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+v6mail.o: /usr/proj/amwork/src/h/posix/pwd.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+v6mail.o: /usr/proj/amwork/src/h/posix/signal.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+v6mail.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+v6mail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

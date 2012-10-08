@@ -1,0 +1,111 @@
+.\"	@(#)aal.n	1.5	96/02/15 17:59:01
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ceriel J.H. Jacobs
+        Document: Ceriel J.H. Jacobs
+	Modified: Kees Verstoep, 8/11/90 - converted to amoeba manual macros
+.aE
+.mT "aal" U
+archiver and library maintainer
+.SH
+Synopsis
+.LP
+.sC L
+aal {adrtx}[vlc] archive [filename ...]
+.eC
+.SH
+Description
+.LP
+.kW "archiver"
+.kW "library maintainer"
+.kW ACK
+.I Aal
+maintains groups of ACK-object files combined into a single archive file.
+An index-table is automatically maintained.
+(A
+.I ranlib -like
+mechanism as used under
+.UX
+is unnecessary.)
+The link editor
+.I led
+only understands archives made with
+.I aal .
+.kW "\fIled\fP
+.LP
+The first argument specifies the actions
+.I aal
+has to perform.
+It consists of one character from the set
+.B adrtx ,
+optionally concatenated with
+one or more of
+.B vlc .
+.I Archive
+is the archive file.
+The
+.I filenames
+are constituent files in the archive file.
+The meanings of the characters in the first argument are:
+.IP \fBd\fP
+Delete the named files from the archive file.
+.IP \fBa\fP
+Append the named files to the archive file.
+.IP \fBr\fP
+Replace the named files in the archive file.
+New files are placed at the end.
+.IP \fBt\fP
+Print a table of contents of the archive file.
+If no
+.I filename s
+are given, all files in the archive are listed.
+If names are given, only those files are listed.
+.IP \fBx\fP
+Extract the named files.
+If no names are given, all files in the archive are extracted.
+In neither case does
+.B x
+alter the archive file.
+.IP \fBv\fP
+Verbose.
+Under the verbose option,
+.I aal
+gives a file-by-file description of the making
+of a new archive file from the old archive and the constituent files.
+When used with
+.B t,
+it gives a long listing of all information about the files.
+.IP \fBl\fP
+Local.
+Normally
+.I aal
+places its temporary files in the directory /tmp.
+This option causes them to be placed in the local directory.
+.IP \fBc\fP
+Create.
+Normally
+.I aal
+will create
+.I archive
+when it needs to.
+The create option suppresses the normal message that is produced when
+.I archive
+is created.
+.mH
+Warnings
+.LP
+If the same file is mentioned twice in an argument list,
+it will be put in the archive twice.
+.mH
+Files
+.LP
+/tmp/ar.* \- temporary files
+.SH
+See Also
+.LP
+.I "The Link Editor"
+in the Programming Languages section of the Programming Guide.

@@ -1,0 +1,13 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 11:07:32
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_SAK = {
+	$PWD/sak_extrans.c,
+	$PWD/sak_listjob.c,
+	$PWD/sak_mktrans.c,
+	$PWD/sak_subjob.c
+};

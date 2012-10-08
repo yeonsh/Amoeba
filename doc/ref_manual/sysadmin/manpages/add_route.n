@@ -1,0 +1,112 @@
+.\"	@(#)add_route.n	1.4	96/02/15 17:06:39
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, August 7, 1991
+	Document: Philip Homburg, Nov 1, 1991
+	Modified: Gregory J. Sharp, Sept 1995 - standardized command lines.
+		  Gregory J. Sharp, Jan 1996 - polished up
+.aE
+.mT "add_route" A
+add routes to an IP server
+.SH
+Synopsis
+.LP
+.sC L
+add_route -g gateway [-d destination [-n netmask ]] [-I IP-cap]
+.eC
+.SH
+Description
+.LP
+.kW "TCP/IP"
+.kW "IP"
+.kW "UDP"
+.kW "TCP"
+.kW "route"
+.I Add_route
+can be used to manually add routes to an IP server.
+Other ways to add routes to the routing table of an IP server are the 
+.I irdpd (A)
+daemon and the built-in routing table.
+Using
+.I irdpd (A)
+is probably the best way to install routing information in an IP server.
+.LP
+.kW "IP gateway"
+The only argument that is mandatory is the gateway.
+It can be a symbolic host name.
+It specifies an IP gateway to another network.
+.LP
+If a network has more than one gateway
+.I add_route
+should be called for each gateway.
+.mH
+Options
+.LP
+.IP "\fB\-I\fP \fIIP-cap\fP"
+.br
+This option specifies the IP server capability. 
+It can either be the name of a host running an IP server or the complete
+name of the IP server capability.
+If the 
+.B \-I 
+option is not present then the value of the environment variable 
+.kW "IP_SERVER environment variable"
+.cW IP_SERVER
+is used.
+If this is not present then the default IP server (as defined in
+.I ampolicy.h )
+is used.
+.IP "\fB\-d\fP \fIdestination\fP"
+.br
+This option specifies the destination. 
+When omitted 0.0.0.0 is assumed. 
+This means all hosts not on this network.
+The symbolic name of a host can be used. 
+.IP "\fB\-n\fP \fInetmask\fP"
+.br
+This option specifies the netmask. 
+If no
+.B \-n
+option is given the netmask is calculated from the destination, i.e.\ 0.0.0.0 
+for the 0.0.0.0, 255.0.0.0 for a class A network, 255.255.0.0 for a class B 
+network and 255.255.255.0 for a class C network.
+.mH
+Environment Variables
+.LP
+.IP \*<IP_SERVER\*> 12
+The value of the environment variable overrides the default path for the
+IP server. 
+The 
+.B \-I
+option overrides this environment variable.
+.SH
+Examples
+.LP
+.sC
+add_route -g 1.2.3.4 -d 5.6.7.8 -I /super/hosts/armada1E/ip/ip
+.eC
+and 
+.I add_route 
+will respond with:
+.sC
+adding route to 5.6.7.8 with netmask 0.0.0.0 using gateway 1.2.3.4
+.eC
+.LP
+The same command could also be given as:
+.sC
+add_route -g 1.2.3.4 -d 5.6.7.8 -I armada1E
+.eC
+or
+.sC
+add_route -g 1.2.3.4 -d 5.6.7.8 -I /super/hosts/armada1E
+.eC
+.SH
+See Also
+.LP
+ipsvr(A),
+irdpd(A),
+pr_routes(A).

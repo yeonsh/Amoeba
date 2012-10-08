@@ -1,0 +1,60 @@
+.\"	@(#)sendcap.n	1.4	96/02/15 17:51:53
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, May 1991
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "sendcap" A "UNIX ONLY"
+send a new user his .capability file
+.SH
+Synopsis
+.LP
+.sC L
+sendcap amoeba-login-name [ unix-login-name ]
+.eC
+.SH
+Description
+.LP
+.kW ".capability file"
+.kW "\fInewuser\fP"
+.I Sendcap
+runs only under
+.UX
+and requires that the FLIP driver be installed.
+It extracts from \*(Am the capability of the home directory of the user with
+.I amoeba-login-name .
+It converts this to a
+.I .capability
+file,
+uuencodes it and mails it to the
+.UX
+mailbox of the user.
+If the user's
+.UX
+login name is different from the login name under \*(Am then the
+.I unix-login-name
+parameter should be given.
+It is probably a good idea to modify the message sent to the user
+to reflect any local conditions or provide introductory information
+to the new user.
+.SH
+Example
+.LP
+.sC L
+sendcap gbh
+.eC
+will get the capability for the home directory of the \*(Am user
+.I gbh
+and mails it to the
+.UX
+user
+.I gbh .
+.SH
+See Also
+.LP
+newuser(A).

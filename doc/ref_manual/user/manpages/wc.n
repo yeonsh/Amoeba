@@ -1,0 +1,66 @@
+.\"	@(#)wc.n	1.4	96/02/16 11:10:29
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp. Nov 1995
+.aE
+.mT "wc" U
+count characters,  words,  and lines in a file
+.SH
+Synopsis
+.LP
+.sC L
+wc [-clw] file ...
+.eC
+.SH
+Description
+.LP
+.kW "line count"
+.kW "word count"
+.I Wc
+reads each
+.I file
+argument and computes the number of characters,
+words and lines it contains.
+A word is delimited by white space (space,
+tab,
+or line feed).
+If no flags are present,
+all three counts are printed.
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+Print the character count.
+.IP \fB\-l\fP
+Print the line count.
+.IP \fB\-w\fP
+Print the word count.
+.LP
+The default is to print all three.
+.SH
+Examples
+.LP
+.sC
+wc file1 file2
+.eC
+Print all three counts for both files.
+This might look like:
+.sC
+      3       8     50 file1
+    254    2001  17344 file2
+    257    2009  17394 total
+.eC
+.sC
+wc -l file
+.eC
+Prints the line count only.
+It might look like:
+.sC
+      3 file
+.eC

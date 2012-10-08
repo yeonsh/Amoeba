@@ -1,0 +1,30 @@
+#	
+#	@(#)Amakefile	1.1	96/02/16 15:35:56
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/kernel/server/gbullet/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/sys
+};
+
+DEFINES = {
+	'-DUSER_LEVEL',
+	'-DBS_MIN_MEMORY=0x80000',
+	'-DBS_MEM_RESERVE=0'
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+%instance gcluster(gbullet, $S_GBULLET, $LIB_AMOEBA, $LINT_AMOEBA);

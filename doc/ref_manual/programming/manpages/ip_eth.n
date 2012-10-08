@@ -1,0 +1,417 @@
+.\"	@(#)ip_eth.n	1.1	96/02/15 16:51:59
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, 1991
+	Document: Philip Homburg, Sept 3, 1991
+	Modified: Gregory J. Sharp and Philip Homburg, March 1992
+		  - merged with udp(L) and made a little more complete.
+		  Gregory J. Sharp, April 1992
+		  - updated keywords for auto index generation
+		  Gregory J. Sharp, May 1995
+		  - made into 4 manual pages with some better hints on
+		    how to use this stuff.
+		  Gregory J. Sharp, Feb 1996
+		  - polish up of layout and style
+.aE
+.mT "ip_eth" L "libamoeba.a"
+Internet Protocol server's Ethernet client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "server/ip/eth_io.h"
+#include "server/ip/types.h"
+#include "server/ip/gen/ether.h"
+#include "server/ip/gen/eth_io.h"
+
+errstat eth_ioc_getstat(chan_cap, ethstat)
+errstat eth_ioc_getopt(chan_cap, ethopt)
+errstat eth_ioc_setopt(chan_cap, ethopt)
+.eC
+.kW "\fIeth_ioc_getstat\fP"
+.kW "\fIeth_ioc_getopt\fP"
+.kW "\fIeth_ioc_setopt\fP"
+.SH
+Description
+.LP
+.kW "IP"
+.kW "Internet Protocol"
+.kW "TCP/IP"
+.kW "eth"
+The Internet Protocol (IP) server implements four network protocols, as
+described in
+.I ipsvr (A).
+The routines described below give access to the Ethernet protocol of the
+IP server.
+This allows reading and writing of raw Ethernet packets.
+Access to this service is provided using two types of capabilities:
+a server capability and channel capabilities.
+The server capability is called
+.I eth .
+It is used to obtain a channel to the corresponding server.
+This is done with
+.I tcpip_open
+(see
+.I ip (L)).
+The channel capability can be used to transfer data using the protocol
+implemented by the server.
+This is also done with the generic
+.I tcpip_read
+and
+.I tcpip_write
+routines.
+Since their semantics vary slightly depending on channel type, these routines
+are described briefly below.
+The
+.I eth_ioc_
+routines are used to manage the options and status of the ETH channel.
+.LP
+Before they are described, a brief introduction to the various types is given.
+The general-purpose types and rights in the capabilities are described in
+.I ip (L).
+.mH
+Eth Types
+.LP
+.IP server/ip/gen/ether.h
+.br
+defines struct ether_addr (\fIether_addr_t\fP),
+.I ether_type_t
+and
+.I Ether_type_t
+for use in prototypes.
+.IP server/ip/gen/eth_io.h
+.br
+defines struct nwio_ethopt (\fInwio_ethopt_t\fP) and
+struct nwio_ethstat (\fInwio_ethstat_t\fP)
+.IP server/ip/gen/eth_hdr.h
+.br
+defines struct eth_hdr (\fIeth_hdr_t\fP)
+.br
+.ne 10
+.mH
+General Functions
+.sH
+tcpip_read
+.LP
+.sC
+errstat
+tcpip_read(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_read\fP"
+.I Tcpip_read
+transfers Ethernet packets from the Ethernet channel specified by
+.I chan_cap
+to the client.
+The data is returned in
+.I buffer
+which has size
+.I nbytes .
+The call blocks until a packet is available.
+If successful it returns the number of bytes read.
+If unsuccessful the function returns an error status.
+It is possible to read just the data of the Ethernet packets or both
+the header and the data.
+See
+.I eth_ioc_setopt
+below for details.
+.LP
+Only reads with a buffer size greater than or equal to the maximum packet
+size are allowed.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the
+.cW TCPIP_
+error codes.
+.nf
+\*<TCPIP_BADMODE\*>
+\*<TCPIP_PACKSIZE\*>
+\*<STD_INTR\*>
+.DE
+.sH
+tcpip_write
+.LP
+.sC
+errstat
+tcpip_write(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_write\fP"
+.I Tcpip_write
+transfers the
+.I nbytes
+of data in
+.I buffer
+from the client to the Ethernet channel specified by
+.I chan_cap .
+The call blocks until enough buffer space is available.
+The buffer must contain a complete packet and be at least of minimum size
+(60 bytes).
+On success this function returns the number of bytes written.
+On error it returns a negative error status.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the
+.cW TCPIP_
+error codes.
+.nf
+\*<TCPIP_BADMODE\*>
+\*<TCPIP_PACKSIZE\*>
+\*<STD_INTR\*>
+.DE
+.ne 10
+.mH
+ETH Functions
+.LP
+.sH
+eth_ioc_getopt
+.LP
+.sC
+errstat
+eth_ioc_getopt(chan_cap, ethopt)
+capability *chan_cap;
+struct nwio_ethopt *ethopt;
+.eC
+.kW "\fIeth_ioc_getopt\fP"
+This call returns in
+.I ethopt
+the current options of an Ethernet channel specified by
+.I chan_cap .
+See
+.I eth_ioc_setopt
+for a description of the options.
+.sH
+eth_ioc_getstat
+.LP
+.sC
+errstat
+eth_ioc_getstat(chan_cap, ethstat)
+capability *chan_cap;
+struct nwio_ethstat *ethstat;
+.eC
+.kW "\fIeth_ioc_getstat\fP"
+.I Eth_ioc_getstat
+returns the Ethernet address and some statistics about
+the channel specified by the capability
+.I chan_cap .
+The result is returned in the structure to which
+.I ethstat
+points.
+The \fIstruct nwio_ethstat\fP defined in
+.I server/ip/gen/eth_io.h
+is used to pass the configuration description to the server.
+.sC
+typedef struct nwio_ethstat
+{
+        ether_addr_t nwes_addr;
+        eth_stat_t nwes_stat;
+} nwio_ethstat_t;
+.eC
+.sC L
+typedef struct eth_stat
+{
+    unsigned long
+	ets_recvErr,        /* # receive errors */
+	ets_sendErr,        /* # send error */
+	ets_OVW,            /* # buffer overwrite warnings,
+                               (packets arrive faster than
+                                can be processed) */
+	ets_CRCerr,         /* # crc errors of read */
+	ets_frameAll,       /* # frames not aligned (# bits
+                               not a multiple of 8) */
+	ets_missedP,        /* # packets missed due to too
+                               slow packet processing */
+	ets_packetR,        /* # packets received */
+	ets_packetT,        /* # packets transmitted */
+	ets_transDef,       /* # transmission deferred (there
+                               was a transmission of an
+                               other station in progress */
+	ets_collision,      /* # collisions */
+	ets_transAb,        /* # transmissions aborted due
+                               to excessive collisions */
+	ets_carrSense,      /* # carrier sense lost */
+	ets_fifoUnder,      /* # fifo underruns (processor
+                               is too busy) */
+	ets_fifoOver,       /* # fifo overruns (processor is
+                               too busy) */
+	ets_CDheartbeat,    /* # times unable to transmit
+                               collision signal */
+	ets_OWC;            /* # times out of window
+                               collision */
+} eth_stat_t;
+.eC
+.sH
+eth_ioc_setopt
+.LP
+.sC
+errstat
+eth_ioc_setopt(chan_cap, ethopt)
+capability *chan_cap;
+struct nwio_ethopt *ethopt;
+.eC
+.kW "\fIeth_ioc_setopt\fP"
+Before a capability of an Ethernet channel can be used to send or receive
+Ethernet packets, it has to be configured using
+.I eth_ioc_setopt .
+The structure
+.I nwio_ethopt
+is defined in
+.I server/ip/gen/eth_io.h :
+.sC
+typedef struct nwio_ethopt
+{
+	u32_t nweo_flags;
+	ether_addr_t nweo_multi, nweo_rem;
+	ether_type_t nweo_type;
+} nwio_ethopt_t;
+.eC
+.sC
+#define NWEO_NOFLAGS    0x0000L
+#define NWEO_ACC_MASK   0x0003L
+#       define NWEO_EXCL        0x00000001L
+#       define NWEO_SHARED      0x00000002L
+#       define NWEO_COPY        0x00000003L
+#define NWEO_LOC_MASK   0x0010L
+#       define NWEO_EN_LOC      0x00000010L
+#       define NWEO_DI_LOC      0x00100000L
+#define NWEO_BROAD_MASK 0x0020L
+#       define NWEO_EN_BROAD    0x00000020L
+#       define NWEO_DI_BROAD    0x00200000L
+#define NWEO_MULTI_MASK 0x0040L
+#       define NWEO_EN_MULTI    0x00000040L
+#       define NWEO_DI_MULTI    0x00400000L
+#define NWEO_PROMISC_MASK 0x0080L
+#       define NWEO_EN_PROMISC  0x00000080L
+#       define NWEO_DI_PROMISC  0x00800000L
+#define NWEO_REM_MASK   0x0100L
+#       define NWEO_REMSPEC     0x00000100L
+#       define NWEO_REMANY      0x01000000L
+#define NWEO_TYPE_MASK  0x0200L
+#       define NWEO_TYPESPEC    0x00000200L
+#       define NWEO_TYPEANY     0x02000000L
+#define NWEO_RW_MASK    0x1000L
+#       define NWEO_RWDATONLY   0x00001000L
+#       define NWEO_RWDATALL    0x10000000L
+.eC
+The configuration is divided in a number of sections (covered by the xx_MASK
+macros).
+Options can be set in the
+.I nweo_flags
+field.
+The first section (\*<NWEO_ACC_MASK\*>) controls the access to a certain
+Ethernet packet type.
+If
+.cW NWEO_EXCL
+is selected then this is the only channel that can send or
+receive Ethernet packets of the selected type.
+If
+.cW NWEO_SHARED
+is selected then multiple channels (which all have to
+select
+.cW NWEO_SHARED )
+can use the same Ethernet type.
+They all can send packets but incoming packets will be delivered to at
+most one of them.
+If
+.cW NWEO_COPY
+is selected then multiple channels have access to the same
+Ethernet type and all receive a copy of an incoming packet.
+.LP
+The
+.cW NWEO_LOC_MASK
+flags control the delivery of local packets, i.e., with a destination
+address equal to the Ethernet address of the machine where the TCP/IP server
+is running.
+If
+.cW NWEO_EN_LOC
+is selected then these packets will be delivered and with
+.cW NWEO_DI_LOC
+they will be discarded.
+.LP
+.cW NWEO_BROAD_MASK ,
+.cW NWEO_MULTI_MASK ,
+and
+.cW NWEO_PROMISC_MASK
+do the same to broadcast packets,
+multicast packets and promiscuous mode packets as
+.cW NWEO_LOC_MASK
+does for local packets,
+except that the precise multicast address is taken from the \fInweo_multi\fP
+field.
+.\" XXX the nweo_multi field may go away soon.
+.LP
+The
+.cW NWEO_REM_MASK
+flags control whether communication is restricted to a
+single destination or not.
+.cW NWEO_REMSPEC
+restricts sending and receiving of packets to the single
+remote computer specified in the \fInweo_rem\fP field.
+.cW NWEO_REMANY
+allows sending to and receiving from any remote computer.
+.LP
+.cW NWEO_TYPESPEC
+restricts sending and receiving of Ethernet packets to the protocol type
+specified in \fInweo_type\fP.
+(For example, the RARP protocol has type number 0x8035.)
+The type has to be in network byte order (see
+.I htons
+in
+.I ip (L)).
+.cW NWEO_TYPEANY
+allows any type.
+.LP
+If the Ethernet header is completely specified by the
+.I nweo_flags
+i.e., all of
+.cW NWEO_EN_LOC ,
+.cW NWEO_DI_BROAD ,
+.cW NWEO_DI_MULTI ,
+.cW NWEO_DI_PROMISC ,
+.cW NWEO_REMSPEC
+and
+.cW NWEO_TYPESPEC
+are
+specified, then
+.cW NWEO_RWDATONLY
+can be used to send and receive just the data part of an Ethernet packet.
+The header information is filled in by the server from the pre-specified
+information.
+Otherwise
+.cW NWEO_RWDATALL
+must be used.
+If
+.cW NWEO_RWDATALL
+is specified then both Ethernet header and data must be provided for each
+packet.
+.mH
+Diagnostics
+.LP
+The complete set of error codes is described in
+.I ip (L).
+.\".SH
+.\"Examples
+.\".LP
+.\"XXX
+.SH
+See Also
+.LP
+error(L),
+ip(L),
+ip_ip(L),
+ip_tcp(L),
+ip_udp(L),
+ipsvr(A).

@@ -1,0 +1,110 @@
+.\"	@(#)chpw.n	1.6	96/02/15 18:05:35
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, February 1990
+	Document: Siebren van der Zee, Guido van Rossum, February 1990
+	Modified:
+		  Siebren van der Zee, revised with software: May 1990
+				       revised with software, Oct 1990
+		  Greg Sharp, March 1992, revised due to death of allo.
+		  Greg Sharp, May 1994, revised due to addition of old
+					password checking.
+		  Greg Sharp, Oct 1995, and now for some readability
+.aE
+.mT chpw U
+change password
+.SH
+Synopsis
+.LP
+.sC L
+chpw [environ-file]
+.eC
+.SH
+Description
+.LP
+.kW "password"
+.kW "/Environ"
+.I Chpw
+sets the password that must be typed to
+.I login (A)
+(or
+.I xlogin )
+in order to log in to \*(Am.
+Note that only the first
+.cW MAX_PASSWD_SZ
+characters (typically 8 \- see
+.I ampolicy.h )
+of the password are used.
+Any extra characters are ignored.
+An encrypted version of the password is kept in the environment file
+(typically
+.I /Environ ).
+.I Chpw
+begins by asking for the current password.
+If there is none then simply press
+.I return .
+Note that as passwords are typed, they do not appear on the screen.
+If the current password is correctly entered
+.I chpw
+then asks for the new password.
+It then asks that the new password be typed again.
+If a different password is typed, it reports a 'Mismatch'
+and prompts for a retry.
+It exits on end-of-file.
+Otherwise it changes the encrypted password in the file
+to an encrypted version of the new password.
+.LP
+The optional argument
+.I "environ-file"
+is the name of the file that
+.I chpw
+must change.
+The default is the user's own environment file (namely
+.I /Environ ).
+.mH
+Diagnostics
+.LP
+Some frequent error messages:
+.LP
+.cW "Mismatch" .
+The same password was not entered the second time.
+.LP
+.cW "Operation not permitted" .
+The output file cannot be written.
+.mH
+Warnings
+.LP
+Because the encrypted password is stored in a file writable by the user,
+others with access to a user's keyboard or with write access to a user's root
+directory may change the password using an editor to delete the old password.
+This will be fixed in a future version of \*(Am.
+.SH
+Examples
+.LP
+To change one's own password:
+.sC
+chpw
+.eC
+.LP
+To change Mike's password (it is necessary to be a privileged user for this):
+.sC
+chpw /super/users/mike/Environ
+.eC
+.SH
+File Format
+.LP
+.I Chpw
+does not care much about the format of the input file.
+It looks for a line beginning with the word
+.cW passwd ,
+surrounded by white space, and replaces the rest of the line with the
+encrypted password, inserting a tab if necessary.
+.SH
+See Also
+.LP
+login(A).

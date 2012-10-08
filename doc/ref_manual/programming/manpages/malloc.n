@@ -1,0 +1,162 @@
+.\"	@(#)malloc.n	1.5	96/02/15 16:52:29
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, 1989
+	Document: Gregory J. Sharp, December 1990
+	Modified: Gregory J. Sharp, March 1991 - ansification
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "malloc" L "libamoeba.a, libkernel.a"
+memory allocation package
+.SH
+Synopsis
+.LP
+.sC L
+#include "stdlib.h"
+
+void * malloc(size)
+void * calloc(num, elmsize)
+void * realloc(ptr, newsize)
+
+void free(ptr)
+.eC
+.SH
+Description
+.LP
+.kW "\fImalloc\fP"
+.kW "\fIcalloc\fP"
+.kW "\fIfree\fP"
+.kW "\fIrealloc\fP"
+This module provides a memory allocation package for user processes.
+It provides linear performance.
+.I Malloc,
+.I calloc
+and
+.I realloc
+all return a pointer to memory guaranteed to be sufficiently aligned for
+any hardware alignment restrictions on any data type.
+In most implementations this is 8-byte alignment.
+.LP
+The package maintains a free list of any memory that it has available for use.
+If the
+package has insufficient memory to satisfy a request it attempts to create a
+new segment with size rounded up to the nearest click size larger than or equal
+to the amount of memory it needs to satisfy the current request.
+Any unused memory in the segment is kept on a free list for satisfying further
+requests for memory.
+.LP
+Note that writing to memory immediately before or after the piece allocated
+will corrupt the memory administration and/or result in an exception.
+If a program crashes in the
+.I malloc
+package then this is almost certainly happening (although see
+.I free
+below).
+.mH
+Functions
+.LP
+.sH
+malloc
+.LP
+.sC
+void *
+malloc(size)
+size_t size;
+.eC
+.kW "\fImalloc\fP"
+.I Malloc
+allocates memory and returns a pointer to a piece of memory of
+.I size
+bytes.
+It returns the NULL-pointer if it was unable to allocate sufficient memory.
+.sH
+realloc
+.LP
+.sC
+void *
+realloc(ptr, newsize)
+void *ptr;
+size_t newsize;
+.eC
+.kW "\fIrealloc\fP"
+.I Realloc
+attempts to grow/shrink the piece of memory pointed to by
+.I ptr
+to the size
+.I newsize .
+.I Ptr
+must be a pointer returned by either
+.I malloc ,
+.I calloc
+or
+.I realloc .
+If it has to grow the piece of memory and there is no space to extend the
+current piece, it will have to allocate a totally new piece of memory and
+copy the data from the original piece.
+The original piece of memory will go onto the free list in this case.
+Therefore it is not wise to use
+.I realloc
+on memory which has pointers pointing into it.
+.LP
+.I Realloc
+returns the NULL-pointer if it cannot reallocate the memory and a pointer
+to the reallocated memory if it could.
+.sH
+calloc
+.LP
+.sC
+void *
+calloc(num, elmsize)
+size_t num;
+size_t elmsize;
+.eC
+.kW "\fIcalloc\fP"
+.I Calloc
+allocates memory using
+.I malloc
+sufficient to hold
+.I num
+elements, each of
+.I elmsize
+bytes
+and initializes the memory to zero.
+It returns the return value of
+.I malloc .
+.sH
+free
+.LP
+.sC
+void
+free(ptr)
+void *ptr;
+.eC
+.kW "\fIfree\fP"
+.I Free
+is used to return memory allocated by one of the above three routines
+to the free list so that it can be reused in subsequent memory allocation
+requests.
+.I Ptr
+must be a pointer returned by one of the above three routines.
+It is an error to
+.I free
+the same piece of memory twice.
+This error will not be detected but it will probably result in an exception.
+Unlike with some other memory allocation packages,
+once a piece of memory has been
+.I free d
+it is not permitted to access it again,
+even before the next call to an allocation routine.
+When
+.I free
+is called,
+the package attempts to merge free blocks in its administration.
+.mH
+Warnings
+.LP
+The kernel malloc package is very similar but does not have the segment
+boundary restrictions.
+It can merge free memory blocks that span segment boundaries.

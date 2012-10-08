@@ -1,0 +1,164 @@
+#	
+#	@(#)Makefile.real	1.2	92/05/14 10:41:56
+#
+#
+#   Makefile for submit:     Accept, check, & queue mail from users
+#
+
+MODULES =	submit hdr_parse adr_submit lnk_submit \
+		mq_wtmail mgt_submit auth_submit
+
+OBJECTS =	submit.o hdr_parse.o adr_submit.o lnk_submit.o \
+		mq_wtmail.o mgt_submit.o auth_submit.o
+
+SOURCES =	submit.c hdr_parse.c adr_submit.c auth_submit.c \
+		lnk_submit.c mq_wtmail.c mgt_submit.c
+
+real-default:	submit
+submit:	xsubmit
+xsubmit:	$(HEAD) $(OBJECTS) $(MMDFLIBS)
+	    $(LD)  $(LDFLAGS) -o $@ $(HEAD) $(OBJECTS) $(MMDFLIBS) $(SYSLIBS)
+
+install:	$(LIBDIR)/$(MMPREF)submit
+
+aminstall:	ainst-submit
+
+ainst-submit:
+	$(AINSTALL) $(AINSTALLFLAGS) xsubmit $(LIBDIR)/$(MMPREF)submit
+
+$(LIBDIR)/$(MMPREF)submit:	xsubmit
+	$(INSTALL) -c -m 04$(PGMPROT)  -o $(MMDFLOGIN)  xsubmit $(LIBDIR)/$(MMPREF)submit
+#	cp xsubmit $(LIBDIR)/$(MMPREF)submit
+#	-$(CHOWN) $(MMDFLOGIN) $(LIBDIR)/$(MMPREF)submit
+#	-chmod 04$(PGMPROT) $(LIBDIR)/$(MMPREF)submit
+	-@ls -ls $(LIBDIR)/$(MMPREF)submit
+	-@echo "submit installed normally"; echo ""
+
+lint:
+	$(LINT) $(LFLAGS) $(SOURCES) $(LLIBS)
+
+clean:
+	-rm -f xsubmit *.o x.c makedep eddep make.out errs
+
+
+# DO NOT DELETE THIS LINE -- make depend uses it
+
+
+submit.o: submit.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+submit.o: /usr/proj/amwork/src/h/posix/ctype.h
+submit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+submit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+submit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+submit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h ../../h/ll_log.h
+submit.o: ../../h/util.h ../../h/conf.h /usr/proj/amwork/src/h/posix/time.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+submit.o: /usr/proj/amwork/src/h/posix/dirent.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+submit.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+submit.o: /usr/proj/amwork/src/h/posix/pwd.h
+submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/nexec.h ../../h/ap.h
+submit.o: ../../h/ns.h ../../h/ch.h /usr/proj/amwork/src/h/posix/stdio.h
+submit.o: ../../h/adr_queue.h ../../h/msg.h ../../h/hdr.h
+hdr_parse.o: hdr_parse.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/ctype.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/setjmp.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/sys/types.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+hdr_parse.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/time.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/dirent.h
+hdr_parse.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/hdr.h
+adr_submit.o: adr_submit.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/ctype.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+adr_submit.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/time.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/dirent.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/sys/stat.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/pwd.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+adr_submit.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h ../../h/ap.h
+lnk_submit.o: lnk_submit.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/ctype.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+lnk_submit.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/time.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/dirent.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+lnk_submit.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/adr_queue.h
+lnk_submit.o: ../../h/msg.h
+mq_wtmail.o: mq_wtmail.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/ctype.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/setjmp.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/sys/types.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+mq_wtmail.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/time.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/dirent.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/adr_queue.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/sys/file.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/sys/../fcntl.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/sys/../_ARGS.h
+mq_wtmail.o: /usr/proj/amwork/src/h/posix/sys/../unistd.h
+mgt_submit.o: mgt_submit.c ../../h/util.h /usr/proj/amwork/src/h/posix/stdio.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/ctype.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+mgt_submit.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/time.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/dirent.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/ch.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/stdio.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/pwd.h
+mgt_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cnvtdate.h
+mgt_submit.o: ../../h/ap.h ../../h/dm.h ../../h/msg.h ../../h/hdr.h
+mgt_submit.o: ../../h/ns.h
+auth_submit.o: auth_submit.c ../../h/util.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/stdio.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/ctype.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/setjmp.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/machdep/mc68000/_setjmp.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/sys/types.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/errno.h ../../h/mmdf.h
+auth_submit.o: ../../h/ll_log.h ../../h/util.h ../../h/conf.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/time.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/dirent.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/_ARGS.h ../../h/cmd.h ../../h/ch.h
+auth_submit.o: /usr/proj/amwork/src/h/posix/stdio.h ../../h/dm.h ../../h/ap.h
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

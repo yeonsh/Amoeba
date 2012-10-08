@@ -1,0 +1,109 @@
+#!/bin/sh
+#	
+#	@(#)newsoapgraph	1.12	96/03/19 13:07:22
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	newsoapgraph -	builds a standard amoeba soap directory structure
+#			newuser will then add additional users.
+#			This should be run once at startup just after the
+#			sp_init routine by the person generating the first
+#			directory.
+#
+if [ $# -ne 1 ]
+then
+	echo Usage: $0 username
+	exit 1
+fi
+#  Need to set masks to ff 2 4 at this point
+SPMASK=0xff:2:4
+# Build the basic structures
+mkd super
+mkd super/group
+mkd super/group/system
+mkd super/group/users
+std_restrict super/group/users FF super/users
+
+# Install initial directory under username
+get '' | put super/users/$1
+get '' | put super/group/system/$1
+
+# Make standard public directories
+mkd super/admin
+mkd super/admin/bin
+mkd super/cap
+mkd super/cap/bootsvr
+mkd super/cap/bulletsvr
+mkd super/cap/ubulletsvr
+mkd super/cap/omsvr
+mkd super/cap/randomsvr
+mkd super/cap/rrpc
+mkd super/cap/rrpc/groups
+mkd super/cap/rrpc/ctx
+mkd super/cap/runsvr
+mkd super/cap/soapsvr
+chm ff:0:0 super/cap/soapsvr
+mkd super/cap/tapesvr
+mkd super/cap/ipsvr
+# make fake ip server caps so that the modes are right at installation
+for i in eth ip tcp udp
+do
+    makecap super/cap/ipsvr/$i
+    chm ff:80:80 super/cap/ipsvr/$i
+done
+mkd super/cap/todsvr
+mkd super/cap/x11svr
+chm ff:ff:ff super/cap/x11svr
+mkd super/cap/fifosvr
+mkd super/hosts
+mkd super/pool
+
+mkd super/module
+mkd super/module/flex
+mkd super/module/time
+mkd super/module/time/zoneinfo
+
+mkd super/admin/module
+mkd super/admin/module/fifo
+chm ff:0:0 super/admin/module/fifo
+mkd super/admin/module/om
+mkd super/admin/module/run
+mkd super/admin/module/sak
+
+mkd super/unixroot
+mkd super/unixroot/bin
+mkd super/unixroot/etc
+mkd super/unixroot/usr
+mkd super/unixroot/lib
+mkd super/unixroot/usr/lib
+mkd super/unixroot/usr/tmp
+chm ff:ff:ff super/unixroot/usr/tmp
+mkd super/util
+#
+#  Personal stuff - more or less what newuser does.
+#
+mkd dev
+mkd home
+mkd tmp
+mkd profile
+mkd profile/group
+
+std_restrict super/cap 06 profile/cap
+std_restrict super/util 06 profile/util
+std_restrict super/pool 06 profile/pool
+std_restrict super/module 06 profile/module
+std_restrict super/group/system 06 profile/group/system
+std_restrict super/group/users 06 profile/group/users
+
+#  Unix environment for personal use
+std_restrict super/unixroot/bin 06 bin
+std_restrict super/unixroot/etc 06 etc
+std_restrict super/unixroot/usr 06 usr
+std_restrict super/unixroot/lib 06 lib
+
+# Normally you'd expect an exit 0 here.  It cannot be since in the
+# coldstart newsoapgraph is called as . newsoapgraph and a trailing
+# exit 0 kills off the coldstart installit script.  One day ...

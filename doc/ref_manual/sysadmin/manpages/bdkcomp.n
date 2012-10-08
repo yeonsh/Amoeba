@@ -1,0 +1,86 @@
+.\"	@(#)bdkcomp.n	1.5	96/02/15 17:06:58
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp, July 1990
+	Document: Gregory Sharp, July 1990
+	Modified: Gregory Sharp, Jan 1996
+.aE
+.mT "bdkcomp" A
+compact a \*(Bs's virtual disk to eliminate fragmentation
+.SH
+Synopsis
+.LP
+.sC L
+bdkcomp bullet_server
+.eC
+.SH
+Description
+.LP
+.kW "Bullet file"
+.kW "Bullet Server"
+.kW "compaction"
+.kW "disk"
+.kW "file system"
+.kW "fragmentation"
+.kW "virtual disk"
+.I Bdkcomp
+compacts the virtual disk of the \*(Bs specified by the
+.I bullet_server
+argument.
+The primary function of this is to reduce the amount of internal resources
+required for managing the disk free list, which becomes quite large in
+the presence of fragmentation.
+A secondary usage is to try to maximize available disk space when a disk is
+almost full.
+.LP
+The capability specified by the argument must be the super-capability of
+the \*(Bs with full rights.
+This capability is typically found in the kernel directory of the \*(Bs host.
+.LP
+The effect of this command is to move all the files to the beginning of the
+virtual disk so that all free disk space is collected into a single
+contiguous chunk.
+Note that any holes larger than 1\|Mbyte will not be compacted.
+If the disk is large or badly fragmented this process can take several hours
+if files are being continually created and deleted.
+For example,
+it is a good idea to stop the object manager (see
+.I om(A))
+so that the compaction is not continually interrupted.
+Normally it will take about 30 minutes to compact a moderately fragmented
+disk.
+During this time the \*(Bs will be extremely sluggish so it should only
+be run if absolutely necessary and at a time when the system is not heavily
+loaded (unless you enjoy complaints from users).
+.LP
+No message is returned to the caller unless an error is encountered.
+Possible causes of errors are:
+.IP a)
+The look up of the \*(Bs capability failed.
+.IP b)
+The \*(Bs capability is not the super capability with full rights.
+.IP c)
+The \*(Bs is not running.
+.IP d)
+The internal free lists of the \*(Bs have been corrupted.
+.SH
+Example
+.LP
+.sC
+bdkcomp /super/hosts/lulu/bullet
+.eC
+If all is well this will be silent.
+It may however take a long time.
+You can check the degree of compaction using the
+.I bstatus (A)
+command.
+.SH
+See Also
+.LP
+bstatus(A),
+bullet(A),
+gbullet(A).

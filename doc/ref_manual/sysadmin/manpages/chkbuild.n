@@ -1,0 +1,53 @@
+.\"	@(#)chkbuild.n	1.1	96/02/15 17:07:42
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Aug 1994
+	Document: Gregory J. Sharp, Jun 1995
+	Modified: Gregory J. Sharp, Jan 1996 - suppress the truth!
+.aE
+.mT "chkbuild" A
+inspect the error messages that result from a build of \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+chkbuild build.out
+.eC
+.SH
+Description
+.LP
+When a
+.kW "\fIbuild\fP"
+.I build (A)
+of part or all of \*(Am has been made and all the output from the build
+has been saved it is important to be able to find any error messages
+that may have been produced during the build.
+Typically there is a lot of irrelevant information.
+.I Chkbuild
+filters out nearly all the ``noise'' from the
+.I build
+output and shows the error messages.
+It pipes its output through a pager.
+.mH
+Environment Variables
+.LP
+.cW PAGER
+\- this string environment variable selects the pager to be used.
+The default is
+.I yap (U).
+.SH
+Example
+.LP
+.sC
+cd /super/module/amoeba/conf/amoeba
+build i80386.ack > build.i80386.ack 2>&1
+chkbuild build.i80386.ack
+.eC
+.SH
+See Also
+.LP
+build(A).

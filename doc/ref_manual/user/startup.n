@@ -1,0 +1,846 @@
+.\"	@(#)startup.n	1.15	96/03/19 13:09:08
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Documentation:  Gregory J. Sharp, 1990-1995
+	Modified:	Gregory J. Sharp, Mar 1996
+.aE
+.cH "Getting Started"
+This is a tutorial introduction for beginners which gives the basic information
+about how to log in and out,
+start up the window server,
+use some simple tools and navigate through the directory structure.
+The first section on logging in and out is intended to get you started quickly.
+It has been written with beginners in mind.
+.nH 1 "Logging In and Out" nobp
+.LP
+Before you can use \*(Am it is necessary to go to the system administrator
+and request a
+.I "user name" .
+.kW "logging in"
+This is the name by which you are known to the computer system.
+When allocated this name,
+resources will be set aside in the system for your use.
+This name is used to gain access to these and other system resources.
+.LP
+.kW password
+.kW security
+\*(Am uses passwords to prevent unauthorized use of users' accounts.
+When you are assigned a user name you must also give a password to go with
+the name.
+The password should be kept secret.
+.LP
+It is important to choose a password that will be difficult for others to
+guess.
+Names of wives,
+husbands,
+children,
+girlfriends or boyfriends are extremely bad choices of password.
+So are words from English or the local spoken language.
+Make sure,
+however,
+that the password is not too difficult to remember.
+There is a program to change your password and it should be used
+regularly to ensure security.
+.LP
+When you want to use \*(Am it will require you to give your user name and
+password before permitting you to access the system.
+This is known as
+.I "logging in" .
+.LP
+To use \*(Am you need a workstation.
+When you sit down at a free workstation you will see a short text followed
+by the word
+.cW Username
+somewhere on the screen.
+For example:
+.sC
+\*(Vs login
+.sp 0.5v
+Username:
+.eC
+The system is asking you to identify yourself by typing in the user name
+assigned to you by the system administrator.
+Therefore in response to this you should type in your user name and then press
+the key labeled
+.I return .
+In response to this the computer will print:
+.sC
+Password:
+.eC
+You should type in your password.
+The computer will not show it on the screen as it is typed.
+Once you have typed your password you should once again press the
+.I return
+key.
+.LP
+If you typed your password incorrectly it will print the message
+.sC
+Incorrect user name or password
+.eC
+and begin the login sequence again.
+If any other error message is printed then consult the system administrator.
+.LP
+If you typed your password correctly then a command interpreter will be started.
+.kW shell
+A command interpreter is a program that accepts the commands typed
+at the keyboard and executes them.
+It will print a
+.I prompt
+to indicate that it is ready for you to enter commands.
+The prompt from the default command interpreter is
+.sC
+$
+.eC
+All the commands typed to the command interpreter are only executed
+after the
+.I return
+key is pressed.
+This is a signal to the computer that the whole command has been typed.
+In response to the prompt type the command
+.sC
+echo hello
+.eC
+Do not forget to press the
+.I return
+key after typing the two words.
+The system should respond by printing
+.sC
+hello
+.eC
+Another command to try is
+.I date .
+This should print \*(Am's idea of the current time.
+.LP
+As important as getting started and typing commands is knowing how to stop
+using the system.
+This is quite simple and is known as
+.I "logging out" .
+.kW "logging out"
+In response to the prompt
+.sC
+$
+.eC
+simply hold down the key labeled
+.I control
+and press the key for the character
+.I D .
+(It is not necessary to press the return key in this case!)
+The system may print a new line and then begin the login sequence.
+.nH 1 "Creating, Modifying and Destroying Files" nobp
+.LP
+As with most other computer systems,
+\*(Am provides files for the storage of data.
+.kW file
+A file is just an array of bytes.
+The file server distributed with \*(Am is called the \*(Bs.
+Users can create and modify files in many ways.
+.kW editor
+\*(Am comes with several text editors for creating and modifying human
+readable text.
+Manual pages describe each editor and there is a section later in this manual
+containing the reference manuals for the editors.
+There are several editors currently available.
+One is called
+.I elvis (U).
+.kW "\fIelvis\fP"
+.kW "\fIvi\fP"
+This is an imitation of the Berkeley
+.I vi
+editor,
+but provides some extra features as well.
+It has been linked to the names
+.I vi
+and
+.I ex
+under \*(Am.
+There is an Emacs-like editor called
+.kW "\fIjove\fP"
+.I jove (U)
+and an editor called
+.I ed (U)
+which is very similar to the
+.UX
+.I ed
+editor.
+.kW "\fIed\fP"
+.LP
+Files (and all other objects) are removed using the command
+.I del (U).
+.kW "\fIdel\fP"
+To actually destroy an object it is necessary to use the
+.B \(enf
+flag of
+.I del .
+The
+.B \(enf
+flag should only be used if it is certain that nobody else has a link to the
+object or if further access to the information in it must be denied.
+At present there are no reference counts kept for files, so a garbage collection
+mechanism is used to destroy any files no longer referred to by any links.
+.LP
+The
+.UX
+emulation also provides the
+.I rm
+command,
+but this does not destroy the file even with the
+.B \(enf
+flag.
+.kW "\fIrm\fP"
+It simply removes the directory entry.
+.nH 1 "Customizing Your Environment" nobp
+.LP
+As with most systems, there are many aspects of the user's environment that can
+be customized.
+.kW environment
+A very important choice for many people is that of command language interpreter.
+.kW shell
+The command language interpreter is known as the
+.I shell .
+At present there are three shells available.
+They are the MINIX shell
+.I /bin/sh
+(a clone of the
+.I "Bourne Shell" ),
+the Korn Shell
+.I /bin/ksh ,
+and
+.I /bin/tcsh .
+(The last is available as third-party software.)
+No doubt more shells will be ported to \*(Am in the future.
+.LP
+There are two types of environment variables under \*(Am.
+.kW process
+They are given to each process by the creator of the process and after the
+process starts they can only be modified by the process itself.
+.kW "string environment"
+The first is the traditional string environment provided by many operating
+systems.
+This provides a mapping from a string (the environment variable name) to an
+arbitrary string.
+Many programs use this to have a fixed way of referring to a file by
+referring to the variable name.
+The variable in turn contains the name of the file to use.
+.kW "capability environment"
+The second is the capability environment.
+This has a similar function to the string environment but maps the environment
+variable name to a capability.
+This is exactly the function of a directory
+(i.e., mapping a name to a capability),
+but is found inside the process' data and is not implemented with the
+semantics of a full directory server.
+.LP
+The simplest way to set up your initial environment is to modify the file
+called
+.I Environ
+.kW /Environ
+in the directory ``/\^''.
+This file contains your encrypted password,
+initial shell and items to add to your capability and string environments.
+It is executed once when you log in and sets the initial environments for your
+shell.
+.LP
+The first line of the file contains your password.
+This you can set using the program
+.I chpw .
+.kW "\fIchpw\fP"
+The other lines of the file can be modified using a text editor.
+(Be careful not to modify the password line of the file.)
+The syntax for lines to set string environment variables is:
+.sC
+setenv VARIABLE value
+.eC
+The syntax to set capability environment variables is:
+.sC
+setcap VARIABLE pathname
+.eC
+where
+.I pathname
+is a path in the directory server which can be looked up to return a capability
+to insert into the environment.
+(NB. The path is not put into the environment!)
+The initial shell is specified by the line:
+.sC
+exec command
+.eC
+Because the shells need
+.UX
+emulation, it is necessary to first start a
+.I session (U)
+server.
+The shell
+.kW "session server"
+does not start it automatically.
+The following lines in the environment file will start the
+.I session
+server and the shell
+.I /bin/sh :
+.kW "SPMASK environment variable"
+.sC
+setenv SHELL /bin/sh
+setenv SPMASK 0xff:0x2:0x4
+exec /profile/util/session -a /bin/sh
+.eC
+.LP
+.cW SPMASK
+is used to set the default column masks which control the directory entry
+protection.
+(For more information see the section below about directories and
+.I spmask (L).)
+It must be set in
+.I /Environ
+so that the session server also knows the value.
+Note that if this variable is altered in the shell there is no way of
+exporting the value to the session server,
+which creates many files for the shell.
+.LP
+In addition to the
+.I Environ
+files, many shells also have their own start up file(s) for configuring the
+environment.
+.kW .profile
+The two shells provided with \*(Am use the file called
+.I $HOME/.profile
+where
+.cW HOME
+is set by the
+.I login (A)
+program.
+.nH 1 "Starting X Windows" nobp
+.LP
+If the system being used has workstations with bitmapped displays,
+.kW "X windows"
+.kW "X terminal"
+such as a SPARCstation or an X terminal,
+it is possible to use the X window system.
+The binaries for X windows are normally found in the directory
+.I /profile/module/x11/bin .
+To use X windows, this directory must be in your path.
+To start X windows the following steps are required.
+.kW workstation
+If a workstation running \*(Am is being used, ensure that the 
+workstation is running an \*(Am workstation kernel.
+This has the necessary drivers for X windows.
+Then it is necessary to start an X server on the workstation.
+The system administrator can arrange for this to happen automatically using
+the
+.I boot (A)
+server.
+.LP
+If an X terminal is to be used, then when it starts up it is assumed that it is
+already running an X server.
+.kW "TCP/IP"
+It is necessary to have a TCP/IP server running on an \*(Am host when using
+an X terminal.
+The system administrator must arrange this.
+.LP
+The last step required is that the system administrator arrange that a login
+process (known as
+.I xlogin (A))
+.kW xlogin
+be started which communicates with the X server on the workstation.
+This will prompt for the user name and password in a similar manner to that
+previously described in the section on logging in.
+.LP
+Once logged in it is possible to start a window manager and create
+windows running on \*(Am.
+If there is a TCP/IP server available it is also possible to open windows where the processes run on a
+.UX
+system.
+See the section
+.I "Remote Login"
+later in this manual for details.
+.LP
+The best place from which to start a window manager and some windows is in
+.kW "window manager"
+your
+.I .profile
+file.
+This is normally kept in your login directory.
+This is a command script executed by your shell when you log in.
+Figure
+.fX
+gives an example of a
+.I .profile
+file which can optionally start X windows.
+.f1
+.sC
+.ps-1
+PS1="Amoeba> "
+PATH=.:/bin:/profile/util:/profile/module/x11/bin:
+TCP_SERVER=/profile/cap/ipsvr/tcp
+export PATH PS1 TCP_SERVER
+
+if [ X$DISPLAY != X ]
+then
+	TERM=xterm
+	export TERM
+	.mystartX
+else
+	echo -n 'TERM=(xterm)'
+	read answer
+	case $answer in
+	"") TERM=xterm;;
+	*) TERM=$answer;;
+	esac
+	export TERM
+fi
+.ps
+.eC
+.f2
+An example
+.I .profile
+file
+.f3
+.LP
+The
+.I .profile
+calls the script
+.I .mystartX
+to start up X windows so that it is done in a separate process from the
+login session.
+This is necessary due to peculiarities with signals and X windows.
+The script
+.I .mystartX
+might be as in
+.fX .
+.f1
+.sC
+.ps-1
+#!/bin/sh
+xrdb -nocpp $HOME/.Xresources
+twm &
+sleep 4
+xclock -geometry 80x80-2+2 -analog &
+xload -geometry 140x80-88+2 &
+xbiff -geometry 50x50-2+89 -file /home/mailbox &
+.ps
+.eC
+.f2
+An example
+.I .mystartX
+script
+.f3
+.LP
+When you log in on a machine running an X server it is customary to start an
+.I xterm
+.kW xterm
+window.
+.kW shell
+A shell will run in the xterm window and will execute your
+.I .profile .
+The first few lines of the
+.I .profile
+will set some important string environment
+variables.
+.kW "TCP/IP"
+It is important to note that if the variable
+.cW TCP_SERVER
+is not set, then you will use the default TCP/IP server.
+This may result in poor performance if this server is overloaded.
+The
+.cW PATH
+environment variable tells the shell where to look for the commands that it
+should execute.
+The
+.cW PS1
+variable describes what the primary command prompt should look like.
+.LP
+The
+.I if
+statement is checking to see if the workstation is running an X server.
+If not then it enquires whether the terminal type is a
+.I xterm .
+If it is just press return.
+(The type
+.I xterm
+should be replaced with the terminal most commonly used.)
+Otherwise fill in the name of the terminal type as described in the file
+.I /etc/termcap .
+.kW termcap
+If unsure about this information consult the system administrator.
+.LP
+If there is an X server running then the terminal type is set to
+.I xterm.
+Then the
+X resources data base is constructed,
+the
+.I twm
+window manager started and then two simple X utilities are started.
+.LP
+For further details it is recommended that you consult the X windows
+documentation and/or an experienced X windows user.
+.nH 1 "Directories" nobp
+.LP
+The directory server provides a way of naming objects.
+.kW "directory server"
+It does this by mapping human readable strings to capabilities.
+The name used to reference an object is known as a
+.I "path name" .
+Under \*(Am your login directory has the name ``/\^'' (pronounced slash).
+.kW ASCII
+All other directory names are ASCII strings not containing the character ``/\^''
+and a path name is simply a list of names separated by slashes.
+All but the last name must be directory names.
+There are several programs for examining the directory structure and
+adding and deleting directories.
+.LP
+If a path name begins with ``/\^'' then it is absolute from your login directory.
+An example of an absolute path name is:
+.sC
+/profile/cap/bulletsvr/default
+.eC
+Using the shells provided with \*(Am it is possible to move about within the
+directory structure and the system will remember the current directory.
+If a path name does not begin with a ``/\^'' then it is interpreted as being
+relative to the current directory.
+.LP
+Unlike many other directory systems,
+the \*(Am directory server does not enforce a hierarchical tree structure.
+It allows an arbitrary graph with cycles and cross links.
+To assist in the navigation through the source tree there are two special
+directory names defined.
+The first is ``.'' (pronounced dot) and refers to the current directory.
+The second is ``..'' (pronounced dot dot) and refers to the previous directory
+in the current path name.
+The names ``.'' and ``..'' cannot be referred to as real directories but are
+interpreted by the directory path look-up software.
+Attempts to modify ``.'' or ``..'' entries will fail.
+(Note that this avoids the problem with the
+.UX
+definition of ``.'' and ``..'' which do not return along symbolic links.)
+.nH 2 "The Soap Directory Server"
+.LP
+The name (or directory) server distributed with \*(Am is called
+.kW SOAP
+.I Soap .
+It maps ASCII names to capabilities.
+Unlike many other systems, the directory structure is not a tree.
+It is a arbitrary directed graph containing cycles.
+.nH 2 "The Directory Graph"
+.LP
+.kW "directory graph structure"
+The graph in
+.fX
+shows the standard directory structure for \*(Am,
+starting from the root directory for user
+.I Tom .
+(NB. there may be some variation from site to site.)
+This should provide some idea of how to find things.
+Remember that the root directory for each user is his login directory.
+Also note that the link
+.I /profile
+restricts access rights so
+.I /profile/group/users/tom
+will have fewer rights than the directory
+.I / ,
+although they both refer to the same object.
+.LP
+The directories
+.I /bin ,
+.I /etc ,
+.I /lib
+and
+.I /usr
+contain various files necessary for the
+.UX 
+emulation.
+.LP
+.f1
+.PS
+.ps-1
+.vs-1
+define row { [
+	box $1
+] }
+boxht = 0.2; boxwid = 0.6
+down
+# Slash - the login directory
+box invis "/"
+row("Environ")
+BIN: row("bin/")
+DEV: row("dev/")
+ETC: row("etc/")
+HOM: row("home/")
+ETC: row("lib/")
+PRO: row("profile/")
+TMP: row("tmp/")
+USR: row("usr/")
+# draw the dev directory
+move to DEV.e
+arrow up boxht*4 right 1.1; right
+C:row("console")
+move to C.s; down
+row("dead/")
+row("null")
+row("proc/")
+row("session")
+# draw the home directory
+move to HOM.e
+arrow up boxht*2 right 0.25; right
+H: row(".profile")
+move to H.s; down
+row("hello.c")
+row("...")
+# draw the tmp directory
+move to TMP.e; right
+arrow down boxht right 0.25; right
+row("Ex0264")
+# draw the profile directory
+move to PRO.e
+arrow up boxht right 1.1; right
+PCAP: row("cap/")
+move to PCAP.s; down
+PGRP: row("group/")
+PMOD: row("module/")
+POOL: row("pool/")
+PUTL: row("util/")
+move to PGRP.e
+arrow up boxht*2 right 0.25; right
+# draw groups directory
+G1: row("coffee/")
+move to G1.s; down
+row("phd/")
+GSTAF:row("staff/")
+GSTUD:row("student/")
+GU:row("users/")
+# draw users directory
+move to GU.e right 0.25; right
+U1: row("ast/")
+move to U1.s; down
+U2:row("tom/")
+row(".\ .\ .");
+# tom is a student
+move to GSTUD.e
+arrow up boxht*2 right 0.25; right
+S1:row("tom/")
+arrow right 0.8 "Link back" "to slash"
+move to S1.s; down
+row(".\ .\ .");
+# link group/users to users and profile/group to users
+arrow from GU.e to U1.w
+move to U2.e
+arrow right 0.8 "Link back" "to slash"
+.PE
+.f2
+The Directory Structure as seen by user \fITom\fP.
+Names that end with a / are directories.
+.f3
+.nH 2 "Commands for Soap"
+.LP
+For the user there are six basic commands for manipulating,
+and getting information from,
+directories:
+.IP \fBdir\fP 5
+.kW "\fIdir\fP"
+list the contents of a directory.
+.IP \fBdel\fP
+.kW "\fIdel\fP"
+delete an entry in a directory and optionally the associated object.
+.IP \fBmkd\fP
+.kW "\fImkd\fP"
+create a new directory.
+.IP \fBchm\fP
+.kW "\fIchm\fP"
+change the mode of a directory entry.
+.IP \fBget\fP
+.kW "\fIget\fP"
+get the capability-set associated with a directory entry and write
+it on standard output.
+.IP \fBput\fP
+.kW "\fIput\fP"
+take a capability-set from standard input and create the named
+directory entry.
+.LP
+These commands are described in the manual pages of this volume.
+It is worth learning how they differ from the
+.UX
+equivalents.
+.nH 2 "The Structure of a Directory"
+.LP
+A directory is a two-dimensional matrix.
+.kW ASCII
+Each row and column is labeled by an ASCII string.
+Within a directory, all row and column names are unique.
+Also associated with each row is a set of capabilities.
+.kW "capability-set"
+.kW ASCII
+Each row maps its ASCII name to the set of capabilities in that row.
+The columns describe the access rights of the different groups that
+have access to the objects.
+.LP
+For example, a directory could be set up with three columns: the
+owner, the owner's group, and others, as in
+.UX .
+The directory shown below handles the binding for two files,
+.I README
+and
+.I x.c ,
+and a directory
+.I profile .
+.sp
+.TS
+center, box, tab(:);
+c  | c | ci | ci | ci
+li | c | c  | c  | c.
+Name:Cap set:Owner:Group:Other
+=
+README:file 1:111:100:100
+_
+profile:directory:111:110:100
+_
+x.c:file 2:110:100:000
+.TE
+.sp
+The owner of the directory has defined three
+access groups: the owner, group members, and others with whom
+the owner may share these objects.
+.kW "column mask"
+Each entry contains a set of three rights mask bits, for example, for
+read, write, and delete respectively.
+In our example, users that are in the same group as the owner of this
+directory are not allowed to write or delete the file
+.I x.c .
+Others are not allowed any access to this file.
+To prevent accidents, the owner has also turned off the delete right.
+.LP
+Although an object pointed to by the
+.I owner ,
+.I group
+and
+.I other
+columns is one and the same object, the capabilities for them are not,
+because they have different access rights.
+Thus these capabilities will have different Rights and Check fields.
+.LP
+A capability for a directory specifies a particular column (or
+columns).
+For example,
+a capability which is only good for
+.I group
+members will not return
+capabilities with all the rights bits on, but will restrict them
+according to the rights mask in the
+.I group
+column.
+The directory service can generate restricted capabilities for the various
+columns on-the-fly as needed, but it can also decide to cache them,
+at its discretion.
+.LP
+When a new version of an object is available, the owner presents the
+directory service with a new \fB(\fPname, capability\fB)\fP pair.
+If this is replacing an existing directory entry, all the capabilities
+in the directory entry are replaced with the new capability.
+Extra replicas of the new object may be created automatically by the object
+manager.
+.nH 3 "Operations on Directories"
+.LP
+The bits in the
+.I "Rights Field"
+in a capability for a directory are defined as follows:
+.IP "bits 0-3" 7
+These bits tell which columns in the directory may be accessed for
+look-up.
+Bit 0 is set if the first column may be accessed, bit 1 if the second
+column may be accessed, etc\. to a maximum of four columns.
+The rights mask to be used for creating the capability in a look-up
+operation is formed by OR-ing together the masks in the accessible
+columns.
+.IP "bits 4-5"
+These bits are reserved for future use.
+.IP "bit 6"
+This bit gives the right to modify the directory, that is, adding,
+deleting and changing rows in the directory.
+.IP "bit 7"
+.ne 3
+This bit gives the right to delete a directory.
+Note that non-empty directories can be removed.
+.LP
+Note that other directory operations, such as listing the names of
+rows and columns, are available to any holder of a capability.
+They are not protected by rights bits.
+.nH 1 "Tools and Languages" nobp
+.LP
+\*(Am provides several programming tools and languages.
+Besides many of the standard tools from
+.kW "programming tools"
+.UX ,
+such as
+.I yacc ,
+there is a version management system for building programs and keeping them
+up to date.
+This program is called
+.I amake (U).
+.kW "\fIamake\fP"
+For most uses, all that is necessary is to include the standard tools and
+provide a list of source files plus the name of the object to be made.
+All the dependency information is deduced and checked by
+.I amake .
+.LP
+\*(Am is distributed with compilers made using the Amsterdam Compiler Kit (ACK)
+which is described in some detail in the programming guide.
+It provides several languages and can generate code for many different
+kinds of machine.
+.kW ACK
+.kW compiler
+It can be used for cross-compiling when porting code to new systems.
+The programming languages C,
+Pascal,
+FORTRAN\ 77, BASIC
+and Modula 2 are provided.
+In addition assemblers are provided for several architectures.
+The GNU C compiler is available as third-party software.
+The Vrije Universiteit also provides an \*(Am version of the language Orca
+which was specifically designed for parallel programming.
+In addition there are several other programming tools.
+How to use all these tools is described briefly in the manual pages and in
+detail in the
+.I "Programming Guide" .
+.nH 2 "Debugging"
+.LP
+At present there is very limited support for debugging programs.
+The GNU debugger is available as third-party software.
+It provides symbolic debugging and has support for threads.
+.LP
+There are tools for analyzing core dumps such as
+.kW "core dump"
+.kW "\fInm\fP"
+.I nm (U)
+and
+.kW "\fIpdump\fP"
+.I pdump (U).
+Note that to get core dumps it is necessary to make the directory
+.I /dev/dead.
+Core dumps are stored here with as file name the process id of the process
+that dumped core.
+This number is printed when the core dump is made so that it is easy to find.
+It is important to clean out this directory from time to time to avoid
+filling up your disk.
+.LP
+Another tool which is useful for debugging suitably instrumented servers
+is the
+.kW "\fImonitor\fP"
+.I monitor (U)
+command.
+The server must be compiled with monitoring macros in it before this can be
+used.
+.LP
+There is also support for profiling user programs to look for performance
+bottlenecks.
+See
+.I gprof (U)
+and
+.I profiling(L)
+for further details.
+.nH 1 "On-line Help" nobp
+.LP
+The on-line help is provided by the command
+.I aman (U).
+.kW "\fIaman\fP"
+.kW help
+It provides possibilities for keyword searches of the manuals as well as
+selecting and displaying manual pages.

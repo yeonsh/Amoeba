@@ -1,0 +1,19 @@
+/*	@(#)boot.gen	1.2	94/04/06 11:38:04 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#include "bootsvr.cls"
+
+generate boot_svr {
+    Act_deact(obj_ptr, boot_act, deact);
+    _Post_deact;
+    Pass_acttype;
+    server(monitor, rights_check);	/* ml_boot_svr.c */
+};
+
+generate boot {
+    client_stubs(boot_shutdown);	/* boot_shutdown.c */
+};

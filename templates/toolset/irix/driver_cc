@@ -1,0 +1,21 @@
+#!/bin/sh
+#	
+#	@(#)driver_cc	1.2	94/04/05 17:05:34
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Shell script to compile unix kernel sources.
+# Usage: driver_cc source cc-flags
+#
+case $1 in
+*.c)	;;
+*)	echo Usage: $0 source cflags
+	exit
+esac
+source=$1
+shift
+set -e
+cc -c -I -DECLIPSE -DIP6 -D -D_KERNEL -g -G 8 -prototypes -DDEFAULTSEMAMETER=0 -DSPLOCKMETER=0  $@ $source

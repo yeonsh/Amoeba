@@ -1,0 +1,16 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 16:58:11
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+H_RRPC_FILES = {
+	$PWD/msg_rpc.h,
+	$PWD/rpc_ctxt.h,
+	$PWD/rpc_err.h,
+	$PWD/rpc_group.h,
+	$PWD/rpc_msg.h,
+	$PWD/rpc_msgdefs.h,
+	$PWD/rpc_types.h,
+};

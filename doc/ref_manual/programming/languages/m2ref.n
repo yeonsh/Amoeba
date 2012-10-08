@@ -1,0 +1,555 @@
+.\"	@(#)m2ref.n	1.8	96/02/16 13:28:25
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Ceriel J.H. Jacobs
+	Modified: Gregory J. Sharp, 14 November 1990
+		  Gregory J. Sharp, Feb 1996
+.aE
+.bp
+.nH 2 "ACK Modula-2 Compiler Compliance Statements"
+.nH 3 "Introduction"
+.LP
+.kW ACK
+.kW "Modula-2"
+.kW "Modula-2 conformance"
+This document describes the implementation-specific features of the
+ACK Modula-2 compiler.
+It is not intended to teach Modula-2 programming.
+For a description of the Modula-2 language, the reader is referred to [1].
+.LP
+The ACK Modula-2 compiler is currently available for use with the VAX,
+Motorola MC680x0
+and Intel 80x86 code-generators.
+For the 80x86, and MC680x0,
+floating point emulation is used.
+This is made available with the
+.B \(enfp
+option, which must be passed to
+.I ack .
+.nH 3 "The Language Implementation"
+.LP
+This section discusses the deviations from the Modula-2 language as described
+in the
+.I "Report on The Programming Language Modula-2" ,
+as it appeared in [1],
+from now on referred to as
+.I "the Report" .
+Also, the Report sometimes leaves room for interpretation.
+The section numbers mentioned are the section numbers of the Report.
+.nH 4 "Syntax (section 2)"
+.LP
+The syntax recognized is that of the Report, with some extensions to
+also recognize the syntax of an earlier definition, given in [2].
+Only one compilation unit per file is accepted.
+.nH 4 "Vocabulary and Representation (section 3)"
+.LP
+The input ``10..'' is parsed as two tokens: ``10'' and ``..''.
+.LP
+The empty string ``'' has type
+.sC
+ARRAY [0 .. 0] OF CHAR
+.eC
+and contains one character: 0.
+.LP
+When the text of a comment starts with a '$', it may be a pragma.
+Currently, the following pragmas exist:
+.sC
+(*$F      (F stands for Foreign) *)
+(*$R[+|-] (Run-time checks, on or off, default on) *)
+(*$A[+|-] (Array bound checks, on or off, default off) *)
+(*$U      (Allow for underscores within identifiers) *)
+.eC
+The Foreign pragma is only meaningful in a
+.cW "DEFINITION MODULE" ,
+and indicates that this
+.cW "DEFINITION MODULE"
+describes an interface to a module written in another
+language (for instance C, Pascal, or
+.cW EM ).
+Run-time checks that can be disabled are:
+range checks,
+.cW CARDINAL
+overflow checks,
+checks when assigning a
+.cW CARDINAL
+to an
+.cW INTEGER
+and vice versa,
+and checks that
+.cW FOR -loop
+control-variables are not changed in the body of the loop.
+Array bound checks can be enabled, because many
+.kW EM
+.cW EM
+implementations do not implement the array bound checking of the
+.cW EM
+array instructions.
+When enabled, the compiler generates a check before generating an
+.cW EM
+array instruction.
+Even when underscores are enabled, they still may not start an identifier.
+.LP
+Constants of type
+.cW LONGINT
+are integers with a suffix letter
+.cW D
+(for instance
+.cW 1987D ).
+Constants of type
+.cW LONGREAL
+have suffix
+.cW D
+if a scale factor is missing,
+or have
+.cW D
+in place of
+.cW E
+in the scale factor (for example,
+.cW 1.0D ,
+.cW 0.314D1 ).
+This addition was made, because there was no way to indicate long constants,
+and also because the addition was made in Wirth's newest Modula-2 compiler.
+.nH 4 "Declarations and Scope Rules (section 4)"
+.LP
+Standard identifiers are considered to be predeclared, and valid in all
+parts of a program.
+They are called
+.I pervasive .
+Unfortunately, the Report does not state how this pervasiveness is accomplished.
+However, page 87 of [1] states: ``Standard identifiers are automatically
+imported into all modules''.
+Our implementation therefore allows redeclarations of standard identifiers
+within procedures, but not within modules.
+.nH 4 "Constant Expressions (section 5)"
+.LP
+Each operand of a constant expression must be a constant:
+a string, a number, a set, an enumeration literal, a qualifier denoting a
+constant expression, a type transfer with a constant argument, or
+one of the standard procedures
+.cW ABS ,
+.cW CAP ,
+.cW CHR ,
+.cW LONG ,
+.cW MAX ,
+.cW MIN ,
+.cW ODD ,
+.cW ORD ,
+.cW SIZE ,
+.cW SHORT ,
+.cW TSIZE ,
+or
+.cW VAL ,
+with constant argument(s);
+.cW TSIZE
+and
+.cW SIZE
+may also have a variable as argument.
+.LP
+Floating point expressions are never evaluated compile time, because
+the compiler basically functions as a cross-compiler, and thus cannot
+use the floating point instructions of the machine on which it runs.
+Also,
+.cW MAX(REAL)
+and
+.cW MIN(REAL)
+are not allowed.
+.nH 4 "Type Declarations (section 6)"
+.nH 5 "Basic Types (section 6.1)"
+.LP
+The type
+.cW CHAR
+includes the ASCII character set as a subset.
+Values range from
+.cW 0C
+to
+.cW 377C ,
+not from
+.cW 0C
+to
+.cW 177C .
+.nH 5 "Enumerations (section 6.2)"
+.LP
+The maximum number of enumeration literals in any one enumeration type
+is
+.cW MAX(INTEGER) .
+.nH 5 "Record Types (section 6.5)"
+.LP
+The syntax of variant sections in [1] is different from the one in [2].
+Our implementation recognizes both, giving a warning for the older one.
+However, see section 3.
+.nH 5 "Set Types (section 6.6)"
+.LP
+The only limitation imposed by the compiler is that the base type of the
+set must be a subrange type, an enumeration type,
+.cW CHAR ,
+or
+.cW BOOLEAN .
+So, the lower bound may be negative.
+However, if a negative lower bound is used,
+the compiler gives a warning of the
+.I restricted
+class (see the manual page of the compiler).
+.LP
+The standard type
+.cW BITSET
+is defined as
+.sC
+TYPE BITSET = SET OF [0 .. 8*SIZE(INTEGER)-1];
+.eC
+.nH 4 "Expressions (section 8)"
+.nH 5 "Operators (section 8.2)"
+.SH
+Arithmetic Operators (section 8.2.1)
+.LP
+The Report does not specify the priority of the unary
+operators
+.cW +
+or
+.cW - :
+It does not specify whether
+.sC
+- 1 + 1
+.eC
+means
+.sC
+- (1 + 1)
+.eC
+or
+.sC
+(-1) + 1
+.eC
+Some compilers implement the first alternative, and others
+that implement the second.
+Our compiler implements the second, which is
+suggested by the fact that their priority is not specified, which might
+indicate that it is the same as that of their binary counterparts.
+And then the rule about left to right decides for the second.
+On the other hand, one might argue that, since the grammar only allows
+for one unary operator in a simple expression, it must apply to the
+whole simple expression, not just the first term.
+.nH 4 "Statements (section 9)"
+.nH 5 "Assignments (section 9.1)"
+.LP
+The Report does not define the evaluation order in an assignment.
+Our compiler certainly chooses an evaluation order, but it is explicitly
+left undefined.
+Therefore, programs that depend on it, may cease to work later.
+.LP
+The types
+.cW INTEGER
+and
+.cW CARDINAL
+are assignment-compatible with
+.cW LONGINT ,
+and
+.cW REAL
+is assignment-compatible with
+.cW LONGREAL .
+.nH 5 "Case Statements (section 9.5)"
+.LP
+The size of the type of the case-expression must be less than or equal to
+the word-size.
+.LP
+The Report does not specify what happens if the value of the case-expression
+does not occur as a label of any case, and there is no
+.cW ELSE -part.
+In our implementation, this results in a run-time error.
+.nH 5 "For Statements (section 9.8)"
+.LP
+The Report does not specify the legal types for a control variable.
+Our implementation allows the basic types (except
+.cW REAL ),
+enumeration types, and subranges.
+A run-time warning is generated when the value of the control variable
+is changed by the statement sequence that forms the body of the loop,
+unless run-time checking is disabled.
+.nH 5 "Return and Exit Statements (section 9.11)"
+.LP
+The Report does not specify which result-types are legal.
+Our implementation allows any result type.
+.nH 4 "Procedure Declarations (section 10)"
+.LP
+Function procedures must exit through a
+.cW RETURN
+statement, or a run-time error occurs.
+.nH 5 "Standard Procedures (section 10.2)"
+.LP
+Our implementation supports
+.cW NEW
+and
+.cW DISPOSE
+for backwards compatibility,
+but issues warnings for their use.
+However, see section 3.
+.LP
+Also, some new standard procedures were added, similar to the new standard
+procedures in Wirth's newest compiler:
+.IP \-
+.cW LONG
+converts an argument of type
+.cW INTEGER
+or
+.cW REAL
+to the
+types
+.cW LONGINT
+or
+.cW LONGREAL .
+.IP \-
+.cW SHORT
+performs the inverse transformation, without range checks.
+.IP \-
+.cW FLOATD
+is analogous to
+.cW FLOAT ,
+but yields a result of type
+.cW LONGREAL .
+.IP \-
+.cW TRUNCD
+is analogous to
+.cW TRUNC ,
+but yields a result of type
+.cW LONGINT .
+.nH 4 "System-dependent Facilities (section 12)"
+.LP
+The type
+.cW BYTE
+is added to the
+.cW SYSTEM
+module.
+It occupies a storage unit of 8 bits.
+.cW "ARRAY OF BYTE"
+has a similar effect to
+.cW "ARRAY OF WORD" ,
+but is safer.
+In some obscure cases the
+.cW "ARRAY OF WORD"
+mechanism does not quite work properly.
+.LP
+The procedure
+.cW IOTRANSFER
+is not implemented.
+.nH 3 "Backwards Compatibility"
+.LP
+Besides recognizing the language as described in [1], the compiler recognizes
+most of the language described in [2], for backwards compatibility.
+It warns the user for old-fashioned
+constructions (constructions that [1] does not allow).
+If the
+.B \(enRm2\(en3
+option is passed to
+.I ack ,
+this backwards compatibility feature is disabled.
+Also, it may not be present on some smaller machines, like the PDP-11.
+.nH 3 "Compile-Time Errors"
+.LP
+The compile-time error messages are intended to be self-explanatory,
+and not listed here.
+The compiler also sometimes issues warnings,
+recognizable by a warning-classification between parentheses.
+Currently, there are 3 classifications:
+.IP "(old-fashioned use)"
+.br
+These warnings are given on constructions that are not allowed by [1], but are
+allowed by [2].
+.IP (strict)
+.br
+These warnings are given on constructions that are supported by the
+ACK Modula-2 compiler, but might not be supported by others.
+Examples: functions returning structured types, SET types of subranges with
+negative lower bound.
+.IP (warning)
+.br
+The other warnings, such as warnings about variables that are never assigned,
+never used, etc.
+.nH 3 "Run-time Errors"
+.LP
+The ACK Modula-2 compiler produces code for an
+.cW EM
+machine.
+Therefore, it depends on the implementation
+of the
+.cW EM
+machine for detection some of the run-time errors that could occur.
+.LP
+The
+.I Traps
+module enables the user to install his own run-time error handler.
+The default one just displays what happened and exits.
+Basically, a trap handler is just a procedure that takes an INTEGER as
+parameter.
+The INTEGER is the trap number.
+This INTEGER can be one of the
+.cW EM
+trap numbers, or one of the numbers listed in the
+.I Traps
+definition module.
+.LP
+The following run-time errors may occur:
+.IP "array bound error"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "range bound error"
+.br
+Range bound errors are always detected, unless run-time checks are disabled.
+.IP "set bound error"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+The current implementations detect this error.
+.IP "integer overflow"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "cardinal overflow"
+.br
+This error is detected, unless run-time checks are disabled.
+.IP "cardinal underflow"
+.br
+This error is detected, unless run-time checks are disabled.
+.IP "real overflow"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "real underflow"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "divide by 0"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "divide by 0.0"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "undefined integer"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "undefined real"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "conversion error"
+.br
+This error occurs when assigning a negative value of type INTEGER to a
+variable of type CARDINAL,
+or when assigning a value of CARDINAL, that is > MAX(INTEGER), to a
+variable of type INTEGER.
+It is detected, unless run-time checking is disabled.
+.IP "stack overflow"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+.IP "heap overflow"
+.br
+The detection of this error depends on the
+.cW EM
+implementation.
+Might happen when ALLOCATE fails.
+.IP "case error"
+.br
+This error occurs when non of the cases in a CASE statement are selected,
+and the CASE statement has no ELSE part.
+The detection of this error depends on the
+.cW EM
+implementation.
+All current
+.cW EM
+implementations detect this error.
+.IP "stack size of process too large"
+.br
+This is most likely to happen if the reserved space for a coroutine stack
+is too small.
+In this case, increase the size of the area given to
+.cW NEWPROCESS .
+It can also happen if the stack needed for the main
+process is too large and there are coroutines.
+In this case, the only fix is
+to reduce the stack size needed by the main process, for example,
+by avoiding local arrays.
+.IP "too many nested traps + handlers"
+.br
+This error can only occur when the user has installed his own trap handler.
+It means that during execution of the trap handler another trap has occurred,
+and that several times.
+In some cases, this is an error because of overflow of some internal tables.
+.IP "no RETURN from function procedure"
+.br
+This error occurs when a function procedure does not return properly
+(``falls through'').
+.IP "illegal instruction"
+.br
+This error might occur when you use floating point operations on an
+implementation that does not have floating point.
+.LP
+In addition, some of the library modules may give error messages.
+The
+.I Traps -module
+has a suitable mechanism for this.
+.nH 3 "Invoking the Compiler"
+.LP
+Details of how to invoke the compiler can be found in
+.I ack (U)
+and
+.I m2 (U).
+.LP
+This compiler itself has no version checking mechanism.
+A special linker would be needed to do that.
+.nH 3 "The Procedure Call Interface"
+.LP
+Parameters are pushed on the stack in reverse order, so that the
+.cW EM
+AB
+(argument base) register indicates the first parameter.
+For VAR parameters, its address is passed, for value parameters its value.
+The only exception to this rule is with conformant arrays.
+For conformant arrays, the address is passed, and an array descriptor is
+passed.
+The descriptor is an
+.cW EM
+array descriptor.
+It consists of three
+fields: the lower bound (always 0), upper bound - lower bound, and the
+size of the elements.
+The descriptor is pushed first.
+If the parameter is a value parameter, the called routine must make sure
+that its value is never changed, for instance by making its own copy
+of the array.
+The Modula-2 compiler does exactly this.
+.LP
+When the size of the return value of a function procedure is larger than
+the maximum of
+.cW SIZE(LONGREAL)
+and twice the pointer-size, the caller
+reserves this space on the stack, above the parameters.
+The callee then stores its result there, and returns no other value.
+.nH 3 "References"
+.IP [1]
+Niklaus Wirth,
+.I
+Programming in Modula-2, third, corrected edition,
+.R
+Springer-Verlag, Berlin (1985)
+.IP [2]
+Niklaus Wirth,
+.I
+Programming in Modula-2,
+.R
+Stringer-Verlag, Berlin (1983)

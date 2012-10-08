@@ -1,0 +1,43 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/27 11:52:51
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $SRC_ROOT/kernel/protocol/flip/Amake.srclist;
+%include $SRC_ROOT/kernel/protocol/generic/Amake.srclist;
+%include $SRC_ROOT/kernel/sys/Amake.srclist;
+%include $SRC_ROOT/lib/libam/crypt/Amake.srclist;
+%include $SRC_ROOT/lib/libam/flip/Amake.srclist;
+
+
+U_FLIP_DRIVER_COMMON = {
+	$K_UPACKET,
+	$K_FLIP_SYS,
+	$K_FLIP_CONF,
+	$K_FLIP_RPC,
+	$K_SYS_SWEEPER,
+	$L_AM_DES,
+	$PWD/ux_int.c,
+	$PWD/ux_glue.c,
+	$PWD/ux_rpc_int.c,
+	$PWD/ux_ctrl_int.c,
+	$PWD/ux_ip_int.c,
+	$PWD/flipether.c,
+	$L_AM_FLIPONEWAY,
+	$L_AM_CRYPT
+};
+
+U_FLIP_DRIVER_SUNOS411 = {
+	$PWD/vdflip.c,
+	$PWD/netconf.c
+};
+
+U_FLCTRL_STAT = $PWD/flip_stat.c;
+U_FLCTRL_DUMP = $PWD/flip_dump.c;
+U_FL_TCP = {
+	$PWD/fl_tcp.c,
+	$K_UPACKET,
+	$K_PKTPRT
+};

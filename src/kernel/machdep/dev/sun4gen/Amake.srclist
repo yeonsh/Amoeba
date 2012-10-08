@@ -1,0 +1,30 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 14:26:53
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_DEV_SUN4GEN_UART = {
+	$PWD/uart.c,
+	$PWD/uart.init
+};
+
+K_DEV_SUN4GEN_TOD = {
+	$PWD/tod.c,
+	$PWD/tod.init
+};
+
+K_DEV_SUN4GEN_IOP = {
+	$PWD/iop.c,
+	$PWD/iop.init
+};
+
+K_DEV_SUN4GEN_OPENPROM = $PWD/openprom.c;
+
+K_DEV_SUN4GEN_KPARAM = $PWD/getkparams.c;
+
+K_DEV_SUN4GEN_SCSI = {
+	$PWD/ncr539X.c,
+	$PWD/ncr539X.h,
+};

@@ -1,0 +1,297 @@
+.\"	@(#)reserve.n	1.1	96/02/16 11:07:00
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Kees Verstoep, May 1994
+        Document: Gregory J. Sharp and Kees Verstoep, July 1994
+	Modified: Gregory J. Sharp, Nov 1995 - don't refer to Amoeba so much.
+.aE
+.mT "reserve" U
+make host reservation
+.SH
+Synopsis
+.LP
+.sC L
+reserve [-# nhosts] [-a arch] [-b command] [-c res-cap]
+        [-p pool] [-s start-time] [-t duration]
+.eC
+.SH
+Description
+.LP
+.kW "host reservation server"
+.kW "batch jobs"
+.kW "process execution"
+.kW "group communication"
+.kW "Orca"
+.LP
+The command
+.I reserve
+is the user interface of the host reservation system.
+The reservation system implements processor access restrictions and
+it provides support for batch jobs.
+By means of a host reservation,
+a user can get
+.I exclusive
+access to a specified number of hosts for a given period of time.
+This is useful for conducting controlled experiments,
+e.g.,
+measuring the timing of a parallel Orca program.
+.LP
+A host reserveration specifies the number and type of hosts,
+a duration and an optional start time.
+It may also include an optional command to be executed once the resources
+have been acquired.
+This command will be added to the batch queue.
+If no batch command is specified,
+the selected hosts are made available to the user in a private pool,
+which can be used as needed during the reservation period.
+.LP
+A reservation implies exclusive use of certain resources.
+.\" Therefore different levels of users will have different restrictions on
+.\" which resources they can acquire.
+During certain hours there may be permanent reservations for the general
+use of machines.
+That is, no individual can obtain exclusive access to resources.
+For example, on Monday to Friday,
+from 08:00-20:00,
+it will typically not be possible to reserve the entire system.
+Such non-exclusive reservations are predefined in a file which is under
+the control of the system manager.
+.LP
+Whenever a reservation has been made,
+.\" either in the form of a batch job or just a fixed time-slot,
+a capability for the reservation will be returned.
+The capability can be used to get status information about the reservation
+or to cancel the reservation when it is no longer needed.
+.LP
+Reservervations are executed as follows.
+First the reservation system checks that all the requested hosts
+are still alive.
+If some hosts are down,
+it will try to substitute these with other hosts that are still available.
+If this is not possible,
+and the reservation was a batch command,
+the reservation is cancelled because its working is likely
+to depend on all the requested hosts being available.
+Otherwise,
+the hosts selected are reserved by letting them switch to a new
+capability for the duration of the reservation (which effectively makes
+them unavailable to other users).
+The modified host capabilities are stored in a new pool directory,
+which is created in the user's
+.I /profile/reserve
+directory.
+Any processes that were still running on the hosts are killed.
+If the reservation specified a batch command
+.I cmd ,
+it is started using a new session server (see
+.I session (A)):
+.sC
+session -a -b /bin/sh -c \fIcmd\fP
+.eC
+The batch command is started in the directory where the reservation was made.
+The path name of the pool directory is passed to the batch command
+in the environment variable \*<POOL\*>.
+.mH
+Options
+.LP
+.IP "\fB\-#\fP \fInhosts\fP"
+.br
+A total of
+.I nhosts
+processors are to be reserved.
+The default is all the hosts in the directory
+.I /profile/reserve/pool .
+This directory will typically have a subdirectory of
+hosts per host architecture.
+.IP "\fB\-a\fP \fIarch\fP"
+.br
+Only processors of type
+.I arch
+are to be reserved.
+The default is the whole processor pool specified.
+More than one
+.B \-a
+option may be specified.
+.IP "\fB\-b\fP \fIcommand\fP"
+.br
+This specifies that the command
+.I command
+be entered into the batch queue.
+If the
+.B \-s
+option was specified,
+the job is run at the time specified.
+Otherwise it is run at the first opportunity when all the required resources
+can be obtained.
+The command will be executed in the same execution environment
+(working directory, string and capability environment)
+as the
+.I reserve
+command itself.
+.IP "\fB\-c\fP \fIreservation-cap\fP"
+.br
+This option cancels the reservation specified by
+.I reservation-cap .
+The cancellation of a reservation can occur any time up until the end of
+the reserved period.
+If the reservation period has already begun,
+this command immediately releases all acquired resources.
+.\" Not yet implemented:
+.\" .IP \fB\-n\fP
+.\" The entire network is to be reserved.
+.\" This requires that all non-system processes will be killed.
+.\" If process migration is implemented then instead of being killed the
+.\" processes will be migrated to disk for the duration of the reservation
+.\" period.
+.IP "\fB\-p\fP \fIpooldir\fP"
+.br
+The processors for the reservation are to be taken from
+.I pooldir .
+This directory may contain one or more subdirectories,
+one for each architecture.
+The default processor pool is
+.I /profile/reserve/pool .
+.IP "\fB\-s\fP \fIstart-time\fP"
+.br
+This option specifies an absolute start time for the reservation.
+The syntax of the time specification is ``\*<[[mm]dd]hhmm\*>''
+(optional month and day, required hour and minutes).
+If this option is not present,
+the reservation server will schedule the reservation
+to start as soon as possible.
+The latter will depend on the allowed reservation periods,
+and possibly existing reservations.
+Information about all current reservations can be obtained by
+means of the command
+.sC
+std_status /profile/cap/reserver/default
+.eC
+.IP "\fB\-t\fP \fIduration\fP"
+.br
+.\" This argument
+.\" .B must
+.\" be present.
+This option specifies the length of the reservation in minutes.
+The default duration is 15 minutes.
+.\" If a batch job was specified and has not terminated it will be killed.
+When a batch job terminates,
+all the resources acquired for the reservation will be released,
+regardless of whether or not the maximum reservation time has expired.
+If a reservation was made without specifying a batch job then the
+resources will be for the exclusive use of the reserver for the entire
+time-period, regardless of the number of jobs executed.
+At the end of this period all acquired resources will be released.
+.mH
+Diagnostics
+.LP
+.I Reserve
+prints status information when a new reservation is made.
+This status information includes the start time and period of the
+new reservation and the names of the hosts selected.
+If a reservation cannot be made,
+.I reserve
+will print an error message describing the problem.
+.LP
+The reservation service sends a mail message
+to the user upon completion of a reservation.
+This message contains diagnostic information like start time,
+end time and (for batch jobs) exit status.
+It is also used to report any problems that may have occurred
+during the host reservation procedure or the construction of the
+temporary pool directory.
+.mH
+Files and Directories
+.LP
+.IP \fI/profile/reserve/pool\fP
+.br
+The default reservation pool directory.
+.IP \fI/profile/reserve/res.\*<id\*>\fR
+.br
+The capability of reservation with number
+.I id .
+This capability can be used to get status information,
+or to cancel the reservation.
+.IP \fI/profile/reserve/pool.\*<id\*>\fR
+.br
+The private pool corresponding to reservation with number
+.I id .
+It will be installed for the user during the reservation period.
+It will be removed by the reservation server afterwards.
+.IP \fI/profile/cap/reserver/default\fP
+.br
+The capability of the default reservation service.
+.mH
+Environment Variables
+.LP
+.IP \*<POOL\*>
+.br
+The pathname of the reserved pool passed to batch jobs.
+.LP
+.SH
+Examples
+.LP
+The command
+.sC
+reserve -# 4 -p /profile/gaxpool -a sparc -t 30
+.eC
+asks for a new reservation of thirty minutes for four sparc hosts
+obtained from
+.I /profile/gaxpool .
+If this can be done succesfully,
+status information of the following format will be returned:
+.sC
+versto: 1: Mon Jul 11 20:00:01 1994, 30 min:  zoo0[0-3]
+.eC
+To start a single Orca batch job on four sparc hosts from the default pool
+.I /profile/reserve/pool ,
+the following command can be used:
+.sC
+reserve -# 4 -a sparc -b 'gax -1 orcaprg 4 >gax.out 2>&1'
+.eC
+which might return the following:
+.sC
+versto: 2: Mon Jul 11 20:00:01 1994, 15 min:  zoo0[4-7]
+.eC
+Since no time is specified,
+the batch job is supposed to be ready within the default time limit
+of 15 minutes.
+Note that the batch command has to be quoted.
+Also note that the output is redirected to a file,
+because otherwise it would be written to the terminal device
+from which the reservation was made,
+which may no longer be available the moment the reservation is executed.
+.eC
+To cancel reservation number 2,
+the following command can be used:
+.sC
+reserve -c /profile/reserve/res.2
+.eC
+Status about all pending reservations can be retrieved using \*<std_status\*>:
+.sC
+std_status /profile/cap/reserver/default
+.eC
+This might produce the following output:
+.sC
+Reservations allowed 7 days in advance, except on:
+        Mon 8:00 - 20:00
+        Tue 8:00 - 20:00
+        Wed 8:00 - 20:00
+        Thu 8:00 - 20:00
+        Fri 8:00 - 20:00
+
+Hosts that can be reserved:
+        zoo0[0-7] zoo1[0-7] zoo2[0-7] zoo3[0-7] zoo4[0-7] zooseq 
+ 
+Current reservations:
+	versto: 1: Mon Jul 11 20:00:01 1994, 30 min:  zoo0[0-3]
+	versto: 2: Mon Jul 11 20:00:01 1994, 15 min:  zoo0[4-7]
+.eC
+.SH
+See Also
+.LP
+gax(U),
+session(U).

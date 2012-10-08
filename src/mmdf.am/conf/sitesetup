@@ -1,0 +1,57 @@
+: This shellfile must be run with a Bourne shell derivative, not csh.
+#	
+#	@(#)sitesetup	1.1	93/06/10 13:22:01
+#
+if test $# != 1
+then
+	echo "Usage: $0 host"
+	exit 1
+fi
+
+echo Removing old config files and linking in new ones
+set -x
+rm -f ../h/conf.h ../h/d_lock.h
+rm -f ../Makefile.com ../lib/Makefile ../src/Makefile
+rm -f ../lib/mmdf/chan.c ../lib/mmdf/conf.c
+rm -f ../lib/mmdf/conf.o ../lib/mmdf/chan.o
+rm -f ../lib/dial/conf_dial.c ../lib/dial/conf_dial.o
+rm -f ../uip/msg/msgtailor.c ../uip/msg/msgtailor.o
+rm -f ../uip/send/s_tailor.h ../uip/send/s_tailor.c
+rm -f ../uip/snd/s_tailor.h ../uip/snd/s_tailor.c
+rm -f ../uip/send/s_tailor.o ../uip/snd/s_tailor.o
+#if ln $1/conf.h ../h/conf.h
+#then
+#	touch ../h/conf.h
+#	ln $1/Makefile.com ../Makefile.com
+#	ln $1/Makefile.lib ../lib/Makefile
+#	ln $1/Makefile.src ../src/Makefile
+#	ln $1/chan.c ../lib/mmdf/chan.c
+#	ln $1/conf.c ../lib/mmdf/conf.c
+#	ln $1/conf_dial.c ../lib/dial/conf_dial.c
+#	ln $1/d_lock.h ../h/d_lock.h
+#	ln $1/msgtailor.c ../uip/msg/msgtailor.c
+#	ln $1/s_tailor.h ../uip/send/s_tailor.h 
+#	ln $1/s_tailor.h ../uip/snd/s_tailor.h 
+#	ln $1/s_tailor.c ../uip/send/s_tailor.c
+#	ln $1/s_tailor.c ../uip/snd/s_tailor.c
+#	exit 0
+#elif cp $1/conf.h ../h/conf.h
+if cp $1/conf.h ../h/conf.h
+then
+	touch ../h/conf.h
+	cp $1/Makefile.com ../Makefile.com
+	cp $1/Makefile.lib ../lib/Makefile
+	cp $1/Makefile.src ../src/Makefile
+	cp $1/chan.c ../lib/mmdf/chan.c
+	cp $1/conf.c ../lib/mmdf/conf.c
+	cp $1/conf_dial.c ../lib/dial/conf_dial.c
+	cp $1/d_lock.h ../h/d_lock.h
+	cp $1/msgtailor.c ../uip/msg/msgtailor.c
+	cp $1/s_tailor.h ../uip/send/s_tailor.h 
+	cp $1/s_tailor.h ../uip/snd/s_tailor.h 
+	cp $1/s_tailor.c ../uip/send/s_tailor.c
+	cp $1/s_tailor.c ../uip/snd/s_tailor.c
+	exit 0
+fi
+echo '*** Please check that you supplied a valid host.'
+exit 99

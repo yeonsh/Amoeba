@@ -1,0 +1,9 @@
+/*	@(#)dma2_eth.stop	1.1	94/04/06 09:36:43 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+stopdma2ether	STOP
+eth_stopall	stopdma2ether

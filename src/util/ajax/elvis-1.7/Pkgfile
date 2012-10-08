@@ -1,0 +1,161 @@
+# This file contains a list of files which are part of elvis, and which 
+#	
+#	@(#)Pkgfile	1.1	94/08/31 10:37:03
+#
+# are to be included in one distribution package or another.  This file is
+# accessed by the "pkg" program... which you probably don't have, but that's
+# okay.
+#
+# This file is likely to be altered fairly often.  Currently, the available
+# packages are:
+@distrib	# "README", "MANIFEST", and similar documentation files
+@makefiles	# "Makefile.mix" and similar files used to guide compilation
+@source		# all "*.c" and "*.h" files
+@manpages	# man-pages (both plaintext & nroff forms)
+@manual		# "Elvisman.txt"
+@mansrc		# nroff source code for manual sections & man pages
+@dosexe		# MS-DOS executables
+@examples	# sample configuration files (non-portable)
+
+# Directory where documentation is stored
+DOC=doc
+
+src: distrib makefiles source manpages examples
+man: distrib mansrc
+exe: distrib dosexe manual
+
+distrib:
+	INSTALL
+	MANIFEST
+	Pkgfile
+	README
+
+makefiles:
+	Elvis.lnk
+	Elvis.mak
+	Elvis.prj
+	Makefile.mix
+	vmsbuild.com
+	vmslink.opt
+	instman.sh
+
+source:
+	alias.c
+	amiga.c
+	amiprsv.c
+	amistat.h
+	amisysio.c
+	amitty.c
+	amiwild.c
+	atari.c
+	blk.c
+	borland.h
+	cmd1.c
+	cmd2.c
+	config.h
+	ctags.c
+	ctype.c
+	ctype.h
+	curses.c
+	curses.h
+	cut.c
+	elvprsv.c
+	elvrec.c
+	ex.c
+	fmt.c
+	input.c
+	main.c
+	misc.c
+	modify.c
+	move1.c
+	move2.c
+	move3.c
+	move4.c
+	move5.c
+	opts.c
+	osk.c
+	osk.h
+	pc.c
+	prsvdos.c
+	prsvunix.c
+	recycle.c
+	redraw.c
+	ref.c
+	regexp.c
+	regexp.h
+	regsub.c
+	shell.c
+	sysdos.c
+	system.c
+	tinyprnt.c
+	tinytcap.c
+	tio.c
+	tmp.c
+	unix.c
+	vars.c
+	vcmd.c
+	vi.c
+	vi.h
+	vmsio.c
+	vmswild.c
+	wildcard.c
+
+examples:
+	novice.rc
+	profile.sh
+	vmssetup.com
+
+mansrc:
+	$DOC/Makefile
+	$DOC/cflags.ms
+	$DOC/ctags.man
+	$DOC/cutbufs.ms
+	$DOC/differ.ms
+	$DOC/elvis.man
+	$DOC/elvprsv.man
+	$DOC/elvrec.man
+	$DOC/environ.ms
+	$DOC/ex.ms
+	$DOC/fmt.man
+	$DOC/index.ms
+	$DOC/internal.ms
+	$DOC/intro.ms
+	$DOC/makefile.ms
+	$DOC/options.ms
+	$DOC/question.ms
+	$DOC/ref.man
+	$DOC/regexp.ms
+	$DOC/termcap.ms
+	$DOC/title.ms
+	$DOC/ver.ms
+	$DOC/versions.ms
+	$DOC/visual.ms
+
+manual:
+	Elvisman.txt
+
+manpages:
+	$DOC/ctags.man
+	$DOC/elvis.man
+	$DOC/elvprsv.man
+	$DOC/elvrec.man
+	$DOC/fmt.man
+	$DOC/ref.man
+	$DOC/ctags.doc
+	$DOC/elvis.doc
+	$DOC/elvprsv.doc
+	$DOC/elvrec.doc
+	$DOC/fmt.doc
+	$DOC/ref.doc
+
+dosexe:
+	ctags.exe
+	elvis.exe
+	elvprsv.exe
+	elvrec.exe
+	ex.exe
+	vi.exe
+	view.exe
+	fmt.exe
+	ref.exe
+	wildcard.exe

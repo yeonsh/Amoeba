@@ -1,0 +1,172 @@
+.\"	@(#)b_am_kernel.n	1.9	96/02/15 17:01:28
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, May 1991 - finally some reality
+		  Gregory J. Sharp, Jan 1996 - polish up
+.aE
+.nH 1 "Building \*(Am Kernels"
+.LP
+.kW "kernel configuration"
+This section describes how to configure, compile and install the
+\*(Am kernel for the various supported machines.
+.LP
+The script
+.kW "\fIkerneltree\fP"
+.I kerneltree (A)
+is used to build the configuration tree for \*(Am kernels.
+.LP
+Note well: you must make the \*(Am utilities' configuration tree and build the
+libraries as described in the previous section before you can build \*(Am
+kernels.
+.LP
+The
+.I kerneltree 
+program has arguments similar to those of
+.kW "\fIamoebatree\fP"
+.I amoebatree (A).
+The extra parameter is for the specific machine type that you wish to make
+the kernel for.
+A typical call to build the kernel for the Sun4m machines is as follows:
+.sC L
+kerneltree conf/amoeba src templates sparc sun4m sunpro
+.eC
+This creates the directory
+.I /amoeba/conf/amoeba/sparc.sunpro/kernel/sun4m
+and under this several subdirectories.
+.kW pool
+Typically they are
+.I pool ,
+.I bullet ,
+.I smbul ,
+.I tcpip
+and
+.I workstation .
+These contain configurations to build kernels with appropriate drivers for
+.kW "Bullet Server"
+.kW "TCP/IP"
+.kW "workstation"
+pool processors, Bullet file servers, TCP/IP and workstations.
+.LP
+Select the type of kernel that is required,
+go to that directory and type
+.kW amake
+.I amake .
+This will build the standard kernel of that type and store it in the file
+named
+.I kernel .
+This is the default target of
+.kW amake
+.I amake .
+There are other useful targets that can be built.
+For example,
+.sC
+amake lint
+.eC
+Will run lint over the particular kernel configuration.
+.sC
+amake files
+.eC
+will create a file called
+.I files
+which contains the names of all the source files used to build the kernel,
+one per line.
+.sC
+amake tags
+.eC
+will create a tags file for the
+.I vi
+editor
+(under \*(Am it is the editor
+.I elvis (U)).
+.nH 2 "Configuring a Kernel"
+.LP
+.kW "kernel configuration"
+It is possible that the standard kernel is not suited to your particular
+hardware configuration.
+In this case it is necessary to modify the
+.I Amakefile
+to include or delete particular servers and/or drivers.
+For example,
+one of your machines has a disk but no tape unit and you need a \*(Bs kernel
+for it.
+In this case it is relatively simple to delete the tape driver and tape server
+from the standard bullet configuration.
+Edit the
+.I Amakefile
+and you will find that it begins by including various
+.I Amake.srclist
+files.
+.kW amake
+These define various
+.I amake
+variables which are used to build up the list of
+.cW SOURCEFILES
+which comprise the kernel.
+The symbolic names
+.cW K_SVR_TAPE
+and
+.cW K_DEV_SCSI_TAPE
+refer to the tape server and the SCSI tape device driver respectively.
+Deleting these two names and the file
+.I tapeconf.c
+from the source list and then running
+.kW amake
+.I amake
+will result in a kernel without the tape server or driver.
+In principle configuring a kernel is that simple,
+although there are some exceptions.
+The addition or deletion of a define may be necessary for some modifications.
+.LP
+For some systems it might be necessary or interesting to modify the
+FLIP configuration parameters.
+This can by done by adding defines to the
+.cW FLIP_CONF
+variable.
+It is also possible to override the number of threads and the stack size for
+a kernel server.
+For example,
+for the virtual disk server
+you can add special defines to override the defaults in the source code.
+In this case would modify the line
+.sC L
+$K_SVR_VDISK,
+.eC
+to add some extra defines particular to the server.
+It then looks like
+.sC L
+$K_SVR_VDISK[flags={ '-DNR_VDISK_THREADS=5', '-DVDISK_STKSIZ=6000' }],
+.eC
+.LP
+This sets the number of virtual disk server threads to five and the stack size
+to 6000 bytes.
+To discover the names of these variables it will be necessary to look in
+the source for the server
+(typically found in
+.I src/kernel/server )
+but they should all be of the form \*<NR_\*>name\*<_THREADS\*> and
+name\*<_STKSZ\*>.
+.LP
+At the bottom of the
+.I Amakefile
+is a variable called
+.kW "LDADDR amake variable"
+.cW LDADDR .
+This defines the virtual address at which the text segment of the kernel
+begins.
+If the variable
+.kW "LD_DATA_ADDR amake variable"
+.cW LD_DATA_ADDR
+is defined, it determines where the kernel data segment will begin.
+If it is not defined then the kernel data segment will begin at the default
+place for the architecture/compiler combination.
+.LP
+In addition to these basic kernel features there is a large number of
+defines which can modify the nature of the kernel.
+A description of some of the possible defines follows for the true enthusiast.
+This list is very difficult to keep current.
+Please report any omissions or incorrect information to your distributor.

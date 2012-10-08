@@ -1,0 +1,84 @@
+.\"	@(#)distr.n	1.7	96/02/15 17:03:39
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "The Binary Distribution"
+.LP
+.kW installation
+Typically \*(Am is installed directly from tape or floppy onto a computer
+with a disk.
+The distribution medium for \*(Am is dependent upon the hardware on which
+it is to be installed.
+.kW "tape drive"
+.kW "Exabyte tape"
+The medium may be an Exabyte tape,
+.kW "QIC-150 tape"
+.kW "tape, 150M"
+QIC-150 tapes,
+.kW "QIC-24 tape"
+QIC-24 tapes or even floppies.
+.LP
+The distribution can be seen as consisting of three parts.
+.IP 1.
+The kernels and binaries for installing directly onto disk.
+.IP 2.
+The source code.
+.IP 3.
+The
+.UX
+binaries and shell scripts.
+.LP
+.nr xX \n(H2+2
+The source code installation is described in section \n(H1.\n(xX.
+The installation of the sources and
+.UX
+binaries under
+.UX
+is described in the chapter
+.I "Amoeba and UNIX"
+later in this manual.
+.LP
+The installation of the binary distribution and source code depends to some
+extent on the distribution medium.
+.kW "QIC-24 tape"
+The Sun distribution is on cartridge tape.
+The Intel 80386 distribution is on 5 floppy disks plus a tape loaded over the
+network from a
+.UX
+system,
+or via a SCSI tape unit on the i80386 system.
+Separate installation instructions follow for the various machines.
+Choose the installation instructions that correspond to the machine type
+upon which you are installing \*(Am.
+.LP
+Before proceeding further, a brief explanation of the
+.I date (U)
+command is given since it will be necessary to set the date during the course
+of the installation.
+.kW "time of day server"
+The following will set the default
+.I "time of day"
+server
+(the one whose capability is in
+.I /super/cap/todsvr/default )
+which will be on the machine on which you are installing \*(Am.
+It is set using the
+.kW "setting the date"
+.I date (U)
+command which has the form:
+.sC
+\fBdate\fP yyyymmddhhmm[.ss]
+.eC
+The square brackets mean that the seconds are optional.
+For example,
+to set the time to 10\ November\ 1992, 2:45\ pm issue the command:
+.sC
+\fBdate 199211101445\fP
+.eC
+To specify the seconds, the following would set the time to
+13\ January\ 1994, 10:45 and 32 seconds:
+.sC
+\fBdate 199401131045.32\fP
+.eC

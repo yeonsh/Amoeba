@@ -1,0 +1,98 @@
+.\"	@(#)kstat.n	1.6	96/02/15 17:47:57
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Document: Gregory Sharp, 08/02/90
+	Modified: Gregory Sharp, Jan 1996
+.aE
+.mT "kstat" A
+examine the state of a running \*(Am kernel
+.SH
+Synopsis
+.LP
+.sC L
+kstat -flags hostname
+.eC
+.SH
+Description
+.LP
+.kW "kernel state"
+.kW "kernel tables"
+.I Kstat
+is used to examine the internal tables and state variables of a running
+\*(Am kernel.
+If
+.I hostname
+is not an absolute path name it is looked up in the public hosts directory
+as defined by the variable
+.cW HOST_DIR
+in the file
+.I ampolicy.h .
+(This is typically
+.I /profile/hosts .)
+If the specified host is down,
+.I kstat
+will take a short while to determine this and then report the error
+``not found''.
+If the path name given was not for an \*(Am host then
+.I kstat
+will determine this more quickly but also report the error ``not found''.
+.LP
+Not all kernels support all flags.
+If
+.I flags
+is
+.B ?
+then
+.I kstat
+will print a list of flags for the internal tables the specified host contains.
+Otherwise you may give a set of one or more letters selecting the desired
+kernel tables.
+These will be printed in the order specified.
+.SH
+Example
+.LP
+.sC
+kstat -? bullet1
+.eC
+prints the following list of tables available on the host
+.I bullet1 .
+.sC
+C  flip rpc dump
+E  Ethernet flow control statistics
+F  flip routing table
+I  flip interface
+N  flip network dump
+S  dump sweeper info
+b  dump random seed bit info
+c  flip rpc statistics
+e  dump ethernet statistics
+f  flip fragmentation dump
+i  flip interface statistics
+k  flip rpc kid dump
+l  dump Lance statistics
+m  dump mpx table
+n  flip network statistics
+p  flip rpc port dump
+s  dump segtab
+u  print uptime
+v  print version
+.eC
+.ne 7
+and the command
+.sC
+kstat -u bullet1
+.eC
+prints the uptime of the \*(Am running on the host
+.I bullet1 .
+.sC
+249488 seconds up
+.eC
+.SH
+See Also
+.LP
+printbuf(A).

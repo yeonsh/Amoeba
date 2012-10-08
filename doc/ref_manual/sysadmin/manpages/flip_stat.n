@@ -1,0 +1,95 @@
+.\"	@(#)flip_stat.n	1.4	96/02/15 17:20:18
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Frans Kaashoek
+	Document: Gregory J. Sharp, Nov 1991
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "flip_stat" A "UNIX ONLY"
+print the FLIP statistics from a
+.UX
+kernel
+.SH
+Synopsis
+.LP
+.sC L
+flip_stat
+.eC
+.SH
+Description
+.LP
+.kW "FLIP"
+.kW "statistics"
+.I Flip_stat
+prints out the current statistics kept by the FLIP driver in the
+.UX
+host on which the command is run.
+If no FLIP driver has been installed in the kernel it will print
+.sC
+flip_dump failed
+.eC
+Otherwise it will print details about the number of RPCs performed and
+statistics of the low-level network driver(s).
+To interpret the statistics a knowledge of the network(s) connected to the
+hosts and an acquaintance with the source code are required.
+.SH
+Example
+.LP
+.sC
+flip_stat
+.eC
+might print something like:
+.LP
+.cW
+.nf
+.ps-1
+======== FLIP AMRPC statistics =======
+send statistics:
+slocate      890 shereis       20 srequest     555 sreply      3139
+sack         681 snak           2 salive      1051 senquire       0
+sfail          0 sreceived       1
+receive statistics:
+rlocate    40511 rhereis       80 rrequest    3140 rreply       546
+rack        3143 rnak           2 ralive         0 renquire    1051
+rfail          0 rreceived     137
+timeout     815
+======= FLIP interface statistics ===========
+slocate        374 shereis          5 snothere         0 sunidata      5431
+smultidata       0
+rlocate      37529 rhereis         42 rnothere         3 runidata      8087
+rmultidata   40511
+======== network statistics =======
+==== Ethernet: #0 ====
+slocate        286 shereis          5 snothere         0 sunidata         0
+smultidata     611
+rlocate      37571 rhereis         42 rnothere         3 runidata      8087
+rmultidata   40531
+dropped          6 bcast drop       0
+==== interface: #0 ====
+slocate      37571 shereis         42 snothere         3 sunidata      8087
+smultidata   40525
+rlocate        374 rhereis          5 rnothere         0 runidata         0
+rmultidata     797
+dropped          0 bcast drop       0
+=============================
+============== ff statistics =======
+scredit   :      0 spiggy    :      0 srequest  :      0 smcreq    :      0
+smcack    :      0 smcnak    :      0 sabscredit:      0
+rcredit   :      8 rpiggy    :      0 rrequest  :      0 rmcreq    :      0
+rmcack    :      0 rmcnak    :      0 rabscredit:      0
+========= statistics le ========
+ip 273938 ie 253 op 65006 oe 2 col 118
+========================
+.ps
+.fi
+.R
+.LP
+.SH
+See Also
+.LP
+flip_dump(A),
+kstat(A).

@@ -1,0 +1,148 @@
+.\"	@(#)prv.n	1.7	96/02/15 16:54:28
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse, Hans van Staveren
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, December 1990
+		  - unified the style and grammar
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "prv" L "libamoeba.a, libamunix, libkernel.a"
+manipulate capability private parts
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/prv.h"
+
+int prv_decode(prv, prights, random)
+int prv_encode(prv, obj, rights, random)
+objnum prv_number(prv)
+.eC
+.SH
+Description
+.LP
+.kW "capability"
+.kW "port"
+.kW "private"
+.kW "objnum"
+.kW "rights_bits"
+.kW "\fIprv_decode\fP"
+.kW "\fIprv_encode\fP"
+.kW "\fIprv_number\fP"
+These functions are used by servers to make and validate
+capabilities and to extract the object number from a capability.
+.mH
+Functions
+.LP
+.sH
+prv_decode
+.LP
+.sC
+int
+prv_decode(prv, prights, random)
+private *prv;
+rights_bits *prights;
+port *random;
+.eC
+.kW "\fIprv_decode\fP"
+.I Prv_decode
+is used to validate a capability when the original random number is known.
+It operates on the private part of the capability.
+It checks the check field in
+.I prv
+and if the check field is valid it returns in
+.I prights
+the rights in the capability.
+It returns 0 if it succeeded and \(mi1 if the check field was invalid.
+If
+.I prv_decode
+fails then the capability was not valid and should be rejected.
+.sH
+prv_encode
+.LP
+.sC
+int
+prv_encode(prv, obj, rights, random)
+private *prv; 
+objnum obj; 
+rights_bits rights;
+port *random;
+.eC
+.kW "\fIprv_encode\fP"
+.I Prv_encode
+builds a private part of a capability in
+.I prv
+using the object number
+.I obj ,
+the rights field
+.I rights
+and the check field pointed to by
+.I random .
+It returns 0 if it succeeded and \(mi1 if
+the
+.I rights
+or the
+.I obj
+argument exceeded the implementation limits.
+.sH
+prv_number
+.LP
+.sC
+objnum
+prv_number(prv)
+private *prv;
+.eC
+.kW "\fIprv_number\fP"
+.I Prv_number
+returns the object number from the private part
+.I prv .
+.mH
+Warnings
+.LP
+The current implementation restricts the object number
+to 24 bits and the rights field to 8 bits.
+.SH
+Example
+.LP
+.kW "\fIstd_restrict\fP"
+The following function implements the std_restrict operation:
+.sC L
+errstat
+impl_std_restrict(cap, mask, newcap)
+capability *cap;
+rights_bits mask;
+capability *newcap;
+{
+    objnum obj;
+    rights_bits rights;
+    struct foobar {
+        port random;            /* Random checkword */
+        ...
+    } *foo, *FindFoo();
+
+    /* Find object: */
+    obj = prv_number(&cap->cap_priv);
+    if ((foo = FindFoo(obj)) == NULL)
+        return STD_CAPBAD;      /* Never heard of */
+    /* Validate: */
+    if (prv_decode(&cap->cap_priv, &rights, &foo->random) != 0)
+        return STD_CAPBAD;      /* Do not trust cap */
+    /* Build new cap: */
+    rights &= mask;
+    newcap->cap_port = cap->cap_port;
+    if (prv_encode(&newcap->cap_priv, obj, rights, &foo->random) != 0)
+        return STD_SYSERR;      /* Should not happen */
+    return STD_OK;
+}
+.eC
+.SH
+See Also
+.LP
+rpc(L).

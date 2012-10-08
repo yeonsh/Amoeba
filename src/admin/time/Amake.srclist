@@ -1,0 +1,18 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 12:00:23
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_DATE = $PWD/date.c;
+U_ZIC = {
+	$PWD/zic.c,
+	$PWD/scheck.c,
+	$PWD/ialloc.c
+};
+U_ZDUMP = {
+	$PWD/zdump.c,
+	$PWD/ialloc.c
+};

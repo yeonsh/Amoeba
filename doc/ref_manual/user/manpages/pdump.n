@@ -1,0 +1,144 @@
+.\"	@(#)pdump.n	1.4	96/02/16 11:06:16
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen and Guido van Rossum, 1989
+		  Unified into a single program by Greg Sharp, June 1990
+	Document: Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, June 1990
+		  Gregory J. Sharp, Nov 1995 - examples were out of date
+.aE
+.mT "pdump" U
+dump process descriptor (checkpoint) and stack traces
+.SH
+Synopsis
+.LP
+.sC L
+pdump core-file
+.eC
+.SH
+Description
+.LP
+.kW "process descriptor"
+.kW "stack trace"
+.kW "register dump"
+.kW "checkpoint"
+.kW "executable file"
+.kW "core dump"
+.I Pdump
+expects a process descriptor (also known as
+checkpoint) in the
+.I core-file ,
+and prints it out in symbolic form on
+.I stderr .
+Because parts of a process descriptor are architecture-dependent
+(especially the thread descriptors), there is a variant for each
+supported architecture, plus an architecture-independent variant which
+prints certain parts of thread descriptors as uninterpreted hex bytes.
+.LP
+If
+.I core-file
+is ``-'' then
+.I pdump
+reads from
+.I stdin .
+This feature is only intended for use by programs.
+.LP
+Because \*(Am executable files begin with a process descriptor, they
+can be dumped as well; no stack trace is printed in this case.
+.LP
+The program deduces which architecture the process descriptor is for
+based on information in the process descriptor and attempts to analyze the
+thread descriptors and any stack traces accordingly.
+.SH
+Examples
+.LP
+.sC
+pdump /bin/sh/pd.i80386
+.eC
+might print:
+.sC L
+Process descriptor from architecture: i80386
+ 
+  offset     addr+     len=     end    flags (5 segments)
+000000e0 20000000+00019195=20019195 00000110 fixed read-only text
+00019275 2001a000+000013b8=2001b3b8 00000320 fixed read/write data
+         2001c000+0000d7f0=200297f0 00000321 heap read/write data
+         80000000+00000000=80000000 80000322 stack read/write data
+0001a62d 00000000+00004a7b=00004a7b 60000000 symbol table
+1 threads:
+THREAD 0:       state   00000000
+        pc      20000000
+        sp             0
+.eC
+.LP
+Assuming a checkpoint of an Intel 386 process exists on the file
+.I /dev/dead/16 ,
+this command might print its contents:
+.sC
+pdump /dev/dead/16
+.eC
+with possible output:
+.sC L
+.ps-1
+ 
+Process descriptor from architecture: i80386
+ 
+  offset     addr+     len=     end    flags (7 segments)
+0000017c 20000000+0000d000=2000d000 00000110 fixed read-only text
+0000d17c 2000d000+00001000=2000e000 00000320 fixed read/write data
+0000e17c 2000e000+0000b000=20019000 00000321 heap read/write data
+0001917c 7fffc000+00004000=80000000 00000322 stack read/write data
+0001d17c 20021000+00008000=20029000 00000321 heap read/write data
+0002517c 20031000+0000e000=2003f000 00000321 heap read/write data
+0003317c 20047000+00004000=2004b000 00000321 heap read/write data
+1 threads:
+THREAD 0:       state   00000005        RUN EXC
+        signal       -10        Bad system call or parameters
+ 
+cs:eip                2b:20007126
+ss:esp                23:7ffffc74
+eflag                246
+ebp                    0
+ds/es/fs/gs           23       23       23       23
+eax/ebx/ecx/edx ffffffff ffffffff ffffffff 7ffffc9c
+edi/esi         ffffffff ffffffff
+cr3              1ff8000
+faultaddr       ffffffff
+code             1ff8000
+ 
+7ffffcb4: 20007126()
+7ffffcd0: 20001ad1()
+7ffffce0: 20001dd3()
+7ffffcfc: 20000cd2()
+7ffffcfc: called from 20000024
+.ps
+.eC
+.LP
+If there is more than one thread then a register dump and stack trace is
+provided for each thread.
+.LP
+The last section of information at the end of each thread represents the
+stack trace.
+The number before the colon (:) is the stack pointer and the number to
+the right of the colon is the program counter followed by the arguments
+with which the function was called in parentheses.
+Converting the program counters to symbolic names can be done using
+.I nm (U).
+.LP
+Note that the format of the stack trace information varies per architecture.
+.SH
+File Formats
+.LP
+The input must begin with a process descriptor in network byte order;
+whatever comes after this is ignored.
+.SH
+See Also
+.LP
+ax(U),
+nm(U),
+stun(U).

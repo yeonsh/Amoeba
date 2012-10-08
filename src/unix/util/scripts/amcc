@@ -1,0 +1,303 @@
+#!/bin/sh
+#	
+#	@(#)amcc	1.6	94/04/07 14:08:50
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	Wrapper for (g)cc and ld that knows about our libraries,
+#	so that we can forget about them :-)
+#
+#	Siebren, August 2 1989
+#	Change log:
+#	Siebren, Aug 29, 1989:		Fixed -verbose bug
+#	Siebren, Oct 5, 1989:		Fixed -g bug (ld wasn't passed -lg)
+#	Siebren, Oct 19 1989:		Support Greg's stuff
+#	Guido Oct 26 1989:		Use Greg's stuff exclusively
+
+PROG=`basename $0`
+AMROOT=`amdir`
+
+# Where the files and directories are:
+CONF_ROOT=$AMROOT/conf
+SRC_ROOT=$AMROOT/src
+
+# Default compiler set is "sun"
+COMPILER=sun
+
+# By default, assume the architecture we are compiling for is the same
+# as that of the machine we are compiling on:
+ARCH=`arch`
+case "$ARCH" in
+    sun3) ARCH=mc68000 ;;    # Need to map the name to find it under conf
+    sun4) ARCH=sparc ;;
+esac
+
+# Defaults:
+verbose=N	# Assume that the user don't wanna be bothered
+execute=Y	# Assume we want to execute the commands
+compile=N	# Assume we don't wanna compile
+link=Y		# Assume that we do want to link
+AJAX=N
+X11=N
+UNIX=N
+
+CCARG=""
+OSDEF="-DAMOEBA" # Changed to -DUNIX when compiling for unix
+OUT=a.out	 # Name of binary produced
+CFILES=""
+OFILES=""
+LDARG=""
+USRLIBS=""
+USRINC=""
+
+# Parse arguments:
+while [ $# != 0 ]
+do
+    case $1 in
+
+    # Options that affect amcc's behaviour:
+    -c)
+	link=N	# Doesn't mean we're gonna compile; this depends on the files.
+	;;
+    -v)
+	verbose=Y
+	;;
+    -noexec)
+	verbose=Y
+	execute=N
+	;;
+
+    # Options specifying a different architecture or compiler set
+    -i80386)
+	ARCH=i80386
+	COMPILER=ack		# default for i80386
+	;;
+    -ack)
+	COMPILER=ack
+	;;
+
+    # Which libraries are used:
+    -ajax)
+	AJAX=Y
+	;;
+    -x11)
+	X11=Y
+	;;
+    -unix)
+	UNIX=Y
+	OSDEF="-DUNIX"
+	;;
+    -conf)			# use nonstandard conf directory
+        CONF_ROOT="$2"
+        shift
+        ;;
+    -src)			# use nonstandard src directory for includes
+        SRC_ROOT="$2"
+        shift
+        ;;
+
+    # Options for the preprocessor:
+    -C|-D*|-I*|-U*)
+	USRINC=$USRINC" $1"
+	;;
+    -E)
+	link=N			# Turn off loading-phase
+	USRINC="$USRINC $1"
+	;;
+
+    # Options for the compiler:
+    -S)
+	link=N			# Turn off loading-phase
+	CCARG="$CCARG -S"
+	;;
+    -R*)
+	# Ack specific loader flags
+	LDARG="$LDARG $1"
+	;;
+    -g)			# For cc + ld
+	CCARG="$CCARG -g"
+	if [ $UNIX = Y ]
+	then LDARG="$LDARG -g"
+	fi
+	;;
+    -O)			# For cc
+	CCARG="$CCARG -O"
+	;;
+    -p|-pg)		# For cc + ld
+	if [ $UNIX = Y ]
+	then CCARG="$CCARG $1"; LDARG="$LDARG $1"
+	else echo "$PROG: No profiling support on Amoeba" 1>&2; exit 2;
+	fi
+	;;
+
+    # Options for the loader:
+    -y*)			# ask for symbol info (may occur many times)
+        LDARG="$LDARG $1"
+        shift
+        ;;
+    -e)				# entry-point
+	shift
+	if [ $# = 0 ]
+	then
+	    echo "$PROG: Missing entry-point name (option '-e')" 1>&2
+	    exit 1
+	fi
+	LDARG="$LDARG -e $1"
+	;;
+    -o)
+	shift	# Get next arg
+	if [ $# = 0 ]
+	then
+	    echo "$PROG: Name of executable is missing (option '-o')" 1>&2
+	    exit 1
+	fi
+	OUT=$1
+	;;
+
+    # File-type arguments:
+    -l*)			# For ld
+	USRLIBS="$USRLIBS $1"
+	;;
+    *.o|*.a)			# For ld
+	OFILES="$OFILES $1"
+	;;
+    *.c)			# For cc
+	compile=Y
+	CFILES="$CFILES $1"
+	;;
+
+    *)
+	echo "$PROG: Unrecognised argument $1" 1>&2
+	echo "Usage: $PROG [-c] [-v] [ccopts] [-o binary] [ofiles] cfiles" 1>&2
+	exit 1
+	;;
+    esac
+    shift
+done
+
+case $COMPILER in
+sun)	CC="cc -c"
+	if [ $UNIX = Y ]
+	then	LD="cc"		# We need to use cc to link under UNIX
+		LDARG=""
+	else	if [ $ARCH = sparc ]
+		then
+			LD="`amdir`/conf/amoeba/sparc.sun/toolset/do_gld"
+			LDARG="$LDARG -n -Ttext 40000 -Bstatic -e start"
+		else
+			LD="ld"
+			LDARG="$LDARG -Bstatic -e start"
+		fi
+	fi
+	;;
+ack)	CC="ack -c -mam_$ARCH"
+	LD="ack -mam_$ARCH"
+	LDARG="$LDARG -.c"
+	if [ $ARCH = i80386 ]
+	then	LDARG="$LDARG -fp"
+	fi
+	;;
+*)	echo "$PROG: no support for compiler $COMPILER" 1>&2
+	exit 2
+esac
+
+# Note:  Since above args may have changed CONF_ROOT, all this stuff must be
+# done after parsing of args, not before:
+
+# Libaries:
+A_LIB_DIR=$CONF_ROOT/amoeba/${ARCH}.${COMPILER}/lib
+U_LIB_DIR=$CONF_ROOT/unix/${ARCH}.${COMPILER}/lib
+
+Lamunix=$U_LIB_DIR/amunix/libamunix.a
+  Lajax=$A_LIB_DIR/ajax/libajax.a
+Lamoeba=$A_LIB_DIR/amoeba/libamoeba.a
+   Lx11=$A_LIB_DIR/X/lib/X/libX11.a # and others as well, probably
+
+# Amoeba runtime startoff:
+Samoeba=$A_LIB_DIR/head/head.o
+
+# Include directories:
+Iam=$SRC_ROOT/h 
+
+# Think hard about library order, compatibility
+if [ $UNIX = Y ]
+then
+	if [ $X11 = Y -o $AJAX = Y ]
+	then	echo "$PROG: Option -unix conflicts with -x11 or -ajax" 1>&2
+		exit 1
+	else	SYSLIBS="$Lamunix"
+	fi
+else	# For native amoeba, the right order is: Lx11 Lajax Lamoeba
+	SYSLIBS="$Lamoeba"
+	if [ $AJAX = Y ]
+	then SYSLIBS="$Lajax $SYSLIBS"
+	fi
+	if [ $X11 = Y ]
+	then SYSLIBS="$Lx11 $SYSLIBS"
+	fi
+fi
+
+# The include directories are slightly easier:
+if [ $UNIX = Y ]
+then SYSINC="-I$Iam -I$Iam/server -I$Iam/toolset/$COMPILER"
+else SYSINC="-I$Iam -I$Iam/server -I$Iam/posix -I$Iam/toolset/$COMPILER"
+fi
+
+# And the runtime startoff:
+if [ $UNIX = Y ]
+then CRTS0=""		# We are using cc to link under UNIX; don't need this
+else
+	if [ $COMPILER = ack ]
+	then CRTS0=""	# The descr file for ack/amoeba adds it automatically
+	else CRTS0=$Samoeba
+	fi
+fi
+
+# Compile if necessary:
+if [ $compile = Y ]
+then
+	# compile all files one by one, exiting on failure
+	for cfile in $CFILES
+	do
+		cmd="$CC $USRINC $SYSINC $OSDEF $CCARG $cfile"
+
+		if [ $verbose = Y ]
+		then echo $cmd 1>&2
+		fi
+
+		if [ $execute = Y ]
+		then	$cmd; xit=$?		# Do it
+			if [ $xit != 0 ]
+			then	exit $xit
+			fi
+		fi
+	done
+fi
+
+# Link:
+if [ $link = Y ]
+then
+	# Add the names for the .o files produced in the Compile phase
+	other=""
+	for f in $CFILES; do
+		other="$other "`basename $f | sed 's/\.c$/.o/'`
+	done
+	OFILES="$other $OFILES"
+
+	cmd="$LD $LDARG $CRTS0 -o $OUT $OFILES $USRLIBS $SYSLIBS"
+	if [ $verbose = Y ]
+	then	echo $cmd 1>&2
+	fi
+
+	if [ $execute = Y ]
+	then	$cmd; xit=$?
+		if [ $xit != 0 ]
+		then	rm -f $OUT
+			exit $xit
+		fi
+	fi
+fi
+
+exit 0

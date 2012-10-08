@@ -1,0 +1,67 @@
+.\"	@(#)Xwindows.n	1.6	96/02/15 17:03:05
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 2 "Installing X Windows"
+.LP
+.kW "X windows"
+The X Window System is a product that is publicly available but it is not in
+the public domain.
+It may be used for commercial purposes.
+The current version of X that works with \*(Am is X11 Release 6.
+The following instructions are valid also for when the \*(Am and X sources are
+installed under
+.UX .
+.LP
+.I Warning :
+The X sources, excluding the contributed software require about 111\ Mbytes
+disk space.
+The standard
+.I contrib
+sources require at another 40\ Mbytes.
+There are man non-standard contrib sources to collect as well.
+If you then build and install a configuration for \*(Am it will take as much
+as another 100 Mbytes per supported architecture.
+Caveat emptor and buy large disks!
+.LP
+If the X windows sources are installed under \*(Am they should be put under
+.I /super/module/amoeba/src/X11R6.
+Under
+.UX
+a link should be made from
+.I src/X11R6
+to the place where the X sources are installed.
+(A symbolic link is probably best since many tree searching programs
+do not follow symbolic links.)
+.LP
+Building an X configuration for a particular architecture is fairly complicated.
+To spare people from this, a shell script has been devised called
+.kW "\fIbuildX\fP"
+.I buildX (A).
+It will
+build the configuration tree,
+adjust various links to point to the modified sources for \*(Am
+(which are found in the directory
+.I src/X11R6.am )
+and generate and execute the
+.I makefiles
+(see
+.kW make
+.I make (U)).
+See the relevant manual pages for details of how to use the script.
+Note well:
+the links made under \*(Am are hard links, not symbolic links and so it is
+important that no
+.I "del\ \-f"
+(see
+.I del (U))
+or
+.I std_destroy (U)
+be done on files in the configuration tree.
+.LP
+Once the sources are installed in the right place,
+the instructions on how to build the X configuration can be found in the
+chapter
+.I "Building \*(Am Configurations" .

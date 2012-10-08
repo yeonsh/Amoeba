@@ -1,0 +1,468 @@
+.\"	@(#)std.n	1.7	96/02/15 16:56:33
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, Feb 1990
+	Modified: Kees Verstoep, July 1991 (std_getparams/std_setparams)
+		  Gregory J. Sharp, Mar 1993 (std_ntouch)
+		  Gregory J. Sharp, Feb 1996 - final polish
+.aE
+.mT "std" L "libamoeba.a, libkernel.a, libamunix.a"
+interface for standard server commands
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/stdcmd.h"
+
+errstat std_age(cap)
+errstat std_copy(servercap, origcap, newcap)
+errstat std_destroy(cap)
+errstat std_getparams(cap, parambuf, bufsz, paramlen, nparams)
+errstat std_info(cap, infobuf, bufsz, len)
+errstat std_restrict(cap, mask, newcap)
+errstat std_setparams(cap, parambuf, bufsz, nparams)
+errstat std_status(cap, buf, n, len)
+errstat std_touch(cap)
+errstat std_ntouch(svr_port, n, privbuf, num_done)
+.eC
+.SH
+Description
+.LP
+.kW "\fIstd_age\fP"
+.kW "\fIstd_copy\fP"
+.kW "\fIstd_destroy\fP"
+.kW "\fIstd_getparams\fP"
+.kW "\fIstd_info\fP"
+.kW "\fIstd_restrict\fP"
+.kW "\fIstd_setparams\fP"
+.kW "\fIstd_status\fP"
+.kW "\fIstd_touch\fP"
+.kW "\fIstd_ntouch\fP"
+.kW "standard commands"
+The
+.I std
+module provides the interface to the standard commands which are supported
+by nearly all servers.
+The purpose of these routines is to provide a standard way for programs to
+deal with common aspects of servers.
+For precise details about rights bits and whether a particular server handles
+a particular
+.I std
+call,
+consult the manual entry for the server.
+.mH
+Errors
+.LP
+The value of all the
+.I std
+functions is the error status.
+All the
+.I std
+stubs return only standard error codes (as defined in
+.I stderr.h ).
+They all use transactions and therefore,
+in addition to the errors described below,
+may all return the RPC error codes which relate to transaction errors.
+.mH
+Warning
+.LP
+Some older servers may return
+.cW STD_CAPBAD
+instead of
+.cW STD_DENIED
+when there are insufficient rights for an operation.
+.sH
+std_age
+.LP
+.sC
+errstat
+std_age(cap)
+capability *cap;
+.eC
+.kW "\fIstd_age\fP"
+.I Std_age
+is used to tell a server to perform a garbage collection cycle.
+The parameter
+.I cap
+is the super capability for the server.
+.rR
+All rights bits must be set in \fIcap\fP to perform the operation.
+.eR
+\*<STD_CAPBAD\*>:	the capability was invalid.
+\*<STD_DENIED\*>:	insufficient rights.
+.DE
+.sH
+std_copy
+.LP
+.sC
+errstat
+std_copy(server, orig, new)
+capability *server;
+capability *orig;
+capability *new;
+.eC
+.kW "\fIstd_copy\fP"
+.I Std_copy
+requests the server specified by
+.I server
+to make a copy of the object specified by the capability
+.I orig
+and returns in
+.I new
+the capability for the new copy of the object.
+The server should check that the type of object that it is being asked to
+copy is the type of object that it manages.
+Servers that manage physical objects (such as disks) may not perform this
+command.
+.rR
+.fi
+.nh
+The \fIserver\fP capability must have the server's create right (if any) and
+the \fIorig\fP capability must give read permission.
+.nf
+.eR
+\*<STD_CAPBAD\*>:	the \fIserver\fP capability or \fIorig\fP capability was invalid.
+\*<STD_DENIED\*>:	the create right was not defined in \fIserver\fP capability,
+	the read right was not defined in the \fIorig\fP capability.
+\*<STD_COMBAD\*>:	the server specified by \fIserver\fP does not perform
+	the copy operation.
+.DE
+.sH
+std_destroy
+.LP
+.sC
+errstat
+std_destroy(cap)
+capability *cap;
+.eC
+.kW "\fIstd_destroy\fP"
+.I Std_destroy
+requests the server to destroy the object specified by
+.I cap .
+.rR
+Write and/or destroy rights.
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+.DE
+.sH
+std_getparams
+.LP
+.sC
+errstat
+std_getparams(cap, parambuf, bufsz, paramlen, nparams)
+capability *cap;
+char       *parambuf;
+int         bufsz;
+int        *paramlen;
+int        *nparams;
+.eC
+.kW "\fIstd_getparams\fP"
+.I Std_getparams
+requests from the server a description of the runtime parameters
+associated with the object specified by the capability
+.I cap .
+The description is returned in the buffer
+.I parambuf
+which is
+.I bufsz
+bytes long.
+The size of the buffer returned by the server is returned in
+.I paramlen ;
+the number of parameters is returned in
+.I nparams .
+The output parameters are only valid when
+.cW STD_OK
+is returned.
+For each parameter there are four consecutive (NULL-terminated) strings in
+the buffer:
+its
+.I name ,
+its
+.I type ,
+a short
+.I description
+telling its meaning,
+and finally its current
+.I value .
+Note that non-string values,
+such as integers and booleans,
+will have to be converted to strings by the server itself.
+.rR
+.fi
+.nh
+It is up to the server to decide which rights it requires
+in order to reveal parameter settings for an object.
+Note also that the server may have both per-object and global parameters.
+The latter should be retrieved from the server by presenting its super
+capability.
+.nf
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+.DE
+.sH
+std_info
+.LP
+.sC
+errstat
+std_info(cap, info, n, len)
+capability *cap;
+char       *info;
+int        n;
+int        *len;
+.eC
+.kW "\fIstd_info\fP"
+.I Std_info
+requests from the server for (short) character array that describes the object
+specified by the capability
+.I cap .
+The string is returned in the buffer
+.I info
+which is
+.I n
+bytes long.
+The size of the buffer returned by the server is returned in
+.I *len .
+If the function returns
+.cW STD_OK
+then the value returned in
+.I *len
+will be less than or equal to
+.I n
+and
+.I buf
+will contain the complete status message.
+.LP
+If the buffer provided was too small to contain the data,
+the error
+.cW STD_OVERFLOW
+will be returned along with the first
+.I n
+bytes of the information.
+The value returned in
+.I *len
+will be the size the buffer needs to be to contain all the data.
+.LP
+If any other error is returned then the value of
+.I *len
+will not be modified.
+.rR
+The object's read right.
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+\*<STD_OVERFLOW\*>:	the info buffer was too small.
+.DE
+.sH
+std_restrict
+.LP
+.sC
+errstat
+std_restrict(cap, mask, new)
+capability  *cap;
+rights_bits mask;
+capability  *new;
+.eC
+.kW "\fIstd_restrict\fP"
+.I Std_restrict
+requests the server managing the object specified by
+.I cap
+to produce a capability with the rights removed that are not set in
+.I mask.
+The new capability is returned in
+.I new .
+.LP
+It should be noted that
+.I std_restrict
+does not do a transaction with the server and verify the capability if all
+the rights are present in the capability.
+This means that it can return
+.cW STD_OK
+and a restricted capability even when the original capability had an invalid
+check field.
+In this case the restricted capability will also be invalid.
+.rR
+None.
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+.DE
+.sH
+std_setparams
+.LP
+.sC
+errstat
+std_setparams(cap, parambuf, paramlen, nparams)
+capability *cap;
+char       *parambuf;
+int         bufsz;
+int         nparams;
+.eC
+.kW "\fIstd_setparams\fP"
+.I Std_setparams
+is used to set a number of the server's runtime parameters
+associated with the object specified by capability
+.I cap .
+The requested parameter assignments are specified in
+.I parambuf
+which is
+.I bufsz
+bytes long.
+The number of parameter assignments in the buffer
+is specified by
+.I nparams .
+For each assignment,
+there are two consecutive (NULL-terminated) strings in the buffer:
+the parameter's
+.I name ,
+and its new
+.I value .
+Note that the server itself is responsible for
+converting a supplied string value to integer,
+when a parameter's type requires this.
+.rR
+.fi
+It is up to the server to decide which rights it requires
+for changing the parameter settings of an object.
+Note also that the server may have both per-object and global parameters.
+The latter should be changed by means of the server's super capability.
+.nf
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+\*<STD_ARGBAD\*>:	parameter value out of range,
+	or too many parameter settings.
+.DE
+.sH
+std_status
+.LP
+.sC
+errstat
+std_status(cap, buf, n, len)
+capability *cap;
+char       *buf;
+int        n;
+int        *len;
+.eC
+.kW "\fIstd_status\fP"
+.I Std_status
+requests the server for a character array containing current status information
+about the server specified by the capability
+.I cap .
+The data is returned in the buffer
+.I buf
+which is
+.I n
+bytes long.
+The size of the buffer returned by the server is returned in
+.I *len .
+If the function returns
+.cW STD_OK
+then
+.I *len
+will be less than or equal to
+.I n
+and
+.I buf
+will contain the complete status message.
+.LP
+If the buffer provided was too small to contain the data,
+the error
+.cW STD_OVERFLOW
+will be returned along with the first
+.I n
+bytes of the status information.
+The value in
+.I *len
+will be the size the buffer needs to be to contain all the data.
+.LP
+If any other error is returned then the value in
+.I len
+will not be modified.
+.LP
+NB. The character array is not NULL-terminated.
+.rR
+.fi
+Some servers require more rights than others depending on the sensitivity
+of the data.
+Generally read permission is required, but some servers require that the
+super capability be presented.
+.nf
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+\*<STD_OVERFLOW\*>:	input buffer was too small.
+.DE
+.sH
+std_touch
+.LP
+.sC
+errstat
+std_touch(cap)
+capability *cap;
+.eC
+.kW "\fIstd_touch\fP"
+.I Std_touch
+is used to tell the server not to garbage collect the object specified by
+.I cap .
+.rR
+None.
+.eR
+\*<STD_CAPBAD\*>:	invalid capability.
+.DE
+.sH
+std_ntouch
+.LP
+.sC
+errstat
+std_ntouch(svr_port, n, privbuf, num_done)
+port    *svr_port;
+int     n;
+private *privbuf;
+int     *num_done;
+.eC
+.kW "\fIstd_ntouch\fP"
+.I Std_ntouch
+is used to tell the server whose service port is
+.I svr_port
+not to garbage collect the
+.I n
+objects specified by the private parts of capabilities in the array
+.I privbuf .
+On completion it returns the number of objects successfully touched in
+.I num_done .
+There is no upper limit on the value of
+.I n ,
+but
+.I std_ntouch
+may use more than one RPC to execute the touches if
+.I n
+is sufficiently large.
+The value of the function is
+.cW STD_OK
+if all the specified objects were successfully touched.
+If any of the capabilities presented were rejected by the server then the error
+status of the last error generated is returned.
+.rR
+None.
+.eR
+\*<STD_ARGBAD\*>:	n <= 0.
+\*<STD_CAPBAD\*>:	invalid capability.
+.DE
+.SH
+See Also
+.LP
+std_age(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_params(A),
+std_restrict(U),
+std_status(U),
+std_touch(U).

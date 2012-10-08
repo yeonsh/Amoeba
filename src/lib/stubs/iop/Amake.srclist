@@ -1,0 +1,24 @@
+#	
+#	@(#)Amake.srclist	1.3	94/04/07 11:02:22
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_IOP = {
+	$PWD/iop_bell.c,
+	$PWD/iop_disable.c,
+	$PWD/iop_enable.c,
+	$PWD/iop_fbinfo.c,
+	$PWD/iop_getev.c,
+	$PWD/iop_getled.c,
+	$PWD/iop_intdis.c,
+	$PWD/iop_inten.c,
+	$PWD/iop_kbdtype.c,
+	$PWD/iop_keyclick.c,
+	$PWD/iop_mapmem.c,
+	$PWD/iop_msctl.c,
+	$PWD/iop_setcmap.c,
+	$PWD/iop_setled.c,
+	$PWD/iop_unmapmem.c,
+};

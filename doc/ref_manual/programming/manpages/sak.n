@@ -1,0 +1,350 @@
+.\"	@(#)sak.n	1.4	96/02/15 16:55:27
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Maarten Huisjes, August 1990
+	Document: Maarten Huisjes, August 1990
+	Modified: Gregory J. Sharp, August 1991 - new style man pages
+						  a little extra info
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "sak" L "libamoeba.a"
+the Swiss Army Knife server interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "caplist.h"
+#include "server/sak/sak.h"
+
+errstat sak_exec_trans(argv, envp, capl, fcap)
+errstat sak_make_transfile(hdr, buf, req_size, rep_size, wait, fcap)
+
+errstat sak_list_job(jobcap, sched, options)
+errstat sak_submit_job(svrname, sched, fcap, options, jobcap)
+.eC
+.SH
+Description
+.LP
+.kW "\fIsak_exec_trans\fP"
+.kW "\fIsak_make_transfile\fP"
+.kW "\fIsak_list_job\fP"
+.kW "\fIsak_submit_job\fP"
+The
+.I sak (A)
+server provides a mechanism to execute a transaction at a later date under
+various conditions.
+These routines, along with the standard server stubs (see
+.kW "\fIstd\fP"
+.I std (L))
+provide the interface to the
+.I sak
+server.
+The first two routines do not actually do transactions with the server but
+package up the transaction that the server is to execute at a later date.
+The file containing this package is then submitted using
+.I sak_submit_job .
+.I Sak_list_job
+is used to examine the status of a job.
+.mH
+Access
+.LP
+Jobs are submitted using the server capability.
+No rights are required to submit a job.
+For each job submitted a capability is returned.
+The capability must be
+.I touched
+regularly (see
+.I std (L))
+or it will be garbage collected after some time.
+The simplest way to ensure that jobs are
+.I touched
+is to install the capability in the directory graph.
+(\fICronsubmit\fP(U) does this, for example.)
+.mH
+Errors
+.LP
+In general, standard error codes are used but there is one error code
+specific to the
+.I sak
+server.
+.LP
+\*<SAK_TOOLATE\*> is returned when an attempt is made to submit a job after
+the time specified for the job to be executed.
+.mH
+Types
+.LP
+In the following, the variable
+.I sched
+specifies when the job is to be executed.
+.I Sched
+is an array of length MAX_SPEC.
+The entries are numbered,
+.RS
+.IP MINU 8
+minutes (0 - 59)
+.IP HOUR
+hours (0 - 23)
+.IP MDAY
+day-of-month (1 - 31)
+.IP MONTH
+month (0 - 11)
+.IP WDAY
+day-of-week (0 - 6, 0 is Sunday)
+.IP YEAR
+year (any)
+.LP
+.RE
+Any of the entries can be,
+.RS
+.IP VALUE 8
+followed by a value.
+.IP LIST
+followed by a list of values.
+.IP RANGE
+followed by two numbers specifying a range
+.IP ANY
+meaning any possible value
+.IP NONE
+meaning no value at all
+.RE
+.LP
+All entries should have a
+.cW DELIMITER
+appended (see the include file
+.I sak.h).
+.LP
+Specification of days can be done in one of two ways: day-of-month/month or
+day-of-week.
+If neither is specified as NONE, only one
+has to match for the transaction to be executed.
+.LP
+The
+.I filecap
+parameter is a capability for a transaction file created by
+.kW "\fIsak_make_transfile\fP"
+.I sak_make_transfile
+which contains the transaction to be executed.
+.LP
+The
+.I options
+parameter is a structure which contains the following fields:
+.RS
+.IP \fIsave_result\fR 15
+If set to 1,
+.I sak
+will write a log of all transactions executed to a file named
+.I sak_statusfile ;
+.IP \fIwhere\fR
+The capability for a directory which will hold the
+.I sak
+status file (default
+.I /home/sak ).
+.IP \fIcatchup\fR
+This specifies the action taken when the server was not able to execute
+the transaction at the specified time.
+If set to 1 it will execute it as soon
+as possible, if set to 0, it will report a failure.
+Jobs that are to be executed more then once should set this flag to 0.
+.IP \fIname\fR
+A name of up to
+.cW MAX_NAME_LEN
+characters which is used by the server in status reports and info requests.
+.RE
+.mH
+Functions
+.LP
+.sH
+sak_exec_trans
+.LP
+.sC
+errstat
+sak_exec_trans(argv, envp, capl, filecap)
+char **argv;
+char **envp;
+struct caplist *capl;
+capability *filecap;
+.eC
+.kW "\fIsak_exec_trans\fP"
+.I Sak_exec_trans
+is used to generate a special file (on the default \*(Bs) which contains
+details of a transaction to be executed by the
+.I sak
+server.
+The function of this transaction will be to start the program specified by
+.I argv[0] ,
+with arguments specified by the rest of
+.I argv ,
+string environment specified by
+.I envp
+and capability environment specified by
+.I capl .
+.LP
+The resultant file should be submitted to the
+.I sak
+server using
+.kW "\fIsak_submit_job\fP"
+.I sak_submit_job .
+.LP
+When executed the transaction goes to a special thread within the
+.I sak
+server.
+The port used by this thread is found in
+.cW DEF_EXECSVR
+(typically
+.I /profile/cap/saksvr/execdefault ).
+When a transaction is done to this port with the
+.cW SAK_EXEC_FILE
+command specified, the command and argument list specified in the transaction
+buffer is executed using the string environment and capability environment
+also found in the transaction buffer.
+The arguments are as follows:
+.RS
+.IP \fIargv\fR 10
+a NULL-terminated argument list,
+.I argv[0]
+specifies the command to be executed.
+.IP \fIenvp\fR 10
+a NULL-terminated string environment list.
+.IP \fIcapl\fR 10
+a NULL-terminated capability environment list.
+.RE
+.LP
+A capability for the created file is returned in
+.I filecap .
+.rR
+\*<BS_RGT_CREATE\*> on default \*(Bs.
+.eR
+\*<STD_NOMEM\*>:	cannot malloc a buffer for the data,
+Any of the errors of \fIsak_make_transfile\fP.
+Any of the errors of \fIname_lookup\fP(L).
+.DE
+.sH
+sak_list_job
+.LP
+.sC
+errstat
+sak_list_job(jobcap, sched, options)
+capability *jobcap;
+int8 **sched;
+struct sak_job_options *options;
+.eC
+.kW "\fIsak_list_job\fP"
+.I Sak_list_job
+will return in
+.I sched
+a pointer to the schedule and in
+.I options
+the options associated with the job specified by
+.I jobcap .
+.rR
+\*<OWNERRIGHTS\*>
+.eR
+\*<STD_COMBAD\*>:	attempt to list super capability
+\*<STD_CAPBAD\*>:	no such job
+\*<STD_DENIED\*>:	insufficient rights
+\*<STD_NOMEM\*>:	the job info did not fit in the server's internal buffer
+.DE
+.sH
+sak_make_transfile
+.LP
+.sC
+errstat
+sak_make_transfile(hdr, buf, req_size, reply_size, wait, fcap)
+header *hdr;
+char *buf;
+bufsize req_size;
+bufsize rep_size;
+interval wait;
+capability *fcap;
+.eC
+.kW "\fIsak_make_transfile\fP"
+.I Sak_make_transfile
+is used to create a transaction file (on the default \*(Bs) that can be used by
+.kW "\fIsak_submit_job\fP"
+.I sak_submit_job .
+The arguments are as follows:
+.RS
+.IP \fIhdr\fR 10
+is the header used in the transaction.
+.IP \fIbuf\fR
+is the buffer used in the transaction.
+.IP \fIreq_size\fR
+size of the transaction buffer.
+.IP \fIreply_size\fR
+size of the expected reply buffer.
+.IP \fIwait\fR
+timeout used for the transaction.
+.I wait
+has a maximum of 30 seconds.
+.RE
+A capability for the created file is returned in
+.I filecap .
+.rR
+\*<BS_RGT_CREATE\*> on default \*(Bs.
+.eR
+Any of the errors returned by \fIb_create\fP or \fIb_modify\fP (see \fIbullet\fP(L)).
+.DE
+.sH
+sak_submit_job
+.LP
+.sC
+errstat
+sak_submit_job(svrname, sched, filecap, options, jobcap)
+char *svrname;
+int8 **sched;
+capability *filecap;
+struct sak_job_options *options;
+capability *jobcap;
+.eC
+.kW "\fIsak_submit_job\fP"
+.I Sak_submit_job
+submits a job to the
+.I sak (A)
+server specified by
+.I svrname .
+If
+.I svrname
+is a NULL-pointer,
+.cW DEF_SAKSVR
+is used.
+The job (that is, transaction to be executed) is specified in the file
+.I filecap
+which should have been created using
+.kW "\fIsak_make_transfile\fP"
+.I sak_make_transfile .
+The
+.I sched
+argument describes under what conditions the transaction should be executed.
+The
+.I options
+argument specifies what to do with any error status information.
+Details of the
+.I options
+and
+.I sched
+are given in the section
+.I Types
+above.
+A capability for the job is returned in
+.I jobcap
+if no errors occurred.
+.rR
+NONE
+.eR
+\*<SAK_TOOLATE\*>:	the specified time has already passed.
+\*<STD_SYSERR\*>:	a system error occurred while initializing job.
+\*<STD_NOMEM\*>:	insufficient resources within sak server.
+\*<STD_ARGBAD\*>:	the time specification was not legal.
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_COMBAD\*>:	a job capability was used instead of a server capability.
+.DE
+.SH
+See Also
+.LP
+bullet(L),
+sak(A).

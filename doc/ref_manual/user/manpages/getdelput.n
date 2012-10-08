@@ -1,0 +1,64 @@
+.\"	@(#)getdelput.n	1.3	94/04/05 15:59:11
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren
+	Document: Gregory J. Sharp, Nov 1991
+.aE
+.mT "getdelput" U
+atomically replace a capability with another
+.SH
+Synopsis
+.LP
+.sC L
+getdelput src_cap dest_cap
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "\fIget\fP"
+.kW "\fIput\fP"
+The function of
+.I getdelput
+is to atomically delete the capability-set in the directory entry
+.I dest_cap
+and replace it with the capability-set in the directory entry
+.I src_cap .
+Both directory entries must exist.
+.mH
+Diagnostics
+.LP
+If
+.I src_cap
+does not exist then the message
+.sC
+getdelput: can't lookup src_cap (not found)
+.eC
+will be printed.
+If
+.I dest_cap
+does not exist then the message
+.sC
+getdelput: can't replace dest_cap (not found)
+.eC
+will be printed.
+.SH
+Example
+.LP
+.sC
+getdelput file1 file2
+.eC
+will delete the capability-set in the directory entry
+.I file2
+(but not destroy the object associated with it)
+and replace it with the capability-set
+.I file1 .
+.SH
+See Also
+.LP
+get(U),
+put(U).

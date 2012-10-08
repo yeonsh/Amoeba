@@ -1,0 +1,41 @@
+.\"	@(#)fortune.n	1.4	96/02/16 10:58:47
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "fortune" U
+print a fortune
+.SH
+Synopsis
+.LP
+.sC L
+fortune
+.eC
+.SH
+Description
+.LP
+.I Fortune
+picks a fortune at random from the fortune file,
+.I /usr/lib/fortune.dat ,
+and prints it.
+This file consists of pieces of text separated by a line containing only %%.
+.SH
+Example
+.LP
+.sC L
+fortune
+.eC
+This might print:
+.sC L
+First Law of Socio-Genetics:
+Celibacy is not hereditary.
+.eC
+or
+.sC L
+Structured Programming supports the law of the excluded muddle.
+.eC

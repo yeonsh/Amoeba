@@ -1,0 +1,262 @@
+.\"	@(#)mutex.n	1.8	96/02/15 16:53:05
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: anonymous, 1989
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Feb 1996 - polished up
+.aE
+.mT "mutex" L "libamoeba.a, libamunix.a"
+thread synchronization primitives
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/mutex.h"
+
+typedef ... mutex;
+
+void mu_init(mu)
+void mu_lock(mu)
+void mu_unlock(mu)
+int mu_trylock(mu, maxdelay)
+
+void sig_mu_lock(mu)
+int sig_mu_trylock(mu, maxdelay)
+void sig_mu_unlock(mu)
+.eC
+.SH
+Description
+.LP
+.kW "\fImu_init\fP"
+.kW "\fImu_lock\fP"
+.kW "\fImu_unlock\fP"
+.kW "\fImu_trylock\fP"
+.kW "\fIsig_mu_lock\fP"
+.kW "\fIsig_mu_unlock\fP"
+.kW "\fIsig_mu_trylock\fP"
+.kW "binary semaphores"
+.kW "concurrent threads"
+.kW "synchronization"
+These operations implement mutexes (also known as binary semaphores).
+The use of mutexes is necessary to protect data structures that are
+accessed concurrently by multiple threads.
+.LP
+A mutex has two states: unlocked and locked.
+The basic operations on a mutex are
+.I lock
+and
+.I unlock.
+Locking an unlocked mutex changes its state to locked.
+Attempting to lock an already locked mutex blocks the thread that attempts the
+locking until the mutex is unlocked by another thread.
+If multiple threads are blocked, waiting for a locked mutex to become
+unlocked, exactly one of those will proceed and get the lock when it is
+unlocked; the others will remain blocked until the mutex is unlocked
+again.
+It is legal to unlock a mutex from a different thread than the thread
+that locked it; this can be used to emulate a sleep\-wakeup mechanism.
+.LP
+Mutexes are
+.I fair :
+when two threads with the same priority are waiting for the same mutex,
+the system guarantees that the thread that has spent the longest time in the
+queue will get the lock first.
+In case the process has threads with different priorities,
+the thread that has the highest priority will get the lock first.
+.LP
+Note that a signal can arrive during the execution of a critical section of
+code.
+To avoid signals preempting a process during a critical section the
+.I sig_mu_
+functions have been provided.
+If they successfully lock the mutex
+with
+.I sig_mu_lock
+or
+.I sig_mu_trylock
+then all further signals are delayed until the process exits the critical
+section with a call to
+.I sig_mu_unlock .
+When
+.I sig_mu_unlock
+is called then the signal handlers will be called for any signals that
+arrived during the critical section.
+The semantics and parameters of the
+.I sig_mu_
+versions are identical to the
+.I mu_
+versions in all other respects and so only the
+.I mu_
+versions are described below.
+.LP
+N.B.
+.kW "stun"
+A stun and a signal are not the same thing in the discussion below.
+Signals are used between threads whereas a stun is sent to a process and
+the
+.I sig_mu_
+routines will not prevent the preemption of the process while it is in the
+critical region.
+.mH
+Types
+.LP
+The
+.cW mutex
+data type declared in
+.I amoeba.h
+is an opaque data type; its only use should be to declare mutexes.
+All operations on mutexes must be done through the functions below.
+.mH
+Functions
+.sH
+mu_init
+.LP
+.sC
+void
+mu_init(mu)
+mutex *mu;
+.eC
+.kW "\fImu_init\fP"
+A mutex must be initialized (in the unlocked state) before use.
+This can be done using this function or by declaring it as a
+global or static variable (in bss).
+No error conditions are detected.
+Calling
+.I mu_init
+on an already initialized mutex in the locked state has
+an undefined effect,
+but it will probably have unpleasant consequences.
+.sH
+mu_lock
+.LP
+.sC
+void
+mu_lock(mu)
+mutex *mu;
+.eC
+.kW "\fImu_lock\fP"
+This function implements the
+.I lock
+operation described above.
+No error conditions are detected.
+.sH
+mu_unlock
+.LP
+.sC
+void
+mu_unlock(mu)
+mutex *mu;
+.eC
+.kW "\fImu_unlock\fP"
+This function implements the
+.I unlock
+operation described above.
+.kW "EXC_SYS"
+An exception (\*<EXC_SYS\*>) occurs if the mutex was not locked by any thread.
+.sH
+.ne 8
+mu_trylock
+.LP
+.sC
+int
+mu_trylock(mu, maxdelay)
+mutex *mu;
+interval maxdelay;
+.eC
+.kW "\fImu_trylock\fP"
+This is a variant of the lock
+operation that gives up when it has been blocked unsuccessfully for
+.I maxdelay
+milliseconds, when the call is interrupted by a signal
+(see
+.I signals (L)),
+.kW "stun"
+or when the process is continued after a stun
+(see
+.I process (L)).
+If
+.I maxdelay
+is zero, it succeeds only if the lock operation can proceed without blocking.
+If
+.I maxdelay
+is negative, an infinite delay is used, but the call may
+still be interrupted (unlike
+.I mu_lock ).
+.I Maxdelay
+may be rounded up to a multiple of granularity of the kernel's
+internal clock.
+The return value is zero for success, negative for failure.
+.mH
+Warnings
+.LP
+When using
+.I mu_trylock ,
+.kW "stun"
+always beware of premature error returns caused by continuation after a stun;
+this can happen to any program when run under a debugger.
+.LP
+The mutex operations available in
+.I libamunix.a
+have limited use.
+Since only a single thread of control exists, when an operation would cause
+a thread to block forever,
+.I abort
+is called.
+.SH
+Example
+.LP
+The following code is idiomatic for a self-initializing module whose
+operations may be called from multiple threads without explicit
+initialization.
+This is the rationale for the requirement that statically
+initialized mutexes must be valid: imagine two threads
+calling
+.I mod_routine
+below at the same time;
+both threads will find that initialization is necessary and call
+.I init ,
+but only one of the calls to
+.I init
+will execute the initialization code.
+Once
+.I initialized
+is set, future calls to
+.I mod_routine
+will skip the call to
+.I init
+altogether.
+.sC
+static mutex mu;
+static int initialized;
+
+static void init() {
+	mu_lock(&mu);
+	if (!initialized) {
+		"initialize the mod module"
+		initialized = 1;
+	}
+	mu_unlock(&mu);
+}
+
+/* Function callable by users of the mod module */
+mod_routine() {
+	if (!initialized)
+		init();
+	"do something mod-ish"
+}
+.eC
+.SH
+See Also
+.LP
+process(L),
+semaphore(L),
+signals(L).
+.LP
+Edsger W. Dijkstra,
+.I "Cooperating Sequential Processes" .

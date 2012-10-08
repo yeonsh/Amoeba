@@ -1,0 +1,498 @@
+.\"	@(#)ip_ip.n	1.1	96/02/15 16:52:02
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, 1991
+	Document: Philip Homburg, Sept 3, 1991
+	Modified: Gregory J. Sharp and Philip Homburg, March 1992
+		  - merged with udp(L) and made a little more complete.
+		  Gregory J. Sharp, April 1992
+		  - updated keywords for auto index generation
+		  Gregory J. Sharp, May 1995
+		  - made into 4 manual pages with some better hints on
+		    how to use this stuff.
+		  Gregory J. Sharp, Feb 1996
+		  - polish up
+.aE
+.mT "ip_ip" L "libamoeba.a"
+Internet Protocol server's IP client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "server/ip/ip_io.h"
+#include "server/ip/types.h"
+#include "server/ip/gen/in.h"
+#include "server/ip/gen/ip_io.h"
+#include "server/ip/gen/route.h"
+
+errstat ip_ioc_getconf(chan_cap, ipconf)
+errstat ip_ioc_getopt(chan_cap, ipopt)
+errstat ip_ioc_getroute(chan_cap, route)
+errstat ip_ioc_setconf(chan_cap, ipconf)
+errstat ip_ioc_setopt(chan_cap, ipopt)
+errstat ip_ioc_setroute(chan_cap, route)
+.eC
+.kW "\fIip_ioc_getconf\fP"
+.kW "\fIip_ioc_getopt\fP"
+.kW "\fIip_ioc_getroute\fP"
+.kW "\fIip_ioc_setconf\fP"
+.kW "\fIip_ioc_setopt\fP"
+.kW "\fIip_ioc_setroute\fP"
+.SH
+Description
+.LP
+.kW "IP"
+.kW "Internet Protocol"
+.kW "TCP/IP"
+.kW "ip"
+The Internet Protocol (IP) server implements four network protocols as
+described in
+.I ipsvr (A).
+The routines described below give access to the IP protocol in the
+IP server.
+Access to this service is provided using two types of capabilities:
+a server capability and channel capabilities.
+The server capability is called
+.I ip .
+The server capability is used to obtain a channel to the corresponding
+server.
+This is done with
+.I tcpip_open
+(see
+.I ip (L)).
+The channel capability can be used to transfer data using the protocol
+implemented by the server.
+This can also be done with the generic
+.I tcpip_read
+and
+.I tcpip_write
+routines.
+Since their semantics vary slightly depending on channel type, these routines
+are described briefly below.
+The
+.I ip_ioc_
+routines are used to manage the options and status of the IP channel.
+.LP
+Before they are described, a brief introduction to the various types is given.
+The general-purpose types and rights in the capabilities are described in
+.I ip (L).
+.mH
+IP Types
+.IP server/ip/gen/in.h
+.br
+defines
+.I ipaddr_t ,
+.I ipproto_t
+and struct ip_hdropt (\fIip_hdropt_t\fP).
+.IP server/ip/gen/ip_io.h
+.br
+defines struct nwio_ipconf (\fInwio_ipconf_t\fP) and
+struct nwio_ipopt (\fInwio_ipopt_t\fP)
+.IP server/ip/gen/ip_hdr.h
+.br
+defines struct ip_hdr (\fIip_hdr_t\fP)
+.IP server/ip/gen/route.h
+.br
+defines struct nwio_route (\fInwio_route_t\fP)
+.mH
+General Functions
+.sH
+tcpip_read
+.LP
+.sC
+errstat
+tcpip_read(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_read\fP"
+.I Tcpip_read
+reads IP packets from the IP channel of a TCP/IP server, specified by
+.I chan_cap ,
+into
+.I buffer ,
+which has length
+.I nbytes .
+If the packet is larger than 
+.I nbytes
+the packet is truncated to the buffer size and the error
+.cW TCPIP_PACKSIZE
+will be returned.
+It blocks until it has a complete IP packet.
+If successful it returns the number of bytes read.
+Otherwise it returns a negative error status.
+If the read is interrupted the server returns
+.cW STD_INTR .
+.LP
+It is possible to read the data only or the data plus
+IP header.
+See
+.I ip_ioc_setconf
+below for details.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<TCPIP_BADMODE\*>
+\*<TCPIP_PACKSIZE\*>
+\*<STD_INTR\*>
+.DE
+.sH
+tcpip_write
+.LP
+.sC
+errstat
+tcpip_write(chan_cap, buffer, nbytes)
+capability *chan_cap;
+char *buffer;
+size_t nbytes;
+.eC
+.kW "\fItcpip_write\fP"
+.I Tcpip_write
+transfers the IP packet in
+.I buffer
+from the client to the TCP/IP server's IP channel specified by
+.I chan_cap .
+The IP packet to be sent is
+.I nbytes
+long.
+It accepts only complete packets.
+It computes the checksum for the packet and inserts it at the appropriate place.
+The call blocks until enough buffer space for the whole packet is available
+in the TCP/IP server.
+On success it returns the number of bytes written.
+On failure it returns a negative error code.
+.eR
+.fi
+See
+.I ip (L)
+for a description of the error codes.
+.nf
+\*<TCPIP_BADMODE\*>
+\*<TCPIP_PACKSIZE\*>
+\*<STD_INTR\*>
+.DE
+.mH
+IP Functions
+.LP
+.sH
+ip_ioc_getconf
+.LP
+.sC
+errstat
+ip_ioc_getconf(chan_cap, ipconf)
+capability *chan_cap;
+struct nwio_ipconf *ipconf;
+.eC
+.kW "\fIip_ioc_getconf\fP"
+.I Ip_ioc_getconf
+reports the Internet address and the netmask.
+For the \fInwio_ipconf\fP structure see \fIip_ioc_setconf\fP below.
+.sH
+ip_ioc_getopt
+.LP
+.sC
+errstat
+ip_ioc_getopt(chan_cap, ipopt)
+capability *chan_cap;
+struct nwio_ipopt *ipopt;
+.eC
+.kW "\fIip_ioc_getopt\fP"
+This call returns in
+.I ipopt
+the current options of the IP channel specified by
+.I chan_cap .
+See
+.I ip_ioc_setopt
+for a description of the options.
+.sH
+ip_ioc_getroute
+.LP
+.sC
+errstat
+ip_ioc_getroute(chan_cap, route)
+capability *chan_cap;
+struct nwio_route *route;
+.eC
+.kW "\fIip_ioc_getroute\fP"
+.I Ip_ioc_getroute
+can be used to query an IP server about it is routing table.
+The structure \fInwio_route\fP is defined in \fIserver/ip/gen/route.h\fP:
+.sC
+typedef struct nwio_route
+{
+        u32_t nwr_ent_no;
+        u32_t nwr_ent_count;
+        ipaddr_t nwr_dest;
+        ipaddr_t nwr_netmask;
+        ipaddr_t nwr_gateway;
+        u32_t nwr_dist;
+        u32_t nwr_flags;
+        u32_t nwr_pref;
+	ipaddr_t nwr_ifaddr;
+} nwio_route_t;
+.eC
+.sC
+#define NWRF_EMPTY        0
+#define NWRF_INUSE        1
+#define NWRF_STATIC       2
+#define	NWRF_UNREACHABLE  4
+.eC
+The requested entry is taken from \fInwr_ent_no\fP.
+Entries are counted from 0, so the value 0 can be used for an initial query.
+The size of the routing table is returned in \fInwr_ent_count\fP.
+The \fInwr_flags\fP field indicates if the entry is in use (\*<NWRF_INUSE\*>)
+and if the entry is static (\*<NWRF_STATIC\*> using \fIip_ioc_setroute\fP) or
+generated by the IP server itself.
+A destination can be marked unreachable using \*<NWRF_UNREACHABLE\*>.
+The route is described by
+.I nwr_dest ,
+.I nwr_netmask ,
+.I nwr_gateway ,
+.I nwr_dist ,
+and
+.I nwr_pref .
+\fINwr_dest\fP and \fInwr_netmask\fP select the destination addresses.
+A value of 0.0.0.0 (0x0) in both \fINwr_dest\fP and \fInwr_netmask\fP means
+every host.
+A value of 255.255.255.255 (0xffffffff) in \fInwr_netmask\fP means a single
+host.
+Other values of \fInwr_netmask\fP are netmasks for the network specified
+by \fInwr_dest\fP.
+\fINwr_gateway\fP is the gateway that should be used.
+\fINwr_dist\fP is the minimal distance (i.e. if the specified network is
+subnetted, destinations can be at varying distances.)
+Packets with a ``time to live'' smaller than \fInwr_dist\fP will not reach the
+destination.
+If two routes have equal netmask and distance fields but different
+gateways then the gateway with highest value in \fInwr_pref\fP is used.
+.sH
+ip_ioc_setconf
+.LP
+.sC
+errstat
+ip_ioc_setconf(chan_cap, ipconf)
+capability *chan_cap;
+struct nwio_ipconf *ipconf;
+.eC
+.kW "\fIip_ioc_setconf\fP"
+.I Ip_ioc_setconf
+can be used to inform the IP server about its Internet address and/or its
+netmask.
+Normally an IP server will discover its Internet address using the RARP
+protocol.
+.I Ip_ioc_setconf
+can be used in the case that the RARP failed, or the netmask has to be changed.
+Note that higher level protocols (TCP and UDP) assume that the Internet address
+of an IP device does not change, therefore TCP and UDP stop functioning if
+the Internet address is changed.
+.LP
+The structure \fInwio_ipconf\fP is defined in
+.I server/ip/gen/ip_io.h :
+.sC
+typedef struct nwio_ipconf
+{
+	u32_t   nwic_flags;
+	ipaddr_t nwic_ipaddr;
+	ipaddr_t nwic_netmask;
+} nwio_ipconf_t;
+.eC
+.sC
+#define NWIC_NOFLAGS            0x0
+#define NWIC_FLAGS              0x3
+#       define NWIC_IPADDR_SET          0x1
+#       define NWIC_NETMASK_SET         0x2
+.eC
+The function of \fInwio_ipconf\fP depends on the value of \fInwic_flags\fP.
+If
+.cW NWIC_IPADDR_SET
+is set then the Internet address will be set to
+\fInwic_ipaddr\fP.
+If
+.cW NWIC_NETMASK_SET
+is set then the Internet address will be set to
+\fInwic_netmask\fP.
+.sH
+ip_ioc_setopt
+.LP
+.sC
+errstat
+ip_ioc_setopt(chan_cap, ipopt)
+capability *chan_cap;
+struct nwio_ipopt *ipopt;
+.eC
+.kW "\fIip_ioc_setopt\fP"
+Before an IP channel can be used, it has to be configured using
+.I ip_ioc_setopt .
+The structure \fInwio_ipopt\fP is defined in \fIserver/ip/gen/ip_io.h\fP:
+.sC
+typedef struct nwio_ipopt
+{
+        u32_t nwio_flags;
+        ipaddr_t nwio_rem;
+        ip_hdropt_t nwio_hdropt;
+        u8_t nwio_tos;
+        u8_t nwio_ttl;
+        u8_t nwio_df;
+        ipproto_t nwio_proto;
+} nwio_ipopt_t;
+.eC
+.sC
+#define NWIO_NOFLAGS    0x0000L
+#define NWIO_ACC_MASK   0x0003L
+#       define NWIO_EXCL        0x00000001L
+#       define NWIO_SHARED      0x00000002L
+#       define NWIO_COPY        0x00000003L
+#define NWIO_LOC_MASK   0x0010L
+#       define NWIO_EN_LOC      0x00000010L
+#       define NWIO_DI_LOC      0x00100000L
+#define NWIO_BROAD_MASK 0x0020L
+#       define NWIO_EN_BROAD    0x00000020L
+#       define NWIO_DI_BROAD    0x00200000L
+#define NWIO_REM_MASK   0x0100L
+#       define NWIO_REMSPEC     0x00000100L
+#       define NWIO_REMANY      0x01000000L
+#define NWIO_PROTO_MASK 0x0200L
+#       define NWIO_PROTOSPEC   0x00000200L
+#       define NWIO_PROTOANY    0x02000000L
+#define NWIO_HDR_O_MASK 0x0400L
+#       define NWIO_HDR_O_SPEC  0x00000400L
+#       define NWIO_HDR_O_ANY   0x04000000L
+#define NWIO_RW_MASK    0x1000L
+#       define NWIO_RWDATONLY   0x00001000L
+#       define NWIO_RWDATALL    0x10000000L
+.eC
+The options are divided into several categories:
+.cW NWIO_ACC_MASK ,
+.cW NWIO_LOC_MASK ,
+.cW NWIO_BROAD_MASK ,
+.cW NWIO_REM_MASK ,
+.cW NWIO_PROTO_MASK ,
+.cW NWIO_HDR_O_MASK
+and
+.cW NWIO_RW_MASK .
+A channel is configured when one option of each category is set.
+.LP
+The options covered by
+.cW NWIO_ACC_MASK
+control the number of channels that can use one IP next-level protocol.
+If
+.cW NWIO_EXCL
+is specified then only that channel can use a certain IP next-level protocol.
+If
+.cW NWIO_SHARED
+is set then multiple channels that all have to specify
+.cW NWIO_SHARED
+can use the same IP next-level protocol, but incoming packets will
+be delivered to at most one channel.
+.cW NWIO_COPY
+does not impose any restrictions.
+Every channel gets a copy of an incoming packet.
+.LP
+.cW NWIO_LOC_MASK
+and
+.cW NWIO_BROAD_MASK
+control the delivery of packets.
+If
+.cW NWIO_EN_LOC
+is specified then packets that are explicitly sent to
+the IP server are delivered.
+If
+.cW NWIO_EN_BROAD
+is specified then broadcast packets are delivered.
+Either one or both of them can be disabled with
+.cW NWIO_DI_LOC
+and
+.cW NWIO_DI_BROAD .
+.LP
+.cW NWIO_REMSPEC
+can be used to restrict communication to one remote host.
+This host is taken from the \fInwio_rem\fP field.
+If any remote host is to be allowed then
+.cW NWIO_REMANY
+can be used.
+.LP
+.cW NWIO_PROTOSPEC
+restricts communication to one IP next-level protocol, specified
+in \fInwio_proto\fP.
+.cW NWIO_PROTOANY
+allows any protocol to be sent or received.
+.LP
+.cW NWIO_HDR_O_SPEC
+specifies all IP header options in advance.
+The values are taken from
+.I nwio_hdropt ,
+.I nwio_tos ,
+.I nwio_ttl ,
+and
+.I nwio_df .
+\fINwio_hdropt\fP specifies the IP options that should be present in an
+outgoing packet.
+\fIIp_hdropt_t\fP is defined in \fIserver/ip/gen/in.h\fP:
+.sC
+typedef struct ip_hdropt
+{
+        u8_t iho_opt_siz;
+        u8_t iho_data[IP_MAX_HDR_SIZE-IP_MIN_HDR_SIZE];
+} ip_hdropt_t;
+.eC
+The \fIiho_opt_siz\fP bytes in \fIiho_data\fP are appended to the IP header.
+\fINwio_tos\fP specifies the value of the ``type of service'' bits,
+\fInwio_ttl\fP gives the value of the ``time to live'' field and \fInwio_df\fP
+specifies whether fragmentation is disallowed or not.
+.cW NWIO_HDR_O_ANY
+specifies that the header options must be specified with each write request.
+.LP
+.cW NWIO_RWDATONLY
+specifies that the header should be omitted from a
+write request.
+This option can only be used when all header fields are specified in previous
+options:
+.cW NWIO_EN_LOC ,
+.cW NWIO_DI_BROAD ,
+.cW NWIO_REMSPEC ,
+.cW NWIO_PROTOSPEC
+and
+.cW NWIO_HDR_O_SPEC .
+A read operation will also only return the data part, so the IP options will
+be lost.
+.sH
+ip_ioc_setroute
+.LP
+.sC
+errstat
+ip_ioc_setroute(chan_cap, route)
+capability *chan_cap;
+struct nwio_route *route;
+.eC
+.kW "\fIip_ioc_setroute\fP"
+\fIIp_ioc_setroute\fP adds a route to the routing table.
+See \fIip_ioc_getroute\fP above for a description of the \fInwio_route\fP
+structure.
+The fields \fInwr_ent_no\fP and \fInwr_ent_count\fP are ignored.
+.mH
+Diagnostics
+.LP
+The complete set of error codes is described in
+.I ip (L).
+.\".SH
+.\"Examples
+.\".LP
+.\"XXX
+.SH
+See Also
+.LP
+error(L),
+ip(L),
+ip_eth(L),
+ip_tcp(L),
+ip_udp(L),
+ipsvr(A).

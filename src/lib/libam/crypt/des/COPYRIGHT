@@ -1,0 +1,20 @@
+-*- text -*-
+#	
+#	@(#)COPYRIGHT	1.1	91/11/18 16:23:47
+#
+Copyright 1989 Antti Louko. All Rights Reserved.
+
+This is a DES implementation written by Antti Louko
+(alo@kampi.hut.fi). It is based on DES description found in D.E.R.
+Denning's book Cryptography and Data Security.  At this time you may
+use this program for non-commercial use. If you modify the program,
+you must add a comment in the modified file indicating who modified
+it. For commercial purposes please contact me.
+
+If you find bugs or otherwise modify this program, please send
+changes back to me.
+
+Note by sater@cs.vu.nl
+In Email correspondence with Antti he agreed that we would be allowed
+to distribute this with Amoeba as long as the sources were included,
+and we didn't take his name out of it.

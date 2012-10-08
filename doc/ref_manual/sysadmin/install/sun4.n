@@ -1,0 +1,251 @@
+.\"	@(#)sun4.n	1.5	96/02/15 17:04:42
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, July 1993
+	Modified: Gregory J. Sharp, Jan 1996 - minor polishing
+.aE
+.bp
+.nH 2 "Installing \*(Am on the SPARCstation"
+.LP
+.kW installation
+The distribution tape for \*(Am for the SPARCstation contains three
+tape files: a bootable kernel containing a ramdisk driver,
+the contents for the ramdisk, and a
+.I tar (U)
+image containing all the system binaries.
+.LP
+To use this tape the following hardware is required:
+.IP \h'1n'\(bu
+A SPARCstation with at least 16\|\|MB memory.
+.IP \h'1n'\(bu
+A Sun keyboard and monitor, or a 9600 baud terminal connected to ttya.
+.IP \h'1n'\(bu
+.kW "tape drive"
+.kW "QIC-150 tape"
+.kW "QIC-24 tape"
+.kW "tape, 150M"
+A QIC-150 or QIC-24 tape drive.
+.IP \h'1n'\(bu
+.kW SCSI
+.kW "disk space requirements"
+A SCSI disk of at least 100\|\|MB.
+300 MB or more is recommended for a system with many users or
+if X windows is to be installed.
+.LP
+In the instructions below the
+.B bold
+font will be used for what you
+have to type at the computer, and the
+.cW "standard font"
+for what the computer types back at you.
+A \(=> marks the beginning of each step.
+.IP \(=> 1.6c
+Power on the machine and write down the Ethernet address it displays in
+the banner.
+You will need this later.
+.IP \(=> 1.6c
+If the machine is a sun4c and is already powered on type the command
+.B reset
+to the PROM's
+.cW ok
+prompt.
+This will cause the banner to be redisplayed and put the machine into a
+known state.
+N.B.  It is important to reset a sun4c with SCSI devices before booting an
+\*(Am kernel.
+.IP \(=> 1.6c
+Make sure that the boot tape is read-only.
+Insert the distribution tape into the tape unit and boot from tape by typing
+.sC L
+ok \fBboot tape\fP
+.eC
+Note that for this to work, the tape drive must be the default unit.
+If not, consult the Sun Openprom documentation on how to boot from the correct
+tape unit.
+.IP
+The tape should spin, the kernel should boot and start to
+initialize itself, loading the ramdisk from tape, and starting various servers.
+While all this is going on various messages will be displayed.
+They come from the boot server.
+Do not worry about them.
+After some minutes a shell prompt should appear:
+.sC L
+Welcome to standalone Amoeba
+#
+.eC
+You can verify that things are working by typing
+.sC L
+# \fBdir\0\-l\0/super/hosts/coldstart\fP
+.eC
+which will give a directory listing of all devices present on your machine
+of which one will be the disk:
+.sC L
+bootp:00                        @    170498 KB
+.eC
+The `\*<@\*>' is the symbol for a disk and the number after it is the size of
+the disk in kilobytes.
+In this example it is a 170 MB disk.
+.LP
+At this point you need to partition and label your disk.
+The \*(Am disk driver code recognizes Sun labels and partition
+tables and makes it possible to use part of the disk for \*(Am and part
+of it for
+.UX .
+However this is not supported for booting.
+.LP
+It is recommended to put a Sun label on the disk and make a single
+partition spanning the whole disk.
+We use the `a' partition, but
+for compatibility with SunOS the `c' partition might be more
+logical.
+In any case, \*(Am does not care.
+.LP
+Inside this one partition the \*(Am disk driver code will recognize
+.kW "virtual disk"
+subpartitions.
+These are the building blocks of the \*(Am
+.I vdisk 's.
+For bootstrap purposes four virtual disks are needed.
+For simplicity each one should consist of a single subpartition.
+.IP vdisk:01 10
+This is used for booting \*(Am from disk and should have room to contain one or
+more kernels.
+In almost all normal circumstances 2 MB should be plenty.
+More than that is probably a waste of space.
+Minimum 1 MB.
+.IP vdisk:02
+This is used by the
+.I boot (A)
+server, and 100 KB is sufficient.
+.IP vdisk:03
+This is for the administration of the directory server.
+A 1 MB partition will hold over 30000 directories and should
+be sufficient for most purposes.
+It is a bad idea to make this partition much more than 1MB or the installation
+procedure may fail.
+It should be at least 500 KB.
+.IP vdisk:04
+This will hold the files for the first \*(Bs started.
+It can take up the remainder of the disk.
+.IP \(=> 1.6c
+Having planned the sizes for your partitions you should run the
+disklabel program:
+.kW "\fIdisklabel\fP"
+.sC L
+# \fBdisklabel\0coldstart\fP
+.eC
+.IP
+This is an interactive program that is explained in
+.I disklabel (A).
+.IP
+NB.
+When labeling it is important to realize that the disk
+.I bootp:01
+is
+.B not
+a physical disk and should not be selected for labeling.
+.IP
+When creating the \*(Am subpartitioning the `a' partition
+corresponds to vdisk:01, `b' to vdisk:02, etc.
+.IP \(=> 1.6c
+After the disk is labeled
+.B reboot
+the machine.
+To get a monitor prompt back press
+.B L1
+and
+.B a
+simultaneously.
+(If working with a terminal on ttya use
+.B <CTL>^
+followed by
+.B r .
+This will cause the machine to try to reboot.
+As soon as it begins to boot send a
+.I break
+character and the
+.cW ok
+prompt should appear.
+.IP \(=> 1.6c
+Now boot from tape again, and list the kernel directory again (with
+.I dir ).
+(Do not forget the reset command if the machine is a sun4c.)
+This time you should see the entries for vdisk:01 up to vdisk:04.
+.IP \(=> 1.6c
+Now set the time and date in the time of day server using the command
+.I date (U)
+command as previously described.
+.kW "setting the date"
+Remember it has the form:
+.sC L
+# \fBdate\0\-s\0/super/hosts/coldstart/tod\fP yyyymmddhhmm[.ss]
+.eC
+.IP \(=> 1.6c
+Start the rest of the installation by:
+.sC L
+# \fB.\0\0installit\fP
+.eC
+.LP
+.kW sun4c
+.kW sun4m
+.kW SPARCstation
+First you will be asked if the machine type: either sun4m or sun4c.
+Older SPARCstations such as the SPARCstation 1, 1+, 2, SLC, ELC and IPC are of
+the type sun4c.
+.kW SPARCclassic
+Newer models such as the SPARCclassic and SPARCstation LX are of the type
+sun4m.
+Finally you will be prompted for the name of the machine and for its Ethernet
+address.
+The machine name must be a single word (no spaces or tabs) and the
+Ethernet address should be in the usual format
+(e.g.,
+.B 8:0:20:0:12:34 ).
+After that no further user input is required and the disk will be loaded
+from the tape.
+It will print details of servers started and of each file as it is loaded so
+that it is clear that it is still active.
+.LP
+After the script finishes, which can easily take half an hour,
+it will print
+.sC L
+Installation complete
+.eC
+.IP \(=> 1.6c
+You should boot \*(Am from disk.
+Go back to the Sun PROM monitor
+as described above and then type:
+.sC L
+ok \fBboot disk\fP
+.eC
+Note that for this to work the disk must be the default disk.
+If not consult the Sun Openprom documentation to boot from the correct
+disk.
+.IP \(=> 1.6c
+After some minutes an \*(Am login message should appear (be careful,
+it might be lost in the verbose boot server output),
+and you should log in as user
+.kW Daemon
+.I Daemon .
+There is no password,
+so at the
+.cW Password:
+prompt you should just press the return key.
+.IP \(=> 1.6c
+The login name
+.I Daemon
+has the
+.I super
+capability giving access to the entire directory graph so it is
+important to protect this login against misuse.
+Once logged in you should set the password for the login name
+.I Daemon
+using the command
+.kW chpw
+.I chpw (U).
+.LP
+Now go on to the section on setting the time.

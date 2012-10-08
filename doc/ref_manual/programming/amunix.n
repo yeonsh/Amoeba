@@ -1,0 +1,88 @@
+.\"	@(#)amunix.n	1.6	96/02/15 16:41:58
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "\*(Am Under Unix"
+.kW FLIP
+.kW UNIX
+.kW "network protocol"
+The FLIP network protocol can be installed in many popular versions of
+.UX
+so that processes running under
+.UX
+.kW RPC
+can communicate using the \*(Am RPC.
+Many programs that run under \*(Am will also allow access to \*(Am from
+.UX .
+However not all programs that run under native \*(Am will work under
+.UX
+since
+.UX
+does not support multithreaded processes in a the same way as \*(Am.
+Many threads packages are available that use non-preemptive scheduling between
+threads so compatibility with \*(Am should be possible but later releases
+may present problems.
+There is a special library for linking programs that use the \*(Am RPC
+but which are to run under
+.UX .
+It is called
+.kW libamunix.a
+.I libamunix.a .
+To see how to use it,
+examine the
+.I Amakefile s
+that are distributed with \*(Am for generating programs to run under
+.UX .
+.LP
+Because of limitations in the
+.UX
+networking code,
+the \*(Am protocols inside a
+.UX
+kernel are usually slower than under native
+\*(Am.
+.kW "fast client/slow server problem"
+This can lead to the fast client \- slow server problem.
+In this case a server running on a slow system receives a request,
+executes it and sends a reply.
+However, before it can issue another
+.I getreq
+the client is trying to send another request.
+Since the server is temporarily unavailable, the client issues one or more
+locate broadcasts which can grow into broadcast storms.
+Under \*(Am this can be avoided by having multiple threads doing a
+.I getreq
+on the same port so that a locate always succeeds.
+The problem of
+.I busy
+servers will be solved in a subsequent release.
+.LP
+Two commands which are very useful under
+.UX
+are
+.kW "tob"
+.I tob (U)
+and
+.kW "fromb"
+.I fromb (U)
+which allow files to be sent between
+.UX
+.kW "Bullet Server"
+and the Bullet file server.
+.LP
+\*(Am has a special server for converting between its network protocol
+.kW "TCP/IP"
+and TCP/IP (see
+.I ipsvr (A)).
+With the aid of this and the program
+.kW "ttn"
+.kW "telnet"
+.I ttn (U)
+(an implementation of telnet) it is possible to do remote login to
+.UX
+hosts.
+.kW "electronic mail"
+Electronic mail can also be transferred between \*(Am and public TCP/IP
+networks using the TCP/IP server.

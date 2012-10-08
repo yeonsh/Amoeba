@@ -1,0 +1,78 @@
+#	
+#	@(#)Amake.srclist	1.6	94/04/07 14:39:50
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_ASCII = $PWD/ascii.c;
+U_BANNER = $PWD/banner.c;
+U_BASENAME = $PWD/basename.c;
+U_CAL = $PWD/cal.c;
+U_CAT = $PWD/cat.c;
+U_CDIFF = $PWD/cdiff.c;
+U_CGREP = $PWD/cgrep.c;
+U_CLEAR = $PWD/clear.c;
+U_CMP = $PWD/cmp.c;
+U_COMM = $PWD/comm.c;
+U_COMPRESS = $PWD/compress.c;
+U_CP = $PWD/cp.c;
+U_CPDIR = $PWD/cpdir.c;
+U_DD = $PWD/dd.c;
+U_DIFF = $PWD/diff.c;
+U_DIRNAME = $PWD/dirname.c;
+U_ECHO = $PWD/echo.c;
+U_EXPAND = $PWD/expand.c;
+U_EXPR = $PWD/expr.c;
+U_FACTOR = $PWD/factor.c;
+U_FGREP = $PWD/fgrep.c;
+U_FILE = $PWD/file.c;
+U_FOLD = $PWD/fold.c;
+U_FORTUNE = $PWD/fortune.c;
+U_GREP = $PWD/grep.c;
+U_HEAD = $PWD/head.c;
+U_KILL = $PWD/kill.c;
+U_LEAVE = $PWD/leave.c;
+U_LN = $PWD/ln.c;
+U_LOOK = $PWD/look.c;
+U_LS = $PWD/ls.c;
+U_MKDIR = $PWD/mkdir.c;
+U_MKFIFO = $PWD/mkfifo.c;
+U_MORE = $PWD/more.c;
+U_MV = $PWD/mv.c;
+U_OD = $PWD/od.c;
+U_PR = $PWD/pr.c;
+U_PREP = $PWD/prep.c;
+U_PRINTENV = $PWD/printenv.c;
+U_PWD = $PWD/pwd.c;
+U_REV = $PWD/rev.c;
+U_RM = $PWD/rm.c;
+U_RMDIR = $PWD/rmdir.c;
+U_SED = $PWD/sed.c;
+U_SHAR = $PWD/shar.c;
+U_SIZE = $PWD/size.c;
+U_SLEEP = $PWD/sleep.c;
+U_SORT = $PWD/sort.c;
+U_SPLIT = $PWD/split.c;
+U_STRINGS = $PWD/strings.c;
+U_SUM = $PWD/sum.c;
+U_TAIL = $PWD/tail.c;
+U_TEE = $PWD/tee.c;
+U_TERMCAP = $PWD/termcap.c;
+U_TEST = $PWD/test.c;
+U_TIME = $PWD/time.c;
+U_TR = $PWD/tr.c;
+U_TREECMP = $PWD/treecmp.c;
+U_TSET = $PWD/tset.c;
+U_TSORT = $PWD/tsort.c;
+U_TTY = $PWD/tty.c;
+U_UNEXPAND = $PWD/unexpand.c;
+U_UNIQ = $PWD/uniq.c;
+U_UUD = $PWD/uud.c;
+U_UUE = $PWD/uue.c;
+U_WC = $PWD/wc.c;
+U_WHICH = $PWD/which.c;
+U_XARGS = $PWD/xargs.c;
+U_YES = $PWD/yes.c;
+
+%include $PWD/find/Amake.srclist;

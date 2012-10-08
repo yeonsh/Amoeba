@@ -1,0 +1,324 @@
+.\"	@(#)tios.n	1.5	96/02/15 16:57:08
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1989
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "tios" L "libamoeba.a, libamunix.a, libkernel.a"
+termios-style terminal control interface
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "termios.h" /* or "posix/termios.h" */
+.eC
+.sC L
+errstat tios_drain(tty)
+errstat tios_flow(tty, action)
+errstat tios_flush(tty, queue_selector)
+errstat tios_getattr(tty, tp)
+errstat tios_getwsize(tty, width, length)
+errstat tios_sendbrk(tty, duration)
+errstat tios_setattr(tty, optional_actions, tp)
+.eC
+.sC L
+char *tc_marshal(buf, t, same_byte_order)
+char *tc_unmarshal(buf, tp, same_byte_order)
+.eC
+.sC L
+#include "sys/ioctl.h" /* or "posix/sys/ioctl.h" */
+
+void tc_frombsd(tp, sgp, tcp, ltcp, local_mode_p)
+void tc_tobsd(tp, sgp, tcp, ltcp, local_mode_p)
+
+void tc_tosysv(tp, sysv_tp)
+void tc_fromsysv(tp, sysv_tp)
+.eC
+.SH
+Description
+.LP
+.kW "termios"
+.kW "tty control"
+.kW "termios.h"
+.kW "sys/ioctl.h"
+.kW "\fItc_frombsd\fP"
+.kW "\fItc_fromsysv\fP"
+.kW "\fItc_marshal\fP"
+.kW "\fItc_tobsd\fP"
+.kW "\fItc_tosysv\fP"
+.kW "\fItc_unmarshal\fP"
+.kW "\fItios_drain\fP"
+.kW "\fItios_flow\fP"
+.kW "\fItios_flush\fP"
+.kW "\fItios_getattr\fP"
+.kW "\fItios_sendbrk\fP"
+.kW "\fItios_setattr\fP"
+.kW "struct termios"
+.kW "ax"
+.kW "console driver"
+.kW "ioctl"
+This module contains the capability-based counterparts of the
+.I termios
+function calls (see
+.I posix (L)).
+These operations are supported by several servers, including
+.I ax (U),
+.I xterm
+and the console driver in the kernel.
+The functions
+.kW "\fItc_marshal\fP"
+.I tc_marshal
+and
+.kW "\fItc_unmarshal\fP"
+.I tc_unmarshal
+help servers with packing
+and unpacking a
+.I struct termios .
+The functions
+.kW "\fItc_frombsd\fP"
+.I tc_frombsd
+and
+.kW "\fItc_tobsd\fP"
+.I tc_tobsd
+provide conversion from and to structures used by BSD's tty ioctl's.
+Similarly the
+.kW "\fItc_fromsysv\fP"
+.I tc_fromsysv
+and
+.kW "\fItc_tosysv\fP"
+.I tc_tosysv
+functions provide conversion from and to the structures used by
+.UX
+System V ioctl's.
+.sH
+tios_*
+.LP
+.sC
+errstat
+tios_drain(tty)
+capability *tty;
+.eC
+.kW "\fItios_drain\fP"
+.sC
+errstat
+tios_flow(tty, action)
+capability *tty;
+int action;
+.eC
+.kW "\fItios_flow\fP"
+.sC
+errstat
+tios_flush(tty, queue_selector)
+capability *tty;
+int queue_selector;
+.eC
+.kW "\fItios_flush\fP"
+.sC
+errstat
+tios_getattr(tty, tp)
+capability *tty;
+struct termios *tp; /* out */
+.eC
+.kW "\fItios_getattr\fP"
+.sC
+errstat
+tios_sendbrk(tty, duration)
+capability *tty;
+int duration;
+.eC
+.kW "\fItios_sendbrk\fP"
+.sC
+errstat
+tios_setattr(tty, optional_actions, tp)
+capability *tty;
+int optional_actions;
+struct termios *tp; /* in */
+.eC
+.kW "\fItios_setattr\fP"
+There is a one-to-one correspondence between these calls and the
+POSIX calls, replacing the file descriptor parameter to the POSIX call
+by a capability pointer parameter to the
+.I tios_
+call, and the
+.I tc
+name prefix with
+.I tios_ .
+See the POSIX standard for an explanation of the semantics.
+See
+.I posix (L)
+for \*(Am-dependent information.
+.eR
+\*<STD_COMBAD\*>:	operation not supported by server.
+\*<STD_CAPBAD\*>:	invalid capability.
+\*<STD_DENIED\*>:	insufficient rights.
+.DE
+RPC errors are also possible, as well as other errors depending on the
+server implementation.
+.sH
+tios_getwsize
+.LP
+.sC
+errstat
+tios_getwsize(tty, width, length)
+capability *tty;
+int *width; /* out */
+int *length; /* out */
+.eC
+This routine returns the dimensions of the screen area of the terminal device.
+This provides support for window systems where windows may have a variable
+size and screen-based programs need to enquire of the size of the screen area.
+.sH
+tc_marshal, tc_unmarshal
+.LP
+.sC
+char *
+tc_marshal(buf, t, same_byte_order)
+char *buf; /* out */
+termios t; /* in; by value! */
+int same_byte_order;
+.eC
+.sC
+char *
+tc_unmarshal(buf, tp, same_byte_order)
+char *buf; /* in */
+termios *t; /* out */
+int same_byte_order;
+.eC
+.kW "\fItc_marshal\fP"
+.kW "\fItc_unmarshal\fP"
+Function
+.I tc_marshal
+packs a struct termios value into the buffer
+argument, and returns a pointer to the next free byte in the buffer.
+Function
+.I tc_unmarshal
+unpacks the buffer into a struct termios variable,
+and returns a pointer to the next data byte in the buffer.
+Both use the flag ``same_byte_order'' to determine whether to swap bytes or not.
+There is no buffer overflow detection, nor are other error conditions detected.
+.ne 10
+.sH
+tc_frombsd, tc_tobsd
+.LP
+.sC
+void
+tc_frombsd(tp, sgp, tcp, ltcp, local_mode_p)
+struct termios *tp; /* out */
+struct sgttyb *sgp; /* in */
+struct tchars *tcp; /* in */
+struct ltchars *ltcp; /* in */
+int *local_mode_p; /* in */
+.eC
+.sC
+void
+tc_tobsd(tp, sgp, tcp, ltcp, local_mode_p)
+struct termios *tp; /* in */
+struct sgttyb *sgp; /* out */
+struct tchars *tcp; /* out */
+struct ltchars *ltcp; /* out */
+int *local_mode_p; /* out */
+.eC
+.kW "\fItc_tobsd\fP"
+.kW "\fItc_frombsd\fP"
+These functions convert a struct termios from/to a couple of BSD-style
+tty control blocks.
+No error conditions are detected.
+NOTE: These functions are
+.B not
+present in the library if it was compiled with
+the flag
+.cW SYSV .
+.sH
+tc_fromsysv, tc_tosysv
+.LP
+.sC
+void tc_tosysv(tp, sysv_tp)
+struct termios *tp;
+char *sysv_tp;
+
+void tc_fromsysv(tp, sysv_tp)
+struct termios *tp;
+.eC
+.kW "\fItc_tosysv\fP"
+.kW "\fItc_fromsysv\fP"
+These functions convert an \*(Am style termios struct from/to a
+.UX
+System V style termios struct.
+NOTE: These functions are only present in the library if it was compiled with
+the flag
+.cW SYSV .
+.mH
+Warnings
+.LP
+Most servers only implement
+.I tios_(get,set)attr ,
+not the other
+.I tios
+stubs.
+.LP
+Code compiled for
+.UX
+must include \*(Am's
+.I termios.h
+to get the
+proper definition of
+.I "struct termios" ,
+but
+.UX 's
+.I sys/ioctl.h
+to get the proper definition of the ioctl structs.
+.LP
+The
+.I tc_(un)marshal
+interface may go away or change in the future.
+If you decide to write a server that implements the
+.I tios_
+functions, you should consider using
+.I ail (U)
+instead of
+.I tc_(un)marshal .
+.LP
+There should be no reason to use
+.I tc_(to,from)bsd .
+.mH
+Note
+.LP
+The kernel library contains the
+.I tc_*
+functions but not the
+.I tios_*
+ones.
+.SH
+Example
+.LP
+For an example of using
+.I tc_(un)marshal ,
+see the source for
+.I ax (U).
+For examples of using the
+.I tios_
+stubs and the only uses of
+.I tc_(from,to)bsd ,
+see the source for ioctl (see
+.I posix (L))
+and
+.I ax (U).
+.SH
+See Also
+.LP
+IEEE Std 1003.1-1988 (POSIX), section 7.
+.LP
+BSD manual pages
+.I ioctl (2),
+.I tty (4).
+.LP
+ail(U),
+ax(U),
+posix(L).

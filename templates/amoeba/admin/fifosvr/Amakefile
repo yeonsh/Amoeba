@@ -1,0 +1,28 @@
+#	
+#	@(#)Amakefile	1.2	94/04/05 16:25:59
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+SRC_DIR = $SRC_ROOT/admin/fifosvr;
+%include $SRC_DIR/Amake.srclist;
+
+INCLUDES = {
+    -I.,
+    -I$SRC_DIR,
+    -I$SRC_ROOT/h,
+    -I$SRC_ROOT/h/machdep/arch/$ARCH,
+    -I$SRC_ROOT/h/posix,
+    -I$SRC_ROOT/h/class,
+    -I$SRC_ROOT/h/server,
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+%include $CONF_ROOT/toolset/ail.generic;
+
+%instance gcluster(fifosvr, $S_FIFO, $LIB_AMOEBA, $LINT_AMOEBA);

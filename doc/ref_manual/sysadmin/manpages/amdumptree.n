@@ -1,0 +1,61 @@
+.\"	@(#)amdumptree.n	1.6	94/04/05 15:28:36
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep
+	Document: Gregory J. Sharp, May 1992
+	Modified: Gregory J. Sharp, Nov 1993 - added -n option.
+.aE
+.mT "amdumptree" A "UNIX ONLY"
+dump a UNIX directory tree to \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+amdumptree [-n] unixdir amoebadir
+.eC
+.SH
+Description
+.LP
+This utility is primarily for use during the installation of \*(Am.
+It is used to dump a directory tree from
+.UX
+to \*(Am.
+It creates copies of the files and directories from
+.UX
+under \*(Am if they do not already exist.
+It replaces any existing version of a file under \*(Am with the new version
+from
+.UX
+if the two files are different.
+If the
+.B \-n
+option is specified then the existing version will be overwritten.
+Otherwise the old version will be renamed with
+.I .old
+added as a suffix to the file name.
+Existing entries under \*(Am which are not present under
+.UX
+will not be altered.
+.I Amdumptree
+follows symbolic links, rather than reproducing the link under \*(Am.
+.SH
+Example
+.LP
+.sC
+amdumptree \(gaamdir\(ga/BinTree.am/super /super
+.eC
+will dump the
+.UX
+directory tree
+.I \(gaamdir\(ga/BinTree.am/super
+under the \*(Am directory
+.I /super .
+.SH
+See Also
+.LP
+amdir(U),
+aminstall(A).

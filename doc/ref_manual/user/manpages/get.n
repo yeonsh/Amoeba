@@ -1,0 +1,54 @@
+.\"	@(#)get.n	1.4	96/02/16 11:01:10
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "get" U
+get a capability-set specified by name
+.SH
+Synopsis
+.LP
+.sC L
+get pathname
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "capability-set"
+.kW "read directory entry"
+.kW "\fIput\fP"
+.I get
+uses
+.I sp_lookup (L)
+to obtain the capability-set specified by
+.I pathname
+and writes it on standard output.
+If the path name cannot be found in the directory server
+a suitable error message will be printed.
+No check for the validity of the capabilities in the set is performed.
+.SH
+Example
+.LP
+.sC
+get /home/oldname | put /home/newname
+.eC
+will install
+.I /home/newname
+in the directory server as a synonym for
+.I /home/oldname .
+.SH
+See Also
+.LP
+chm(U),
+dir(U),
+getdelput(U),
+mkd(U),
+del(U),
+put(U).

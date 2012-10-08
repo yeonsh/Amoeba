@@ -1,0 +1,1302 @@
+.\"	@(#)libmod2.n	1.5	96/02/15 16:52:14
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ceriel J.H. Jacobs
+	Document: generated from Modula-2 .def files.
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "libmod2" L
+introduction to the Modula 2 libraries
+.SH
+Description
+.LP
+This document describes the modules supplied with the ACK Modula-2 compiler.
+.kW "Modula-2"
+.kW "library"
+.sp
+.mH
+ASCII.def
+.LP
+Contains mnemonics for ASCII control characters
+.sp
+.mH
+Ajax.def
+.LP
+Currently only contains the function ``isatty''.
+.sC
+PROCEDURE isatty(fdes: INTEGER): INTEGER;
+.eC
+.sp
+.mH
+Arguments.def
+.LP
+This module provides access to program arguments and environment.
+.sC
+VAR	Argc: CARDINAL;
+.eC
+Number of program arguments,
+including the program name,
+so it is at least 1.
+.sC
+PROCEDURE Argv( argnum : CARDINAL;
+		VAR argument : ARRAY OF CHAR
+	      ) : CARDINAL;
+.eC
+.LP
+Stores the ``argnum'th'' argument in ``argument'',
+and returns its length,
+including a terminating NULL-byte.
+If it returns 0, the argument was not present,
+and if it returns a number larger than the size of ``argument'',
+``argument'' was not large enough.
+Argument 0 contains the program name.
+.sC
+PROCEDURE GetEnv( name : ARRAY OF CHAR;
+		  VAR value : ARRAY OF CHAR
+		) : CARDINAL;
+.eC
+Searches the environment list for a string of the form ``name=value''
+and stores the value in ``value'',
+if such a string is present.
+It returns the length of the ``value'' part,
+including a terminating NULL-byte.
+If it returns 0,
+such a string is not present,
+and if it returns a number larger than the size of the ``value'',
+``value'' was not large enough.
+The string in ``name'' must be NULL-terminated.
+.sp
+.mH
+ArraySort.def
+.LP
+The interface is like the qsort() interface in C,
+so that an array of values can be sorted.
+This does not mean that it has to be an ARRAY,
+but it does mean that the values must be consecutive in memory,
+and the order is the ``memory'' order.
+The user has to define a comparison procedure of type CompareProc.
+This routine gets two pointers as parameters.
+These are pointers to the objects that must be compared.
+The sorting takes place in ascending order,
+so that f.i. if the result of the comparison is ``less'',
+the first argument comes in front of the second.
+.sC
+TYPE	CompareResult = (less, equal, greater);
+  	CompareProc = PROCEDURE(ADDRESS, ADDRESS)
+			        : CompareResult;
+
+PROCEDURE Sort(
+	base: ADDRESS;		(* address of array *)
+	nel: CARDINAL;		(* number of elements in array *)
+	size: CARDINAL;		(* size of each element *)
+	compar: CompareProc);	(* the comparison procedure *)
+.eC
+.sp
+.mH
+CSP.def - Communicating Sequential Processes
+.LP
+See the article
+.IP
+.nf
+A Modula-2 Implementation of CSP,
+M. Collado, R. Morales, J.J. Moreno,
+SIGPlan Notices, Volume 22, Number 6, June 1987.
+.fi
+.LP
+for an explanation of the use of this module.
+.sC
+FROM SYSTEM IMPORT BYTE;
+TYPE Channel;
+
+PROCEDURE COBEGIN;
+.eC
+Beginning of a COBEGIN .. COEND structure.
+.sC
+PROCEDURE COEND;
+.eC
+End of a COBEGIN .. COEND structure.
+.sC
+PROCEDURE StartProcess(P: PROC);
+.eC
+Start an anonymous process that executes the procedure P.
+.sC
+PROCEDURE StopProcess;
+.eC
+Terminate a Process (itself).
+.sC
+PROCEDURE InitChannel(VAR ch: Channel);
+.eC
+Initialize the channel ch.
+.sC
+PROCEDURE GetChannel(ch: Channel);
+.eC
+Assign the channel ch to the process that gets it.
+.sC
+PROCEDURE Send(data: ARRAY OF BYTE; VAR ch: Channel);
+.eC
+Send a message with the data to the channel ch.
+.sC
+PROCEDURE Receive(VAR ch: Channel; VAR dest: ARRAY OF BYTE);
+.eC
+Receive a message from the channel ch into the dest variable.
+.sC
+PROCEDURE SELECT(n: CARDINAL);
+.eC
+Beginning of a SELECT structure with n guards.
+.sC
+PROCEDURE NEXTGUARD(): CARDINAL;
+.eC
+Returns an index to the next guard to be evaluated in a SELECT.
+.sC
+PROCEDURE GUARD(cond: BOOLEAN; ch: Channel;
+	        VAR dest: ARRAY OF BYTE): BOOLEAN;
+.eC
+Evaluates a guard,
+including reception management.
+.sC
+PROCEDURE ENDSELECT(): BOOLEAN;
+.eC
+End of a SELECT structure.
+.sp
+.mH
+Conversion.def
+.LP
+This module provides numeric-to-string conversions.
+.sC
+PROCEDURE ConvertOctal(num, len: CARDINAL;
+		       VAR str: ARRAY OF CHAR);
+.eC
+Convert number ``num'' to right-justified octal representation of
+``len'' positions,
+and put the result in ``str''.
+If the result does not fit in ``str'',
+it is truncated on the right.
+.sC
+PROCEDURE ConvertHex(num, len: CARDINAL;
+		     VAR str: ARRAY OF CHAR);
+.eC
+Convert a hexadecimal number to a string.
+.sC
+PROCEDURE ConvertCardinal(num, len: CARDINAL;
+			  VAR str: ARRAY OF CHAR);
+.eC
+Convert a cardinal number to a string.
+.sC
+PROCEDURE ConvertInteger(num: INTEGER;
+			 len: CARDINAL;
+                         VAR str: ARRAY OF CHAR);
+.eC
+Convert an integer number to a string.
+.sp
+.mH
+EM.def
+.LP
+This module provides an interface to some EM instructions and data.
+.sC
+TYPE TrapHandler = PROCEDURE(INTEGER);
+
+PROCEDURE FIF(arg1, arg2: LONGREAL;
+	      VAR intres: LONGREAL) : LONGREAL;
+.eC
+Multiplies arg1 and arg2,
+and returns the integer part of the result in ``intres''
+and the fraction part as the function result.
+.sC
+PROCEDURE FEF(arg: LONGREAL; VAR exp: INTEGER) : LONGREAL;
+.eC
+Splits ``arg'' in mantissa and a base-2 exponent.
+The mantissa is returned, and the exponent is left in ``exp''.
+.sC
+PROCEDURE TRP(trapno: INTEGER);
+.eC
+Generate EM trap number ``trapno''.
+.sC
+PROCEDURE SIG(t: TrapHandler): TrapHandler;
+.eC
+Install traphandler t; return previous handler.
+.sC
+PROCEDURE FILN(): ADDRESS;
+.eC
+Return current program file-name.
+This only works if file-name and line-number
+generation is not disabled during compilation.
+.sC
+PROCEDURE LINO(): INTEGER;
+.eC
+return current program line-number.
+This only works if file-name and line-number generation
+is not disabled during compilation.
+.sp
+.mH
+Epilogue.def
+.LP
+The procedure in this module installs module termination procedures
+to be called at program termination.
+MODULA-2 offers a facility for the initialization of modules,
+but there is no mechanism to have some code executed when the program finishes.
+This module is a feeble attempt at solving this problem.
+.sC
+PROCEDURE CallAtEnd(p: PROC): BOOLEAN;
+.eC
+Add procedure ``p'' to the list of procedures
+that must be executed when the program finishes.
+When the program finishes,
+these procedures are executed in the REVERSE order
+in which they were added to the list.
+This procedure returns FALSE when there are too many procedures to be called
+(the list has a fixed size).
+.sp
+.mH
+InOut.def
+.LP
+This is Wirth's Input/Output module.
+.sC
+CONST	EOL = 12C;
+
+VAR	Done : BOOLEAN;
+	termCH : CHAR;
+
+PROCEDURE OpenInput(defext: ARRAY OF CHAR);
+.eC
+Request a file name from the standard input stream and open
+this file for reading.
+If the filename ends with a '.',
+append the ``defext'' extension.
+Done := ``file was successfully opened''.
+If open,
+subsequent input is read from this file.
+.sC
+PROCEDURE OpenOutput(defext : ARRAY OF CHAR);
+.eC
+Request a file name from the standard input stream and open
+this file for writing.
+If the filename ends with a '.',
+append the ``defext'' extension.
+Done := ``file was successfully opened''.
+If open,
+subsequent output is written to this file.
+Files left open at program termination are automatically closed.
+.sC
+PROCEDURE OpenInputFile(filename: ARRAY OF CHAR);
+.eC
+Like OpenInput,
+but filename given as parameter.
+This procedure is not in Wirth's InOut.
+.sC
+PROCEDURE OpenOutputFile(filename: ARRAY OF CHAR);
+.eC
+Like OpenOutput,
+but filename given as parameter.
+This procedure is not in Wirth's InOut.
+.sC
+PROCEDURE CloseInput;
+.eC
+Close input file.
+Subsequent input is read from the standard input stream.
+.sC
+PROCEDURE CloseOutput;
+.eC
+Close output file.
+Subsequent output is written to the standard output stream.
+.sC
+PROCEDURE Read(VAR ch : CHAR);
+.eC
+Read a character from the current input stream and leave it in ``ch''.
+Done := NOT ``end of file''.
+.sC
+PROCEDURE ReadString(VAR s : ARRAY OF CHAR);
+.eC
+Read a string from the current input stream and leave it in ``s''.
+A string is any sequence of characters not containing blanks or
+control characters;
+leading blanks are ignored.
+Input is terminated by any character <= ' '.
+This character is assigned to termCH.
+DEL or BACKSPACE is used for backspacing when input from terminal.
+.sC
+PROCEDURE ReadInt(VAR x : INTEGER);
+.eC
+Read a string and convert it to INTEGER.
+Syntax: integer = ['+'|'-'] digit {digit}.
+Leading blanks are ignored.
+Done := ``integer was read''.
+.sC
+PROCEDURE ReadCard(VAR x : CARDINAL);
+.eC
+Read a string and convert it to CARDINAL.
+Syntax: cardinal = digit {digit}.
+Leading blanks are ignored.
+Done := ``cardinal was read''.
+.sC
+PROCEDURE Write(ch : CHAR);
+.eC
+Write character ``ch'' to the current output stream.
+.sC
+PROCEDURE WriteLn;
+.eC
+Terminate line.
+.sC
+PROCEDURE WriteString(s : ARRAY OF CHAR);
+.eC
+Write string ``s'' to the current output stream
+.sC
+PROCEDURE WriteInt(x : INTEGER; n : CARDINAL);
+.eC
+Write integer x with (at least) n characters on the current output stream.
+If n is greater that the number of digits needed,
+blanks are added preceding the number.
+.sC
+PROCEDURE WriteCard(x, n : CARDINAL);
+.eC
+Write cardinal x with (at least) n characters on the current output stream.
+If n is greater that the number of digits needed,
+blanks are added preceding the number.
+.sC
+PROCEDURE WriteOct(x, n : CARDINAL);
+.eC
+Write cardinal x as an octal number with (at least) n characters
+on the current output stream.
+If n is greater that the number of digits needed,
+blanks are added preceding the number.
+.sC
+PROCEDURE WriteHex(x, n : CARDINAL);
+.eC
+Write cardinal x  as a hexadecimal number with (at least)
+n characters on the current output stream.
+If n is greater that the number of digits needed,
+blanks are added preceding the number.
+.sp
+.mH
+MathLib0.def
+.LP
+This module provides some mathematical functions.
+See MathLib.def for a more extensive one.
+.sC
+PROCEDURE sqrt(x : REAL) : REAL;
+PROCEDURE exp(x : REAL) : REAL;
+PROCEDURE ln(x : REAL) : REAL;
+PROCEDURE sin(x : REAL) : REAL;
+PROCEDURE cos(x : REAL) : REAL;
+PROCEDURE arctan(x : REAL) : REAL;
+PROCEDURE real(x : INTEGER) : REAL;
+PROCEDURE entier(x : REAL) : INTEGER;
+.eC
+.sp
+.mH
+Mathlib.def - Mathematical functions
+.LP
+Constants:
+.sC
+pi	= 3.141592*;
+twicepi	= 6.283185*;
+halfpi	= 1.570796*;
+quartpi	= 0.785398*;
+e	= 2.718281*;
+ln2	= 0.693147*;
+ln10	= 2.302585*;
+
+longpi		= 3.141592*;
+longtwicepi	= 6.283185*;
+longhalfpi	= 1.570796*;
+longquartpi	= 0.785398*;
+longe		= 2.718281*;
+longln2		= 0.693147*;
+longln10	= 2.302585*;
+.eC
+Basic functions:
+.sC
+PROCEDURE pow(x: REAL; i: INTEGER): REAL;
+PROCEDURE longpow(x: LONGREAL; i: INTEGER): LONGREAL;
+PROCEDURE sqrt(x: REAL): REAL;
+PROCEDURE longsqrt(x: LONGREAL): LONGREAL;
+PROCEDURE exp(x: REAL): REAL;
+PROCEDURE longexp(x: LONGREAL): LONGREAL;
+PROCEDURE ln(x: REAL): REAL;		 (* natural log *)
+PROCEDURE longln(x: LONGREAL): LONGREAL; (* natural log *)
+PROCEDURE log(x: REAL): REAL;	         (* log with base 10 *)
+PROCEDURE longlog(x: LONGREAL): LONGREAL;(* log with base 10 *)
+.eC
+Trigonometric functions (arguments in radians):
+.sC
+PROCEDURE sin(x: REAL): REAL;
+PROCEDURE longsin(x: LONGREAL): LONGREAL;
+PROCEDURE cos(x: REAL): REAL;
+PROCEDURE longcos(x: LONGREAL): LONGREAL;
+PROCEDURE tan(x: REAL): REAL;
+PROCEDURE longtan(x: LONGREAL): LONGREAL;
+PROCEDURE arcsin(x: REAL): REAL;
+PROCEDURE longarcsin(x: LONGREAL): LONGREAL;
+PROCEDURE arccos(x: REAL): REAL;
+PROCEDURE longarccos(x: LONGREAL): LONGREAL;
+PROCEDURE arctan(x: REAL): REAL;
+PROCEDURE longarctan(x: LONGREAL): LONGREAL;
+.eC
+Hyperbolic functions:
+.sC
+PROCEDURE sinh(x: REAL): REAL;
+PROCEDURE longsinh(x: LONGREAL): LONGREAL;
+PROCEDURE cosh(x: REAL): REAL;
+PROCEDURE longcosh(x: LONGREAL): LONGREAL;
+PROCEDURE tanh(x: REAL): REAL;
+PROCEDURE longtanh(x: LONGREAL): LONGREAL;
+PROCEDURE arcsinh(x: REAL): REAL;
+PROCEDURE longarcsinh(x: LONGREAL): LONGREAL;
+PROCEDURE arccosh(x: REAL): REAL;
+PROCEDURE longarccosh(x: LONGREAL): LONGREAL;
+PROCEDURE arctanh(x: REAL): REAL;
+PROCEDURE longarctanh(x: LONGREAL): LONGREAL;
+.eC
+Conversions:
+.sC
+PROCEDURE RadianToDegree(x: REAL): REAL;
+PROCEDURE longRadianToDegree(x: LONGREAL): LONGREAL;
+PROCEDURE DegreeToRadian(x: REAL): REAL;
+PROCEDURE longDegreeToRadian(x: LONGREAL): LONGREAL;
+.eC
+.sp
+.mH
+PascalIO.def
+.LP
+This module provides for I/O that is essentially equivalent to the I/O
+provided by Pascal with ``text'',
+or ``file of char''.
+Output buffers are automatically flushed at program termination.
+The CloseOutput routine is just there for compatibility with earlier
+versions of this module.
+.sC
+CONST	Eos = 0C;
+.eC
+End of string character
+.sC
+TYPE	Text;
+VAR	Input, Output: Text;
+.eC
+Standard input and standard output are available immediately.
+Standard output is not buffered when connected to a terminal.
+.sC
+VAR	Notext: Text;
+.eC
+Initialize your Text variables with this.
+.sC
+PROCEDURE Reset(VAR InputText: Text;
+		Filename: ARRAY OF CHAR);
+.eC
+When InputText indicates an open textfile,
+it is first flushed and closed.
+Then the file indicated by ``Filename'' is opened for reading.
+If this fails,
+a run-time error results.
+Otherwise,
+InputText is associated with the new input file.
+.sC
+PROCEDURE Rewrite(VAR OutputText: Text;
+		  Filename: ARRAY OF CHAR);
+.eC
+When OutputText indicates an open textfile,
+it is first flushed and closed.
+Then the file indicated by ``Filename'' is opened for writing.
+If this fails,
+a run-time error results.
+Otherwise,
+OutputText is associated with the new output file.
+.sC
+PROCEDURE CloseOutput();
+.eC
+To be called at the end of the program,
+to flush all output buffers.
+.LP
+All following input routines result in a run-time error
+when not called with either ``Input'',
+or a ``Text'' value obtained by Reset.
+Also,
+the routines that actually advance the ``read pointer'',
+result in a run-time error when end of file is reached prematurely.
+.sC
+PROCEDURE NextChar(InputText: Text): CHAR;
+.eC
+Returns the next character from the InputText,
+0C on end of file.
+Does not advance the ``read pointer'',
+so behaves much like ``input^'' in Pascal.
+However,
+unlike Pascal,
+if Eoln(InputText) is TRUE,
+it returns the newline character,
+rather than a space.
+.sC
+PROCEDURE Get(InputText: Text);
+.eC
+Advances the ``read pointer'' by one character.
+.sC
+PROCEDURE Eoln(InputText: Text): BOOLEAN;
+.eC
+Returns TRUE if the next character from the InputText is a linefeed.
+Unlike Pascal however,
+it does not produce a run-time error when called when Eof(InputText) is TRUE.
+.sC
+PROCEDURE Eof(InputText: Text): BOOLEAN;
+.eC
+Returns TRUE if the end of the InputText is reached.
+.sC
+PROCEDURE ReadChar(InputText: Text; VAR Char: CHAR);
+.eC
+Read a character from the InputText,
+and leave the result in ``Char''.
+Unlike Pascal,
+if Eoln(InputText) is TRUE,
+the newline character is put in ``Char''.
+.sC
+PROCEDURE ReadLn(InputText: Text);
+.eC
+Skip the rest of the current line from the InputText,
+including the linefeed.
+.sC
+PROCEDURE ReadInteger(InputText: Text;
+		      VAR Integer: INTEGER);
+.eC
+Skip leading blanks,
+read an optionally signed integer from the InputText,
+and leave the result in ``Integer''.
+If no integer is read,
+or when overflow occurs,
+a run-time error results.
+Input stops at the character following the integer.
+.sC
+PROCEDURE ReadCardinal(InputText: Text;
+		       VAR Cardinal: CARDINAL);
+.eC
+Skip leading blanks,
+read a cardinal from the InputText,
+and leave the result in ``Cardinal''.
+If no cardinal is read,
+or when overflow occurs,
+a run-time error results.
+Input stops at the character following the cardinal.
+.sC
+PROCEDURE ReadReal(InputText: Text; VAR Real: REAL);
+.eC
+Skip leading blanks,
+read a real from the InputText,
+and leave the result in ``Real''.
+Syntax of a real is as follows
+.sC
+real ::= [(+|-)] digit {digit} [. digit {digit}]
+         [ E [(+|-)] digit {digit} ]
+.eC
+If no real is read,
+or when overflow/underflow occurs,
+a run-time error results.
+Input stops at the character following the real.
+.sC
+PROCEDURE ReadLongReal(InputText: Text;
+		       VAR Real: LONGREAL);
+.eC
+Like ReadReal, but for LONGREAL
+.LP
+All following output routines result in a run-time error
+when not called with either ``Output'',
+or a ``Text'' value obtained by Rewrite.
+.sC
+PROCEDURE WriteChar(OutputText: Text; Char: CHAR);
+.eC
+Writes the character ``Char'' to the OutputText.
+.sC
+PROCEDURE WriteLn(OutputText: Text);
+.eC
+Writes a linefeed to the OutputText.
+.sC
+PROCEDURE Page(OutputText: Text);
+.eC
+Writes a form-feed to the OutputText
+.sC
+PROCEDURE WriteInteger(OutputText: Text;
+		       Integer: INTEGER;
+		       Width: CARDINAL);
+.eC
+Write integer ``Integer'' to the OutputText,
+using at least ``Width'' places,
+blank-padding to the left if needed.
+.sC
+PROCEDURE WriteCardinal(OutputText: Text;
+			Cardinal, Width: CARDINAL);
+.eC
+Write cardinal ``Cardinal'' to the OutputText,
+using at least ``Width'' places,
+blank-padding to the left if needed.
+.sC
+PROCEDURE WriteBoolean(OutputText: Text;
+		       Boolean: BOOLEAN;
+                       Width: CARDINAL);
+.eC
+Write boolean ``Boolean'' to the OutputText,
+using at least ``Width'' places,
+blank-padding to the left if needed.
+Equivalent to
+.sC
+WriteString(OutputText, " TRUE", Width)
+.eC
+or
+.sC
+WriteString(OutputText, "FALSE", Width)
+.eC
+.sC
+PROCEDURE WriteString(OutputText: Text;
+		      String: ARRAY OF CHAR;
+		      Width: CARDINAL);
+.eC
+Write string ``String'' to the OutputText,
+using at least ``Width'' places,
+blank-padding to the left if needed.
+The string is terminated either by the character Eos,
+or by the upperbound of the array ``String''.
+.sC
+PROCEDURE WriteReal(OutputText: Text;
+		    Real: REAL;
+		    Width, Nfrac: CARDINAL);
+.eC
+Write real ``Real'' to the OutputText.
+If ``Nfrac'' = 0,
+use scientific notation,
+otherwise use fixed-point notation with ``Nfrac'' digits behind the dot.
+Always use at least ``Width'' places,
+blank-padding to the left if needed.
+.sC
+PROCEDURE WriteLongReal(OutputText: Text;
+			Real: LONGREAL;
+			Width, Nfrac: CARDINAL);
+.eC
+Like WriteReal,
+but for LONGREAL.
+.sp
+.mH
+Processes.def
+.LP
+This is the standard process module,
+as described by Wirth.
+As discussed in ``Unfair Process Scheduling in Modula-2'',
+by D. Hemmendinger,
+SIGplan Notices Volume 23 nr 3,
+march 1988,
+the scheduler in this module is unfair,
+in that in some circumstances ready-to-run processes never get a turn.
+.sC
+TYPE SIGNAL;
+
+PROCEDURE StartProcess(P: PROC; n: CARDINAL);
+.eC
+Start a concurrent process with program ``P'' and workspace of size ``n''.
+.sC
+PROCEDURE SEND(VAR s: SIGNAL);
+.eC
+One process waiting for ``s'' is resumed.
+.sC
+PROCEDURE WAIT(VAR s: SIGNAL);
+.eC
+Wait for some other process to send ``s''.
+.sC
+PROCEDURE Awaited(s: SIGNAL): BOOLEAN;
+.eC
+Return TRUE if at least one process is waiting for signal ``s''.
+.sC
+PROCEDURE Init(VAR s: SIGNAL);
+.eC
+Compulsory initialization.
+.sp
+.mH
+RealConver.def
+.LP
+This module provides string-to-real and real-to-string conversions.
+.sC
+PROCEDURE StringToReal(str: ARRAY OF CHAR;
+		       VAR r: REAL;
+		       VAR ok: BOOLEAN);
+.eC
+Convert string ``str'' to a real number ``r'' according to the syntax:
+.sC
+real ::= ['+'|'-'] digit {digit} ['.' digit {digit}]
+	 ['E' ['+'|'-'] digit {digit}]
+.eC
+ok := ``conversion succeeded''
+Leading blanks are skipped;
+Input terminates with a blank or any control character.
+.sC
+PROCEDURE StringToLongReal(str: ARRAY OF CHAR;
+			   VAR r: LONGREAL;
+			   VAR ok: BOOLEAN);
+
+PROCEDURE RealToString(r: REAL;
+		       width, digits: INTEGER;
+		       VAR str: ARRAY OF CHAR;
+		       VAR ok: BOOLEAN);
+.eC
+Convert real number ``r'' to string ``str'',
+either in fixed-point or exponent notation.
+``digits'' is the number digits to the right of the decimal point,
+``width'' is the maximum width of the notation.
+If digits < 0,
+exponent notation is used, otherwise fixed-point.
+If fewer than ``width'' characters are needed,
+leading blanks are inserted.
+If the representation does not fit in ``width'',
+then ok is set to FALSE.
+.sC
+PROCEDURE LongRealToString(r: LONGREAL;
+			   width, digits: INTEGER;
+			   VAR str: ARRAY OF CHAR;
+			   VAR ok: BOOLEAN);
+.eC
+Like RealToString,
+only here ``r'' is a long real.
+.sp
+.mH
+RealInOut.def
+.LP
+This is an InOut module for REAL numbers.
+.sC
+VAR Done: BOOLEAN;
+
+PROCEDURE ReadReal(VAR x: REAL);
+.eC
+Read a real number ``x'' according to the syntax:
+.sC
+real ::= ['+'|'-'] digit {digit} ['.' digit {digit}]
+	 [('E'|'e') ['+'|'-'] digit {digit}]
+.eC
+Done := ``a number was read''.
+Input terminates with a blank or any control character.
+When reading from a terminal,
+backspacing may be done by either DEL or BACKSPACE,
+depending on the implementation of ReadString.
+.sC
+PROCEDURE ReadLongReal(VAR x: LONGREAL);
+.eC
+Like ReadReal,
+but for LONGREAL.
+.sC
+PROCEDURE WriteReal(x: REAL; n: CARDINAL);
+.eC
+Write x using n characters.
+If fewer than n characters are needed,
+leading blanks are inserted.
+.sC
+PROCEDURE WriteLongReal(x: LONGREAL; n: CARDINAL);
+.eC
+Like WriteReal,
+but for LONGREAL.
+.sC
+PROCEDURE WriteFixPt(x: REAL; n, k: CARDINAL);
+.eC
+Write x in fixed-point notation usign n characters
+with k digits after the decimal point.
+If fewer than n characters are needed,
+leading blanks are inserted.
+.sC
+PROCEDURE WriteLongFixPt(x: LONGREAL; n, k: CARDINAL);
+.eC
+Like WriteFixPt,
+but for LONGREAL.
+.sC
+PROCEDURE WriteRealOct(x: REAL);
+.eC
+Write x in octal words.
+.sC
+PROCEDURE WriteLongRealOct(x: LONGREAL);
+.eC
+Like WriteRealOct,
+but for LONGREAL.
+.sp
+.mH
+Semaphores.def
+.LP
+This module provides semaphores.
+On systems using quasi-concurrency,
+the only opportunities for process switches are calls to Down and Up.
+.sC
+TYPE Sema;
+
+PROCEDURE Level(s: Sema) : CARDINAL;
+.eC
+Returns current value of semaphore s.
+.sC
+PROCEDURE NewSema(n: CARDINAL) : Sema;
+.eC
+Creates a new semaphore with initial level ``n''.
+.sC
+PROCEDURE Down(VAR s: Sema);
+.eC
+If the value of ``s'' is > 0,
+then just decrement ``s''.
+Else suspend the current process until the semaphore becomes positive again.
+.sC
+PROCEDURE Up(VAR s: Sema);
+.eC
+Increment the semaphore ``s''.
+.sC
+PROCEDURE StartProcess(P: PROC; n: CARDINAL);
+.eC
+Create a new process with procedure P and workspace of size ``n''.
+Also transfer control to it.
+.eC
+.sp 1
+.mH
+Storage.def
+.LP
+This module provides dynamic storage allocation.
+As Wirth's 3rd edition mentions both Allocate and ALLOCATE,
+both are included to avoid problems.
+.sC
+FROM SYSTEM IMPORT ADDRESS;
+
+PROCEDURE ALLOCATE(VAR a : ADDRESS; size : CARDINAL);
+.eC
+Allocate an area of the given size and return the address in ``a''.
+If no space is available,
+the calling program is killed.
+.sC
+PROCEDURE Allocate(VAR a : ADDRESS; size : CARDINAL);
+.eC
+Identical to ALLOCATE.
+.sC
+PROCEDURE DEALLOCATE(VAR a : ADDRESS; size : CARDINAL);
+.eC
+Free the area at address ``a'' with the given size.
+The area must have been allocated by ``ALLOCATE'' or ``Allocate'',
+with the same size.
+.sC
+PROCEDURE Deallocate(VAR a : ADDRESS; size : CARDINAL);
+.eC
+Identical to DEALLOCATE.
+.sC
+PROCEDURE Available(size : CARDINAL) : BOOLEAN;
+.eC
+Return TRUE if a contiguous area with the given size could be allocated.
+Notice that this only indicates if an ALLOCATE of this size would succeed,
+and that it gives no indication of the total available memory.
+.sp
+.mH
+Streams.def
+.LP
+This module provides sequential IO through streams.
+A stream is either a text stream or a binary stream,
+and is either in reading,
+writing or appending mode.
+By default,
+there are three open text streams,
+connected to standard input,
+standard output,
+and standard error respectively.
+These are text streams.
+When connected to a terminal,
+the standard output and standard error
+streams are linebuffered.
+The user can create more streams with the OpenStream call,
+and delete streams with the CloseStream call.
+Streams are automatically closed at program termination.
+.sC
+FROM SYSTEM IMPORT BYTE;
+
+TYPE	StreamKind = (text, binary, none);
+	StreamMode = (reading, writing, appending);
+	StreamResult = (succeeded, illegaloperation,
+			nomemory, openfailed,
+			nostream, endoffile);
+	StreamBuffering = (unbuffered, linebuffered,
+			   blockbuffered);
+TYPE	Stream;
+
+VAR	InputStream, OutputStream, ErrorStream: Stream;
+
+PROCEDURE OpenStream(VAR stream: Stream;
+		     filename: ARRAY OF CHAR;
+		     kind: StreamKind;
+		     mode: StreamMode;
+		     VAR result: StreamResult);
+.eC
+This procedure associates a stream with the file named filename.
+If kind = none,
+result is set to ``illegaloperation''.
+``mode'' has one of the following values:
+.IP reading:
+the file is opened for reading
+.IP writing:
+the file is truncated or created for writing
+.IP appending:
+the file is opened for writing at end of file,
+or created for writing.
+.LP
+On failure,
+result is set to ``openfailed''.
+On success,
+result is set to ``succeeded''.
+.sC
+PROCEDURE SetStreamBuffering(stream: Stream;
+			     b: StreamBuffering;
+			     VAR result: StreamResult);
+.eC
+This procedure is only allowed for output streams.
+The three types of buffering available are unbuffered,
+linebuffered,
+and blockbuffered.
+When an output stream is unbuffered,
+the output appears as soon as written;
+when it is blockbuffered,
+output is saved up and written as a block.
+When it is linebuffered (only possible for text output streams),
+output is saved up until a newline is encountered
+or input is read from standard input.
+.sC
+PROCEDURE CloseStream(VAR stream: Stream;
+		      VAR result: StreamResult);
+.eC
+Closes the stream.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+.sC
+PROCEDURE FlushStream(stream: Stream;
+		      VAR result: StreamResult);
+.eC
+Flushes the stream.
+``result'' is set to ``nostream'' if
+``stream'' was not associated with a stream.
+It is set to ``illegaloperation''
+if ``stream'' is not an output or appending stream.
+.sC
+PROCEDURE EndOfStream(stream: Stream;
+		      VAR result: StreamResult): BOOLEAN;
+.eC
+Returns true if the stream is an input stream,
+and the end of the file has been reached.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``illegaloperation'' if the stream is not an input stream.
+.sC
+PROCEDURE Read(stream: Stream; VAR ch: CHAR;
+	       VAR result: StreamResult);
+.eC
+This procedure reads a character from the stream.
+Certain character translations may occur,
+such as the mapping of the end-of-line sequence to the character 12C.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``endoffile''
+if EndOfStream would have returned TRUE before the call to Read.
+In this case,
+``ch'' is set to 0C.
+It is set to ``illegaloperation'' if the stream is not a text input stream.
+.sC
+PROCEDURE ReadByte(stream: Stream; VAR byte: BYTE;
+		   VAR result: StreamResult);
+.eC
+This procedure reads a byte from the stream.
+No character translations occur.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``endoffile''
+if EndOfStream would have returned TRUE before the call to ReadByte.
+In this case,
+``byte'' is set to 0C.
+It is set to ``illegaloperation'' if the stream is not a binary input stream.
+.sC
+PROCEDURE ReadBytes(stream: Stream;
+		    VAR bytes: ARRAY OF BYTE;
+		    VAR result: StreamResult);
+.eC
+This procedure reads bytes from the stream.
+No character translations occur.
+The number of bytes is determined by the size of the parameter.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``endoffile'' if there are not enough bytes left on the stream.
+In this case,
+the rest of the bytes are set to 0C.
+It is set to ``illegaloperation'' if the stream is not a binary input stream.
+.sC
+PROCEDURE Write(stream: Stream; ch: CHAR;
+		VAR result: StreamResult);
+.eC
+This procedure writes a character to the stream.
+Certain character translations may occur,
+such as the mapping of a line-feed or carriage return (12C or 15C)
+to the end-of-line sequence of the system.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``illegaloperation'' if the stream is not a text output stream.
+.sC
+PROCEDURE WriteByte(stream: Stream; byte: BYTE;
+		    VAR result: StreamResult);
+.eC
+This procedure writes a byte to the stream.
+No character translations occur.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``illegaloperation'' if the stream is not a binary output stream.
+.sC
+PROCEDURE WriteBytes(stream: Stream;
+		     bytes: ARRAY OF BYTE;
+		     VAR result: StreamResult);
+.eC
+This procedure writes bytes to the stream.
+No character translations occur.
+The number of bytes written is equal to the size of the parameter.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``illegaloperation'' if the stream is not a binary output stream.
+.sC
+PROCEDURE GetPosition(stream: Stream;
+		      VAR position: LONGINT;
+		      VAR result: StreamResult);
+.eC
+This procedure gives the actual read/write position in ``position''.
+``result'' is set to illegaloperation if ``stream'' is not a stream.
+.sC
+PROCEDURE SetPosition(stream: Stream;
+		      position: LONGINT;
+		      VAR result: StreamResult);
+.eC
+This procedure sets the actual read/write position to ``position''.
+``result'' is set to ``nostream''
+if ``stream'' was not associated with a stream.
+It is set to ``illegaloperation''
+if the stream was opened for appending
+and the position is in front of the current position,
+or it failed for some other reason
+(f.i. when the stream is connected to a terminal).
+.sC
+PROCEDURE isatty(stream: Stream;
+		 VAR result: StreamResult): BOOLEAN;
+.eC
+This procedure returns TRUE if the stream is connected to a terminal.
+``result'' is set to ``nostream'' if ``stream'' is not a stream,
+and set to ``illegaloperation' if the operation failed for some other reason.
+.sp
+.mH
+Strings.def
+.LP
+This module provides string manipulations.
+Note: truncation of strings may occur if the user does not provide
+large enough variables to contain the result of the operation.
+.LP
+Strings are of type ARRAY OF CHAR,
+and their length is the size of the array,
+unless a 0-byte occurs in the string to indicate the end of it.
+.sC
+PROCEDURE Assign(source: ARRAY OF CHAR;
+		 VAR dest: ARRAY OF CHAR);
+.eC
+Assign string source to dest.
+.sC
+PROCEDURE Insert(substr: ARRAY OF CHAR;
+		 VAR str: ARRAY OF CHAR;
+		 inx: CARDINAL);
+.eC
+Insert the string substr into str,
+starting at str[inx].
+If inx is equal to or greater than Length(str)
+then substr is appended to the end of str.
+.sC
+PROCEDURE Delete(VAR str: ARRAY OF CHAR;
+		 inx, len: CARDINAL);
+.eC
+Delete len characters from str,
+starting at str[inx].
+If inx >= Length(str) then nothing happens.
+If there are not len characters to delete,
+characters to the end of the string are deleted.
+.sC
+PROCEDURE Pos(substr, str: ARRAY OF CHAR): CARDINAL;
+.eC
+Return the index into str of the first occurrence of substr.
+Pos returns a value greater than HIGH(str) of no occurrence is found.
+.sC
+PROCEDURE Copy(str: ARRAY OF CHAR;
+	       inx, len: CARDINAL;
+	       VAR result: ARRAY OF CHAR);
+.eC
+Copy at most len characters from str into result,
+starting at str[inx].
+.sC
+PROCEDURE Concat(s1, s2: ARRAY OF CHAR;
+		 VAR result: ARRAY OF CHAR);
+.eC
+Concatenate two strings.
+.sC
+PROCEDURE Length(str: ARRAY OF CHAR): CARDINAL;
+.eC
+Return number of characters in str.
+.sC
+PROCEDURE CompareStr(s1, s2: ARRAY OF CHAR): INTEGER;
+.eC
+Compare two strings,
+return -1 if s1 < s2,
+0 if s1 = s2,
+and 1 if s1 > s2.
+.sp
+.mH
+Termcap.def
+.LP
+This module provides an interface to termcap database.
+Use this like the C-version.
+In this Modula-2 version,
+some of the buffers that are explicit in the C-version,
+are hidden.
+These buffers are initialized by a call to Tgetent.
+The ``ARRAY OF CHAR'' parameters must be NULL-terminated.
+You can call them with a constant string argument,
+as these are always NULL-terminated in our Modula-2 implementation.
+Unlike the C version,
+this version takes care of UP,
+BC,
+PC,
+and ospeed automatically.
+If Tgetent is not called by the user,
+it is called by the module itself,
+using the TERM environment variable,
+or ``dumb'' if TERM does not exist.
+.sC
+TYPE	STRCAP;
+	PUTPROC = PROCEDURE(CHAR);
+
+PROCEDURE Tgetent(name: ARRAY OF CHAR) : INTEGER;
+PROCEDURE Tgetnum(id: ARRAY OF CHAR): INTEGER;
+PROCEDURE Tgetflag(id: ARRAY OF CHAR): BOOLEAN;
+PROCEDURE Tputs(cp: STRCAP; affcnt: INTEGER; p: PUTPROC);
+
+PROCEDURE Tgoto(cm: STRCAP; col, line: INTEGER): STRCAP;
+.eC
+Result exists until next call to Tgoto.
+.sC
+PROCEDURE Tgetstr(id: ARRAY OF CHAR;
+		  VAR res: STRCAP) : BOOLEAN;
+.eC
+Returns FALSE if the terminal capability does not exist;
+Result exists until next call to Tgetent.
+.sp
+.mH
+Terminal.def
+.LP
+This module provides procedures to do terminal I/O.
+.sC
+PROCEDURE Read(VAR ch : CHAR);
+.eC
+Read a character from the terminal and leave it in ch.
+.sC
+PROCEDURE BusyRead(VAR ch : CHAR);
+.eC
+Read a character from the terminal and leave it in ch.
+This is a non-blocking call.
+It returns 0C in ch if no character was typed.
+.sC
+PROCEDURE ReadAgain;
+.eC
+Causes the last character read to be returned again upon the next call of Read.
+.sC
+PROCEDURE Write(ch : CHAR);
+.eC
+Write character ch to the terminal.
+.sC
+PROCEDURE WriteLn;
+.eC
+Terminate line.
+.sC
+PROCEDURE WriteString(s : ARRAY OF CHAR);
+.eC
+Write string s to the terminal.
+.sp
+.mH
+Traps.def
+.LP
+This module provides a facility for handling traps.
+.LP
+Constants:
+.sC
+ERRTOOLARGE	(* stack size of process too large *)
+ERRTOOMANY	(* too many nested traps + handlers *)
+ERRNORESULT	(* no RETURN from function procedure *)
+ERRCARDOVFL	(* CARDINAL overflow *)
+ERRFORLOOP	(* value of FOR-loop control variable
+		 * changed in loop
+		 *)
+ERRCARDUVFL	(* CARDINAL underflow *)
+ERRINTERNAL	(* Internal error; should not happen *)
+ERRUNIXSIG	(* received \*(Am signal *)
+.eC
+Procedures:
+.sC
+TYPE	TrapHandler = EM.TrapHandler;
+
+PROCEDURE InstallTrapHandler(t: TrapHandler): TrapHandler;
+.eC
+Install a new trap handler,
+and return the previous one.
+Parameter of trap handler is the trap number.
+When a trap occurs,
+the default trap handler is re-installed before calling the new handler.
+.sC
+PROCEDURE Message(str: ARRAY OF CHAR);
+.eC
+Write message ``str'' on standard error,
+preceded by filename and linenumber if possible.
+.sC
+PROCEDURE Trap(n: INTEGER);
+.eC
+Cause trap number ``n'' to occur.
+.sp
+.mH
+XXTermcap.def
+.LP
+Like Termcap.def this module provides interface to termcap database,
+only this module interfaces directly to C routines.
+.sC
+TYPE	PUTPROC = PROCEDURE(CHAR);
+VAR	PC: CHAR;
+	UP, BC: ADDRESS;
+	ospeed: INTEGER[0..32767];
+
+PROCEDURE tgetent(bp, name: ADDRESS): INTEGER;
+.eC
+``name'' must be NULL-terminated.
+.sC
+PROCEDURE tgetnum(id: ADDRESS): INTEGER;
+.eC
+``id'' must be NULL-terminated.
+.sC
+PROCEDURE tgetflag(id: ADDRESS): INTEGER;
+.eC
+``id'' must be NULL-terminated.
+.sC
+PROCEDURE tgetstr(id: ADDRESS; area: ADDRESS): ADDRESS;
+.eC
+``id'' must be NULL-terminated.
+.sC
+PROCEDURE tgoto(cm: ADDRESS; col, line: INTEGER) : ADDRESS;
+.eC
+``cm'' must be NULL-terminated.
+.sC
+PROCEDURE tputs(cp: ADDRESS; affcnt: INTEGER; p: PUTPROC);
+.eC
+``cm'' must be NULL-terminated.
+.sp
+.mH
+random.def
+.LP
+This module provides random numbers.
+.sC
+PROCEDURE Random(): CARDINAL;
+.eC
+Return a random CARDINAL.
+.sC
+PROCEDURE Uniform (lwb, upb: CARDINAL): CARDINAL;
+.eC
+Return CARDINALs,
+uniformly distributed between ``lwb'' and ``upb''.
+``lwb'' must be smaller than ``upb'', or ``lwb'' is returned.
+.sC
+PROCEDURE StartSeed(seed: CARDINAL);
+.eC
+Initialize the generator.
+It is not essential to call this procedure,
+unless it is not desired that the system pick a starting value for itself.

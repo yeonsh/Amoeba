@@ -1,0 +1,36 @@
+.\"	@(#)factor.n	1.4	96/02/16 10:58:00
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "factor" U
+factor an integer less than
+.if n 2^31
+.if t 2\s-2\v'-0.3v'32\v'0.3v'\s0
+.SH
+Synopsis
+.LP
+.sC L
+factor number
+.eC
+.SH
+Description
+.LP
+.I Factor
+prints the prime factors of its argument in increasing order.
+Each factor is printed as many times as it appears in the number.
+.SH
+Example
+.LP
+.sC
+factor 450180
+.eC
+Print the prime factors of 450180, i.e.,
+.sC
+2 2 3 3 5 41 61
+.eC

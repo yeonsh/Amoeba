@@ -1,0 +1,36 @@
+/*	@(#)struct.def	1.3	96/02/27 13:06:59 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifndef _STRUCT_H_
+/*
+ * global structure declarations. ANSI C needs them when checking prototypes
+ * against function definitions.
+ */
+struct cons;
+struct slist;
+struct type;
+struct idf;
+struct job;
+struct scope;
+struct expr;
+struct cluster;
+struct tool;
+struct variable;
+struct function;
+struct param;
+struct derivation;
+struct object;
+struct invocation;
+struct token;
+struct cached;
+struct process;
+struct graph;
+
+enum fatal_or_not { FATAL, NON_FATAL };
+#define _STRUCT_H_
+#endif
+

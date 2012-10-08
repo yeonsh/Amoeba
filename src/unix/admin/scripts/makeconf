@@ -1,0 +1,119 @@
+#!/bin/sh
+#	
+#	@(#)makeconf	1.10	96/02/27 11:52:30
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+SYS_ROOT=`amdir`
+TEMPLATES=$SYS_ROOT/templates
+SOURCES=$SYS_ROOT/src
+DOCSRCS=$SYS_ROOT/doc
+USAGE="Usage: $0 [-a|-u] confdir arch toolset mach1 [mach2 ...]"
+
+#
+# Parse arguments
+#
+#
+do_amoeba=true
+do_unix=true
+case $1 in
+-a)	do_unix=false
+	shift ;;
+-u)	do_amoeba=false
+	shift ;;
+esac
+
+# If we still have an option it is wrong
+case $1 in
+-*)	echo $USAGE
+	exit ;;
+esac
+
+#
+if [ $# -lt 4 ]
+then
+	echo $USAGE
+	exit 1
+fi
+
+ARCH=$2
+TOOLSET=$3
+ARCHDIR=$ARCH.$TOOLSET
+case $1 in
+/*)	CONFDIR=$1
+	;;
+*)	CONFDIR=$SYS_ROOT/$1
+esac
+#
+if [ ! -d $CONFDIR ]
+then
+	echo Creating directory $CONFDIR
+	mkdir $CONFDIR
+fi
+
+#
+# Make unix subtree
+#
+if $do_unix
+then
+    CONFDIR_U=$CONFDIR/unix
+    if [ ! -d $CONFDIR_U ]
+    then
+	    echo Creating directory $CONFDIR_U
+	    mkdir $CONFDIR_U
+    fi
+    cd $CONFDIR_U
+    rm -rf $ARCHDIR
+    unixtree $CONFDIR_U $SOURCES $TEMPLATES $ARCH $TOOLSET
+    build $ARCHDIR > build.$ARCHDIR 2>&1
+fi
+
+#
+# Make amoeba subtree
+#
+if $do_amoeba
+then
+    CONFDIR_A=$CONFDIR/amoeba
+    if [ ! -d $CONFDIR_A ]
+    then
+	    echo Creating directory $CONFDIR_A
+	    mkdir $CONFDIR_A
+    fi
+    cd $CONFDIR_A
+    rm -rf $ARCHDIR
+    amoebatree $CONFDIR_A $SOURCES $TEMPLATES $ARCH $TOOLSET
+    build $ARCHDIR > build.$ARCHDIR 2>&1
+    buildX -c $CONFDIR_A $SOURCES $ARCH $TOOLSET > buildX.$ARCHDIR 2>&1
+    buildmmdf $CONFDIR_A $SOURCES $ARCH $TOOLSET > buildM.$ARCHDIR 2>&1
+    #
+    # Now for each specified machine type we make the kernels
+    #
+    shift ; shift ; shift
+    while [ $# -gt 0 ]
+    do
+	yes | kerneltree $CONFDIR_A $SOURCES $TEMPLATES $ARCH $1 $TOOLSET
+	cd $CONFDIR_A/$ARCHDIR/kernel/$1
+	for i in *
+	do
+	    ( cd $i ; amake kernel > make.out 2>&1 )
+	done
+	shift
+    done
+fi
+
+#
+# Make documentation subtree - we always do that
+#
+CONFDIR_D=$CONFDIR/doc
+if [ ! -d $CONFDIR_D ]
+then
+	echo Creating directory $CONFDIR_D
+	mkdir $CONFDIR_D
+fi
+yes | doctree $CONFDIR_D $DOCSRCS $TEMPLATES
+cd $CONFDIR_D/ref_manual
+amake -c > doc.out 2>&1
+
+exit 0

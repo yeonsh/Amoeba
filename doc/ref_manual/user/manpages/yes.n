@@ -1,0 +1,53 @@
+.\"	@(#)yes.n	1.3	94/04/05 16:15:18
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel
+	Document: Berend Jan Beugel, 15/01/91
+.aE
+.mT "yes" U
+repeatedly write a string (by default ``y'') to
+.I stdout
+.SH
+Synopsis
+.LP
+.sC L
+yes [-n] [string]
+.eC
+.SH
+Description
+.LP
+.I Yes
+repeatedly writes
+.I string
+to
+.I stdout ,
+followed by a new-line.
+If no
+.I string
+is entered on the command line, ``y'' is taken to be the default
+string.
+The program can be terminated by typing an interrupt character.
+.mH
+Options
+.LP
+.IP \fB\-n\fP
+Suppress the new-line at the end of the string.
+.SH
+Examples
+.LP
+.sC
+yes -n bla
+.eC
+Fill every line with ``blablabla...''.
+.sC
+yes | rm -i *.c
+.eC
+Remove all the files ending with
+.I .c
+without waiting for a confirmation from
+the user, even if he does not have write permission on some or all files.
+Obviously the user needs write permission on the directory.

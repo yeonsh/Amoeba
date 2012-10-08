@@ -1,0 +1,36 @@
+#	
+#	@(#)cc-c.amk	1.1	96/02/15 15:58:14
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  cc-c tool for SUNPRO C Compiler; we let the do_cc script take care of
+#  of generating the dependencies.
+#
+%instance deftypesuffix(dependents, '%.d');
+
+%if (%not defined(CPPLIB), {
+    CPPLIB = /usr/ccs/lib;
+});
+
+%if (%not defined(CFLAGS), {
+    CFLAGS = {};
+});
+
+%tool cc-c (
+    src:      %in         [type = C-src];
+    object:   %out        [type = loadable]         => match($src);
+    flags:    %string %list                         => $CFLAGS;
+    optimise: %boolean				    => %false;
+    objflags: %string %list                	    =>
+		if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:  %in         [type = command]          => $CC;
+    deps:     %out        [type = dependents]       => match($src);
+    incl:     %in %list   [C-incl, implicit]	    => %computed $deps;
+)
+{
+    exec($program, args => # '-d' $deps +
+		'-c' + if ($optimise, {'-O'}, {}) + $flags + $objflags + $src);
+};

@@ -1,0 +1,31 @@
+#	
+#	@(#)lex.amk	1.2	94/04/06 10:33:54
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%instance deftypesuffix(lex-source, '%.l');
+
+%if (%not defined(LEX), {
+	LEX = lex;
+});
+
+%if (%not defined(LEXFLAGS), {
+	LEXFLAGS = {};
+});
+
+# The files generated from a lex source can be used as input for lint:
+%derive f[generates-C-src] %when $f ? type == lex-source;
+
+%tool lex-tool (
+    src:	%in	[type = lex-source];
+    result:	%out	[type = C-src]		=> match($src);
+    flags:	%string %list			=> $LEXFLAGS;
+    program:	%in	[type = command]	=> $LEX;
+    temp:	%tmp				=> lex.yy.c;
+)
+{
+    exec($program, args => $flags + $src) %and
+    move($temp, $result);
+};

@@ -1,0 +1,35 @@
+#	
+#	@(#)offset.amk	1.2	94/04/06 10:36:23
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# This tool is used to generate an include file containing the offsets
+# of fields in a struct so that assembly code can be written that accesses
+# the structure fields.
+#
+
+%include $PWD/../common/ackcpplib.amk;
+
+%if (%not defined(AWKCOM), {
+    AWKCOM = $PWD/../sun/awkscript;
+});
+
+%tool offset-tool (
+    src:      %in         [type = C-src];
+    object:   %out        [type = AS-offset];
+    flags:    %string %list                         => $CFLAGS;
+    objflags: %string %list                	    =>
+		if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    ccprog:   %in         [type = command]          => $CC;
+    awkprog:  %in	  [type = command]	    => $AWKCOM;
+    deps:     %out        [type = dependents]       => match($src);
+    incl:     %in %list   [C-incl, implicit]	    => %computed $deps;
+)
+{
+    exec($ccprog, args => '-S' + $flags + $objflags + $src);
+    exec($awkprog, args => basename($src, '%.c').s, stdout => $object);
+    exec(/bin/rm, args => basename($src, '%.c').s);
+};

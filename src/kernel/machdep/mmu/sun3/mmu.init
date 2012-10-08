@@ -1,0 +1,16 @@
+/*	@(#)mmu.init	1.5	94/04/06 09:43:35 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+TRAPS mm_initseg
+mm_initseg initmm
+initmm MMU
+SEGINIT mm_initseg
+mm_initseg SEG_KERNEL_DONE
+mm_initseg MMU_INIT
+SEG initmm
+initinterrupts initerror
+initerror INTERRUPTS

@@ -1,0 +1,89 @@
+.\"	@(#)f77.n	1.4	96/02/16 10:57:57
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: identical to the generic ack driver
+	Document: Kees Verstoep, Nov 1991
+.aE
+.mT "f\^77" U
+the FORTRAN compiler driver
+.SH
+Synopsis
+.LP
+.sC L
+f77 [-c] [-o filename] file1 [file2 ...]
+.eC
+.SH
+Description
+.LP
+.kW "FORTRAN"
+.kW "\fIf77\fP"
+.kW "compiler"
+.kW "programming language"
+.kW "ACK"
+.kW "\fIack\fP"
+The FORTRAN compiler driver
+.I f\^77
+first converts FORTRAN sources provided to C using
+.I f\^2c (U).
+If no problems are encountered,
+the generated source code is translated to object code
+using the ACK ANSI compiler
+.I cc (U).
+.LP
+Fortran source files should have the suffix
+.I .f .
+All other files will be interpreted as either source for other languages
+or object files.
+When no
+.B \-c
+option is specified,
+.I f\^77
+will link the object files together with a FORTRAN-specific library.
+.mH
+Options
+.LP
+.IP "\fB\-c\fP"
+Only produce object files;
+do not call the linker.
+.IP "\fB\-o\fP filename"
+.br
+The output of the link editor is stored in
+.I filename .
+The default is
+.I a.out .
+.LP
+As
+.I f\^77
+is really a link to the generic compiler driver
+.I ack ,
+it will also accept several other options.
+Refer to
+.I ack (U)
+for the details.
+.mH
+Diagnostics
+.LP
+While processing a FORTRAN source,
+the program
+.I f\^2c
+will print the names of the functions it encounters on standard output.
+.SH
+Example
+.LP
+To compile the FORTRAN program in the file
+.I prog.f
+issue the command:
+.sC
+f77 -o prog prog.f
+.eC
+The resultant executable will be stored in the file
+.I prog .
+.SH
+See Also
+.LP
+f2c(U),
+ack(U).

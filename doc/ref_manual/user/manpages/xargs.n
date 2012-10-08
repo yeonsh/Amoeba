@@ -1,0 +1,58 @@
+.\"	@(#)xargs.n	1.4	94/04/05 16:14:40
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: ??
+	Document: ??
+		converted to Amoeba format: Gregory Sharp, July 1990
+.aE
+.mT xargs U
+execute a command with many arguments
+.SH
+Synopsis
+.LP
+.sC L
+xargs command [initial-arguments]
+.eC
+.SH
+Description
+.LP
+.I Xargs
+is based on the
+.UX
+System V command of the same name.
+This version performs only the default function of
+.I xargs ,
+which is also the simplest function.
+It combines the
+.I initial-arguments
+with the arguments read from standard input and executes the
+.I command
+one or more times with those arguments.
+.LP
+Because
+there is a limit on how much space the arguments of a command may use,
+if the argument list is too large the system prohibits the
+command from being executed (in System V, this error is
+.cW E2BIG ,
+.I errno
+= 7).
+.LP
+To avoid this problem,
+.I xargs
+will take arguments which are themselves a command and
+.I its
+arguments (options), and then read standard input and
+apply it to the command with its given arguments.
+.I Xargs
+is careful not to exceed the system-imposed limit, which
+is expected to be greater than the system's stream file
+buffer size,
+.I BUFSIZ
+in
+.I stdio.h .
+It continues to execute the command with the read-in arguments
+until it reaches end-of-file.

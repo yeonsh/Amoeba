@@ -1,0 +1,1063 @@
+.\"	@(#)servers.n	1.8	96/02/15 16:42:10
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Writing Servers and Clients"
+Servers are used to perform specialized functions and form the basis of
+centralized object management.
+.kW "client-server model"
+There are many standard servers delivered with \*(Am.
+These include the Bullet File Server,
+the Soap Directory Server,
+the Virtual Disk Server
+and the Run Server (which does load balancing at process creation-time),
+among many others.
+To develop basic applications and port utilities from other operating systems
+the standard servers are usually adequate.
+However for some applications this is not enough.
+This section gives an indication of how to write your own servers and clients
+and points out some of the pitfalls to avoid.
+.LP
+Servers normally have a fixed set of commands that they accept.
+They sit in a loop accepting commands, executing them and sending a reply.
+To simplify the client's interaction with a server
+it calls a procedure, known as a
+.I stub .
+This packages the command and data in the manner required by the server and
+.kW RPC
+sends it to the server using a remote procedure call (RPC) and then awaits
+a reply.
+The procedure also unpacks any data in the reply and hands it back to the
+client.
+.kW "byte-order independence"
+.kW marshaling
+The stub allows details of the server interface and the possible byte-order
+differences between client and server's processors to be hidden from the
+programmer.
+Below is a description of how to write servers, their stubs and the clients
+that use them.
+.LP
+The following description of how to write clients and servers begins by showing
+what the C code actually looks like for a client\|/\|server interface.
+The reason for this is purely educational.
+In fact it is seldom necessary to write the server loop and client stub
+code yourself.
+.kW AIL
+AIL (the \*(Am Interface Language) can be used to generate this code
+automatically.
+The implementation of the commands must be written by the programmer of course.
+One advantage of this is that if the RPC interface ever changes,
+then recompiling the client\|/\|server interface with AIL will probably be
+sufficient to port the server to the new RPC interface.
+Another advantage is that it is in principle easier to write a specification
+of the interface in AIL than to write the code for every interface stub.
+.LP
+Before writing servers and clients it is important to understand the system of
+.kW "F-box"
+F-boxes described in many of the papers about \*(Am.
+These have been implemented in software.
+The idea of the F-box is that it prevents someone starting a server which
+intercepts RPCs intended for some other (important) server by deliberately
+listening to the same port.
+.LP
+The F-box mechanism works as follows.
+When a
+.kW "\fIgetreq\fP"
+.I getreq
+call is done it listens to the
+.kW "get-port"
+.I "get-port"
+for the server.
+This is a port known only to the server.
+The server's kernel passes this port through the routine
+.kW "\fIpriv2pub\fP"
+.I priv2pub (L)
+to encrypt the port.
+The result is known as the
+.kW "put-port"
+.I "put-port"
+and the kernel accepts requests sent to the
+.I "put-port" .
+.I Priv2pub
+is a one-way function so it is practically impossible to deduce the
+.I "get-port"
+given the
+.I "put-port" .
+.LP
+Before doing a
+.kW "\fIgetreq\fP"
+.I getreq
+the server needs to publish the
+.I put-port
+through which it can be found by clients.
+Therefore it also passes the
+.I get-port
+through
+.kW "\fIpriv2pub\fP"
+.I priv2pub
+and publishes the result in the directory server in a place accessible to
+its clients.
+In principle it is not possible to listen for requests
+on the public port unless the
+.I "get-port"
+is known.
+.LP
+This actually provides very little security if it is possible for someone to
+boot modified \*(Am kernels on your network.
+They can add a primitive for listening to
+.I "put-ports"
+or modify a kernel binary to avoid the conversion of
+.kW "get-port"
+.I "get-port"
+to
+.kW "put-port"
+.I "put-port"
+when
+.kW "\fIgetreq\fP"
+.I getreq
+is called.
+The same deficiency occurs if the F-box is implemented in hardware
+and it is possible to connect to the network without an intervening F-box.
+.nH 1 "Servers"
+.LP
+Most servers have the same basic structure,
+although exceptions do exist.
+Each has a main program which initializes any global variables,
+publishes the port of the server so that clients can use it and starts
+one or more instances of the server loop.
+The server loop is typically an infinite loop with a
+.I getreq
+call at the top,
+a switch on the command to be executed and a
+.kW "\fIputrep\fP"
+.I putrep
+call at the bottom.
+.kW "multithreaded programming"
+If the server is multithreaded then resource locking may also take place
+within the infinite loop as well.
+It is a good idea to be able to see the matching pairs of lock/unlock and
+.kW "\fIgetreq\fP"
+.I getreq
+and
+.I putrep .
+Unmatched pairs can be difficult to debug so it is better to keep them
+in the same function wherever possible.
+.LP
+If a server is expected to have more than one client then it is important to
+make it multithreaded.
+This allows the server to take advantage of any possibility for parallelism
+in handling requests.
+As soon as one thread gets a request, another will be ready to run with
+the next RPC that arrives.
+.\" up to AMOEBA 5 ONLY
+It also means that there is a high probability that the server is listening
+to its port and so locates of the server will not fail.
+.\"
+Each thread in the server that handles clients will normally run the same code.
+Of course,
+there may well be several other threads inaccessible to clients performing
+different tasks within the server.
+.LP
+The best way to understand the structure of a server is by looking at one.
+Below is an example of a server written in C.
+The example is of a trivial server which when sent two long integers
+reverses their order in the message and sends them back to the client.
+This is a ridiculous thing for a server to do since it is trivially done in
+the application itself but it does demonstrate the important
+aspects of writing servers.
+Note that some unimportant details have been left out to avoid obscuring the
+structure.
+.LP
+We begin with the include file
+.I this_server.h
+which is particular to this server.
+It defines the request buffer size
+.cW REQ_BUFSZ ,
+the command codes for the commands that the server accepts,
+the relevant rights bits for the server and the number of threads that the
+server should run.
+They are in an include file since some of this information is also
+needed by the client or for tuning.
+.LP
+Note that it is not acceptable to use just any command codes.
+You must begin at the value
+.kW UNREGISTERED_FIRST_COM
+.cW UNREGISTERED_FIRST_COM
+defined in the file
+.I cmdreg.h
+as explained in the chapter
+.I "Paradigms and Implementations" .
+.sC L
+.ps-1
+.ta 5c
+/* the include file this_server.h */
+.sp 0.5v
+#define NTHREADS	5
+#define STACKSZ		0x4000
+.sp 0.5v
+#define SERVER_CAP	"/home/this_server/default"
+#define REQ_BUFSZ	(2*sizeof(long))
+.sp 0.5v
+/* commands accepted by the server */
+#define DO_SWAP	UNREGISTERED_FIRST_COM
+#define DO_NOTHING	(DO_SWAP+1)
+.sp 0.5v
+/* rights bits in capabilities */
+#define RGT_DONOTHING	((rights_bits)0x01)
+#define RGT_DOSWAP	((rights_bits)0x02)
+.ps
+.eC
+.LP
+Before we look at how the server loop works it is worth knowing how to invoke
+multiple threads all running the server loop.
+This is done using the thread interface routines (see
+.kW thread
+.I thread (L)).
+The use of
+.kW "\fIpriv2pub\fP
+.I priv2pub
+is also demonstrated.
+.LP
+.kW "\fIuniqport\fP"
+.kW "\fIprv_encode\fP"
+.kW "\fIthread_newthread\fP"
+.kW "\fIname_append\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "stderr.h"
+#include "module/rnd.h"
+#include "module/name.h"
+#include "this_server.h"
+.sp 0.5v
+void server_loop();
+capability get_cap;
+port check_field;
+.sp 0.5v
+main()
+{
+    capability put_cap;
+    errstat err;
+    int i;
+.sp 0.5v
+    /* initialize the server's get capability */
+    uniqport(&get_cap.cap_port);
+    uniqport(&check_field);
+    if (prv_encode(&get_cap.cap_priv, (objnum) 0,
+		    (rights_bits) 0xFF, &check_field) != 0) {
+	printf("Could not initialize capability\en");
+	exit(1);
+    }
+.sp 0.5v
+    priv2pub(&get_cap.cap_port, &put_cap.cap_port);
+    put_cap.cap_priv = get_cap.cap_priv;
+    /* publish put capability in directory server */
+    if ((err = name_append(SERVER_CAP, &put_cap)) != STD_OK) {
+	printf("Cannot append to %s: %s\en", SERVER_CAP, err_why(err));
+	exit(1);
+    }
+.sp 0.5v
+    /* start the NTHREADS server_loop threads */
+    for (i = 0; i < NTHREADS-1; i++)
+	if (!thread_newthread(server_loop, STACKSZ, (char *) 0, 0))
+	    printf("Cannot start server thread\en");
+.sp 0.5v
+    server_loop();
+    /*NOTREACHED*/
+}
+.ps
+.eC
+.LP
+Note that if
+.I main
+exits then the process will die.
+Therefore it is important that
+.I main
+either goes into an infinite loop
+(in this case by also executing the server loop)
+or goes to sleep (for example, on a mutex).
+.LP
+In the
+.I server_loop
+routine it is assumed that the initialization of
+global variables has taken place in the main program which started it.
+In particular the port listened to by the server should have been initialized
+and published under the name defined by
+.cW SERVER_CAP
+in the include file
+.I this_server.h .
+The directory where this capability is to be found must be writable by the
+person starting the server.
+Otherwise the new capability cannot be registered.
+.LP
+.kW "\fIgetreq\fP"
+.kW "\fIputrep\fP"
+.kW ERR_STATUS
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "this_server.h"
+.sp 0.5v
+extern capability get_cap;
+extern errstat do_swap(), do_nothing();
+.sp 0.5v
+/*ARGSUSED*/
+void
+server_loop(param, size)
+char * param;
+int size;
+{
+    header hdr;
+    char reqbuf[REQ_BUFSZ], repbuf[REQ_BUFSZ];
+    bufsize n;
+.sp 0.5v
+    for (;;) {
+	hdr.h_port = get_cap.cap_port;
+	n = getreq(&hdr, reqbuf, REQ_BUFSZ);
+	if (ERR_STATUS(n)) {
+	    printf("getreq failed: %s\en", err_why((errstat) n));
+	    exit(1);
+	}
+	switch (hdr.h_command) {
+	case DO_SWAP:
+	    hdr.h_status = do_swap(&hdr, reqbuf, n, repbuf);
+	    break;
+.sp 0.25v
+	case DO_NOTHING:
+	    hdr.h_status = do_nothing(&hdr, reqbuf, n, repbuf);
+	    break;
+.sp 0.25v
+	default:
+	    hdr.h_status = STD_COMBAD;
+	    hdr.h_size = 0;
+	    break;
+	}
+	putrep(&hdr, repbuf, hdr.h_size);
+    }
+}
+.ps
+.eC
+.LP
+The routine
+.kW "\fIerr_why\fP"
+.I err_why
+(see
+.I error (L))
+produces a human readable error message for standard error codes.
+For unknown error codes it merely returns the string
+.sC
+amoeba error \fInn\fP
+.eC
+where
+.I nn
+is the error code returned.
+Note that
+.kW "\fIgetreq\fP"
+.I getreq
+takes a
+.kW "get-port"
+.I "get-port"
+as parameter in the
+.I hdr
+variable.
+However when it returns the
+.I hdr
+contains the
+.kW "put-port"
+.I "put-port"
+and other fields sent by the client so it is important to reinitialize
+.I hdr
+before each call to
+.kW "\fIgetreq\fP"
+.I getreq .
+.LP
+The routine
+.I do_swap
+will
+check the capability in the header,
+take the
+.I n
+bytes of data in the request buffer
+and perform the command specified by
+.cW DO_SWAP .
+It fills the reply buffer to be returned to the client and returns the status of
+the command.
+It returns the status for clarity.
+If every entry in the switch sets the return status of the command it is
+easy to check that all pathways return a status.
+Other arrangements are also possible.
+.LP
+Now we shall consider the structure of the routine
+.I do_swap .
+The structure of the data that it expects in the request buffer
+determines what data the client must send to it.
+Since the server should also provide the client programs with stub routines
+to communicate with the server,
+the routine do_swap will largely determine the client stubs.
+However, we first need a way of validating capabilities.
+Below is an example routine.
+Note that it is important to distinguish between a bad capability and a
+capability with insufficient rights when generating an error code.
+.LP
+.kW "\fIprv_number\fP"
+.kW "\fIprv_decode\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "module/prv.h"
+.sp 0.25v
+extern port check_field;
+.sp 0.25v
+errstat
+check_cap(priv, required_rights)
+private * priv;
+rights_bits required_rights;
+{
+    rights_bits rights;
+.sp 0.25v
+    if (prv_number(priv) != 0 ||
+		prv_decode(priv, &rights, &check_field) != 0)
+	return STD_CAPBAD;
+.sp 0.25v
+    if ((rights & required_rights) != required_rights)
+	return STD_DENIED;
+.sp 0.25v
+    return STD_OK;
+}
+.sp 0.75v
+.ps
+.eC
+.LP
+In this example the server has only one capability of interest,
+namely the capability for the server itself.
+There are no object capabilities.
+Note well that the capability is checked against the original
+.I check_field
+and not against the
+.I get_cap .
+If you have more than one object then the original check field for each
+object should be stored with the per-object information and not the
+.I get
+or
+.I put
+capability.
+The
+.I check_field
+can be used to generate the capability,
+but the converse may not be true.
+The
+.I prv (L)
+routines  should always be used the to check capabilities to protect programs
+from future changes to data structures.
+.kW "\fIbuf_get_long\fP"
+.kW "\fIbuf_put_long\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "module/buffers.h"
+#include "this_server.h"
+.sp 0.5v
+errstat check_cap();
+.sp 0.5v
+errstat
+do_swap(hdr, req, reqsz, rep)
+header * hdr;
+char * req;
+bufsize reqsz;
+char * rep;
+{
+    char * p;
+    char * q;
+    long val1, val2;
+    errstat err;
+.sp 0.5v
+    hdr->h_size = 0; /* in case of error */
+    if ((err = check_cap(&hdr->h_priv, RGT_DOSWAP)) != STD_OK)
+	return err;
+.sp 0.5v
+    q = req;
+    p = rep;
+.sp 0.5v
+    /* get the two longs from the request buffer */
+    q = buf_get_long(q, req + reqsz, &val1);
+    q = buf_get_long(q, req + reqsz, &val2);
+    /* if q is 0 then the request buffer did not contain two longs! */
+    if (q == 0)
+	return STD_ARGBAD;
+.sp 0.5v
+    /* now put them into the reply buffer in reverse order */
+    p = buf_put_long(p, rep + REQ_BUFSZ, val2);
+    p = buf_put_long(p, rep + REQ_BUFSZ, val1);
+    /* if p is 0 then the buffer of the server is too small */
+    if (p == 0)
+	return STD_SYSERR;
+.sp 0.5v
+    hdr->h_size = p - rep;
+    return STD_OK;
+}
+.ps
+.eC
+.LP
+The routine
+.I do_swap
+uses the
+.I buf_get
+and
+.I buf_put
+routines (see
+.I buffer (L))
+to receive and send data.
+.kW "byte-order independence"
+These ensure that no byte-order problems occur between client and server.
+The stub routines should also use the corresponding routines.
+The
+.I buf_get
+and
+.I buf_put
+routines are very pleasant to use since it is not
+necessary to check for errors until the last operation is completed.
+They check for buffer overflow and thus prevent overrunning array bounds.
+They return the next free position in the buffer if they succeed and the null
+pointer if they fail.
+If given a null pointer as a buffer argument then they immediately return a
+null pointer.
+Thus if any of the calls returns a null pointer then all subsequent calls
+will also do so and the error test need only be done once at the end of a
+series of
+.I get
+or
+.I put
+calls.
+.LP
+In this example the server expects two longs in the request buffer.
+It swaps them and inserts the result into the reply buffer
+using
+.I buf_put_long
+and returns the total size of the reply buffer to the
+.I server_loop
+which sends the reply.
+.nH 1 "Clients"
+.LP
+It is now time to consider what is needed on the client side.
+It is possible to write a client program which knows all about the data formats
+that the server expects.
+However it is almost certainly simpler to provide the client with single
+.kW marshaling
+routine to call which hides the details of marshaling the data and sending it
+to the server.
+.kW RPC
+One reason for doing this is that the implementation of the RPC is then hidden
+from the client program and any of the planned changes to that interface need
+only be modified in a few stub routines and the programs should then continue
+to function after recompilation.
+.kW AIL
+If AIL is used then recompilation of the sources should be sufficient.
+.LP
+A stub routine for
+.cW DO_SWAP
+might look like the following.
+.kW "\fIbuf_get_long\fP"
+.kW "\fIbuf_put_long\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "module/buffers.h"
+#include "this_server.h"
+.sp 0.5v
+errstat
+swap_longs(svr, val1, val2)
+capability * svr;
+long * val1;
+long * val2;
+{
+    header hdr;
+    bufsize t;
+    char buf[REQ_BUFSZ];
+    char * p;
+.sp 0.5v
+    hdr.h_port = svr->cap_port;
+    hdr.h_priv = svr->cap_priv;
+    hdr.h_command = DO_SWAP;
+    p = buf_put_long(buf, buf + REQ_BUFSZ, *val1);
+    p = buf_put_long(p, buf + REQ_BUFSZ, *val2);
+    if (p == 0) /* REQ_BUFSZ is too small! */
+	return STD_SYSERR;
+    t = trans(&hdr, buf, REQ_BUFSZ, &hdr, buf, REQ_BUFSZ);
+    if (ERR_STATUS(t))
+	return ERR_CONVERT(t);
+    if (ERR_STATUS(hdr.h_status))
+	return ERR_CONVERT(hdr.h_status);
+    p = buf_get_long(buf, buf + t, val1);
+    p = buf_get_long(p, buf + t, val2);
+    if (p == 0) /* server returned garbage */
+	return STD_SYSERR;
+    return STD_OK;
+}
+.ps
+.eC
+.LP
+In general it is important that stub routines return an error status.
+This makes it much simpler for the client to deduce the cause of errors.
+.kW errno
+Returning a null pointer or something similar on failure complicates things
+and a single
+.I errno -like
+variable is complicated and cumbersome in a multithreaded process.
+.LP
+.kW marshaling
+Note once again the use of the
+.I buf_put
+and
+.I buf_get
+routines for marshaling data.
+There are routines for various data types.
+It is important that the server and the stub marshal the data in the same
+way or the results may be unfortunate.
+.LP
+In this example we used the same buffer to send data as to receive it.
+Similarly we used the same
+.kW "\fIheader\fP"
+.I header
+struct to send and receive information.
+This is perfectly acceptable practice but the following should be noted.
+The fields
+.I h_command
+and
+.I h_status
+occupy the same position in the header struct.
+(The field name
+.I h_status
+is actually a #define.)
+Therefore if a stub has a loop of RPCs rather than a single
+RPC then the
+.I h_command
+field must be reinitialized each time around the loop.
+.LP
+There are some fields in the
+.I header
+struct which are intended for small amounts of out of band data.
+These could have been used to send and receive small pieces of data.
+In this example we have two longs and they do not both fit into the header.
+All byte swapping of header fields is done automatically by the kernel
+and if only one or two small integers need to be sent then it is better to use
+the header and give the parameter
+.kW NILBUF
+.cW NILBUF
+and buffer size zero (0) since this will lead to greater efficiency in
+the marshaling of data.
+.LP
+The macros
+.kW ERR_STATUS
+.cW ERR_STATUS
+and
+.kW ERR_CONVERT
+.cW ERR_CONVERT
+are also important.
+In the current version of \*(Am the error status returned by
+.kW "\fItrans\fP"
+.I trans
+or in
+.I hdr.h_status
+is an unsigned 16-bit integer.
+It is intended that this be changed to a signed 32-bit integer in a future
+release.
+However, error codes are signed.
+To avoid massive changes later,
+stubs return a signed 32-bit integer and the grizzly details of the current
+implementation are thus hidden from the clients and servers.
+However it is necessary to make conversions that deal correctly with sign
+extension.
+Therefore the macro
+.kW ERR_STATUS
+.cW ERR_STATUS
+is provided to determine whether what was returned is indeed an error and
+.kW ERR_CONVERT
+.cW ERR_CONVERT
+is provided to correctly convert the unsigned 16-bit integer to a
+signed 32-bit quantity.
+.LP
+Now let us consider what the main program of the client looks like.
+One of the things it needs to do is to get the capability for the server
+it needs to talk to.
+In general this is not done by the stub routine because there may be more
+than one instance of a particular server and the main program should be
+able to choose the server.
+It gets the server's capability by doing a
+.I name_lookup
+of the name that the server should have used to publish its capability.
+In this case it is the name defined by
+.cW SERVER_CAP
+in
+.I this_server.h .
+.LP
+Having converted the command line arguments to integers, the next step is
+to call the stub routine.
+This is a normal procedure call,
+but the stub then takes the server's
+.I put
+capability and the two integers and puts them into a message which it then
+sends out.
+The message it gets back has the two numbers swapped around and it sets them
+into the original variables, but now in the reverse order.
+.LP
+Thus the client might be implemented as follows:
+.kW "\fIname_lookup\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "stderr.h"
+#include "stdlib.h"
+#include "this_server.h"
+#include "module/name.h"
+.sp 0.5v
+main(argc, argv)
+int argc;
+char * argv[];
+{
+    errstat err;
+    capability svr;
+    long num1, num2;
+.sp 0.5v
+    if (argc != 3) {
+	printf("Usage: %s num1 num2\en", argv[0]);
+	exit(1);
+    }
+.sp 0.5v
+    /* get the capability for the server */
+    if ((err = name_lookup(SERVER_CAP, &svr)) != STD_OK) {
+	printf("%s: lookup of %s failed: %s\en",
+				argv[0], SERVER_CAP, err_why(err));
+	exit(2);
+    }
+.sp 0.5v
+    num1 = strtol(argv[1], (char **) 0, 10);
+    num2 = strtol(argv[2], (char **) 0, 10);
+.sp 0.5v
+    /* send the command to the server */
+    if ((err = swap_longs(&svr, &num1, &num2)) != STD_OK) {
+	printf("%s: swap_longs failed: %s\en", argv[0], err_why(err));
+	exit(3);
+    }
+.sp 0.5v
+    printf("new number order is %d %d\en", num1, num2);
+    exit(0);
+}
+.ps
+.eC
+.nH 1 "Using AIL"
+.LP
+Although it is possible to write the server loop and client stubs by hand it is
+also possible to generate the stubs and server loop using the \*(Am Interface
+.kW AIL
+Language (AIL).
+All the details of marshaling and unmarshaling data are handled by AIL.
+The precise details of how to use AIL are described in
+.I ail (U)
+and the chapter
+.I "Programming Tools"
+in this volume of the manual.
+.LP
+An important thing to watch out for
+is that AIL-generated servers or clients do
+.I not
+necessarily cooperate with hand-written servers or clients.
+The reason for this is that AIL may decide to
+marshal some of the parameters of an operation into the header.
+Another optimization it currently performs is the marshaling
+of parameters to and from request and reply buffers.
+Rather than marshaling the parameters in a byte-order independent way
+(using the
+.I buf_put
+routines,
+described earlier)
+.kW "byte-order independence"
+it sends them over in the original byte-order.
+Additionally,
+one of the header fields is initialized to allow
+the server to see whether it is necessary to byte-swap
+parameters contained in the buffer.
+.LP
+In the next two sections we will reimplement the server described
+in the preceding sections.
+Only this time we will show how much of the labour required
+can be transferred to AIL.
+.nH 2 "Writing a Server with AIL"
+.LP
+In this section we will show how the example swap server
+can be implemented using AIL.
+The most important part of the AIL specification is the interface itself.
+An interface is defined by means of
+.I class
+definitions.
+For each command included in the class,
+the class definition specifies the
+.I prototype
+of the corresponding client stub.
+For example,
+the interface for the integer swap server could be specified as follows:
+.LP
+.sC L
+.ps-1
+/* class file swap.cls */
+.sp 0.5v
+#include "cmdreg.h"
+#include "this_server.h"
+.sp 0.5v
+class swaplong [DO_SWAP .. DO_NOTHING] {
+.sp 0.5v
+	do_swap [DO_SWAP] (*,
+		in out long first,
+		in out long second
+	);
+.sp 0.5v
+	do_nothing [DO_NOTHING] (*,
+		in out long first,
+		in out long second
+	);
+.sp 0.5v
+};
+.ps
+.eC
+.LP
+It defines the class
+.I swaplong
+which consists of commands in the range from
+.cW DO_SWAP
+up to
+.cW DO_NOTHING .
+The client stub for the command
+.cW DO_SWAP
+has three parameters:
+the ``*'',
+representing the capability for the object on which the operation is performed,
+and two long parameters that are passed by reference (the
+.I "in out"
+clauses are responsible for that).
+Note that although the server in this case is not really object-based,
+the ``*'' is still required in order to address the server.
+.LP
+The class presented here is very simple;
+in general it may also define class-specific types and constants.
+Moreover,
+a class can inherit procedures,
+types and constants from other classes,
+thus making it very easy to write a server supporting a subset of
+the standard server commands (see
+.kW "standard commands"
+.I std (L)).
+In fact all servers should do this.
+This is outside the scope of this introduction however.
+For details see the AIL manuals.
+.LP
+To make use of the AIL class definition,
+the command
+.I ail (U)
+must be told what to do with it.
+To generate the server main-loop which was hand-coded earlier,
+the following file should be given as argument to
+.I ail :
+.LP
+.sC L
+.ps-1
+/* file swapsvr.gen */
+.sp 0.5v
+#include "swap.cls"
+.sp 0.5v
+generate swaplong {
+    client_interface;
+    server;                 /* Generate server main loop */
+};
+.ps
+.eC
+.LP
+The C source for the server main-loop will be produced in the file
+.I ml_swaplong.c .
+This file will include a header file
+.I swaplong.h
+which is generated as well.
+.LP
+The main-loop generated is called
+.I ml_swaplong ,
+and it has a single parameter supplying the
+.kW "get-port"
+.I get-port
+the server should be listening to.
+The code for the function
+.I server_loop
+suddenly becomes very simple:
+.LP
+.kW "\fIgetreq\fP"
+.sC L
+.ps-1
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "this_server.h"
+.sp 0.5v
+errstat ml_swaplong();
+capability get_cap;
+.sp 0.5v
+void
+server_loop()
+{
+    errstat err;
+.sp 0.5v
+    err = ml_swaplong(&get_cap.cap_port);   /* should never return */
+    printf("getreq failed: %s\en", err_why(err));
+    exit(1);
+}
+.ps
+.eC
+.LP
+As soon as a request has been accepted by
+.I ml_swaplong
+.kW marshaling
+it will unmarshal the parameters of the command
+and call a user-supplied function taking care of the
+actual implementation of the command.
+After that,
+it will marshal the result values (as specified by the client interface),
+return the reply to the client,
+and wait for a new request.
+.LP
+The implementation functions for our swap server
+are called
+.I impl_do_swap
+and
+.I impl_do_nothing .
+The code for
+.I impl_do_swap
+now becomes:
+.LP
+.sC L
+.ps-1
+errstat
+impl_do_swap(hdr, first, second)
+header *hdr;
+long   *first, *second;
+{
+    errstat check_cap();
+    long temp;
+    errstat err;
+.sp 0.5v
+    if ((err = check_cap(&hdr->h_priv, RGT_DOSWAP)) != STD_OK)
+        return err;
+.sp 0.5v
+    temp = *second;
+    *second = *first;
+    *first = temp;
+.sp 0.5v
+    return STD_OK;
+}
+.ps
+.eC
+.LP
+.ne 3
+Observe that,
+compared with function
+.I do_swap
+in the hand-coded example,
+the code is now almost trivial,
+because the programmer is not bothered with the marshaling
+of input and output data.
+.LP
+Combined with a completely analogous definition of
+.I impl_do_nothing
+and the functions
+.I main
+and
+.I check_cap
+taken from the original implementation,
+our AIL-based server is now complete.
+.nH 2 "Writing a Client with AIL"
+.LP
+.kW AIL
+Now we turn our attention to the client side.
+We have two options here.
+When a client program only consists of a command-line interface
+to a command supported by the server,
+AIL is able to generate the program all by itself.
+The other possibility is to let AIL only generate the client stubs,
+writing the rest of the program by hand.
+Although the latter option is a bit more work,
+it is also more flexible.
+.LP
+We will first show an AIL specification generating the entire client program
+.I do_swap :
+.LP
+.sC L
+.ps-1
+#include "swap.cls"
+.sp 0.5v
+generate swaplong {
+    client_interface;
+    client_stubs(do_swap);
+    command(do_swap);
+};
+.ps
+.eC
+.LP
+The clause
+.I client_interface
+causes a header file
+.I swaplong.h
+containing C prototypes for the client stubs to be generated.
+The client stub for the operation
+.cW DO_SWAP
+is requested by the
+.I client_stubs
+clause.
+It will be produced in the file
+.I do_swap.c .
+The rest of the program,
+which takes care of parsing the arguments,
+calling the stub and printing the results is requested by the
+.I command
+clause.
+It will be produced in the file
+.I cmd_do_swap.c .
+.LP
+It must be noted that the command produced is a direct reflection
+of the
+.I do_swap
+operation as defined in the class definition.
+More specifically,
+it requires the user to specify the name of the swap server capability
+as the first argument.
+The resulting program has the following interface:
+.sC
+$ swap /home/this_server/default 0 1
+first=1
+second=0
+.eC
+.LP
+The other possibility is to use AIL only to generate the client stub
+.I do_swap .
+The AIL specification becomes:
+.LP
+.sC L
+.ps-1
+#include "swap.cls"
+.sp 0.5v
+generate swaplong {
+    client_interface;
+    client_stubs(do_swap);
+};
+.ps
+.eC
+.LP
+The main program is then the same as in the hand-written case,
+except that the client stub is called
+.I do_swap
+rather than
+.I swap_longs .

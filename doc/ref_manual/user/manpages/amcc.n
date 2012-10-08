@@ -1,0 +1,266 @@
+.\"	@(#)amcc.n	1.6	96/02/15 18:00:12
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Many authors.
+	Document: Gregory J. Sharp, April 1992
+	Modified: Gregory J. Sharp, Oct 1995
+			- tidied up some unnecessary noise
+.aE
+.mT "amcc" U "UNIX ONLY"
+compile simple \*(Am programs under UNIX
+.SH
+Synopsis
+.LP
+.sC L
+amcc [amccopts] [ccopts] [ldopts] [ofiles] [lfiles] cfiles
+.eC
+.SH
+Description
+.LP
+.I Amcc
+is a command which only runs under
+.kW UNIX
+.UX .
+It is a special front end to various C compilers.
+.kW "C compiler"
+.kW "\fIcc\fP"
+.kW ACK
+.kW "\fIack\fP"
+.kW "\fIainstall\fP"
+.kW "\fItob\fP"
+It is useful for compiling simple C programs, for prototyping and for compiling
+test programs,
+where the effort of generating an
+.I Amakefile
+can usefully be avoided.
+Programs can be compiled to run under
+.UX
+(assuming they are not multithreaded)
+or they can be compiled to run under \*(Am.
+The default is for \*(Am.
+In this case it is necessary to copy the compiled program to the \*(Am
+file server before it can be run.
+See
+.I ainstall (U)
+and
+.I tob (U)
+for details about how to do this.
+When a program is compiled for \*(Am the option
+.cW -DAMOEBA
+is passed to the C compiler.
+File names which end in
+.I .o
+(\fIofiles\fP)
+or
+.I .a
+(\fIlfiles\fP)
+are passed directly to the loader.
+File names which end in
+.I c
+(\fIcfiles\fP)
+are first given to
+.I cc .
+.mH
+Options
+.LP
+The options are divided into several classes.
+The first are those which are used directly by
+.I amcc
+(\fIamccopts\fP).
+Then there are standard arguments for the C compiler
+.I cc (U)
+(\fIccopts\fP).
+The remaining arguments are those which are passed to the loader
+(\fIldopts\fP).
+.LP
+Options used by
+.I amcc .
+.IP \fB\-ack\fP
+.br
+This causes the Amsterdam Compiler Kit (ACK) compiler (see
+.I ack (U)
+and
+.I cc (U))
+to be used instead of the
+local operating system's default
+.I cc
+program.
+To use this it is necessary to have the
+.UX
+version of ACK installed.
+.IP \fB\-ajax\fP
+.br
+This option causes the
+.I Ajax
+.kW Ajax
+.kW "POSIX emulation"
+POSIX emulation library to be linked with the binary.
+This option cannot be used in conjunction with the
+.B \-unix
+option below.
+.IP \fB\-noexec\fP
+.br
+This causes
+.I amcc
+to print out what it would do if it ran without this flag.
+It does not actually execute the commands it displays.
+.IP \fB\-i80386\fP
+.br
+This makes the target architecture for the compilation the
+Intel 80386/80486 architecture.
+It also implies
+.B \-ack .
+.IP \fB\-x11\fP
+.br
+This causes the X windows library to be linked with the program.
+.IP "\fB\-conf\fP \fIpath\fP"
+.br
+.kW "\fIamdir\fP"
+Normally the libraries are extracted from
+.I \(gaamdir\(ga/conf/amoeba
+but an alternative configuration tree can be specified by
+.I path .
+.IP "\fB\-src\fP \fIpath\fP"
+.br
+The include files for the compilation are taken per default from
+.I \(gaamdir\(ga/src/h .
+An alternative source tree (and thus include files) is specified by
+.I path .
+.IP \fB\-unix\fP
+.br
+The target system for the compilation is not \*(Am but the current
+.UX
+system where
+.I amcc
+is running.
+.IP \fB\-v\fP
+.br
+Verbose mode.
+.I Amcc
+gives a running commentary about each phase of the compilation.
+.LP
+Options passed directly to
+.I cc .
+.IP \fB\-c\fP
+.IP \fB\-C\fP
+.IP \fB\-D\fP\fIdefine\fP
+.IP \fB\-I\fP\fIinclude-path\fP
+.IP \fB\-U\fP\fIdefine\fP
+.IP \fB\-E\fP
+.IP \fB\-S\fP
+.IP \fB\-g\fP
+.IP \fB\-O\fP
+.IP \fB\-p\fP
+.IP \fB\-pg\fP
+.br
+All these options have the same meaning independent of the C compiler used;
+either ACK or the local
+.UX
+C compiler.
+.LP
+Options passed to the loader.
+.IP \fB\-y\fP\fIsymbol\fP
+.br
+This causes the loader to print the names of the object files where
+.I symbol
+is referenced.
+.IP "\fB\-e\fP \fIentry-point\fP"
+.br
+This sets the entry point for the program to
+.I entry-point .
+This is not advisable since the program probably will not run.
+.IP "\fB\-o\fP \fIfile-name\fP"
+.br
+The
+.I file-name
+argument specifies the name of the binary file to be produced.
+If no
+.B \-o
+option is present the name of the binary produced will be
+.I a.out .
+.IP "\fB\-l\fP\fIlibrary-name\fP"
+.br
+This causes the library
+.I library-name
+to be linked with the program.
+.mH
+Diagnostics
+.LP
+If the
+.UX
+system has no command to specify its architecture this command will complain
+about its absence.
+Missing arguments such as the path name to the
+.B \-conf
+will generate appropriate error messages.
+For the rest the error messages are those of
+.I cc
+and the loader.
+.mH
+Files
+.LP
+The include files, unless otherwise specified, are taken from
+.I \(gaamdir\(ga/src/h .
+The \*(Am libraries, unless otherwise specified, are taken from
+.I \(gaamdir\(ga/conf/amoeba
+for \*(Am programs and from
+.I \(gaamdir\(ga/conf/unix
+for
+.UX
+programs.
+.mH
+Warnings
+.LP
+Trying to compile programs to run under
+.UX
+that have no real chance of working there, such as multithreaded programs,
+will almost certainly fail.
+If by chance they do compile, they will not work.
+.SH
+Examples
+.LP
+If the files
+.I f1.c
+and
+.I f2.c
+contain C sources for a program that is to run under \*(Am, uses the
+.I Ajax
+POSIX emulation and they need to
+be compiled using the ACK compiler for the 386/486 architecture then the
+following command will compile them.
+.sC
+amcc -i80386 -ajax -o ftest f1.c f2.c
+.eC
+The resultant binary will be in the
+.UX
+file
+.I ftest .
+This can be installed under \*(Am using
+.I ainstall (U).
+.LP
+If the program in
+.I f3.c
+is to be compiled to run under
+.UX
+using the local
+.I cc
+then it could be compiled as follows.
+.sC
+amcc -unix -o f3test f3.c
+.eC
+This will produce a
+.UX
+executable called
+.I f3test .
+.SH
+See Also
+.LP
+ainstall(U),
+amake(U),
+amdir(U),
+cc(U),
+tob(U).

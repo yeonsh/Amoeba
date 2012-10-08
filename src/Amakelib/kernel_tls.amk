@@ -1,0 +1,25 @@
+#	
+#	@(#)kernel_tls.amk	1.5	96/02/15 15:57:56
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Tools and definitions needed for Amakefiles for amoeba kernels
+
+%include $PWD/common/common.amk;
+
+%include $PWD/common/ctags.amk;
+%include $PWD/common/lint.amk;
+%include $PWD/common/kernel_cc.amk;
+%include $PWD/common/assembler.amk;
+%include $PWD/common/version_ld.amk;
+%include $PWD/common/kstat.amk;
+%include $PWD/common/init.amk;
+%include $PWD/common/stop.amk;
+%if ($COMPILER_SET == sun %or $COMPILER_SET == sun-1.0, {
+	%include $PWD/sun/offset.amk;
+});
+%if ($COMPILER_SET == gnu-2 %or $COMPILER_SET == sunpro, {
+	%include $PWD/$COMPILER_SET/offset.amk;
+});

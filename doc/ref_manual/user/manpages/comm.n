@@ -1,0 +1,52 @@
+.\"	@(#)comm.n	1.3	94/04/05 15:54:56
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "comm" U
+print lines common to two sorted files
+.SH
+Synopsis
+.LP
+.sC L
+comm [-123] file1 file2
+.eC
+.SH
+Description
+.LP
+Two sorted files are read and compared.
+A three column listing is produced.
+Lines only in
+.I file1
+are in column 1,
+lines only in
+.I file2
+are in column 2 and
+lines common to both files are in column 3.
+The file name ``\-'' means
+.I stdin .
+.mH
+Options
+.LP
+.IP \fB\-1\fP
+Suppress column 1 (lines only in file1).
+.IP \fB\-2\fP
+Suppress column 2 (lines only in file2).
+.IP \fB\-3\fP
+Suppress column 3 (lines in both files).
+.SH
+Examples
+.LP
+.sC
+comm file1 file2
+.eC
+Print all three columns.
+.sC
+comm -12 file1 file2
+.eC
+Print only lines common to both files.

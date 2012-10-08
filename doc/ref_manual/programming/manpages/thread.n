@@ -1,0 +1,463 @@
+.\"	@(#)thread.n	1.7	96/02/15 16:57:04
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse (original), pre-1988
+	Software: Mike Condict, Jack Jansen, Guido van Rossum, 1989
+	Document: Peter Bosch, Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, March 1992
+				- turned it into reasonable style.
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "thread" L "libamoeba.a"
+thread creation and thread memory management module
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "thread.h"
+
+int thread_newthread(func, stsize, param, psize)
+int thread_exit()
+char *thread_alloc(index, size)
+char *thread_param(size)
+char *thread_realloc(index, size)
+.eC
+.SH
+Description
+.LP
+.kW "\fIthread_newthread\fP"
+.kW "\fIthread_exit\fP"
+.kW "\fIthread_alloc\fP"
+.kW "\fIthread_param\fP"
+.kW "\fIthread_realloc\fP"
+.kW "thread creation"
+.kW "thread memory management"
+.kW "static"
+.kW "thread.h"
+The
+.I thread
+module provides the programming interface to create,
+destroy and manage concurrent threads.
+Each thread can start executing a separate routine;
+they do not all have to execute the same function.
+Each thread in a multi-threaded process shares the same address space.
+It has its own stack and program counter but otherwise shares the
+text, data and bss segments of the process.
+.kW "per-thread global data"
+Because it is sometimes useful to have data global within a thread but not
+.kW "glocal data"
+accessible outside the thread,
+.I glocal
+data is provided.
+See the description of
+.I thread_alloc
+below for details of how to allocate and use
+.I glocal
+data.
+.LP
+The threads are currently scheduled non-preemptively by default.
+Preemptive scheduling must be enabled explicitly using
+.I thread_enable_preemption (see
+.I thread_scheduling (L)).
+It is important to protect accesses to global data with mutexes (see
+.I mutex (L)).
+It is possible for a thread to request that it be rescheduled using
+.I threadswitch
+(see
+.I thread_scheduling (L)).
+This can be very useful in the presence of non-preemptive scheduling.
+.LP
+.B NB.
+If a program is multi-threaded it is not safe to use
+.UX
+emulation routines in more than one thread of the program.
+.UX
+is not multi-threaded and therefore the emulation is only likely to be
+correct if confined to a single thread of a program.
+For example,
+a program with several threads where one is in
+.I read
+waiting for input from a terminal and another does a
+.I fork
+may well hang until the read is satisfied.
+The
+.I exit
+routine has been modified to force a close on all descriptors, even if they
+are held by another thread and no guarantees are made on the correctness of
+any resulting input or output if
+.I exit
+is called in such circumstances.
+.br
+.ne 10
+.mH
+Functions
+.LP
+.sH
+thread_newthread
+.LP
+.sC
+int
+thread_newthread(func, stsize, param, psize)
+void (*func)();
+int stsize;
+char *param;
+int psize;
+.eC
+.kW "\fIthread_newthread\fP"
+.I Thread_newthread
+spawns a new thread and starts it at function
+.I func .
+.I Thread_newthread
+allocates a thread stack of
+.I stsize
+bytes.
+.I Stsize
+must be at least 512 bytes or the calling program will be killed.
+Parameters can be passed to the new thread via the
+.I thread_newthread
+parameters
+.I param
+and
+.I psize .
+.I Param
+is a pointer to the data structure to pass,
+.I psize
+is the size of the data structure.
+.I Param
+must be allocated by a member of the
+.I malloc
+family 
+(see
+.I malloc (L))
+since the clean up when the thread exits will free this memory.
+Memory allocated using
+.kW "\fIthread_alloc\fP"
+.I thread_alloc
+cannot be used!
+When no parameters are passed,
+.I param
+must be a NULL-pointer and
+.I psize
+must be zero.
+Once the thread exits, the allocated stack and parameter area are freed.
+The function
+.I func
+is called as follows:
+.sC
+(*func)(param, psize)
+char *param;
+int psize;
+.eC
+If the called function returns, the thread exits.
+.LP
+.kW "\fIthread_newthread\fP"
+.I Thread_newthread
+returns zero upon failures (insufficient memory or out of threads),
+otherwise a positive value is returned.
+.LP
+Note that not all threads are created equal.
+When a process first starts it consists of one thread which starts the
+routine
+.I main() .
+If main returns then
+.I exit()
+is called which will terminate the entire process immediately.
+If it is desired that
+.I main
+terminate and the other threads continue then it must not return but call
+.kW "thread_exit"
+.I thread_exit
+(described below).
+.LP
+Typically, when a new thread is created the parent continues to execute
+until it blocks.
+However, if preemptive scheduling is enabled (see
+.I thread_scheduling (L))
+then the newly created process will have the same priority as the current
+thread.
+This means at the next event (such as an interrupt) the new thread may be
+scheduled.
+.sH
+thread_exit
+.LP
+.sC
+int
+thread_exit()
+.eC
+.kW "thread_exit"
+.I Thread_exit
+stops the current thread.
+.kW "glocal data"
+It then frees any glocal memory (allocated by
+.kW "\fIthread_alloc\fP"
+.kW "\fIthread_realloc\fP"
+.I thread_alloc/thread_realloc ),
+the parameter area and the allocated stack before exiting.
+.I Thread_exit
+does not return.
+When the calling thread was a server thread,
+and it was still serving a client, the client will receive an
+.cW RPC_FAILURE
+(see
+.I rpc (L)).
+If
+.I thread_exit
+is called in the last thread of a process,
+the process exits as well (see
+.I exitprocess (L)).
+.sH
+thread_alloc
+.LP
+.sC
+char *
+thread_alloc(index, size)
+int *index;
+int size;
+.eC
+.kW "\fIthread_alloc\fP"
+The first time
+.I thread_alloc
+is called (with
+.I "*index == 0)" ,
+.I thread_alloc
+.kW "glocal data"
+allocates glocal data of
+.I size
+bytes and returns the module reference number in
+.I "*index" .
+The allocated data is initialized to zero.
+The value of the function is a pointer to the glocal data.
+Successive calls to
+.I thread_alloc
+with the previously assigned module reference
+number result in returning a pointer to the previously allocated memory.
+.LP
+.I Thread_alloc
+returns a NULL-pointer on insufficient memory or
+when a successive call to
+.I thread_alloc
+has a different size parameter than in the original call.
+In this case, the already allocated memory is not modified or freed.
+.LP
+Consider an example.
+Suppose a function in a single-threaded program that uses a
+(static) global variable.
+For example,
+.sC
+static long sum;
+long add(x)
+long x;
+{
+    sum += x;
+    return sum;
+}
+.eC
+Now suppose this function must be used in a multi-threaded program,
+where the threads perform independent computations.
+This means a separate
+.I sum
+variable is required for each thread.
+If the number of threads is known in advance,
+the threads could be numbered
+and an array indexed by thread numbers could maintained (assuming a thread can
+find out its own thread number,
+which is not trivial unless a parameter is added to
+.I add
+for this purpose).
+In general,
+however,
+this is too complex.
+A simpler solution is to use
+.kW "\fIthread_alloc\fP"
+.I thread_alloc .
+.sC
+#include "thread.h"
+static int ident;
+long add(x)
+long x;
+{
+    long *p_sum;
+    p_sum = (long *) thread_alloc(&ident, sizeof(long));
+    *p_sum += x;
+    return *p_sum;
+}
+.eC
+Because there may be several functions in a program that need a block of
+.kW "glocal data"
+glocal memory for private use,
+.kW "\fIthread_alloc\fP"
+.I thread_alloc
+has an
+.I ident
+parameter that indicates the identity of the memory block (not the
+calling thread!).
+This must be the address of a global integer variable,
+statically initialized to zero.\(dg
+.FS
+\(dg To be precise, the variable must have global lifetime (`static
+duration' in Standard C jargon); it may have local scope, i.e., it may
+be a static variable declared in a function.
+.FE
+This variable is used for
+.kW "\fIthread_alloc\fP"
+.I thread_alloc 's
+internal administration; its contents must never be touched by the
+calling function.
+.kW "glocal data"
+Functions that need to use the same block of glocal data must use
+the same
+.I ident
+variable.
+For consistency,
+all calls using the same
+.I ident
+variable must pass the same block size.
+To change the block size,
+.kW "\fIthread_realloc\fP"
+.I thread_realloc
+can be used.
+.sH
+thread_realloc
+.LP
+.sC
+char *
+thread_realloc(index, size)
+int *index;
+int size;
+.eC
+.kW "\fIthread_realloc\fP"
+.I Thread_realloc
+.kW "glocal data"
+is used to change the size of the block of glocal memory
+associated with the module reference number
+.I "*index"
+that was previously allocated by
+.kW "\fIthread_alloc\fP"
+.I thread_alloc .
+It allocates a new glocal memory block of
+.I size
+bytes and initializes it to zero.
+It then copies to the new memory block however much of the old data that will
+fit in it.
+When
+.I thread_realloc
+is called with
+.I "*index"
+equal to zero it operates as
+.kW "\fIthread_alloc\fP"
+.I thread_alloc .
+.LP
+.I Thread_realloc
+returns a NULL-pointer on insufficient memory.
+.kW "glocal data"
+It does not free the original glocal data in this case so that it can still
+be accessed or the reallocation retried later.
+.LP
+.B "Note Well" :
+As a temporary hack,
+.kW "\fIthread_realloc\fP"
+.I thread_realloc
+never frees the previous copy of the data.
+This must be done in the calling program using
+.I free
+(see
+.I malloc (L)).
+It is not recommended that this routine be used until this feature is removed.
+.sH
+thread_param
+.LP
+.sC
+char *
+thread_param(size)
+int *size;
+.eC
+.kW "\fIthread_param\fP"
+.I Thread_param
+returns the parameter pointer which was initially passed to the initial routine
+of the current thread.
+It returns the size of the parameter in
+.I "*size".
+.mH
+Warnings
+.LP
+The
+.I thread
+module uses the global variable
+.I _thread_local
+(see
+.kW "\fIsys_newthread\fP"
+.I sys_newthread (L))
+for its administration.
+.SH
+Example
+.LP
+.kW "glocal data"
+The following example shows thread creation and the use of glocal memory.
+.I Ref_nr
+is the module reference number.
+Each time the signal handler is activated,
+the glocal data is fetched which belongs to the running thread and this module.
+.sC L
+#define NTHREADS 5
+#define STKSIZE  8096
+#define	SIZE     100
+.sp 0.5v
+static int ref_nr;
+.eC
+.sC L
+void
+worker_thread(param, size)
+char * param;
+int size;
+{
+    char *ptr;
+    int i;
+.sp 0.5v
+    if (size == sizeof (int)) {
+	i = *(int *) param;
+	printf("Thread %d started\en", i);
+    }
+    /* Initially allocate memory and fetch module ref. number */
+    if ((ptr = thread_alloc(&ref_nr, SIZE)) == 0) {
+        fprintf(stderr, "worker_thread: cannot thread_alloc.\en");
+        thread_exit();
+    }
+    strcpy(ptr, "Peter was here");
+    ...
+}
+.eC
+.sC L
+main()
+{
+    int i;
+    char * p;
+.sp 0.5v
+    for (i = 0; i < NTHREADS; i++) {
+	if ((p = malloc(sizeof (int))) == 0) {
+	    printf("malloc failed\en");
+	    exit(1);
+	}
+	*(int *)p = i;
+	if (!thread_newthread(worker_thread, STKSZ, p, sizeof (int))) {
+	    printf("thread_newthread failed\en");
+	    exit(1);
+	}
+    }
+    /* Do not wait for threads to exit */
+    thread_exit();
+}
+.eC
+.SH
+See Also
+.LP
+exitprocess(L),
+malloc(L),
+rpc(L),
+sys_newthread(L),
+thread_scheduling(L).

@@ -1,0 +1,102 @@
+.\"	@(#)Tbullet.n	1.4	94/04/05 15:27:50
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel, July 22, 1991.
+	Document: Berend Jan Beugel, July 24, 1991.
+.aE
+.kW "test program"
+.kW "Bullet Server"
+.mT "Tbullet" T
+test a Bullet file server
+.SH
+Synopsis
+.LP
+.sC L
+Tbullet  [-vgbq] [servername]
+Tbullet1 [servername]
+Tbulletc [-vgbq] [-n nprocs] [servername]
+.eC
+.SH
+Description
+.LP
+.I Tbullet
+and
+.I Tbullet1
+.kW "\fITbullet1\fP"
+test a Bullet file server by calling its stubs with various valid and
+invalid parameters and checking the results.
+.I Tbulletc
+.kW "\fITbulletc\fP"
+checks the functioning of the \*(Bs when multiple clients
+are doing simultaneous transactions.
+The number of clients can be specified as a parameter.
+.LP
+Normally the default \*(Bs is tested with all the test cases and
+only cases that have failed are reported.
+Another \*(Bs can be tested by specifying its server capability as the
+.I servername
+command-line argument.
+.LP
+Tests with invalid parameters include cases with capabilities for non-existent
+servers.
+These cases can take a while because of RPC locate time-outs.
+.mH
+Options
+.RS
+.IP "\fB\-v\fP" 10
+verbose: report the test's progress including successful test cases.
+.IP "\fB\-g\fP" 
+good cases only: execute cases with valid parameters only.
+.IP "\fB\-b\fP"
+bad cases only: execute cases with invalid parameters only.
+.IP "\fB\-q\fP"
+quick: do not execute cases with potentially long time-outs.
+.IP "\fB\-n\fP \fInprocs\fP"
+for Tbulletc, this specifies the number of processes doing
+file operations in parallel;  the default is one process.
+.RE
+.mH
+Diagnostics
+.LP
+Failed test cases are reported by printing the filename and line number
+of the source file
+where the message was generated, the main test routine where the failure
+was discovered, the function or stub that caused the error, an extra
+code for easier reference in the source file and a phrase that describes
+the failure.
+A header mentions the name of the test and a trailer tells how many failures
+were reported altogether.
+.LP
+In verbose mode the name of the current test routine and
+functions and stubs that were executed successfully are also reported.
+On exit the program returns the total number of failures.
+.mH
+Warnings
+.LP
+Test cases that fail may influence the results of subsequent cases
+because it may not be possible to recover completely from the failure.
+.SH
+Examples
+.LP
+Test the default \*(Bs with all the test cases except the ones with
+long time-outs and report both failure and success:
+.sC
+Tbullet -vq
+.eC
+.LP
+Test the \*(Bs
+.I /profile/cap/bulletsvr/bullet2
+with two client processes and with test cases for valid parameters only:
+.sC
+Tbulletc -n 2 -g /profile/cap/bulletsvr/bullet2
+.eC
+.SH
+See Also
+.LP
+bullet(A),
+bullet(L),
+Tsuite(T).

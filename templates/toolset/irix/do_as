@@ -1,0 +1,47 @@
+#!/bin/sh
+#	
+#	@(#)do_as	1.2	94/04/05 17:05:27
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	This is the version of do_as used by libraries.
+#	(Kernels have their own in their configuration directory.)
+#
+
+PROG=$0
+
+while [ $# -gt 0 ]
+do
+	case $1 in
+	*.[sS])
+		FILE=$1
+		shift
+		;;
+	-o)
+		shift
+		OFILE=$1
+		shift
+		;;
+	-*)
+		CPPFLAGS="$CPPFLAGS $1"
+		shift
+		;;
+	*)
+		echo $PROG: $1 ignored >&2
+		shift
+	esac
+done
+
+set -e
+
+case $FILE in
+*.s)	base=`basename $FILE .s`;;
+*.S)	base=`basename $FILE .S`;;
+esac
+
+# /lib/cpp $CPPFLAGS $FILE - | as -o ${OFILE-$base.o} -
+as -o ${OFILE-$base.o} $CPPFLAGS $FILE

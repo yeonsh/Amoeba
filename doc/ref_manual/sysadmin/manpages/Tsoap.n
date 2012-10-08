@@ -1,0 +1,100 @@
+.\"	@(#)Tsoap.n	1.4	96/02/15 17:05:52
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel, July 23, 1991.
+	Document: Berend Jan Beugel, July 24, 1991.
+.aE
+.kW "test program"
+.kW "SOAP"
+.mT "Tsoap" T
+test a Soap directory server
+.SH
+Synopsis
+.LP
+.sC L
+Tsoap [-vgbq] [pathname]
+.eC
+.SH
+Description
+.LP
+.I Tsoap
+tests a Soap directory server by calling its stubs with various valid and
+invalid parameters and checking the results.
+Normally the \*(Ss of the current working directory is tested
+with all the test cases.
+Normally, only failed test cases are reported.
+.LP
+The test creates, modifies and deletes entries with funny names in the current
+directory.
+If the current directory is not a suitable place to experiment,
+the program should be called from another more suitable directory
+(preferably empty).
+The test can also be told to use an alternative directory by specifying the
+directory's
+.I pathname
+as command-line argument.
+An alternative \*(Ss can be tested by running the program in a
+directory on that server.
+.LP
+Tests with invalid parameters include cases with capabilities for non-existent
+servers.
+These cases can take a while because they wait for RPC locate time-outs.
+.mH
+Options
+.RS
+.IP "\fB\-v\fP"
+verbose: report the test's progress including successful test cases.
+.IP "\fB\-g\fP"
+good cases only: execute cases with valid parameters only.
+.IP "\fB\-b\fP"
+bad cases only: execute cases with invalid parameters only.
+.IP "\fB\-q\fP"
+quick: do not execute cases that wait for long time-outs.
+.RE
+.mH
+Diagnostics
+.LP
+Failed test cases are reported by printing the filename and line number
+of the source file
+where the message was generated, the main test routine where the failure
+was discovered, the function or stub that caused the error, an extra
+code for easier reference in the source file and a phrase that describes
+the failure.
+A header mentions the name of the test and a trailer tells how many failures
+were reported altogether.
+.LP
+In verbose mode the name of the current test routine and
+functions and stubs that were executed successfully are also reported.
+On exit the program returns the total number of failures.
+.mH
+Warnings
+.LP
+Test cases that fail may influence the results of subsequent cases
+because it may not be possible to recover completely from the failure.
+.SH
+Examples
+.LP
+Test the Soap server of the current working directory with all the test cases
+except the ones with long time-outs and report both failure and success:
+.sC
+Tsoap -vq
+.eC
+.LP
+If another Soap server is ``mounted'' on
+.I /super/testsoap,
+it can be tested from a directory
+.I testdir
+as follows:
+.sC
+Tsoap /super/testsoap/testdir
+.eC
+.SH
+See Also
+.LP
+soap(A),
+soap(L),
+Tsuite(T).

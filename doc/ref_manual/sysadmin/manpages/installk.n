@@ -1,0 +1,132 @@
+.\"	@(#)installk.n	1.9	96/02/15 17:21:46
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, Nov 1991
+	Modified: Gregory J. Sharp, Mar 1994 - now works under Amoeba too.
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "installk" A
+install an \*(Am kernel
+.SH
+Synopsis
+.LP
+.sC L
+installk compiler architecture kernel-file bullet-file
+installk -d blk-num compiler architecture kernel-file vdisk-name
+.eC
+.SH
+Description
+.LP
+.kW "install kernel"
+.kW "kernel boot directory"
+.I Installk
+is used to install \*(Am kernels compiled under either \*(Am or
+.UX .
+There are two places where kernels can be installed to any advantage.
+One is on a disk boot partition.
+This is done using the
+.B \-d
+option.
+See
+.I prkdir (A)
+for details of where on the boot partition to place the kernel.
+The other is in a bullet file which can then be used by
+.I reboot (A)
+or
+.I tftp (A).
+.LP
+The
+.I kernel-file
+specified should contain a kernel as produced by the loader.
+It should not have been stripped or otherwise modified.
+It is also necessary to specify the architecture for which the kernel was made
+and the compiler used to create it.
+This information is needed to determine whether the kernel needs to be stripped
+or converted to the form which can be booted on the specified architecture.
+.mH
+Options
+.LP
+.IP "\fB\-d\fP blk-num"
+.br
+Write the
+.I kernel-file
+to a virtual disk instead of to a bullet file.
+The
+.I blk-num
+argument specifies at which block number on the virtual disk
+.I vdisk-name
+at which to start writing the kernel.
+.mH
+Diagnostics
+.LP
+If an unknown compiler or architecture is specified it will print
+.sC L
+installk: unknown compiler: \fIcompiler\fP
+.eC
+or
+.sC L
+installk: unknown architecture: \fIarchitecture\fP
+.eC
+followed by a list of known compilers or architectures.
+.LP
+If the
+.I kernel-file
+specified is not a
+.UX
+ordinary file (as defined by
+.I "test \-f\|" )
+then it will print
+.sC L
+installk: "\fIkernel-file\fP" not a file
+.eC
+.LP
+If the
+.I kernel-file
+specified is not in the expected format for the specified compiler
+and the kernel needs to be stripped for that architecture then the message
+.sC L
+installk: strip failed for "\fIkernel-file\fP"
+.eC
+will be printed.
+On some systems this may also appear for kernels that are already stripped.
+.LP
+For combinations of compiler and architecture which
+.I installk
+does not know about
+it will print
+.sC L
+installk: unsupported compiler/architecture combination
+.eC
+.mH
+Warnings
+.LP
+When using the
+.B \-d
+option, no effort is made to check that the disk written to is valid or that
+the position written to is sensible with respect to the directory written there.
+Caveat emptor.
+.SH
+Examples
+.LP
+To install a kernel compiled with the Sun\ 3 SunOS C compiler on the
+kernel boot partition of the host
+.I danue :
+.sC L
+installk -d 1 sun mc68000 kernel /super/hosts/danue/vdisk:01
+.eC
+To install the same kernel as a bullet file in the directory
+.I /super/admin/kernel :
+.sC L
+installk sun mc68000 kernel sun3.pool
+.eC
+.SH
+See Also
+.LP
+mkkdir(A),
+prkdir(A),
+reboot(A).

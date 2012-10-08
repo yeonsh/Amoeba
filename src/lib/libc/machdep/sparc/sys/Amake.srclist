@@ -1,0 +1,21 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 10:43:49
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_LIBC_MACHDEP_SYS = {
+	$PWD/alloca.s,
+	$PWD/divide.s,
+	$PWD/multiply.s,
+	$PWD/rem.s,
+	$PWD/setjmp.s,
+	$PWD/stret1.s,
+	$PWD/stret2.s,
+	$PWD/stret4.s,
+	$PWD/umultiply.s,
+
+	$PWD/_dtou.c,
+	$PWD/_ftou.c,
+};

@@ -1,0 +1,224 @@
+#!/bin/sh
+#	
+#	@(#)amoebatree	1.8	96/02/27 10:19:11
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	This shell script is linked under two names and is almost identical
+#	under both.
+#	amoebatree - makes a native amoeba distribution subtree
+#	unixtree   - make the tree for the amoeba software that runs under unix
+#
+#
+UEXIT=42
+PROG=`basename $0`
+USAGE="Usage: $PROG [-v] [-s subtree] conf-root source-root template-root architecture tool-set"
+ECHO=:
+
+case "$PROG" in
+unixtree)	TREE=unix
+		;;
+amoebatree)	TREE=amoeba
+		;;
+*)		echo "Death to the infidels"
+		exit 1
+		;;
+esac
+
+while [ $# -gt 0 ]
+do
+	case "$1" in
+	-v)	ECHO=echo
+		;;
+	-s)     SUBTREE=$2
+		shift
+		;;
+	*)      break
+		;;
+	esac
+	shift
+done
+if [ $# -ne 5 ]
+then
+	echo $USAGE
+	exit 1
+fi
+#
+# Get the other parameters
+#
+tree_root=`amdir`
+# Under Amoeba if amdir starts with /profile then it probably isn't
+# a writable directory so we convert it to /super if it exists
+#
+case $tree_root in
+/profile/*)
+    if [ -d /super ]
+    then
+	tree_root=`echo $tree_root | sed 's/profile/super/'`
+    fi
+    ;;
+esac
+
+case $1 in
+/*)	CONF_ROOT=$1 ;;
+*)	CONF_ROOT=$tree_root/$1 ;;
+esac
+
+case $2 in
+/*)	SRC_ROOT=$2 ;;
+*)	SRC_ROOT=$tree_root/$2 ;;
+esac
+
+case $3 in
+/*)	TEMPLATE=$3 ;;
+*)	TEMPLATE=$tree_root/$3 ;;
+esac
+
+ARCH=$4
+TOOLSET=$5
+#
+# Try to work out what echo's behaviour is like
+#
+if echo 'a\c' | grep 'c' >/dev/null ; then
+	E_PRE='-n'	# We have BSD-like echo command.
+	E_SUF=''
+else
+	E_PRE=''	# We have System V-like echo command.
+	E_SUF='\c'
+fi
+#
+# Assuming that makesubtree is in the same directory as this script, use $0 to
+# generate a makesubtree command.
+#
+MYDIRNAME=`expr $0 : '\(.*\)/.*'`
+if [ X$MYDIRNAME != X ]
+then
+	MYDIRNAME="$MYDIRNAME/"
+fi
+case $MYDIRNAME in
+/*)	;;
+*)	MYDIRNAME=`pwd`/$MYDIRNAME ;;
+esac
+MAKESUBTREE=${MYDIRNAME}makesubtree
+#
+# Work out which system we're on - if amoeba then we need a different chmod
+#
+if [ -d /profile/group ]
+then
+	CHMOD="chm ff:2:2"
+else
+	CHMOD="chmod ug+w"
+fi
+#
+# Set umask.
+#
+. ${MYDIRNAME}localumask
+#
+# Check that CONF_ROOT, SRC_ROOT and TEMPLATE are absolute pathnames
+#
+case $CONF_ROOT in
+/*)	;;
+*)	echo $PROG: 'FATAL ERROR: conf-root must be an absolute pathname.'
+	exit 1
+	;;
+esac
+case $SRC_ROOT in
+/*)	;;
+*)	echo $PROG: 'FATAL ERROR: source-root must be an absolute pathname.'
+	exit 1
+	;;
+esac
+case $TEMPLATE in
+/*)	;;
+*)	echo $PROG: 'FATAL ERROR: template-root must be an absolute pathname.'
+	exit 1
+	;;
+esac
+#
+# Now check that they exist.
+#
+if [ ! -d $TEMPLATE ]
+then
+	echo $PROG: FATAL ERROR: Template directory \`$TEMPLATE\' does not exist.
+	exit 1
+fi
+if [ ! -d $SRC_ROOT ]
+then
+	echo $PROG: WARNING: Source directory \`$SRC_ROOT\' does not exist.
+	echo $E_PRE "Continue [yn] " $E_SUF
+	read answer
+	if [ X$answer != Xy ]
+	then
+		exit 0
+	fi
+fi
+if [ ! -d $SRC_ROOT/lib/sysam/$ARCH ]
+then
+	echo $PROG: WARNING: Architecture \`$ARCH\' is not supported.
+	echo $E_PRE "Continue [yn] " $E_SUF
+	read answer
+	if [ X$answer != Xy ]
+	then
+		exit 0
+	fi
+fi
+if [ ! -d $CONF_ROOT ]
+then
+	$ECHO Creating directory: $CONF_ROOT
+	mkdir $CONF_ROOT
+else
+	$ECHO $CONF_ROOT: directory already exists
+fi
+#
+# Make the architecture directory for the specified architecture if required.
+#
+CONFIGDIR=$CONF_ROOT/$ARCH.$TOOLSET
+if [ ! -d $CONFIGDIR ]
+then
+	$ECHO Creating directory: $CONFIGDIR
+	mkdir $CONFIGDIR
+else
+	$ECHO $CONFIGDIR: directory already exists
+fi
+#
+#  Now we make sure that the tool set is installed
+#
+TOOLSETDIR=$CONFIGDIR/toolset
+if [ ! -d $TOOLSETDIR ]
+then
+	$ECHO Creating directory: $TOOLSETDIR
+	mkdir $TOOLSETDIR
+else
+	$ECHO $TOOLSETDIR: directory already exists
+fi
+(
+	cd $TEMPLATE/toolset/$TOOLSET
+	ECHO=$ECHO CHMOD=$CHMOD UEXIT=$UEXIT E_PRE=$E_PRE E_SUF=$E_SUF \
+		$MAKESUBTREE . $TOOLSETDIR $CONF_ROOT $SRC_ROOT $ARCH $TOOLSET
+)
+#
+#  If a subtree was specified then we make just that, otherwise we do the
+#  whole subtree
+#
+if [ "$SUBTREE" != "" ]
+then
+	CONFIGDIR=$CONFIGDIR/$SUBTREE
+	if [ ! -d $CONFIGDIR ]
+	then 
+		$ECHO Creating directory: $CONFIGDIR
+		mkdir $CONFIGDIR
+	else
+		$ECHO $CONFIGDIR: directory already exists
+	fi
+fi
+#
+# Now we are ready to copy the template tree, making the necessary directories
+# and configuration file editing on the way.
+#
+cd $TEMPLATE/$TREE/$SUBTREE
+ECHO=$ECHO CHMOD=$CHMOD UEXIT=$UEXIT E_PRE=$E_PRE E_SUF=$E_SUF \
+	$MAKESUBTREE . $CONFIGDIR $CONF_ROOT $SRC_ROOT $ARCH $TOOLSET
+exit 0

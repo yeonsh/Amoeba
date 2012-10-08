@@ -1,0 +1,10 @@
+/*	@(#)main.kstat	1.1	96/02/27 14:22:27 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifdef SWITCH_CONSOLE
+o	console_switch	"switch console output"	SYS_RGT_CONTROL
+#endif

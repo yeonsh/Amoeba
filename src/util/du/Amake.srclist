@@ -1,0 +1,17 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 15:04:18
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_DU = {
+	$PWD/du.c,
+	$PWD/du.h,
+	$PWD/cache.c,
+	$PWD/dir_info.c,
+	$PWD/dir_info.h,
+	$PWD/filesvr.c,
+	$PWD/filesvr.h,
+	$PWD/pathmax.h,
+};

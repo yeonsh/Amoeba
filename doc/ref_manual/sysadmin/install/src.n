@@ -1,0 +1,59 @@
+.\"	@(#)src.n	1.9	96/02/15 17:04:31
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Installing the Source Code"
+.LP
+The source code is distributed in
+.kW tar
+.I tar (U)
+format.
+.kW "QIC-24 tape"
+.kW "Exabyte tape"
+It is distributed on either Exabyte tape or QIC-24 tape.
+If you FTPed the sources then you can put the tar file on the medium of
+your choice.
+.LP
+The sources do not include those for third-party software such as
+.kW "X windows"
+.kW "MMDF II"
+.kW \*(Tx
+X windows, MMDF or \*(Tx.
+Only the necessary changes for third party software to run under \*(Am are on
+the tape.
+Third party source code can be obtained from your \*(Am distributor if it is not
+available from any other source and you satisfy the licensing/distribution
+requirements for that software (if any).
+.LP
+The first step is to read the tape in.
+.kW "disk space requirements"
+This requires about 25\ MB disk space.
+In fact it is a good idea to reserve about 100\ MB for the entire
+distribution.
+If X windows is to be loaded then another 200\ MB should be reserved for
+sources and binaries.
+On \*(Am systems without a tape drive, the source will have to be loaded onto a
+.UX
+host with a tape unit and installed on \*(Am over the network.
+See the chapter
+.I "Amoeba and UNIX"
+later in this manual for details.
+.LP
+To install the sources from \*(Am, insert the tape into the tape drive
+and type the command
+.sC L
+# \fBcd /super/module/amoeba\fP
+# \fBtar xf /super/hosts/\fP\fImachine\fP\fB/tape:00\fP
+.eC
+where
+.I machine
+is the name chosen during the binary installation for the host where you are
+installing the system.
+.LP
+It is possible that the
+.UX
+binaries are also on the source tape.
+In this case it is probably a good idea to delete them from your \*(Am system
+if disk space is running short and they are not needed.

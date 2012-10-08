@@ -1,0 +1,65 @@
+.\"	@(#)findhole.n	1.4	96/02/15 16:49:09
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1989
+	Modified: Gregory J. Sharp, June 1994 - rewrote to use less memory
+						and support more segments per
+						process.
+	Document: Guido van Rossum, March 1990
+.aE
+.mT findhole L "libamoeba"
+search for unused space in virtual memory
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/proc.h"
+
+char *
+findhole(size)
+long size;
+.eC
+.SH
+Description
+.LP
+.kW "\fIfindhole\fP"
+.kW "virtual memory layout"
+.kW "\fIgetinfo\fP"
+.kW "segment"
+.kW "memory mapping"
+.kW "\fIseg_map\fP"
+.I Findhole
+retrieves the virtual memory layout (using
+.I getinfo (L))
+and looks for a place where a segment of
+.I size
+bytes can be mapped in, without overlapping other segments, and with
+some unmapped space (typically 32K) on each side.
+It returns the address where the segment should be mapped.
+.mH
+Diagnostics
+.LP
+.I Findhole
+returns zero if the
+.I getinfo
+call failed or if no fitting hole was found.
+.mH
+Warnings
+.LP
+There is no locking mechanism, so it is conceivable that another
+task fills the hole with something before this task has had a chance.
+.LP
+This interface should be replaced by one that finds a hole
+.I and
+maps a segment in.
+.SH
+See Also
+.LP
+getinfo(L),
+malloc(L),
+seg_map(L).

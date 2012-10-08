@@ -1,0 +1,16 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 08:33:06
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_AMOEBA4RPC = {
+	$PWD/portcache.c,
+	$PWD/portcache.init,
+	$PWD/portcach.kstat,
+	$PWD/trans.c,
+	$PWD/trans.init,
+	$PWD/trans.kstat,
+	$PWD/transparam.c,
+};

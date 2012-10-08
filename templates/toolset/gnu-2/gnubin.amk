@@ -1,0 +1,18 @@
+#	
+#	@(#)gnubin.amk	1.4	96/02/16 15:58:03
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Where can we find the GNU C compiler & support utils?
+%if (vpath(Environ, /) == '.', {
+	# Unix
+	GNUBIN = /usr/proj/amwork/bin.sun4/gnu;
+}, {
+	# Amoeba
+	GNUBIN = /profile/module/gcc;
+});
+
+# Flags to make this known to the scripts in this directory:
+GNUBIN_FLAGS = { -G, $GNUBIN };

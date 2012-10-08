@@ -1,0 +1,22 @@
+#	
+#	@(#)Amake.srclist	1.1	91/04/12 14:47:15
+#
+U_TAR = {
+	$PWD/buffer.c,
+	$PWD/create.c,
+	$PWD/diffarch.c,
+	$PWD/extract.c,
+	$PWD/getoldopt.c,
+	$PWD/list.c,
+	$PWD/names.c,
+	$PWD/port.c,
+	$PWD/port.h,
+	$PWD/tar.c,
+	$PWD/tar.h,
+	$PWD/wildmat.c,
+};
+U_TAR_UNUSED = {
+	$PWD/msd_dir.c,
+	$PWD/msd_dir.h,
+	$PWD/open3.h
+};

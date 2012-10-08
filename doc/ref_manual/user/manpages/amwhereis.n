@@ -1,0 +1,115 @@
+.\"	@(#)amwhereis.n	1.2	94/04/05 15:51:59
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael Condict, 1990?
+	Document: Gregory J. Sharp, August 1993
+.aE
+.mT "amwhereis" U "UNIX ONLY"
+find a file in the \*(Am distribution tree
+.SH
+Synopsis
+.LP
+.sC L
+amwhereis [-a] [-c] [-d] [-D] [-m] [-X] pattern ...
+.eC
+.SH
+Description
+.LP
+.kW whereis
+For each regular expression
+.I pattern
+specified
+.I amwhereis
+looks for files in the \*(Am distribution whose name matches the pattern.
+Note that the
+.I pattern
+will be anchored to the end of the path name by
+.I amwhereis .
+Normally it searches only the \*(Am source tree but see the options below
+for also searching the
+.I doc ,
+.I conf
+and
+.I "X windows"
+trees.
+It operates quickly by keeping a small set of databases of known files
+in
+.I "\(ga\|amdir\(ga/lib/whereis" .
+(See
+.I amdir (U).)
+Newly created files will not be reported until they have been assimilated
+into the database.
+.LP
+Note that the first time this command is run it should be run with the
+.B \-m
+option to create the databases.
+.mH
+Options
+.LP
+.IP \fB\-a\fP 6
+Print absolute path names for matching files.
+Normally only paths relative to
+.I \(ga\|amdir\(ga
+are printed.
+.IP \fB\-c\fP
+Search the
+.I \(ga\|amdir\(ga/conf
+tree for files that match the
+.I pattern .
+.IP \fB\-d\fP
+Search the
+.I \(ga\|amdir\(ga/doc
+tree for files that match the
+.I pattern .
+.IP \fB\-D\fP
+This option causes only the directory name of the matching file(s)
+to be printed.
+.IP \fB\-m\fP
+Force a remake of the databases.
+.I Amwhereis
+remakes the database automatically in the background if it
+sees that the database is more than 2 days old.
+.IP \fB\-X\fP
+Search the
+.I \(ga\|amdir\(ga/\|X*
+tree(s) for files that match the
+.I pattern .
+.mH
+Files
+.LP
+.I "\(ga\|amdir\(ga/lib/amwhereis"
+is a directory containing the databases used by this command.
+.SH
+Examples
+.LP
+.sC
+amwhereis /std_status.c
+.eC
+produces
+.sC
+src/lib/stubs/std/std_status.c
+src/util/std/std_status.c
+.eC
+Note that it is a good idea to anchor patterns with a / where possible since
+it speeds the search.
+.LP
+.sC
+amwhereis /std_.*s.c .*/misc/A.*
+.eC
+produces
+.sC
+src/admin/std/std_params.c
+src/lib/stubs/std/std_status.c
+src/util/std/std_status.c
+src/lib/libam/misc/Amake.srclist
+src/lib/libc/misc/Amake.srclist
+src/lib/libc/machdep/mc68000/misc/Amake.srclist
+src/lib/libc/machdep/generic/misc/Amake.srclist
+src/lib/libc/machdep/i80386/misc/Amake.srclist
+src/lib/libc/machdep/sparc/misc/Amake.srclist
+src/lib/libc/machdep/Proto/misc/Amake.srclist
+.eC

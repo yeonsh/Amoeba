@@ -1,0 +1,105 @@
+.\"	@(#)setupipsvr.n	1.1	96/02/15 17:51:59
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, May 1995
+	Document: Gregory J. Sharp, Jul 1995
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "setupipsvr" A
+tell an IP server its Internet address and netmask.
+.SH
+Synopsis
+.LP
+.sC L
+setupipsvr hostname
+.eC
+.SH
+Description
+.LP
+When an IP server starts it needs to be told its Internet address and netmask.
+.I Setupipsvr
+provides a convenient way of doing this from the
+.I boot (A)
+server.
+The way it works is as follows:
+.IP
+It does the
+.I ifconfig (A)
+necessary to tell the IP server its address information.
+It gets this information from the file
+.I /etc/ipinfo
+which must be kept in parallel with the DNS or the file
+.I /etc/hosts .
+.IP
+If that succeeded then it stores a copy of the IP server capability (from
+.I /super/hosts/\*<hostname\*>/ip/ip )
+under the name
+.I /super/admin/module/ipsvr/\*<hostname\*> .
+.LP
+The
+.I boot (A)
+server uses
+.I /super/admin/module/ipsvr/ \*<hostname\*>
+as a poll capability.
+When an IP server starts it always chooses a new capability.
+Therefore, as long as the poll capability is valid, the
+.I boot (A)
+server does not need to reconfigure the IP server.
+.I Setupipsvr
+will only be run when the IP server is down or just restarted.
+Once it has successfully initialized the IP server it will not run again
+until the IP server is again unavailable.
+.LP
+The argument to
+.I setupipsvr
+is the
+.I hostname
+of the host where the IP server runs.
+.mH
+Files
+.LP
+.I /etc/ipinfo
+\- this file contains (hostname, ip-address, netmask) triplets.
+.SH
+Example
+.LP
+Below is a sample bootfile entry for using
+.I setupipsvr .
+.LP
+Note that since
+.I setupipsvr
+is a shell script it must be started with a shell and requires a
+.I session (U)
+server to be present.
+.LP
+.sC L
+.ps-1
+IP_google {
+    after Session_svr;
+    machine SLASH "super/hosts/google";
+    bootrate 17000;
+    pollrate 30000;
+    program {
+	SLASH "bin/sh";
+	argv {
+	    "sh", "-c", "/super/admin/bin/setupipsvr google"
+	};
+	capv {
+	    _SESSION = SLASH "dev/session",
+	    STDIN, STDOUT, STDERR,
+	    ROOT = SLASH, WORK = SLASH
+	};
+    };
+};
+.ps
+.eC
+.SH
+See Also
+.LP
+boot(A),
+ifconfig(A),
+rarp(A).

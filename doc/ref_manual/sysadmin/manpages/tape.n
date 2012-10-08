@@ -1,0 +1,249 @@
+.\"	@(#)tape.n	1.5	96/02/15 17:52:28
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Peter Bosch, Dec 1989
+	Document: Peter Bosch, Mar 1990
+	Modified: Gregory J. Sharp, May 1995 - deleted story about VAX driver
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "tape" A
+a server interface to tape controllers
+.SH
+Synopsis
+.LP
+Currently built into the kernel
+.SH
+Description
+.LP
+.kW "tape server"
+.kW "backup"
+.kW "record"
+.kW "End-Of-File"
+.kW "marker"
+.kW "tape device"
+.kW "tape unit"
+.kW "internal tape drivers"
+.kW "tape I/O errors"
+.kW "TS_INVALID_CMD"
+.kW "TS_CMD_ABORTED"
+.kW "TS_UNIT_OFFLINE"
+.kW "TS_UNIT_AVAILABLE"
+.kW "TS_UNIT_OFFLINE"
+.kW "TS_MEDIA_FMT_ERR"
+.kW "TS_WRITE_PROT"
+.kW "TS_CMP_ERR"
+.kW "TS_DATA_ERR"
+.kW "TS_HOST_BUF_ACCESS_ERR"
+.kW "TS_CONTR_ERR"
+.kW "TS_DRIVE_ERR"
+.kW "TS_FRMT_ERR"
+.kW "TS_BOT_ERR"
+.kW "TS_TAPE_MARK"
+.kW "TS_REC_DAT_TRUNC"
+.kW "TS_POS_LOST"
+.kW "TS_SER_EXCP"
+.kW "TS_OTHER"
+.kW "tape commands"
+.kW "tape_init"
+.kW "tape_read"
+.kW "tape_write"
+.kW "tape_write_eof"
+.kW "tape_rewind"
+.kW "tape_status"
+.kW "tape_rskip"
+.kW "tape_fskip"
+.kW "tape_erase"
+.kW "tape_setlvl"
+.kW "tape_why"
+.kW "UNIT_INIT"
+.kW "UNIT_AVAILABLE"
+.kW "UNIT_ONLINE"
+.kW "UNIT_WRITE_PROT"
+.kW "UNIT_BUSY"
+.kW "UNIT_FILE_POS"
+.kW "UNIT_REC_POS"
+.kW "file_pos"
+.kW "last_command"
+.kW "format"
+.kW "record_pos"
+.kW "last_fail"
+A tape is a record-oriented backup/restore device.
+The smallest addressable unit is a record.
+The record size can vary from 1 byte to
+.cW MAXINT
+bytes,
+depending on the tape hardware and host operating system (due to the
+maximum transaction buffer size of \*(Am, a maximum record size of 29696
+bytes is used).
+.LP
+The end of a sequence of records can be marked by an
+.I End-Of-File
+(EOF) marker.
+This marker is a special record which can be used to define tape files
+of records.
+Most tape controllers are able to search for EOF markers.
+.LP
+The tape server provides a general interface to tape devices.
+Clients use the tape server to control tape devices.
+The tape server uses internal tape drivers to access the tape devices.
+.LP
+A tape device consists of one or more tape units.
+A tape unit is identified by a capability.
+.LP
+The tape server consists of two parts: the tape server itself
+and the internal tape drivers.
+The following section deals with the tape server
+interface, followed by sections concerning tape drivers.
+.SH
+Tape server interface
+.LP
+Each tape operation handled by the tape server requires a tape capability,
+This capability can be found in the tape unit's host machine directory.
+The capability is always formed as follows:
+.sC
+/profile/hosts/\fImachine\fP/tape:\fInumber\fP
+.eC
+The
+.I number
+parameter specifies which internal driver and tape unit is concerned.
+.LP
+The tape server recognizes a set of predefined commands.
+All commands return an error code of the operation, which can be one of the
+standard \*(Am errors or tape I/O errors.
+.LP
+The standard errors are predefined constants (see
+.I stderr (L)).
+.cW STD_COMBAD
+is returned when not using the predefined tape commands,
+.cW STD_CAPBAD
+is returned when using bad capabilities
+and
+.cW STD_ARGBAD
+is returned when passing bad arguments to tape stubs (e.g., a record
+size which is too big).
+Upon a successful operation
+.cW STD_OK
+is returned.
+.LP
+Since tape actions involve \*(Am RPCs, RPC errors might
+be returned (see
+.I rpc (L)).
+.LP
+The possible tape I/O error codes are described below.
+.IP TAPE_CMD_ABORTED 25
+The last command has been aborted.
+.IP TAPE_NOTAPE
+The tape unit is off-line.
+.IP TAPE_MEDIA_ERR
+Tape format error.
+.IP TAPE_WRITE_PROT
+The tape is write protected.
+.IP TS_CMP_ERR
+Cannot write data to tape.
+.IP TS_DATA_ERR
+Invalid record on tape.
+.IP TAPE_BOT_ERR
+While repositioning, the beginning of tape (BOT) marker was detected.
+.IP TAPE_EOF
+The end of file (EOF) marker was detected.
+.IP TAPE_EOT
+The end of tape (EOT) marker was detected.
+.IP TAPE_REC_DAT_TRUNC
+Tape record longer than expected.
+.IP TAPE_POS_LOST
+Tape record position lost.
+.LP
+The following summary specifies which operations are valid for the tape server,
+along with a short description.
+For the interface specification, see
+.I tape (L).
+Along with the tape commands (commands which are prefixed by
+.I tape_ ),
+the tape server recognizes standard commands (commands which are prefixed by
+.I std_ ,
+see
+.I std (L)).
+.LP
+Currently, rights are not implemented in the tape server.
+Everybody has full access to the tape server.
+.LP
+The interface is also described in the library sections of the manual.
+(see
+.I tape (L)
+and
+.I std (L)).
+.IP std_info 13
+At a
+.I std_info
+call, the tape server request the tape driver an identification
+of a tape unit.
+.kW ASCII
+The tape server returns a null terminated, formatted ASCII string.
+.IP tape_init
+.I Tape_init 
+initializes a tape unit and also loads an inserted tape.
+.IP tape_read
+.I Tape_read
+reads a tape record from a tape.
+.IP tape_write
+.I Tape_write
+writes a tape record onto a tape.
+.IP tape_write_eof
+.I Tape_write_eof
+writes an EOF marker onto the tape.
+.IP tape_rewind
+.I Tape_rewind
+rewinds a tape to begin of tape.
+Users can specify to rewind the tape synchronously or asynchronously.
+When synchronous,
+.I tape_rewind
+finishes once the tape is completely rewound.
+In the latter case, the command finishes directly; it does not wait until
+the tape is actually rewound.
+.IP tape_status
+.I Tape_status
+requests the status of a tape unit.
+.I Tape_status
+.kW ASCII
+returns a null terminated formatted ASCII string which contains the
+complete status of a unit.
+The format is tape driver dependent.
+For a description of the contents, see the tape driver sections.
+.IP tape_rskip
+.I Tape_rskip
+skips a number of records on tape.
+Negative skip counts result in backward skipping.
+.IP tape_fskip
+.I Tape_fskip
+skips a number of EOF markers on tape.
+Negative counts result in backwards skipping.
+Forward skipping causes the new tape position to be at the beginning of
+the file, negative skips causes the new tape position to be at the EOF marker.
+.IP tape_erase
+.I Tape_erase
+erases a tape.
+It formats every inch on tape and since tapes can be very long and slow,
+this command may take some time to finish.
+.IP tape_setlvl
+.I Tape_setlvl
+is for debugging tape drivers only.
+It is used for setting some debug output level in the driver.
+.IP tape_why
+.I Tape_why
+.kW ASCII
+converts an \*(Am or tape error code to a null terminated ASCII
+string (in fact it returns a pointer to an internally kept error table).
+This routine does not require a capability.
+.SH
+See Also
+.LP
+rpc(L),
+std(L),
+stderr(L),
+tape(L),
+tape(U).

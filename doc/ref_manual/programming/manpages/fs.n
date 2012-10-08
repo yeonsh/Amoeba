@@ -1,0 +1,117 @@
+.\"	@(#)fs.n	1.6	96/02/15 16:49:23
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Siebren van der Zee, March 1990
+.aE
+.mT "fs" L "libamoeba.a, libamunix.a"
+stream interface (OBSOLETE)
+.SH
+Synopsis
+.sC L
+#include "file.h"
+
+long fsread(cap, position, buf, size)
+capability *cap;
+long position;
+char buf[];
+long size;
+
+long fswrite(cap, position, buf, size)
+capability *cap;
+long position;
+char buf[];
+long size;
+.eC
+.SH
+Description
+.LP
+.kW "stream"
+.kW "pipe"
+.kW "tty"
+.kW "\fIfsread\fP"
+.kW "\fIfswrite\fP"
+This interface is implemented by the
+.UX -emulation
+pipe-server and by native \*(Am tty-servers.
+.LP
+.I Fsread
+reads
+.I size
+bytes from the stream pointed to by
+.I cap ,
+starting from position
+.I position ,
+and puts them in
+.I buf .
+.LP
+.I Fswrite
+writes
+.I size
+bytes from
+.I buf
+to the stream pointed to by
+.I cap ,
+starting from offset
+.I position .
+.mH
+Diagnostics
+.LP
+If an error occurred, both functions will return the (negative) code.
+Otherwise they return the number of bytes actually copied.
+Which errors can be returned obviously depends on the server
+that manages
+.I cap .
+.\" Or should I document STD_COMBAD, TS_UNIT_OFFLINE etc?
+.mH
+Warnings
+.LP
+The offset parameters are currently ignored by every server that
+implements the fs-interface.
+They descend from an age in which the file interface was identical with
+the stream interface.
+.SH
+Example
+.LP
+This function fsreads an object and copies it onto another.
+It returns 0 on failure, and 1 on success.
+Note that this will not work for files, only for tty's and pipes.
+.sC L
+#include "amoeba.h"
+#include "stdio.h"
+#include "assert.h"
+#include "stderr.h"
+#include "file.h"
+
+copy(in, out)
+    capability *in, *out;
+{
+    char buf[200];
+    long position = 0;
+    int done = 0;
+
+    do {
+	long r, w;	/* #bytes read, written */
+        r = fsread(in, position, buf, (long)sizeof(buf));
+        if (r < 0) {
+            fprintf(stderr, "fsread failed: %s\en", err_why(r));
+            return 0;
+        }
+        if (r == 0) done = 1;
+        else {
+            w = fswrite(out, position, buf, r);
+            if (w < 0) {
+                fprintf(stderr, "fswrite failed: %s\en", err_why(w));
+                return 0;
+            }
+	    assert(r == w);
+            position += r;
+        }
+    } while (!done);
+    return 1;
+}
+.eC

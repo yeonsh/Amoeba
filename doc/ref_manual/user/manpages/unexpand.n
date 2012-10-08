@@ -1,0 +1,51 @@
+.\"	@(#)unexpand.n	1.4	96/02/16 11:10:10
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "unexpand" U
+convert spaces to tabs
+.SH
+Synopsis
+.LP
+.cW
+unexpand [-a] [file ...]
+.SH
+Description
+.LP
+.kW "tab expansion"
+.I Unexpand
+replaces leading spaces on each line with tabs in each of the named files.
+If no files are given,
+.I stdin
+is used.
+The output is written to
+.I stdout .
+.mH
+Options
+.LP
+.IP \fB\-a\fP
+The
+.B \-a
+flag is used to force all sequences of spaces to be converted,
+instead of just leading spaces (the default).
+.SH
+Example
+.LP
+.sC
+unexpand oldfile > newfile
+.eC
+Convert leading spaces in
+.I oldfile
+to tabs and save the result in
+.I newfile .
+.SH
+See Also
+.LP
+expand(U).

@@ -1,0 +1,42 @@
+.\"	@(#)rmdir.n	1.4	96/03/19 13:09:54
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Mar 1996
+.aE
+.mT "rmdir" U
+remove a directory
+.SH
+Synopsis
+.LP
+.sC L
+rmdir directory ...
+.eC
+.SH
+Description
+.LP
+.kW "destroy directory"
+The specified directories are removed.
+Ordinary files are not removed.
+.SH
+Examples
+.LP
+.sC
+rmdir /home/foobar
+.eC
+Remove directory
+.I foobar .
+.sC
+rmdir /home/f*
+.eC
+Remove all directories whose name starts with ``f'' in the directory
+.I /home .
+.SH
+See Also
+.LP
+del(U).

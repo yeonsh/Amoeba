@@ -1,0 +1,46 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 10:56:59
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_MATH = {
+	$PWD/asin.c,
+	$PWD/atan.c,
+	$PWD/atan2.c,
+	$PWD/ceil.c,
+	$PWD/exp.c,
+	$PWD/fabs.c,
+	$PWD/floor.c,
+	$PWD/fmod.c,
+	$PWD/gamma.c,
+	$PWD/hypot.c,
+	$PWD/j0.c,
+	$PWD/j1.c,
+	$PWD/jn.c,
+	$PWD/log.c,
+	$PWD/log10.c,
+	$PWD/pow.c,
+	$PWD/sin.c,
+	$PWD/sinh.c,
+	$PWD/sqrt.c,
+	$PWD/tan.c,
+	$PWD/tanh.c
+};
+
+L_MATH_PRIMITIVE_COMMON = {
+	$PWD/hugeval.c,
+	$PWD/isnan.c,
+	$PWD/ldexp.c
+};
+
+L_MATH_PRIMITIVE_EM = {
+	$PWD/modf.e,
+	$PWD/frexp.e
+};
+
+L_MATH_PRIMITIVE_C = {
+	$PWD/modf.c,
+	$PWD/frexp.c
+};

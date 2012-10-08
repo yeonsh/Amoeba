@@ -1,0 +1,49 @@
+    Here is my DES-package.  I hope that the lack of documentation
+#	
+#	@(#)NOTE	1.1	91/11/18 16:23:57
+#
+    doesn't prevent posting this package in comp.sources.unix.  I have
+    tried to implement library functions to match those of
+    kerberos-des-package.  So kerberos manual pages give some hints what
+    the library functions do.
+
+    As I have said earlier, at least the library functions should be
+    compiled with gcc, if one wants the best performance.  If it is needed
+    I (or somebody else with gcc) can provide assembler- or .o- files for
+    VAX- and SUN3- architecures.  These files should be checksummed of
+    course to prevent any tampering. :-)
+
+	    Antti Louko (alo@kampi.hut.fi)
+
+Since that was written I have received an updated version that does include
+a man page for the library routines.
+
+I have added Makefiles for standard make (those in the original were
+for GNU make only).  Note, these are very primitive Makefiles, if you
+change anything, "make clean" and recompile from scratch.
+
+I also added some "#ifdef BSD" lines to give this a reasonable chance of
+compiling in a sys V environment (at the expense of giving up the -t (timing)
+option to des-certify, and of leaving echo enabled when requesting passwords).
+I am sure that if someone was to provide Sys V versions of the code that ends
+up missing and mail it to Antti, that a patch will be forthcoming.
+
+I suggest that if you're located in the US you don't attempt to modify
+these routines, their purity may be lost if tainted by contributions
+from such a restrictive country.
+
+Notes: you need "getopt(3)" for the programs to link, if your system
+lacks it, you can get it from a comp.sources.unix archive near you.
+
+If you remove the .h files from lib that "make clean" tells you you
+can remove, you will need Larry Wall's "perl" program to replace them.
+Also available in a comp.sources.unix archive near you.
+
+You should define BIG_ENDIAN if you are on a big endian host.  See
+lib/des-private.h (I added the definitions for sparc and interdata,
+no guarantees that the routines work on those hosts).
+
+There are 2 files in the 'prog' directory that I uuencoded (now F1.uu
+and F2.uu), I have no idea what they are useful for, if anything, however
+should you need them, they will need to be uudecoded (to give F1 and F2).
+

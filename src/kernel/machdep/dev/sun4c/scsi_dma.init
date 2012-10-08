@@ -1,0 +1,9 @@
+/*	@(#)scsi_dma.init	1.2	94/04/06 09:31:46 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+MMU		scsi_dma_init
+scsi_dma_init	scsi_init

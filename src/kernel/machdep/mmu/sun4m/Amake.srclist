@@ -1,0 +1,25 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 09:45:09
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_HEAD = $PWD/khead.S;
+
+K_MMU = {
+	$PWD/mmu.kstat,
+	$PWD/mmu.init,
+	$PWD/mm.c,
+	$PWD/mmutil.S,
+	$PWD/iommu.c,
+	$PWD/iommu.init,
+};
+
+# next files are not necessary, but might come in handy later
+K_MMU_SURPLUS = {
+	$PWD/interrupt.c,
+	$PWD/interrupt.init,
+};
+
+K_MMU_LINTLIB = $PWD/lintlib.c;

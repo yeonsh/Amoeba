@@ -1,0 +1,55 @@
+.\"	@(#)std_status.n	1.4	96/02/16 11:08:37
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp (as std_info), Guido van Rossum
+	Document: Guido van Rossum, May 1990
+	Modified: Gregory J. Sharp, Nov 1995, English
+.aE
+.mT "std_status" U
+get server status
+.SH
+Synopsis
+.LP
+.sC L
+std_status server
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "server status"
+.I Std_status
+prints the status information for the server whose capability is given.
+This is usually a couple of lines, but can be a couple of pages of output.
+The layout of the server status is documented with each individual
+server.
+.mH
+Diagnostics
+.LP
+Error messages are self-explanatory.
+.SH
+Example
+.LP
+.sC
+std_status /profile/pool/mc68000/.run
+.eC
+might print
+.sC L
+.ps-1
+HOST     STAT SINCE LREPL LPOLL NPOLL NBEST NCONS   MIPS   NRUN  MBYTE
+unlk     DOWN 45:02   54s   44s  7460     5     5
+bpl      UP   43:49    0s    0s  3577    76   990  0.900  0.000  2.524
+bmi      UP   49:06    3s    3s  7403   114   990  0.900  0.000  2.481
+blo      UP   40:25    1s    1s 29110    48   774  0.900  0.000  3.119
+.ps
+.eC
+.SH
+See Also
+.LP
+bstatus(A),
+std_info(U),
+std(L).

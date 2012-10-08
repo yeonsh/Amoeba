@@ -1,0 +1,14 @@
+This directory contains the source code for a boot PROM RARP/TFTP bootstrap
+#	
+#	@(#)READ_ME	1.2	94/04/06 11:31:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+loader for WD80X3 or NE2100 ethernet boards.
+
+To create 27512 PROM images:
+
+    isamkprom -v -s 16 prom prom.16k
+    cat prom.16k prom.16k prom.16k prom.16k > prom.64k

@@ -1,0 +1,44 @@
+#	
+#	@(#)Amake.srclist	1.3	96/02/27 14:13:53
+#
+K_SVR_TCPIP_AMOEABA_DEP=
+{
+	$PWD/buf.c,
+	$PWD/clock.c,
+	$PWD/event.c,
+	$PWD/inet_config.c,
+	$PWD/oneC_sum.c,
+	$PWD/sr.c,
+};
+
+K_SVR_TCPIP_GENERIC =
+{
+	$PWD/../generic/arp.c,
+	$PWD/../generic/eth.c,
+	$PWD/../generic/icmp.c,
+	$PWD/../generic/io.c,
+	$PWD/../generic/ip.c,
+	$PWD/../generic/ip_eth.c,
+	$PWD/../generic/ip_ioctl.c,
+	$PWD/../generic/ip_lib.c,
+	$PWD/../generic/ip_read.c,
+	$PWD/../generic/ip_write.c,
+	$PWD/../generic/ipr.c,
+	$PWD/../generic/tcp.c,
+	$PWD/../generic/tcp_lib.c,
+	$PWD/../generic/tcp_recv.c,
+	$PWD/../generic/tcp_send.c,
+	$PWD/../generic/udp.c,
+};
+
+K_SVR_EH_AMOEBA_DEP=
+{
+	$PWD/buf.c,
+	$PWD/clock.c,
+	$PWD/sr.c,
+};
+
+K_SVR_EH_GENERIC=
+{
+	$PWD/../generic/eth.c,
+};

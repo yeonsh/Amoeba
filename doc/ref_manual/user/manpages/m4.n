@@ -1,0 +1,41 @@
+.\"	@(#)m4.n	1.3	94/04/05 16:01:37
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "m4" U
+macro processor
+.SH
+Synopsis
+.LP
+.sC L
+m4 [-D name = value] [-U name]
+.eC
+.SH
+Description
+.LP
+.kW "macro processor"
+.I M4
+is a general-purpose macro processor.
+It has been used to implement programming languages,
+such as RATFOR.
+.mH
+Options
+.LP
+.IP "\fB\-D\fP name = value"
+.br
+Define a symbol.
+.IP "\fB\-U\fP name"
+.br
+Undefine a symbol.
+.SH
+Example
+.LP
+.sC
+m4 < m4test
+.eC

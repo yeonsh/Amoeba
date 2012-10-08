@@ -1,0 +1,13 @@
+#	
+#	@(#)prototype	1.2	96/03/26 16:32:54
+#
+!search $CONF_ROOT/flip-driver $SRC_ROOT/unix/sol_flipd/VUCSflipu
+i pkginfo
+i copyright
+d none /usr ? ? ?
+d none /usr/kernel ? ? ?
+d none /usr/kernel/drv ? ? ?
+f none /usr/kernel/drv/flip 0755 root sys
+f none /usr/kernel/drv/flip.conf 0644 root sys
+d none /usr/sbin ? ? ?
+f none /usr/sbin/flipd 0755 bin bin

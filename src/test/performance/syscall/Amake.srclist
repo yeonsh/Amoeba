@@ -1,0 +1,10 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:46:07
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_SYS_NULL = $PWD/sys_null.c;
+T_THRDSW = $PWD/thrdsw.c;
+T_SYSMILLI = $PWD/sysmilli.c;

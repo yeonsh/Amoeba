@@ -1,0 +1,76 @@
+.\"	@(#)std_info.n	1.4	96/02/16 11:08:26
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 16/02/90
+	Modified: Gregory J. Sharp, Nov 1995 - style conformance
+.aE
+.mT "std_info" U
+get the standard information about an object
+.SH
+Synopsis
+.LP
+.sC L
+std_info object ...
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "information string"
+.I Std_info
+prints the standard information string for the objects specified.
+This information string is the same as printed by the
+.sC
+dir -l
+.eC
+command.
+.LP
+Several servers have highly abbreviated information strings.
+The following lists information strings for well known objects:
+.sC
+/	Soap directory
+%	Soap kernel directory
+-	Bullet file
+@	Virtual disk
++	Terminal
+.eC
+In addition to the character, further information such as the size of the
+object or the rights are also printed.
+For more details about the standard information for a server see the manual
+page for the server.
+.mH
+Diagnostics
+.LP
+Two types of error are possible:
+.IP 1.
+Errors while looking up the capability of the object in the directory server.
+.IP 2.
+Errors during the actual standard info operation itself.
+.LP
+The error messages for the three different types are clear and include
+the explanation of the error status.
+.SH
+Example
+.LP
+.sC
+std_info /home/pclient
+.eC
+where
+.I /home/pclient
+is a file might produce
+.sC
+-    41184 bytes
+.eC
+.SH
+See Also
+.LP
+dir(U),
+std_copy(U),
+std_destroy(U),
+std_restrict(U),
+std_touch(U).

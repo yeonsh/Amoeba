@@ -1,0 +1,178 @@
+.\"	@(#)rarp.n	1.7	96/02/15 17:51:01
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren,
+		  Philip Homburg
+	Modified: Kees Verstoep: added optional caching
+	Document: Gregory J. Sharp, Dec 1991
+	Modified: Gregory J. Sharp, Sep 1995
+			- new cmd-line conventions
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "rarp" A
+the Reverse Address Resolution Protocol daemon
+.SH
+Synopsis
+.LP
+.sC L
+rarp [-v] [-E eth-cap] [-I ip-cap] [-chan chan-cap] [-cache]
+.eC
+.SH
+Description
+.LP
+.kW "RARP"
+.kW "Reverse ARP Protocol"
+.kW "bootstrap"
+.kW "TCP/IP"
+The
+.I rarp
+daemon implements the Reverse Address Resolution Protocol as described in
+RFC\ 903.
+This is used mainly by Sun computers to determine their Internet address
+based on their Ethernet address.
+The Internet address is then used to get the required kernel to be booted
+on the machine using the TFTP protocol (see
+.I tftp (A)).
+.LP
+The
+.I rarp
+server requires the
+.I eth
+port of an \*(Am TCP/IP server (see
+.I ipsvr (A))
+to access the network.
+This can be specified on the command line or using an environment variable.
+In general it is a good idea to run the
+.I rarp
+server on the same machine as the TCP/IP server to obtain maximum performance.
+Note that the TCP/IP server must know its own Internet address before the
+.I rarp
+server will function.
+This can be given to it using the
+.I ifconfig (A)
+or
+.I setupipsvr (A)
+commands.
+.mH
+Options
+.LP
+.IP "\fB\-E\fP \fIeth-capability\fP"
+.br
+This tells the
+.I rarp
+server the capability of the Ethernet server that it must use to write
+packets on the Ethernet.
+This is typically the
+.I eth
+capability of a TCP/IP server.
+It can also be specified by the name of the host where the IP server is
+running.
+If this option is not specified it takes the value of the string environment
+variable
+.cW ETH_SERVER .
+If this is not defined then it uses the default
+.cW ETH_SVR_NAME
+as defined in the file
+.I ampolicy.h .
+This is typically
+.I /profile/cap/ip/eth .
+.IP "\fB\-I\fP \fIip-capability\fP"
+.br
+If the
+.I rarp
+server should respond only to hosts on its own network then it needs
+to know its own IP address and netmask.
+It uses this capability to find this out.
+.IP "\fB\-chan\fP \fIchan-capability\fP"
+.br
+This tells the
+.I rarp
+server the place to publish the capability for its Ethernet channel.
+This can be used for examining the status of the connection (see
+.I std_status (A)).
+.IP "\fB\-cache\fP"
+.br
+This tells the
+.I rarp
+server to cache the Ethernet to Internet address mappings for increased
+performance.
+This should only be used when many machines are booted at once.
+.IP "\fB\-v\fP
+Verbose mode.
+It prints lots of details about the various requests received.
+.mH
+Environment Variables
+.LP
+.IP \*<ETH_SERVER\*>
+.br
+This shell environment variable specifies the name of the
+.I eth
+channel to use.
+It can be overridden by the
+.B \-E
+command line option.
+.br
+.ne 4
+.IP \*<TCP_SERVER\*>
+.br
+This shell environment variable specifies the name of the
+.I tcp
+channel to use to look up names in the Domain Name System (DNS).
+.mH
+Warnings
+.LP
+The 
+.I rarp
+server uses 
+.I gethostbyname
+to lookup Internet addresses. 
+This function tries the DNS before looking at the
+.I /etc/hosts
+file.
+Therefore a TCP server must be configured using the
+.I TCP_SERVER
+environment variable or an appropriate capability must be registered as
+the default TCP server, as defined in
+.I ampolicy.h .
+(This is typically placed in
+.I /profile/cap/ip/tcp ). 
+.LP
+In caching mode 
+the
+.I rarp
+server does not make an effort to keep its cache consistent
+with the
+.I /etc/hosts
+and
+.I /etc/ethers
+files or the DNS tables.
+If caching is enabled and one of these is modified,
+the
+.I rarp
+server should be restarted.
+.mH
+Files
+.LP
+.I /etc/hosts
+and
+.I /etc/ethers
+are used to pair Ethernet addresses with Internet addresses.
+.SH
+Example
+.LP
+To start the rarp server using the TCP/IP server on the host
+.I foo :
+.sC L
+rarp -E /super/hosts/foo/ip/eth -chan /super/cap/rarpsvr/foo
+.eC
+.SH
+See Also
+.LP
+ifconfig(A),
+ipsvr(A),
+setupipsvr(A),
+tftp(A).

@@ -1,0 +1,795 @@
+.\"	@(#)grp.n	1.12	96/02/15 16:49:56
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.EQ
+delim $$
+.EN
+.aU
+	Software: Frans Kaashoek, 1990-1991
+	Document: Frans Kaashoek & Gregory J. Sharp, Nov 1991
+	Modified: Kees Verstoep, Mar 1992
+		  Frans Kaashoek, Apr 1992 - added more description
+		  Greg Sharp, Mar 1995 - explained args of grp_forward
+		  Greg Sharp, Jan 1996 - added an example
+.aE
+.mT "grp" L "libamoeba.a"
+the group communication primitives
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "group.h"
+
+g_id_t   grp_create(p, resilience, maxgroup, lognbuf, logmaxmess)
+errstat  grp_forward(gid, p, memid)
+errstat  grp_info(gid, p, state, memlist, size)
+g_id_t   grp_join(hdr)
+errstat  grp_leave(gid, hdr)
+int32    grp_receive(gid, hdr, buf, size, more)
+g_indx_t grp_reset(gid, hdr, nmem)
+errstat  grp_send(gid, hdr, data, size)
+errstat  grp_set(gid, p, sync, reply, alive, large)
+.eC
+.SH
+Description
+.LP
+.kW FLIP
+.kW "group communication"
+.kW "\fIgrp_create\fP"
+.kW "\fIgrp_forward\fP"
+.kW "\fIgrp_info\fP"
+.kW "\fIgrp_join\fP"
+.kW "\fIgrp_leave\fP"
+.kW "\fIgrp_receive\fP"
+.kW "\fIgrp_reset\fP"
+.kW "\fIgrp_send\fP"
+.kW "\fIgrp_set\fP"
+RPC provides point-to-point communication between a single client and
+a single server.
+What is often needed is 1-to-n communication (for example in a replicated
+server).
+This can be simulated with n\-1 RPCs but this is not very efficient.
+In most systems this will cost at least 2\|(n\-1) network packets (one packet
+for the message and one for the acknowledgement).
+If the message is larger than a single packet the cost will be even higher.
+Therefore a more efficient system of message passing for groups of processes
+has been provided.
+It provides optional fault tolerance and a total ordering of messages.
+Where possible it takes advantage of hardware multicast support (e.g.,
+on Ethernet).
+Where no support is available it falls back to using point-to-point messages
+to send the information.
+.LP
+A
+.I group
+consists of one or more processes, called
+.I members ,
+typically running on different processors and cooperating to provide some
+service or to implement some application program.
+Processes may be a member of more than one group.
+.kW multicast
+.kW broadcast
+Groups are closed, which means that only group members can send a broadcast
+message to the group.
+Processes which are not a member and which wish to communicate with a group can
+.kW RPC
+use RPC (or can join the group).
+.LP
+A group is identified by a port.
+All group calls must supply this port.
+A group is explicitly created by calling
+.I grp_create .
+The process that called this primitive is the first member of the
+group.
+It becomes the
+.I sequencer
+for the group, ensuring a total ordering of messages and maintaining message
+history for use in recovery in the event of failures.
+Other processes can become a member by calling
+.I grp_join ,
+and supplying as parameter the port with which the group has
+been created.
+There are a number of ways in which the creator of the group can pass
+the port to other processes so that they can join the group.
+One way is to publish the port in the directory server so that other
+processes can look it up.
+Another way is to use the program
+.I gax (U) ,
+which passes the port to a process through its capability environment.
+The knowledge of the port is sufficient to be allowed to join the group.
+.LP
+Both
+.I grp_create
+and 
+.I grp_join
+return a small identifier, called the group id (\fIgid\fP).
+The gid and port have to be supplied with all subsequent group calls (the port
+is passed as part of the header or is supplied explicitly).
+The
+.I gid
+allows the system to do a fast lookup of the group state.
+The port must also be supplied, so that the kernel can check if the member
+is allowed to perform group calls.
+.LP
+Once a process is a member of the group, it can call 
+.I grp_send , 
+.I grp_receive ,
+.I grp_set ,
+.I grp_info ,
+.I grp_forward ,
+and
+.I grp_leave.
+.I Grp_send
+allows a member to send a message to the group.
+.I Grp_receive
+allows a member to receive a message sent to the group.
+.I Grp_set
+allows a member to set timer values.
+.I Grp_info
+allows a member to learn about the group state.
+.I Grp_forward
+allows a member to forward a message that is received with a
+.I getreq 
+to another member of the group.
+This call is the link between the group communication calls and the
+.I rpc (L)
+calls.
+.I Grp_leave
+allows a member to leave the group.
+Once a member has successfully called
+.I grp_leave ,
+the process is not a member of the group anymore.
+When the last member leaves the group, the group ceases to exist.
+.LP
+All primitives, except
+.I grp_set
+and
+.I grp_info
+block the calling thread until the call completes.
+A typical way of programming with the group communication primitives is
+to dedicate one thread to doing the 
+.I grp_receive
+calls and another thread to doing the real work.
+.mH
+Error codes
+.LP
+The possible error codes returned by the group primitives,
+and their interpretation are shown in the next table:
+.TS
+box tab(:) center box;
+l | l .
+Error code:Description
+=
+\*<STD_OK\*>:operation succeeded
+_
+\*<STD_ARGBAD\*>:illegal argument
+_
+\*<STD_EXISTS\*>:process already member of this group
+_
+\*<STD_NOMEM\*>:cannot allocate group buffers
+_
+\*<BC_ABORT\*>:a member has died; need grp_reset
+_
+\*<BC_BADPORT\*>:invalid group port specified
+_
+\*<BC_FAIL\*>:generic group failure code
+_
+\*<BC_ILLRESET\*>:illegal grp_reset 
+_
+\*<BC_NOEXIST\*>:group does not exist (anymore)
+_
+\*<BC_TOOBIG\*>:message too large
+_
+\*<BC_TOOMANY\*>:no space for new group member
+.TE
+.LP
+Note that the primitives
+.I grp_create ,
+.I grp_join
+.I grp_receive
+and
+.I grp_reset
+return a signed integer rather than the standard error type
+.I errstat .
+In these cases the call must be considered successful
+when a non-negative integer is returned.
+Otherwise the return value should be interpreted as an error code.
+.mH
+.ne 5
+Functions
+.LP
+.sH
+grp_create
+.LP
+.sC
+g_id_t
+grp_create(p, resilience, maxgroup, lognbuf, logmaxmess)
+port   * p;
+g_indx_t resilience;
+g_indx_t maxgroup;
+uint32   lognbuf;
+uint32   logmaxmess;
+.eC
+.kW "\fIgrp_create\fP"
+The primitive
+.I grp_create
+creates a new group.
+The parameter
+.I resilience
+specifies how many member failures must be tolerated
+without loss of any message.
+Thus, if after
+.I resilience
+crashes, the group is rebuilt with
+.I grp_reset
+it is still guaranteed that the remaining members will still receive all the
+messages sent to the group and that they still will receive them in the same
+order.
+Consider a group with
+.I resilience
+equal to zero.
+In this case, if a member successfully sends a message to the group and then
+crashes, it is not guaranteed that the remaining members will receive this
+messages after they have rebuilt the group.
+The parameter
+.I maxgroup
+limits the total number of group members permitted.
+The value of
+.I resilience
+may be greater than the maximum number of group members
+.I maxgroup
+but see the description of
+.I grp_send
+below for a discussion of this.
+Parameters
+.I lognbuf
+and
+.I logmaxmess
+specify the amount and size of message buffers that are to be allocated
+by the kernel of each member.
+They are both 2-logs of the actual amount.
+(Note that the actual buffers allocated are slightly larger than the size
+specified to allow space for the addition of a header to the message.
+The caller can thus send messages up to and including the specified buffer
+sizes.)
+.LP
+Regarding the parameter values, the following restrictions apply:
+.IP -
+.I resilience
+must be less than 32.
+.IP -
+.I lognbuf
+depends on size of the group (\fInbuf\fP
+should be bigger than the number of members)
+but must be at least 4.
+.IP -
+.I logmaxmess
+must be at least 10 (i.e., maxmess should be at least 1K).
+.IP -
+.I maxgroup
+must be at least 1.
+Since the group protocol sometimes sends global state
+information to all members (e.g., during the join and recovery stage),
+the parameter
+.I logmaxmess
+may have to be increased when the number of members becomes larger
+than about 30.
+.\" note this is really a bug..
+.LP
+If a process already is a member of a group, it is not allowed to create
+another group with the same port.
+If multiple processes create a group with the same port, no error is returned.
+If a process does a join on that port, it will become member of one group at
+random.
+This is similar to multiple servers performing a
+.I getreq 
+on the same port. 
+A request sent to that port will be received by one of the servers at random.
+Messages sent to that group are only received by members of that group.
+They will not go to other groups listening to the same port.
+.sH
+grp_forward
+.LP
+.sC
+errstat
+grp_forward(gid, p, memid)
+g_id_t   gid;
+port   * p;
+g_indx_t memid;
+.eC
+.kW "\fIgrp_forward\fP"
+.I Grp_forward
+.kW RPC
+integrates RPC with group communication.
+When a client does an RPC with a service, which consists of multiple servers
+listening to the same port, the client has no idea which server will receive the
+request;
+one of the servers will get the request.
+If the server that got the request is not able to serve the request (e.g., it
+does not store the requested data), the server can forward the request to
+another server in the group, instead of doing a
+.I putrep .
+The header and the user data are forwarded to the other server.
+When the other server's
+.I getreq
+succeeds, it will receive the header and user data that the client
+has sent to the first server and which is forwarded by the first server.
+This is transparent to the client process.
+It does not notice that the request is forwarded to another server.
+.LP
+.I Grp_forward
+can only be called by a member of the group with id
+.I gid
+(as returned by
+.I grp_create
+or
+.I grp_join),
+and port
+.I p .
+The RPC is forwarded to the group member specified by
+.I memid .
+That member must have a pending
+.I getreq
+waiting to receive a message or the forward will fail.
+The member ids for the various members are obtained using
+.I grp_info
+(described below).
+.LP
+It is an error to do a
+.I putrep
+for a request that has been forwarded.
+.sH
+grp_info
+.LP
+.kW "\fIgrp_info\fP"
+.sC
+typedef struct {
+    g_seqcnt_t  st_expect;    /* next seq # to be delivered */
+    g_seqcnt_t  st_nextseqno; /* next seq # to be received */
+    g_seqcnt_t  st_unstable;  /* next seq # to be acked */
+    g_index_t   st_total;     /* total number of members */
+    g_index_t   st_myid;      /* my member identifier */
+    g_index_t   st_seqid;     /* sequencer identifier */
+} grpstate_t, *grpstate_p;
+.eC
+.sC
+errstat
+grp_info(gid, p, state, memlist, size)
+g_id_t     gid;
+port     * p;
+grpstate_p state;
+g_indx_t   memlist[];
+g_indx_t   size;
+.eC
+.kW "\fIgrp_info\fP"
+The
+.I grp_info
+primitive allows a group member to acquire information
+stored in the kernel about a group.
+If it succeeds it will return in the output structure
+.I state
+the number of members in the group,
+the member identifier of the caller
+and the sequence number of the next message expected.
+The identifiers of the members in the group are returned
+in the array
+.I memlist
+having
+.I size
+entries.
+The
+.I memlist
+can be used, for example, to find out which member has crashed by
+comparing the
+.I memlist
+returned before
+.I grp_reset
+with the
+.I memlist
+returned after
+.I grp_reset .
+A member will have the same member identifier during its entire life-time.
+.sH
+grp_join
+.LP
+.sC
+g_id_t
+grp_join(hdr)
+header_p hdr;
+.eC
+.kW "\fIgrp_join\fP"
+Once a group has been created, other processes can become members of it by
+executing
+.I grp_join .
+Only a member can receive messages that are sent to its group.
+The group to be joined is specified by the port contained in the header
+.I hdr .
+Like
+.I grp_create ,
+.I grp_join
+returns a group descriptor for use in subsequent group calls.
+In addition to adding a process to a group,
+.I grp_join
+also delivers the header
+.I hdr
+to all other members (excluding itself).
+This way, other members can find out that a new member has joined the group.
+The port of the group should be stored in
+.I h_port ,
+when calling
+.I grp_join.
+A process is not allowed to join a group where it is already a member.
+.sH
+grp_leave
+.LP
+.sC
+errstat
+grp_leave(gid, hdr)
+g_id_t   gid;
+header_p hdr;
+.eC
+.kW "\fIgrp_leave\fP"
+Once a process is a member of a group, it can leave the group by calling
+.I grp_leave .
+After a member has left the group, it will not receive subsequent broadcasts.
+In addition to leaving the group,
+.I grp_leave
+delivers
+.I hdr
+to all members (including the leaving member itself).
+This way, all members can find out that a member has left.
+The member receives its own message, so that it can check if it has processed
+all the messages until its leave message.
+After a member has left the group, it can join the group again.
+Like in all other group primitives that have a header parameter,
+the port in the header should be equal to the group's port.
+When the last member of a group calls
+.I grp_leave ,
+the group ceases to exist.
+.sH
+grp_receive
+.LP
+.sC
+int32
+grp_receive(gid, hdr, buf, size, more)
+g_id_t   gid;
+header_p hdr;
+bufptr   buf;
+uint32   size;
+int    * more;
+.eC
+.kW "\fIgrp_receive\fP"
+To receive a broadcast, a member must call
+.I grp_receive .
+If a broadcast arrives and no such primitive is outstanding,
+the message is buffered.
+When the member finally does a
+.I grp_receive ,
+it will get the next one in sequence.
+The parameters
+.I hdr ,
+.I buf
+and
+.I size
+specify the header and the buffer in which the message should be delivered.
+If
+.I size
+is smaller than the data that arrived,
+the arriving data is truncated.
+The output parameter
+.I more
+is used to indicate to the caller that one or more
+broadcasts have been buffered and can be fetched using
+.I grp_receive .
+The port of the group should be stored in
+.I h_port ,
+when calling
+.I grp_receive.
+If
+.I grp_receive
+succeeds,
+it returns the size of the buffer received.
+If a member never calls
+.I grp_receive ,
+the group may block,
+because it may run out of memory to buffer messages.
+Messages are never intentionally thrown away until all the members have
+processed them.
+.sH
+grp_reset
+.LP
+.sC
+g_indx_t
+grp_reset(gid, hdr, nmem)
+g_id_t   gid;
+header_p hdr;
+g_indx_t nmem;
+.eC
+.kW "\fIgrp_reset\fP"
+The primitive
+.I grp_reset
+allows recovery from member crashes.
+If one of the members (or its kernel) does not respond to messages, the
+protocol enters a recovery mode.
+All outstanding calls return an error value (BC_ABORT) indicating that a
+member has crashed.
+The user application can now call
+.I grp_reset
+to transform the group into a new group that contains as many live members
+from the group as possible.
+This does not change the
+.I gid .
+Calling
+.I grp_reset
+is illegal when the group is not in recovery mode.
+The error
+.cW BC_ILLRESET
+will be returned in this case.
+.LP
+The parameter
+.I nmem
+specifies the number of members that the new group must contain as a minimum.
+If fewer than
+.I nmem
+members of the group are still available then
+.cW BC_FAIL
+will be returned.
+In this case it is possible to attempt another
+.I grp_reset
+with perhaps another value for
+.I nmem
+or perhaps at a later time when the network is restored.
+The group is not deleted when a reset attempt fails.
+.LP
+When
+.I grp_reset
+succeeds, it returns the number of members in the recovered group.
+.LP
+In addition to recovering from crashes,
+.I grp_reset
+delivers
+.I hdr
+to all newly recovered members.
+It may happen that multiple members initiate a recovery at the same moment.
+The new group consisting of the members that can communicate with each other,
+however, is built only once.
+.LP
+The way recovery is done is based on the design principle that policy and
+mechanism should be separated.
+In many systems that deal with fault tolerance, recovery from processor crashes
+is completely invisible to the user application.
+Here it is done differently.
+A parallel application that multiplies two matrices, for example, may want to
+continue even if only one processor is left.
+A banking system may require, however, that at least half of the group
+is alive.
+The user is able to decide on the policy.
+The group primitives only provide the mechanism.
+.sH
+grp_send
+.LP
+.sC
+errstat
+grp_send(gid, hdr, data, size)
+g_id_t   gid;
+header_p hdr;
+bufptr   data;
+uint32   size;
+.eC
+.kW "\fIgrp_send\fP"
+When a member wants to broadcast a message, it calls
+.I grp_send .
+It guarantees that the
+.I hdr
+and buffer
+.I buf
+of size
+.I size
+will be delivered to all members (including itself),
+even in the face of unreliable communication and finite buffers.
+Furthermore, when the resilience degree of the group is $k$, the protocol
+guarantees that in the event of a simultaneous crash of up to $k$ members, it
+delivers the message to all remaining members or to none.
+If a group has less than $k$ members, the message is delivered to all
+members.
+In general, the total number of failures from which the protocol can recover
+is equal to:
+.br
+.ti 2c
+$MIN(~k,~total~number~of~members~-~1)$.
+.br
+Choosing a large value for $k$ provides a high degree of fault-tolerance, but
+extracts a penalty in performance.
+The trade-off chosen is up to the user.
+.LP
+In addition to reliability, the protocol guarantees that messages are
+delivered in the same order to all members.
+Thus, if two members (on two different machines), simultaneously broadcast
+two messages, $A$ and $B$, the protocol guarantees that either
+.IP
+(1) all members receive $A$ first and then $B$, or
+.br
+(2) all members receive $B$ first and then $A$.
+.LP
+Random mixtures, where some members get $A$ first and others get $B$ first are
+guaranteed not to occur.
+.sH
+grp_set
+.LP
+.sC
+errstat
+grp_set(gid, p, sync, reply, alive, large)
+g_id_t   gid;
+port   * p;
+interval sync;
+interval reply;
+interval alive;
+uint32   large;
+.eC
+.kW "\fIgrp_set\fP"
+The
+.I grp_set
+primitive can be used to set a few parameters used
+in the implementation of groups.
+It is mainly present for testing and performance analysis.
+.LP
+The three interval parameters influence the rate at which members
+are synchronized.
+.I Sync
+determines how often the sequencer checks if the other members are up
+to date.
+.I Reply
+determines how soon a message is retransmitted.
+.I Alive
+determines how often members check each other to see if they are alive.
+The parameter
+.I large 
+specifies above which message size a sending member itself should
+broadcast the message.
+Normally,
+a message to be broadcast is sent to the member responsible
+for ordering the messages.
+Letting the message be broadcast by the sending member has the advantage
+that the message only appears once on the network (though at the expense
+of more interrupts at the members,
+because there are two broadcasts instead of one).
+.SH
+Example
+.LP
+An example of a working program can be found in the source code in the file
+.I src/test/performance/group/grp_perf.c .
+A brief explanation of it is given below as a quick introduction.
+.LP
+The normal way to start a group program is with
+.I gax (U).
+It passes numerous command line arguments to a group program, including the
+number of group members (\fIncpu\fP), the desired resilience (\fIresilience\fP)
+and which member of the group the current process is (\fIcpu\fP).
+These arguments need to be processed.
+It also provides several capabilities in the capability environment.
+The
+.cW GROUPCAP
+tells which port the group will listen to.
+.sC
+capability *groupcap;
+port group;
+
+if((groupcap = getcap(GROUPCAP)) == NULL)
+    panic("no GROUPCAP in cap env (use gax)");
+group = groupcap->cap_port;
+.eC
+.LP
+The routine
+.I test()
+in
+.I grp_perf.c
+creates the group and carries out the performance measurements.
+The member numbered 0 actually creates the group.
+The other members join the group after it has been created.
+Once all the members are present it can proceed with its work.
+.sC
+/* Start group. */
+if (cpu == 0) {
+    gd = grp_create(&group, (g_indx_t) resilience, ncpu,
+		    (uint32) LOGBUF, logdata);
+    if (gd < 0)
+	panic("create failed (%d)\n", (int) gd);
+} else {
+    if ((gd=grp_join(&hdr)) < 0)
+	panic("%d: join failed %d\n", cpu, gd);
+}
+.eC
+.LP
+The next step is to set some parameters and wait until all the expected
+group members are ready to do work.
+The variable
+.I state.st_total
+below reflects the total number of members in the group.
+The
+.I handle()
+function looks at each message received, in particular at group join requests,
+and keeps the
+.I state
+up to date.
+.LP
+Following this a thread is created to accept all incoming messages.
+It executes the routine
+.I daemon()
+which consists of the same basic loop above:
+.I grp_receive() 
+followed by a call to
+.I handle() .
+It also has additional code to deal with recovery after the loss of group
+members.
+.LP
+Thereafter, one or more members send a set number of messages using the
+.I grp_send()
+primitive.
+It times how long it takes using
+.I sys_milli() .
+To ensure that the
+.I daemon()
+thread is scheduled the routine
+.I threadswitch()
+is called regularly.
+If the messages are not read fairly quickly after arrival, the group can
+choke up waiting for the ``slow'' member.
+Another solution to this is to enable preemptive scheduling and give
+the reader thread equal or higher priority than the sender thread.
+.sC
+grpstate_t state;
+
+res = grp_set(gd, &group, (interval) SYNCTIMEOUT,
+		(interval) REPLYTIMEOUT,
+		(interval) debug_level, (uint32) large);
+if (ERR_STATUS(res)) {
+    panic("%d: test: grp_set failed %d\n",
+		cpu, ERR_CONVERT(res));
+}
+/* Find out who is in the group. */
+res = grp_info(gd, &group, &state, memlist,
+		(g_indx_t) MAXGROUP);
+if (ERR_STATUS(res)) {
+    panic("%d: test: grp_info failed %d\n",
+		cpu, ERR_CONVERT(res));
+}
+my_id = state.st_myid;
+
+/* Wait until the group is complete. */
+while (state.st_total < ncpu) {
+    r = grp_receive(gd, &hdr, (bufptr) 0, (uint32) 0, &more);
+    if (ERR_STATUS(r))
+	panic("%d: test: grp_receive failed: %d\n",
+		cpu, ERR_CONVERT(r));
+    handle(&hdr, (char *) 0, 0);
+}
+.eC
+.LP
+Once all the message timing has been completed it is necessary to terminate
+the group cleanly.
+This is done using
+.I grp_leave() .
+.sC
+hdr.h_command = LEAVE;
+hdr.h_size = cpu;
+hdr.h_extra = my_id;
+s = grp_leave(gd, &hdr);
+.eC
+Once
+.I test()
+terminates the
+.I daemon()
+thread will receive the group leave command and terminate as well.
+Since it is the last active thread the process will then terminate.
+.SH
+See Also
+.LP
+gax(U),
+rpc(L).
+.EQ
+delim off
+.EN

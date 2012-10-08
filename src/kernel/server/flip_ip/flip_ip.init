@@ -1,0 +1,10 @@
+/*	@(#)flip_ip.init	1.2	94/04/06 09:54:02 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+TCPIP flip_ip_init
+flip_ip_init FLIP_IP
+FLIP_IP flip_ip_svr_init

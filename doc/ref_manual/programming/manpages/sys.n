@@ -1,0 +1,303 @@
+.\"	@(#)sys.n	1.7	96/02/15 16:56:45
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "syssvr" L "libamoeba.a, libamunix.a"
+the kernel systhread server client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "server/systask/systask.h"
+
+errstat sys_boot(cap, kernelcap, commandline, flags)
+errstat sys_chgcap(cap, timeout, chkfields)
+errstat sys_kstat(cap, flag, buf, bufsz, result)
+errstat sys_printbuf(cap, buf, bufsz, offset, num_bytes)
+.eC
+.SH
+Description
+.LP
+.kW "kstat"
+.kW "printbuf"
+.kW "systask.h"
+.kW "directory server, kernel"
+.kW "\fIsys_boot\fP"
+.kW "\fIsys_chgcap\fP"
+.kW "\fIsys_kstat\fP"
+.kW "\fIsys_printbuf\fP"
+.kW syssvr
+These stubs provide a part of the programmer's interface to the
+.I syssvr
+in the kernel.
+The
+.I syssvr
+also supports certain
+.I soap (L),
+.I bullet (L)
+and
+.I std (L)
+commands.
+See
+.I syssvr (A)
+for more details.
+.mH
+Errors
+.LP
+All functions return the error status of the operation.
+They return only standard error codes (see
+.I stderr.h ).
+All the stubs involve transactions and so in addition to the errors described
+below,
+all stubs may return any of the standard RPC error codes.
+If illegal parameters (such as NULL-pointers or negative buffer sizes) are
+given,
+exceptions may occur rather than an error status being returned.
+The behavior is not well defined under these conditions.
+.mH
+.ne 9
+Functions
+.sH
+sys_boot
+.LP
+.sC
+errstat
+sys_boot(cap, kernelcap, commandline, flags)
+capability *cap;
+capability *kernelcap;
+char *commandline;
+int flags;
+.eC
+.I Sys_boot
+requests that the kernel whose
+.I syssvr
+listens to capability
+.I cap
+should load the kernel binary specified by
+.I kernelcap
+and start running it.
+The kernel is probably stored on a file server.
+The
+.I commandline
+and
+.I flags
+will be passed to the new kernel in implementations where this is possible.
+This request has the effect of terminating all current activity on the host.
+In the future, one of the flags might be to migrate existing activity to
+other hosts before rebooting.
+.rR
+\*<SYS_RGT_BOOT\*>
+.DE
+.sH
+sys_chgcap
+.LP
+.sC
+errstat
+sys_chgcap(cap, timeout, chkfields)
+capability *cap;
+interval timeout;
+port chkfields[3];
+.eC
+.I Sys_chgcap
+requests that the kernel whose
+.I syssvr
+listens to capability
+.I cap
+should change the check fields of the kernel directory server,
+the syssvr and the process server to those specified in the array
+.I chkfields .
+Unless changed by a subsequent call to
+.I sys_chgcap ,
+the kernel directory server capability will revert to its default value after
+.I timeout
+seconds.
+This function is used by the reservation system to reserve a kernel for
+exclusive use.
+.LP
+Note that if
+.I chkfield [0]
+is NULL then the kernel directory server capability will revert immediately
+to its default value.
+This can be used to undo the effects of a previous
+.I sys_chgcap
+before the
+.I timeout
+has expired.
+.rR
+\*<SYS_RGT_ALL\*>
+.DE
+.sH
+sys_kstat
+.LP
+.sC
+errstat
+sys_kstat(cap, flag, buf, bufsz, num_bytes)
+capability *cap;
+char flag;
+char *buf;
+bufsize bufsz;
+int *num_bytes;
+.eC
+.kW "\fIsys_kstat\fP"
+Each \*(Am kernel provides a set of internal routines which print the
+current state of kernel data as ascii strings into a buffer.
+.I Sys_kstat
+requests that the kernel print some kernel data selected by
+.I flag
+into
+.I buf
+(whose size is
+.I bufsz).
+The number of bytes of data returned in
+.I buf
+is returned in
+.I num_bytes .
+.LP
+Since kernels may have different configurations there is a special flag,
+.I ?
+which will return in
+.I buf
+a list of flags supported by the kernel and a short description of each.
+With one exception this set of flags corresponds exactly to those commands
+that can be given at the console using the
+.I home
+key (CTRL\-_) followed by the appropriate letter.
+The
+.I flag
+.I r
+is always illegal for the
+.kW "\fIsys_kstat\fP"
+.I sys_kstat
+function.
+.rR
+.fi
+.nh
+These depend on the sensitivity of the data or operation requested.
+Typically
+.cW SYS_RGT_READ
+is a minimum.
+.nf
+.eR
+\*<STD_ARGBAD\*>	an invalid flag was given.
+.DE
+.sH
+sys_printbuf
+.LP
+.sC
+errstat
+sys_printbuf(cap, buf, bufsz, offset, num_bytes)
+capability *cap;
+char *buf;
+bufsize bufsz;
+int *offset;
+int *num_bytes;
+.eC
+.kW "\fIsys_printbuf\fP"
+.kW "console buffer"
+Each \*(Am maintains a copy of messages printed on its console which
+originated within the kernel.
+This is kept in a circular buffer which is guaranteed to fit in one
+RPC call.
+.I Sys_printbuf
+requests the kernel running on machine with the capability
+.I cap
+to return the contents of its console buffer in
+.I buf .
+.I Bufsz
+specifies the size of
+.I buf
+in bytes.
+The function returns in
+.I offset
+the starting position of the circular buffer and
+.I num_bytes
+tells how many bytes of data were returned in
+.I buf .
+.rR
+\*<SYS_RGT_READ\*>
+.DE
+.SH
+Example
+.LP
+The main use of these routines is in the programs
+.I kstat (A) ,
+.I printbuf (A)
+and
+.I reboot (A).
+However, below is a simple program that demonstrates the use of some of the
+routines.
+.sC L
+#include "amtools.h"
+#include "sys/printbuf.h"
+
+main(argc, argv)
+int argc;
+char *argv[];
+{
+    capability mach;
+    errstat err;
+    char buf[30000];
+    int len, offset;
+
+    if (argc != 2) {
+	fprintf(stderr, "Usage: %s mach-cap\en", argv[0]);
+	exit(2);
+    }
+.eC
+.sC L
+    if ((err = name_lookup(argv[1], &mach)) != STD_OK) {
+	fprintf(stderr, "%s: cannot lookup %s (%s)\en",
+			argv[0], argv[1], err_why(err));
+	exit(1);
+    }
+    err = sys_kstat(&mach, '?', buf, sizeof(buf), &len);
+    if (err == STD_OK)
+	printf("%.*s\en", len, buf);
+    else
+	fprintf(stderr, "%s: cannot kstat %s (%s)\en",
+			argv[0], argv[1], err_why(err));
+
+    err = sys_printbuf(&mach, buf, sizeof(buf), &offset, &len);
+    if (err == STD_OK) { /* print circular buffer */
+	char * p = buf + offset;
+	do {
+	    if (p >= buf + len)
+		p = buf;
+	    printchar(*p++);
+	} while (p != buf + offset);
+	putchar('\en');
+    } else
+	fprintf(stderr, "%s: cannot printbuf %s (%s)\en",
+			argv[0], argv[1], err_why(err));
+}
+.eC
+.LP
+The function
+.I printchar
+is not shown here.
+It simply takes care of unprintable characters in a nice way.
+.SH
+See Also
+.LP
+bullet(L),
+kstat(A),
+printbuf(A),
+soap(L),
+std(L),
+std_age(A),
+std_destroy(U),
+std_info(U),
+std_copy(U),
+std_restrict(U),
+std_touch(U),
+syssvr(A).

@@ -1,0 +1,13 @@
+/*	@(#)glance.kstat	1.4	96/02/27 13:48:33 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifdef STATISTICS
+l	netdump	"dump Lance statistics"		SYS_RGT_NONE
+#endif
+#ifdef LANCE_DEBUG
+L	lance_reboot	"reboot Lance chip"	SYS_RGT_CONTROL
+#endif

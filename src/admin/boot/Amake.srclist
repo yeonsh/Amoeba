@@ -1,0 +1,34 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:28:27
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_IBOOT = $PWD/iboot.c;
+
+U_REINIT = {
+    $HEADER_DEP,
+    $PWD/reinit.gen [ c_gen =	{ cmd_boot_re.c, boot_reinit.c } ]
+};
+
+U_SHUTDOWN = {
+    $HEADER_DEP,
+    $PWD/shutdown.gen [ c_gen =	{ cmd_boot_sh.c, boot_shutdo.c } ]
+};
+
+U_SETIO = {
+    $HEADER_DEP,
+    $PWD/setio.gen [ c_gen =	{ cmd_boot_se.c, boot_setio.c } ]
+};
+
+U_CONF = {
+    $HEADER_DEP,
+    $PWD/conf.gen [ c_gen =	{ cmd_boot_co.c, boot_conf.c } ]
+};
+
+U_CTL = {
+    $HEADER_DEP,
+    $PWD/ctl.gen [ c_gen =	{ cmd_boot_ct.c, boot_ctl.c } ]
+};

@@ -1,0 +1,76 @@
+.\"	@(#)telnetsvr.n	1.3	96/02/15 17:54:31
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, Jan 1994
+	Document: Gregory J. Sharp, Feb 1994
+	Modified: Gregory J. Sharp, Sep 1995
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "telnetsvr" A
+a front-end for the telnet daemon
+.SH
+Synopsis
+.LP
+.sC L
+telnetsvr [-T tcp-cap] [-daemon telnetd-prog] [-v]
+.eC
+.SH
+Description
+.LP
+.kW telnet
+.kW "\fItelnetd\fP"
+The
+.I telnetsvr
+is used to start telnet daemons (see
+.I telnetd (A)).
+When a client tries to make a telnet connection,
+.I telnetsvr
+starts a telnet daemon for that client.
+.LP
+.I Telnetsvr
+is typically started by the
+.I boot (A)
+server.
+.mH
+Options
+.LP
+.IP "\fB\-T\fP \fItcp-cap\fP"
+.br
+This causes the server to use the TCP/IP server specified by
+.I tcp-cap .
+If this option is omitted it uses the server specified by the string
+environment variable
+.cW TCP_SERVER .
+If that is not set it uses the default TCP server as defined in
+.I ampolicy.h
+(typically
+.I /profile/cap/ipsvr/tcp ).
+.IP "\fB\-daemon\fP \fItelnetd-prog\fP"
+.br
+This changes the telnet daemon to be started to
+.I telnetd-prog .
+The default is
+.I /super/admin/bin/telnetd .
+.IP \fB\-v\fP
+Verbose mode.
+Various debugging information is printed.
+.LP
+.mH
+Environment Variables
+.LP
+.cW TCP_SERVER
+specifies the default TPC/IP server to use.
+.mH
+Files
+.LP
+.I /super/admin/bin/telnetd
+is the default telnet daemon.
+.SH
+See Also
+.LP
+telnetd(A),
+ttn(U).

@@ -1,0 +1,11 @@
+#	
+#	@(#)acktools.amk	1.2	94/04/06 10:29:41
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Tool definitions for source generating shellscripts.
+# They are used in several compilers.
+
+%include $PWD/common/acktools.amk;

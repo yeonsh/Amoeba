@@ -1,0 +1,117 @@
+.\"	@(#)ifconfig.n	1.4	96/02/15 17:21:34
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg,
+	Document: Philip Homburg, Oct 31, 1991
+	Modified: Gregory J. Sharp, Sept 1995
+			- new command-line conventions for ip-cap arg.
+			  IP server no longer uses rarp to get its ip addr.
+.aE
+.mT "ifconfig" A 
+set/get the IP address and or netmask
+.SH
+Synopsis
+.LP
+.sC L
+ifconfig [-h ipaddr] [-i] [-n netmask] ip-cap
+.eC
+.SH
+Description
+.LP
+.kW "TCP/IP"
+.kW "TCP"
+.kW "IP"
+.kW "UDP"
+The TCP/IP server (see
+.I ipsvr(A))
+needs an IP address.
+This address must be set manually using 
+.I ifconfig. 
+.I Ifconfig 
+can also set the netmask.
+If 
+.I ifconfig 
+is called without any option the current IP address and netmask
+will be reported unless the IP server does not know an IP address for that
+capability.
+In that case the error ``hostaddr not set'' will be reported after a while.
+The
+.I ip-cap
+argument can be either the capability of the host where the IP server is
+running or the full path of the ``ip'' capability of the IP server.
+.mH
+Options
+.LP
+.IP "\fB\-h\fP ipaddr"
+.br
+This option sets the IP address of the IP server specified by 
+.I ip-cap 
+to
+.I ipaddr. 
+.I Ipaddr 
+must be in the base-256 numeric format.
+.IP "\fB\-i\fP"
+This option sets the netmask and or IP address only if the netmask or 
+IP address has not already been set.
+.IP "\fB\-n\fP netmask"
+.br
+This option sets the netmask of the IP server specified by 
+.I ip-cap 
+to 
+.I netmask. 
+.I Netmask 
+must be in the base-256 numeric format.
+.mH
+Diagnostics
+.LP
+``hostaddr not set'' will be reported when no IP address is set.
+.mH
+Warnings
+.LP
+It is not possible to set a netmask if no IP address is set.
+.br
+Some parts of the TCP/IP server block requests until the IP address is set. 
+If an attempt is made to set the IP address but a capability of the TCP server
+is given then 
+.I ifconfig 
+will block until it is signaled or an IP address is set.
+.SH
+Examples
+.LP
+.sC
+ifconfig /super/hosts/armada1E/ip/ip
+.eC
+If the IP address is not set, 
+.I ifconfig will repond with
+.sC
+hostaddr not set
+.eC
+Now we can set the IP address with
+.sC
+ifconfig -h 172.30.201.254 armada1E
+.eC
+.I Ifconfig 
+will repond with:
+.sC
+hostaddr= 172.30.201.254 netmask= 255.255.255.0
+.eC
+This sets the IP address of the IP server in host armada1E to 172.30.201.254.
+The IP server will set the netmask to a default value or use an ICMP
+netmask_request to retrieve a netmask.
+Both the IP address and the netmask are reported.
+Now 
+.sC
+ifconfig armada1E
+.eC
+will repond with
+.sC
+hostaddr= 172.30.201.254 netmask= 255.255.255.0
+.eC
+.SH
+See Also
+.LP
+ipsvr(A).

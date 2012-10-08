@@ -1,0 +1,184 @@
+.\"	@(#)isaboot.n	1.9	94/04/05 15:34:25
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, November 1991
+	Document: Leendert van Doorn, November 1991
+.aE
+.mT "isaboot" A "i80386/ISA ONLY"
+boot mechanisms for i80386 machines with an ISA bus architecture
+.SH
+Description
+.LP
+.kW "boot"
+.kW "eprom"
+Booting an i80386 machine with an ISA (AT) bus architecture consists
+of multiple stages, depending on the type of the bootstrap mechanism used.
+How they work is described below.
+.LP
+When an ISA bus machine is turned on it starts executing the ROM-BIOS.
+ROM-BIOS performs a power-on system test (POST),
+and when the system functions correctly it
+will scan the memory between 0xC8000 and 0xE0000 for extra ROM images.
+These images start with a magic word (0x55AA) followed by their size.
+If POST finds a valid ROM image it will perform a
+.I far
+call and start executing the code within the ROM.
+Ordinarily, the code in the ROM image is just a small
+initialization routine which eventually returns,
+so that POST can continue searching for other ROM images.
+When all ROM images are processed POST will try to read the primary
+bootstrap loader from the first sector of floppy disk unit\ 0,
+and place it in memory at address 0x7C00.
+If this read succeeds and the bootstrap loader is valid, POST will jump to it.
+However, when the read fails or when the loader is invalid,
+POST will try to read a bootstrap loader from the first sector of hard disk
+unit\ 0.
+If this also fails,
+POST will display an error message and halt the system.
+The primary bootstrap loader for the hard disk determines
+which of the four partitions is active and loads the secondary
+bootstrap loader associated with it.
+.LP
+The primary bootstrap loader for the floppy disk and the
+secondary bootstrap loader for the hard disk offer the same
+functionality (except of course that the former reads from floppy disk,
+and the latter from hard disk).
+With this bootstrap loader it is possible to boot one of the
+kernels from the kernel directory (see
+.I mkkdir (A)
+and
+.I prkdir (A)).
+To get an overview of the kernels in the kernel directory
+you should type a question mark at the
+.sC
+boot:
+.eC
+prompt.
+To start a kernel you type its name followed by a carriage return.
+You can start the default kernel,
+namely the first in the kernel directory,
+by just typing a carriage return or waiting for about thirty seconds.
+.LP
+Note that it is also possible to give one or more options to the kernel to be
+booted.
+These should appear after the name of the kernel to be booted and are of
+the form
+.sC
+-\fIoption\fP:\fIvalue\fP
+.eC
+where
+.I option
+is the name of the option to be selected and
+.I value
+is the value that option should take.
+For example,
+.kW "noreboot option"
+.sC
+boot: \fBsmallbullet -noreboot:1\fP
+.eC
+will cause the
+.I smallbullet
+kernel to be booted with the option
+.I noreboot
+set to the value 1.
+This means that if the kernel halts (perhaps due to an assertion failure) that
+the machine will not attempt to reboot itself.
+This can be very useful when tracing kernel bugs.
+.\".mH
+.\"Boot ROM
+.\".LP
+.\"The network card in an \*(Am host can be fitted with a special boot ROM
+.\"which implements RARP/TFTP (see
+.\".I rarp (A)
+.\"and
+.\".I tftp (A))
+.\"for booting \*(Am kernels over the network.
+.\"It is primarily intended for use with diskless systems.
+.\"It provides a slightly different interface from the standard bootstrap
+.\"on disks and floppies.
+.LP
+.B N.B.
+There is also a program called
+.kW "\fIisa.dosboot\fP"
+.I isa.dosboot
+which can be found in the directory
+.I /super/admin/kernel
+which can be installed in the \*(Am bootstrap directory along with
+the usual \*(Am kernels.
+This program when booted will boot the first DOS partition on the hard disk.
+.kW DOS
+.kW "MS-DOS"
+Therefore if there is also a DOS partition on the disk, by selecting the
+.I isa.dosboot
+pseudo program, DOS can be booted instead of \*(Am.
+.mH
+Floppy disk boot
+.LP
+The floppy disk bootstrap loader is installed in the first 17 sectors
+of the floppy disk.
+It should be placed there with
+.kW "\fIinstallboot.ibm_at\fP"
+.I installboot.ibm_at
+(see
+.I installboot (A)).
+The floppy disk bootstrap loader will only boot kernels that are
+stored on the floppy disk itself.
+The bootable kernels are specified within the kernel directory
+which is located at physical sector 18 of the floppy disk.
+.mH
+Hard disk boot
+.LP
+The hard disk bootstrap loader is placed in the first track of the
+active \*(Am partition using
+.kW "\fIinstallboot.ibm_at\fP"
+.I installboot.ibm_at
+(see
+.I installboot (A)).
+The hard disk bootstrap program will only boot kernels that are stored
+on the hard disk.
+The kernels are stored on a
+.I vdisk (A)
+of which the first block contains the kernel directory.
+The bootstrap loader determines which vdisk is used,
+but by convention kernels are usually stored on vdisk:01.
+.SH
+Example
+.LP
+Booting the coldstart \*(Am floppy proceeds along the following lines:
+.sC L
+\*(Vs Standalone Boot Program
+
+Default kernel: coldstart (just press <ENTER> or wait ~30 seconds)
+
+boot:
+.eC
+To get an overview you should type a single question mark (`?').
+This will display a list of available kernels, the values between
+the parenthesis denote the offset and the size (in blocks) of the
+kernel.
+.sC L
+boot: \fB?\fP
+Bootable kernel(s):
+    coldstart (1:399)
+    workstation (400:499)
+    bullet (900:699)
+.eC
+You can start any kernel by just typing its name followed by a
+carriage return.
+An exception to this mechanism is the default kernel which is
+booted if no name is given (just press the return key), or
+when there has been no keyboard activity for approximately thirty
+seconds.
+.SH
+See Also
+.LP
+fdisk(A),
+installboot(A),
+isamkimage(A),
+isamkprom(A),
+mkkdir(A),
+prkdir(A).

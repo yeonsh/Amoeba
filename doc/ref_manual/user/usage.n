@@ -1,0 +1,64 @@
+.\"	@(#)usage.n	1.5	96/02/15 17:56:05
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "About This Manual"
+.SH
+Intended Audience
+.LP
+This manual is intended for use by all people using \*(Am,
+either by directly logging in or from another operating system running the
+\*(Am protocol.
+.SH
+Scope
+.LP
+This manual explains the basic concepts of \*(Am from a user's perspective,
+including how to log in,
+how to configure the working environment and how to locate required services
+and objects.
+It concludes with the collection of reference manual pages for user
+utilities and servers.
+.SH
+Advice On Use Of The Manual
+.LP
+It is recommended that the introductory material and tutorials be read
+at least once by all users.
+For those familiar with
+.UX
+the initial tutorial material may seem straight forward but the file
+system and directory service are different from that of
+conventional systems and should be understood before proceeding.
+.LP
+The manual pages are provided for reference and explain how to use the
+utilities and servers provided with \*(Am.
+(Note that some programming tools are described in greater detail in the
+.I "Programming Guide" .)
+It is expected that the manual pages will be used frequently.
+.LP
+Throughout the manual there are references of the form
+.I prv (L),
+.I ack (U)
+and
+.I bullet (A).
+These refer to manual pages at the back of each guide.
+The following table explains what each classification refers to and in which
+guide the manual page can be found.
+.TS
+center, tab(:), box;
+l | l | l .
+Letter:Type:Location
+_
+(A):Administrative Program:System Administration Guide
+(H):Include file:Programming Guide
+(L):Library routine:Programming Guide
+(T):Test Program:System Administration Guide
+(U):User Utility:User Guide
+.TE
+.LP
+There is a full index at the end of the manual providing a permuted
+cross-reference to all the material.
+It gives references to both the manual pages and the introductory material
+which should provide enough information to clarify any difficulties in
+understanding.

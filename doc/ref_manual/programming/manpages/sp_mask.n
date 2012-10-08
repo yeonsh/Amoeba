@@ -1,0 +1,66 @@
+.\"	@(#)sp_mask.n	1.4	96/02/15 16:56:17
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren, 1990
+	Document: Greg Sharp, May 1990
+.aE
+.mT "sp_mask" L "libamoeba.a, libamunix.a"
+returns the information from the
+.cW SPMASK
+environment variable
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "capset.h"
+#include "soap/soap.h"
+
+int
+sp_mask(ncols, cols)
+int ncols;
+long cols[];
+.eC
+.SH
+Description
+.LP
+.kW "\fIsp_mask\fP"
+.kW "column masks"
+.kW "SPMASK environment variable"
+.I Sp_mask
+reads the string environment variable
+.cW SPMASK
+and returns the column masks described therein in
+.I cols .
+The parameter
+.I ncols
+gives the size of the array
+.I cols .
+The function returns the actual number of columns it filled in.
+If the environment variable is not defined it returns 0xFF for the
+number of columns specified by
+.I ncols .
+.LP
+The value of
+.cW SPMASK
+is used by several utilities to provide a default set of column masks for
+new directory entries.
+.mH
+Environment Variables
+.LP
+.cW SPMASK
+is expected to be a colon separated list of rights masks.
+The default base is 10 but base 16 can be used by preceding the digits with 0x.
+For example,
+.sC
+SPMASK=0xff:0xf:0x2:0x8
+.eC
+.SH
+See Also
+.LP
+soap(A),
+soap(L).

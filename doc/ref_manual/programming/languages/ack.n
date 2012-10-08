@@ -1,0 +1,266 @@
+.\"	@(#)ack.n	1.6	96/02/15 16:45:57
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Part of the Sept 83 CACM Paper on ACK
+		 + Gregory J Sharp, November 1990
+	Modified: Gregory J Sharp, Feb 1996
+.aE
+.bp
+.tr ~
+.nH 1 "The Amsterdam Compiler Kit (ACK)"
+.LP
+.SH
+Introduction
+.LP
+.kW ACK
+The Amsterdam Compiler Kit (ACK) is an integrated collection of programs
+designed to simplify the task of producing portable (cross) compilers and
+interpreters.
+.kW "front end"
+For each language to be compiled, a program (called the
+.I "front end" )
+must be written to translate the source program into a common intermediate code
+called
+.kW EM
+.cW EM
+(short for Encoding Machine).
+The
+.cW EM
+code can be optimized and then either directly interpreted or translated into
+the assembly language of the desired target machine using a program called the
+.kW "back end"
+.I "back end" .
+.LP
+The ideal situation would be an integrated system containing a family
+of (cross) compilers, each compiler accepting a standard source language and
+producing code for a wide variety of target machines.
+Furthermore, the compilers should be compatible, so programs written in
+one language can call procedures written in another language.
+This has largely been achieved.
+.LP
+ACK consists of a number of parts that can be combined to form compilers
+(and interpreters) with various properties.
+It is based on the idea of a
+.I "Universal Computer Oriented Language"
+(UNCOL) that was first suggested in 1960,
+but which never really caught on then.
+The problem which UNCOL attempts to solve is how to make a compiler for
+each of
+.I N
+languages on
+.I M
+different machines without having to write
+.I N
+x
+.I M
+programs.
+.LP
+The UNCOL approach is to write
+.I N
+``front ends,'' each
+of which translates one source language to a common intermediate language,
+UNCOL , and
+.I M
+"back ends," each
+of which translates programs in UNCOL to a specific machine language.
+.LP
+Under these conditions, only
+.I N
++
+.I M
+programs must be written to provide all
+.I N
+languages on all
+.I M
+machines, instead of
+.I N
+x
+.I M
+programs.
+.LP
+Previous attempts to develop a suitable intermediate language have not become
+popular because they were over ambitious and attempted to support all languages
+and target architectures.
+ACK's approach is more modest: it caters only to algebraic languages
+and machines whose memory consists of 8-bit bytes, each with its own address.
+Typical languages that could be handled include
+Ada, ALGOL 60, ALGOL 68, BASIC, C, FORTRAN,
+Modula, Pascal, PL/I, PL/M, and RATFOR,
+whereas COBOL, LISP, and SNOBOL would be less efficient.
+Examples of machines that could be included are the Intel 8080 and 80x86,
+Motorola 6800, 6809, and 680x0, Zilog Z80 and Z8000, DEC PDP-11 and VAX,
+and IBM 370 but not the Burroughs 6700, CDC Cyber, or Univac 1108 (because
+they are not byte-oriented).
+With these restrictions, the old UNCOL idea has been used as the
+basis of a practical compiler-building system.
+.SH
+An Overview of the Amsterdam Compiler Kit
+.LP
+.kW ACK
+The tool kit consists of eight components:
+.DS
+  1. The preprocessor.
+  2. The front ends.
+  3. The peephole optimizer.
+  4. The global optimizer.
+  5. The back end.
+  6. The target machine optimizer.
+  7. The universal assembler/linker.
+  8. The utility package.
+.DE
+.LP
+A fully optimizing compiler,
+depicted in
+.fX ,
+has seven cascaded phases.
+Conceptually, each component reads an input file and writes a
+output file to be used as input to the next component.
+In practice, some components may use temporary files to allow multiple
+passes over the input or internal intermediate files.
+.LP
+.f1
+.PS
+.ps-4
+.vs-2
+boxwid=.6
+boxht=.6
+box invis "source" "program"
+line from last box.n up 0.5
+right
+line -> 0.15
+B1: box "Pre-" "processor"
+arrow up 0.7 right 0.25
+right
+B2: box "Front" "End 1"
+move to B1.e right 0.25
+box invis "\(bu" "\(bu" "\(bu"
+move to B1.e
+arrow down 0.7 right 0.25
+right
+B3: box "Front" "End N"
+arrow from B3.e up 0.7 right 0.25
+arrow from B2.e down 0.7 right 0.25
+right
+B4: box "Peephole" "Optimizer"
+line -> 0.15
+box "Global" "Optimizer"
+line -> 0.15
+B5: box "Back" "End"
+line -> 0.15
+B6: box "Target" "Optimizer"
+line -> 0.15
+B7: box "Universal" "Assembler-" "Linker"
+line 0.15
+down
+arrow
+box invis "Object" "Program"
+move to B4.s down 0.5
+down
+B8: box invis "machine" "independent" "table"
+arrow from last box.n to B4.s
+move to B6.s down 0.5
+B9: box invis "machine" "dependent" "tables"
+arrow from B9.n to B5.s
+arrow from B9.n to B6.s
+arrow from B9.n to B7.s
+.ps
+.vs
+.PE
+.f2
+Structure of the Amsterdam Compiler Kit.
+.f3
+.LP
+.kW ACK
+In the following paragraphs we will briefly describe each component.
+A program to be compiled is first fed into the (language independent)
+preprocessor, which provides a simple macro facility,
+and similar textual facilities.
+The preprocessor's output is a legal program in one of the programming
+languages supported, whereas the input is a program possibly augmented
+with macros, etc.
+.LP
+This output goes into the appropriate front end, whose job it is to
+produce intermediate code.
+This intermediate code (our UNCOL) is the machine language for a simple
+stack machine called
+.kW EM
+.cW EM .
+A typical front end might build a parse tree from the input, and then
+use the parse tree to generate
+.cW EM
+code, which is similar to reverse-Polish.
+In order to perform this work, the front end has to maintain tables of
+declared variables, labels, etc., determine where to place the
+data structures in memory, and so on.
+.LP
+The
+.cW EM
+code generated by the front end is fed into the peephole optimizer,
+which scans it with a window of a few instructions, replacing certain
+inefficient code sequences by better ones.
+Such a search is important because
+.cW EM
+contains instructions to handle numerous important special cases efficiently
+(for example, incrementing a variable by 1).
+The strategy is to relieve the front ends of the burden of hunting for
+special cases because there are many front ends and only one peephole
+optimizer.
+By handling the special cases in the peephole optimizer,
+the front ends become simpler, easier to write and easier to maintain.
+.LP
+Following the peephole optimizer is a global optimizer, which
+unlike the peephole optimizer, examines the program as a whole.
+It builds a data flow graph to make possible a variety of
+global optimizations,
+among them, moving invariant code out of loops, avoiding redundant
+computations, live/dead analysis and eliminating tail recursion.
+Note that the output of the global optimizer is still
+.KW EM
+.cW EM
+code.
+.LP
+Next comes the back end, which differs from the front ends in a
+fundamental way.
+Each front end is a separate program, whereas the back end is a single
+program that is driven by a machine dependent driving table.
+The driving table for a specific machine tells how the
+.cW EM
+code is mapped onto the machine's assembly language.
+Although a simple driving table might just macro expand each
+.cW EM
+instruction into a sequence of target machine instructions,
+a much more sophisticated translation strategy is normally used,
+as described later.
+For speed, the back end does not actually read in the driving table at run-time.
+Instead, the tables are compiled along with the back end in advance, resulting
+in one binary program per machine.
+.LP
+.kW ACK
+The output of the back end is a program in the assembly language of some
+particular machine.
+The next component in the pipeline reads this program and performs peephole
+optimization on it.
+The optimizations performed here involve idiosyncrasies
+of the target machine that cannot be performed in the machine-independent
+.KW EM
+EM-to-EM peephole optimizer.
+Typically these optimizations take advantage of special instructions or special
+addressing modes.
+.LP
+The optimized target machine assembly code then goes into the final
+component in the pipeline, the universal assembler/linker.
+This program assembles the input to object format, extracting routines from
+libraries and including them as needed.
+.LP
+The final component of the tool kit is the utility package, which contains
+various test programs, interpreters for
+.cW EM
+code,
+.KW EM
+.cW EM
+libraries, conversion programs, and other aids for the implementer and
+user.

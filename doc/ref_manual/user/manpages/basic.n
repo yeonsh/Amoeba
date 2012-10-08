@@ -1,0 +1,71 @@
+.\"	@(#)basic.n	1.3	94/04/05 15:52:47
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: From ACK
+	Document: Gregory J. Sharp, May 1991
+.aE
+.mT "basic" U
+the ACK basic compiler
+.SH
+Synopsis
+.LP
+.sC L
+basic [-o filename] file1 [file2 ...]
+.eC
+.SH
+Description
+.LP
+.kW "BASIC"
+.kW "compiler"
+.kW "programming language"
+.kW "ACK"
+.kW "\fIack\fP"
+.I Basic
+calls the ACK basic compiler.
+All the standard options of ACK work with it (see
+.I ack (U)).
+Basic source code files should have the suffix
+.I .b .
+All other files will be interpreted as either source for other languages
+or object files to be passed to the linker.
+.mH
+Options
+.LP
+.IP "\fB\-o\fP filename"
+.br
+The output of the link editor is stored in
+.I filename .
+The default it
+.I a.out .
+.LP
+For details of other options see
+.I ack (U).
+.mH
+Diagnostics
+.LP
+Complaints about bad magic numbers are from the link editor and are usually
+the result of an incorrect file name suffix.
+.mH
+Warnings
+.LP
+All source lines must be numbered in this version of basic or else the
+compiler will complain.
+.SH
+Example
+.LP
+To compile the basic program in the file
+.I prog.b
+issue the command:
+.sC
+basic -o prog prog.b
+.eC
+The resultant executable will be stored in the file
+.I prog .
+.SH
+See Also
+.LP
+ack(U).

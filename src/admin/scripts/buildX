@@ -1,0 +1,143 @@
+#!/bin/sh
+#	
+#	@(#)buildX	1.13	96/03/07 14:09:35
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	Shell script to build the X11R6 tree (under Unix!) for Amoeba
+#
+USAGE="Usage: $0 [-c] conf-root src-root arch toolset"
+
+if [ $# -ne 5 -a $# -ne 4 ]
+then
+	echo $USAGE
+	exit 1
+fi
+
+case $1 in
+-c)	IncludeContrib=yes
+	shift
+	;;
+-*)	echo $USAGE
+	exit 1
+	;;
+*)	IncludeContrib=no
+	;;
+esac
+
+XARCH=`(machine) 2> /dev/null`
+if [ x$XARCH = x ]
+then
+    XARCH=`(arch) 2> /dev/null`
+fi
+if [ x$XARCH = x ]
+then
+    echo "Cannot deduce architecture of this host"
+    exit 1
+fi
+
+TOP=`amdir`
+CONF=$1
+ARCH=$3
+TOOLSET=$4
+XCONF=$CONF/$ARCH.$TOOLSET/X11R6
+XORIG=$2/X11R6
+XAM=$2/X11R6.am
+
+#
+#	Get on with the work ...
+#
+if [ ! -d $XCONF ]
+then
+    echo Creating directory: $XCONF
+    mkdir $XCONF
+fi
+if [ "$IncludeContrib" = yes ]
+then
+    # Since the X11R6 contrib tree contains in fact many of the original
+    # demos and clients, we symlink that as well.
+    cd $XCONF
+    X11R6-lndir $XORIG
+else
+    # Running low on disk space; forget contrib
+    if [ ! -d $XCONF/xc ]
+    then
+        echo Creating directory: $XCONF/xc
+        mkdir $XCONF/xc
+    fi
+    cd $XCONF/xc
+    X11R6-lndir $XORIG/xc
+    cd $XCONF
+fi
+
+echo "Making DeleteFiles.sh"
+(cd $XAM && sh MkDelFiles.sh) >DeleteFiles.sh
+sh DeleteFiles.sh
+echo "Linking in X11R6.am tree"
+X11R6-lndir $XAM .
+#
+# Now we need to paramaterize the Amoeba.cf file, so we copy it and edit it.
+#
+(
+    cd xc/config/cf
+    # get rid of the symlink and have a real local copy of the file
+    cp Amoeba.cf /tmp/Xcf$$
+    rm Amoeba.cf
+    IsAckToolset=0
+    IsGnuToolset=0
+    IsSunToolset=0
+    IsSunProToolset=0
+    ABIN=bin.sun4
+    case $TOOLSET in
+    ack)    IsAckToolset=1;;
+    gnu-2)  IsGnuToolset=1;;
+    sun)    IsSunToolset=1;;
+    sunpro) IsSunProToolset=1
+	    ABIN=bin.sol
+	    ;;
+    esac
+    sed -e s:__AM_TOP__:$TOP: -e s:__AM_CONF__:$CONF: \
+	-e s:__AM_BIN__:$ABIN: \
+	-e s:__AM_ACK_TOOLSET__:$IsAckToolset: \
+	-e s:__AM_SUN_TOOLSET__:$IsSunToolset: \
+	-e s:__AM_SUNPRO_TOOLSET__:$IsSunProToolset: \
+	-e s:__AM_GNU_TOOLSET__:$IsGnuToolset: < /tmp/Xcf$$ > Amoeba.cf
+    /bin/rm -f /tmp/Xcf$$
+)
+# Now start the build
+cd xc
+make -f Makefile.ini BOOTSTRAPCFLAGS="-DAMOEBA -DCROSS_$ARCH -DCROSS_COMPILE" World
+
+# And now we make the contrib software if so desired.
+if [ "$IncludeContrib" = yes ]
+then
+    echo "*************************************"
+    echo "* Building the contributed software *"
+    echo "*************************************"
+    echo
+    # first make the Makefiles
+    cd $XCONF/contrib
+    TOP=..
+    $TOP/xc/config/imake/imake -I$TOP/xc/config/cf -DTOPDIR=$TOP/xc -DCURDIR=$TOP/contrib
+
+    make Makefiles
+
+    # Now build the software we are interested in - the clients.
+    # Some of these might not build but the majority will.
+    cd $XCONF/contrib/programs
+    for i in *
+    do
+	if [ -d $i ]
+	then
+	(
+	    cd $i
+	    echo making in contrib/programs/$i
+	    make depend && make
+	)
+	fi
+    done
+fi
+exit 0

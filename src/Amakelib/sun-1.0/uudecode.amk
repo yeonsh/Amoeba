@@ -1,0 +1,20 @@
+#	
+#	@(#)uudecode.amk	1.2	94/04/06 10:37:36
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#  uudecode tool for SunOS
+#
+%instance deftypesuffix(uuencoded, '%.o.uue');
+
+%tool uudecode (
+    src:      %in         [type = uuencoded];
+    object:   %out        [type = loadable]         => match($src);
+    program:  %in         [type = command]          => uudecode;
+)
+{
+    exec($program, args => $src);
+};

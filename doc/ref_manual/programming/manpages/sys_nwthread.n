@@ -1,0 +1,243 @@
+.\"	@(#)sys_nwthread.n	1.6	96/02/15 16:56:57
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, pre-1989
+	Document: Peter Bosch, Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "sys_newthread" L "libamoeba.a"
+low-level thread management
+.SH
+Synopsis
+.LP
+.sC L
+#include "thread.h"
+
+int sys_newthread(func, sp, local)
+void exitthread(done)
+struct thread_data *sys_getlocal()
+void thread_en_preempt(thread_local_addr)
+.eC
+.SH
+Description
+.LP
+.B Beware!
+.kW "\fIexitthread\fP"
+.kW "\fIsys_getlocal\fP"
+.kW "\fIsys_newthread\fP"
+.kW "\fIthread_en_preempt\fP"
+.kW "thread creation"
+.kW "glocal data"
+.kW "local"
+.kW "per-thread data"
+.kW "RPC_FAILURE"
+This manual page is only presented for completeness.
+Application programs should use
+.I thread (L)
+to create threads and to manipulate glocal data.
+.LP
+The calls
+.I sys_newthread ,
+.I exitthread ,
+.I sys_getlocal
+and
+.I thread_en_preempt
+form the lowest level interface to \*(Am's multiple threads facility.
+In the current version of \*(Am,
+threads by default run till completion: another thread in a process is
+only run if a thread exits, executes a blocking system call (for example, see
+.I rpc (L))
+or calls
+.I threadswitch (see
+thread_scheduling (L)).
+Preemptive scheduling must be requested explicitly using
+.I thread_enable_preemption
+(see
+.I thread_scheduling (L)).
+Programs should not rely on the current default scheduling policy.
+They should always properly protect their
+access to shared data with mutexes (see
+.I mutex (L)).
+.LP
+To allow the implementation of
+.I glocal
+data (see
+.I thread (L)),
+each thread has an associated ``local value''.
+This local value is stored in the kernel's per-thread data.
+It can be retrieved at any time by calling
+.I sys_getlocal() .
+A thread's local value is set once and for all when the thread is created;
+the main thread's local value is zero, for other threads the
+value is the third argument passed to
+.I sys_newthread .
+.LP
+A copy of the local value of the current thread is usually kept in the
+global variable
+.I _thread_local .
+When the program only uses non-preemptive scheduling,
+this variable can be kept up-to-date by the system call stubs (executing in
+user space): on entry, each stub saves the current value of
+.I _thread_local
+on the stack; before returning, it restores
+.I _thread_local
+from the stack.
+Certain architectures use a different strategy whereby
+.I _thread_local
+variable is not saved; instead, a \(mi1 is stored in it when the call returns.
+The routines that implement
+.I thread (L)
+know this and test
+.I _thread_local
+for \(mi1,
+and use
+.kW "\fIsys_getlocal\fP"
+.I sys_getlocal
+to restore the true local value.
+(There are also interactions with signal catchers that are taken care of
+by the implementation of
+.I signals (L).)
+.LP
+When preemptive scheduling is used, a different mechanism is required.
+The system call
+.I thread_en_preempt ,
+which should only be called via
+.I thread_enable_preemption (see
+.I thread_scheduling (L)),
+has a parameter that will cause the kernel to update the
+.I _thread_local
+pointer whenever a thread is being rescheduled.
+.LP
+Because the thread's local value and the
+.I _thread_local
+variable are used by the implementation of
+.I thread (L),
+they should not be touched by application programs.
+In fact all calls described in this manual page are unsafe in programs that
+use
+.I thread (L);
+and since
+.I thread (L)
+is used by
+.I stdio
+and many other functions described in
+.I ansi_C (L)
+and
+.I posix (L),
+they are unsafe in almost all programs.
+Furthermore,
+the current thread package may be replaced by one that runs entirely in
+user space and these routines would then be obsolete.
+.ne 10
+.mH
+Functions
+.sH
+sys_newthread
+.LP
+.sC
+int
+sys_newthread(func, sp, local)
+void (*func)();
+struct thread_data *sp;
+struct thread_data *local;
+.eC
+.kW "\fIsys_newthread\fP"
+.I Sys_newthread
+is the low level kernel stub to spawn a new thread in the current process.
+The thread's execution starts with a call to (*func)() with no arguments.
+The function should never return.
+The stack pointer of the new thread is initialized to
+.I sp ;
+the local value of the new thread is initialized to
+.I local .
+Note that the stack pointer must point to at least 512 bytes of space.
+Otherwise the calling program will be killed.
+.LP
+The new thread does not run immediately; the current thread keeps
+running until it exits, blocks or calls
+.I threadswitch.
+.LP
+.I Sys_newthread
+returns \(mi1 upon failure (caused by lack of resources to
+create another thread in the kernel) and zero upon success.
+.sH
+exitthread
+.LP
+.sC
+void
+exitthread(done)
+long *done;
+.eC
+.kW "\fIexitthread\fP"
+.I Exitthread
+is the low level kernel stub to exit a thread.
+When the thread is created by
+.I thread_newthread
+it is advisable to exit the thread using
+.I thread_exit
+(see
+.I thread (L)),
+since
+.I exitthread
+does not cleanup previously allocated stacks or memory blocks.
+The parameter
+.I done
+specifies the address of a variable that will be set to one
+by the kernel as soon as the thread has exited.
+This allows others threads to see when it is safe to free
+the resources that were allocated for the thread.
+When the calling thread is a server and it is serving
+a client, the client will receive an
+.cW RPC_FAILURE
+(see
+.I rpc (L)).
+.I Exitthread
+never returns.
+.sH
+sys_getlocal
+.LP
+.sC
+struct thread_data *
+sys_getlocal()
+.eC
+.kW "\fIsys_getlocal\fP"
+.I Sys_getlocal
+returns the
+.I _thread_local
+value for a thread (see above).
+.sH
+thread_en_preempt
+.LP
+.sC
+void
+thread_en_preempt(thread_local_addr)
+struct thread_data **thread_local_addr;
+.eC
+.kW "\fIthread_en_preempt\fP"
+.I Thread_en_preempt
+enables preemptive scheduling for the calling process.
+It also requests the kernel to update the pointer
+whose address is given as argument whenever a new thread
+within the process is scheduled.
+The pointer is set to the ``local value'' of the thread to be run next.
+Typically,
+the user level stub
+.I thread_enable_preemption
+will just do
+.sC
+thread_en_preempt(&_thread_local);
+.eC
+.SH
+See Also
+.LP
+ansi_C(L),
+posix(L),
+rpc(L),
+signals(L),
+thread(L),
+thread_scheduling(L).

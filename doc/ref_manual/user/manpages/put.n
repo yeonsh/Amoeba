@@ -1,0 +1,61 @@
+.\"	@(#)put.n	1.4	96/02/16 11:06:49
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "put" U
+put a capability-set into a new directory entry specified by name
+.SH
+Synopsis
+.LP
+.sC L
+put [-f] pathname
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "create directory entry"
+.kW "capability-set"
+.I Put
+reads a capability-set from standard input and uses
+.I sp_append(L)
+to enter it into the directory server under the specified
+.I pathname .
+Normally, the path name must not already exist in the directory server,
+but the use of
+.B \-f
+causes any existing capability-set entered under that name to be replaced using
+.I sp_replace(L).
+The object(s) referred to by any existing capability-set are not destroyed
+when it is replaced.
+.LP
+If the input does not look like a capability-set or the path name cannot be
+created in the directory server, a suitable error message will be printed.
+No check for the validity of the capabilities in the set is performed.
+.SH
+Example
+.LP
+.kW "\fIget\fP"
+.sC
+get /home/oldname | put /home/newname
+.eC
+will install
+.I /home/newname
+in the directory server as a synonym for
+.I /home/oldname .
+.SH
+See Also
+.LP
+chm(U),
+del(U),
+dir(U),
+get(U),
+getdelput(U),
+mkd(U).

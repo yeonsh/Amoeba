@@ -1,0 +1,75 @@
+.\"	@(#)getcap.n	1.5	96/02/15 16:49:38
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Source: anonymous, pre-1988
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "getcap" L "libamoeba.a, libamunix.a"
+get environment capability
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+
+capability *
+getcap(name)
+char name[];
+.eC
+.SH
+Description
+.LP
+.kW "\fIgetcap\fP"
+.kW "capability environment"
+.kW "capability"
+.kW "environment"
+.I Getcap
+returns a pointer to the environment capability
+.I name .
+.mH
+Diagnostics
+.LP
+.I Getcap
+returns NULL when no capability
+.I name
+exists.
+.mH
+Environment Capabilities
+.LP
+Here is a list of commonly used environment capabilities:
+.DS
+.ta 4c
+\*<ROOT\*>	The root directory
+\*<WORK\*>	The working directory
+\*<STDIN\*>	Standard input
+\*<STDOUT\*>	Standard output
+\*<STDERR\*>	Diagnostics output
+\*<_SESSION\*>	The session server
+\*<TTY\*>	The current terminal
+.DE
+.mH
+Warnings
+.LP
+There is no capability environment under
+.UX
+so
+.I getcap
+always returns NULL.
+.SH
+Example
+.LP
+To find the capability for '/':
+.sC
+capability *slashcap;
+slashcap = getcap("ROOT");
+.eC
+.SH
+See Also
+.LP
+envcap(U).

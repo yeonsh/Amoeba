@@ -1,0 +1,388 @@
+.\"	@(#)tape.n	1.6	96/02/15 16:57:00
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Peter Bosch, 1989
+	Document: Peter Bosch, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "tape" L "libamoeba, libamunix.a"
+tape server stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/tape.h"
+
+errstat tape_erase(cap)
+errstat tape_fpos(cap, pos)
+errstat tape_fskip(cap, count)
+errstat tape_load(cap)
+errstat tape_read(cap, buf, record_size, xread)
+errstat tape_rewind(cap, immediate)
+errstat tape_rpos(cap, pos)
+errstat tape_rskip(cap, count)
+errstat tape_status(cap, buf, size)
+errstat tape_unload(cap)
+errstat tape_write(cap, buf, record_size, xwritten)
+errstat tape_write_eof(cap)
+char *tape_why(err)
+.eC
+.SH
+Description
+.LP
+.kW "tape.h"
+.kW "\fItape_erase\fP"
+.kW "\fItape_fpos\fP"
+.kW "\fItape_fskip\fP"
+.kW "\fItape_load\fP"
+.kW "\fItape_read\fP"
+.kW "\fItape_rewind\fP"
+.kW "\fItape_rpos\fP"
+.kW "\fItape_rskip\fP"
+.kW "\fItape_status\fP"
+.kW "\fItape_unload\fP"
+.kW "\fItape_write\fP"
+.kW "\fItape_write_eof\fP"
+.kW "\fItape_why\fP"
+.kW "tape server"
+.kW "write protected"
+.kW "tape marker"
+.kW "tape record"
+.kW "End-Of-File"
+.kW "rewind"
+.kW "tape controllers"
+.kW "file position"
+.kW "record position"
+Along with the standard server stubs (see
+.I std(L))
+the tape server stubs provide the programmer's interface to the tape server.
+.mH
+Errors
+.LP
+All functions return the error status of the operation.
+The user interface to the tape server returns standard error codes
+(as defined in
+.I stderr.h )
+and tape errors which are listed below.
+Since all the stubs involve transactions they
+may return any of the standard RPC error codes.
+A valid capability is required for all tape operations.
+Tape stubs will return
+.cW STD_CAPBAD
+if an invalid capability is used.
+If illegal parameters (such as NULL-pointers or negative buffer sizes) are
+given,
+exceptions may occur rather than an error status being returned.
+The behavior is not well defined under these conditions.
+.LP
+The following tape errors are defined:
+.kW "TAPE_NOTAPE"
+.kW "TAPE_WRITE_PROT"
+.kW "TAPE_CMD_ABORTED"
+.kW "TAPE_BOT_ERR"
+.kW "TAPE_EOF"
+.kW "TAPE_REC_DAT_TRUNC"
+.kW "TAPE_POS_LOST"
+.kW "TAPE_EOT"
+.kW "TAPE_MEDIA_ERR"
+.br
+.IP \*<TAPE_NOTAPE\*> 25
+The tape unit is off-line or there is no tape available.
+.IP \*<TAPE_WRITE_PROT\*>
+The tape is write protected.
+.IP \*<TAPE_CMD_ABORTED\*>
+The last command has been aborted.
+.IP \*<TAPE_BOT_ERR\*>
+While repositioning, hit begin of tape marker.
+.IP \*<TAPE_EOF\*>
+Found an EOF marker.
+.IP \*<TAPE_REC_DAT_TRUNC\*>
+Tape record longer than expected.
+.IP \*<TAPE_POS_LOST\*>
+Tape record position lost.
+.IP \*<TAPE_EOT\*>
+End of tape reached.
+.IP \*<TAPE_MEDIA_ERR\*>
+Tape format error.
+.LP
+The user should be aware that the maximum transfer size (record reads/writes)
+is dependent on hardware (the tape controllers) and the maximum transaction
+buffer size of \*(Am (30,000 bytes, truncated to 29K).
+.sH
+tape_load
+.LP
+.sC
+errstat
+tape_load(cap)
+capability *cap;
+.eC
+.kW "\fItape_load\fP"
+.I Tape_load
+loads a tape on the tape unit identified by
+.I cap
+and positions it at the beginning of medium.
+.sH
+tape_read
+.LP
+.sC
+errstat
+tape_read(cap, buf, record_size, xread)
+capability *cap;
+bufptr buf;
+bufsize record_size;
+bufsize *xread;
+.eC
+.kW "\fItape_read\fP"
+.I Tape_read
+reads
+.I record_size
+bytes from the tape specified by
+.I cap
+to buffer
+.I buf .
+The number of bytes actually read is returned in
+.I xread .
+If
+.I record_size
+bytes are requested from a tape while the tape record is larger,
+.I tape_read
+will fail (\*<TAPE_REC_DAT_TRUNC\*>).
+.sH
+tape_write
+.LP
+.sC
+errstat
+tape_write(cap, buf, record_size, xwritten)
+capability *cap;
+bufptr buf;
+bufsize record_size;
+bufsize *xwritten;
+.eC
+.kW "\fItape_write\fP"
+.I Tape_write
+writes
+.I record_size
+bytes from buffer
+.I buf
+to the tape specified by
+.I cap.
+The number of bytes actually written is returned in
+.I xwritten.
+.sH
+tape_write_eof
+.LP
+.sC
+errstat
+tape_write_eof(cap)
+capability *cap;
+.eC
+.LP
+.kW "\fItape_write_eof\fP"
+.I Tape_write_eof
+writes an
+.I End-Of-File
+marker on the tape specified by
+.I cap.
+.sH
+tape_rewind
+.LP
+.sC
+errstat
+tape_rewind(cap, immediate)
+capability *cap;
+int immediate;
+.eC
+.kW "\fItape_rewind\fP"
+.I Tape_rewind
+rewinds the tape specified by
+.I cap
+to its beginning.
+When
+.I immediate
+is set,
+.I tape_rewind
+returns immediately without waiting for the rewind to complete.
+.sH
+tape_unload
+.LP
+.sC
+errstat
+tape_unload(cap)
+capability *cap;
+.eC
+.kW "\fItape_unload\fP"
+.I Tape_unload
+rewinds and unloads the tape specified by
+.I cap.
+This command does not wait until the
+tape is physically rewound and unloaded.
+Some tape controllers cannot unload a tape by themselves;
+they rewind the tape and wait for an operator to unload the tape manually.
+.sH
+tape_rskip
+.LP
+.sC
+errstat
+tape_rskip(cap, count)
+capability *cap;
+int32 count;
+.eC
+.kW "\fItape_rskip\fP"
+.I Tape_rskip
+skips
+.I count
+records on the tape specified by
+.I cap.
+Positive counts result in forward record skipping, negative counts result in
+backward record skipping.
+Since EOF markers are normal tape records for certain tape controllers
+skipping records might result in skipping files without noticing.
+After a record skip, the tape file position may be uncertain.
+.DE
+.sH
+tape_rpos
+.LP
+.sC
+errstat
+tape_rpos(cap, pos)
+capability *cap;
+int32 *pos;
+.eC
+.kW "\fItape_rpos\fP"
+.I Tape_rpos
+returns the current tape record position in the variable pointed to by
+.I pos.
+.sH
+tape_fpos
+.LP
+.sC
+errstat
+tape_fpos(cap, pos)
+capability *cap;
+int32 *pos;
+.eC
+.kW "\fItape_fpos\fP"
+.I Tape_fpos
+returns the current tape file position in the variable pointed to by
+.I pos.
+.sH
+tape_fskip
+.LP
+.sC
+errstat
+tape_fskip(cap, count)
+capability *cap;
+int32 count;
+.eC
+.kW "\fItape_fskip\fP"
+.I Tape_fskip
+skips
+.I count
+EOF markers on the tape specified by
+.I cap.
+Positive counts result in forward file skipping, negative
+counts result in backward file skipping.
+A forward tape file skip causes the tape to be positioned at the beginning of
+the desired file, a backward file skip causes the tape to be positioned at the
+end of the desired file (actually at the EOF marker).
+.sH
+tape_erase
+.LP
+.sC
+errstat
+tape_erase(cap)
+capability *cap;
+.eC
+.kW "\fItape_erase\fP"
+.I Tape_erase
+formats the complete tape specified by
+.I cap.
+The current data is destroyed.
+.sH
+tape_status
+.LP
+.sC
+errstat
+tape_status(cap, buf, size)
+capability *cap;
+bufptr *buf;
+bufsize size;
+.eC
+.kW "\fItape_status\fP"
+.I Tape_status
+returns a NULL-terminated ASCII string in buffer
+.I buf
+which reports the status of the tape specified by
+.I cap.
+The ASCII string size is
+.I size.
+.sH
+tape_why
+.LP
+.sC
+char *
+tape_why(err)
+errstat err;
+.eC
+.kW "\fItape_why\fP"
+.I Tape_why
+returns a NULL-terminated ASCII string which describes the tape error
+.I err.
+It calls
+.kW "\fIerr_why\fP"
+.I err_why
+(see
+.I error (L))
+if it does not recognize the error code.
+.SH
+Examples
+.LP
+The following example loads a tape, skips 10 records, reads a record of
+.I size
+bytes and unloads the tape.
+.sC
+do_tape(cap, buf, size)
+capability *cap;
+bufptr  buf;
+bufsize size;
+{
+    errstat rv;
+    bufsize xread;
+
+    /* load tape */
+    if ((rv = tape_load(cap)) != STD_OK) {
+	printf("Cannot load tape: %s\en", tape_why(rv));
+	exit(1);
+    }
+
+    /* skip 10 records forwards */
+    if ((rv = tape_rskip(cap, 10)) != STD_OK) {
+	printf("Cannot skip on tape: %s\en", tape_why(rv));
+	exit(1);
+    }
+
+    /* read a record of size bytes */
+    if ((rv = tape_read(cap, buf, size, &xread)) != STD_OK) {
+	printf("Cannot read tape: %s\en", tape_why(rv));
+	exit(1);
+    }
+
+    /* unload the tape */
+    if ((rv = tape_unload(cap)) != STD_OK) {
+	printf("Cannot unload tape: %s\en", tape_why(rv));
+	exit(1);
+    }
+    return(xread);
+}
+.eC
+.SH
+See Also
+.LP
+error(L),
+std(L).

@@ -1,0 +1,46 @@
+#	
+#	@(#)Amakefile	1.4	96/02/16 15:39:57
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/util/acv/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/ack/h,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/h/machdep/arch,
+	-I$SRC_ROOT/h/posix,
+};
+
+# No ELF support on Amoeba by default.
+DEFINES = -DNO_ELF_AOUT;
+
+HOST_INCLPATH = { /usr/include, /usr/include/sys };
+
+# Whether we support a.out depends on the system we're compiling on:
+%if (vpath(a.out.h, $HOST_INCLPATH) == '.', {
+	echo('No support for Unix a.out binaries on this system.');
+	DEFINES = $DEFINES + -DNO_UNIX_AOUT;
+});
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+LIBRARIES = {
+        $CONF_ROOT/lib/ack_modules/object/libobject.a,
+        $LIB_AMOEBA
+};
+
+LINTLIBS = {
+        $CONF_ROOT/lib/ack_modules/object/llib-lobject.ln,
+        $LINT_AMOEBA
+};
+
+%instance gcluster(acv, $U_ACV, $LIBRARIES, $LINTLIBS);
+

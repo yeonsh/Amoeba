@@ -1,0 +1,237 @@
+.\"	@(#)host.n	1.2	96/02/16 11:01:29
+.aU
+	Software: Berkeley
+	Document: Original from Berkeley
+	Modified: Gregory J. Sharp, April 1992 - conformance with amoeba style
+.aE
+.mT host U
+look up host names using domain name server
+.SH
+Synopsis 
+.LP
+.sC L
+host [-l] [-v] [-w] [-r] [-d] [-t querytype] [-a] host [server] 
+.eC
+.SH
+Description 
+.LP
+.I Host
+looks for information about Internet hosts.
+.kW "TCP/IP"
+.kW "Internet"
+The Internet is accessed via the TCP/IP server.
+It gets this information from a set of interconnected servers that are spread
+across the world.
+By default, it simply converts between host names and Internet addresses.
+However with the
+.B \-t
+or
+.B \-a
+options, it can be used to find all of the information maintained by the
+domain server about a particular host.
+.LP
+The arguments can be either host names or host numbers.
+The program first attempts to interpret them as host numbers.
+If this fails,
+it will treat them as host names.
+A host number consists of first decimal numbers separated by dots,
+e.g., 128.6.4.194
+A host name consists of names separated by dots,
+e.g.,
+.I topaz.rutgers.edu .
+Unless the name ends in a dot, the local domain
+is automatically tacked on the end.
+Thus a Rutgers user can say \*<host topaz\*>, and it will actually look up
+.I topaz.rutgers.edu .
+If this fails, the name is tried unchanged (in this case,
+.I topaz ).
+This same convention is used for mail and other network utilities.
+The actual suffix to tack on the end is obtained
+by looking at the results of a
+.I hostname
+call, and using everything starting at the first dot.
+(See below for a description of how to customize the host name lookup.) 
+.LP
+The first argument is the host name to look up.
+If this is a number, an ``inverse query'' is done.
+That is,
+the domain system looks in a separate set of databases used to convert numbers
+to names.
+.LP
+The second argument is optional.
+It allows the specification of a particular server to query.
+If this argument is not specified the default server (normally the local
+machine) is used.
+.LP
+If a name is specified, output of three different kinds may appear.
+Here is an example that shows all of them:
+.sC
+% host sun4
+sun4.rutgers.edu is a nickname for ATHOS.RUTGERS.EDU
+ATHOS.RUTGERS.EDU has address 128.6.5.46
+ATHOS.RUTGERS.EDU has address 128.6.4.4
+ATHOS.RUTGERS.EDU mail is handled by ARAMIS.RUTGERS.EDU
+.eC
+The first line indicates that the name
+.I sun4.rutgers.edu
+is actually a nickname.
+The official host name is
+.I ATHOS.RUTGERS.EDU .
+The next two lines show the address(es).
+If a system has more than one network interface, there
+will be a separate address line for each interface.
+The last line indicates that
+.I ATHOS.RUTGERS.EDU
+does not receive its own mail.
+Mail for it is taken by
+.I ARAMIS.RUTGERS.EDU .
+There may be more than one such line,
+since some systems have more than one other system
+that will handle mail for them.
+Technically, every system that can receive mail is supposed to have an entry
+of this kind.
+If the system receives its own mail, there should be an entry
+that mentions the system itself, for example
+``XXX mail is handled by XXX''.
+However many systems that receive their own mail do not bother to mention that
+fact.
+If a system has a ``mail is handled by'' entry, but no address, this indicates
+that it is not really part of the Internet, but a system that is
+on the network will forward mail to it.
+Systems on Usenet, Bitnet,
+and a number of other networks have entries of this kind.
+.mH
+Options
+.LP
+There are a number of options that can be used before the host name.
+Most of these options are meaningful only to the
+staff who have to maintain the domain database.
+.LP
+The option
+.B \-w
+causes host to wait forever for a response.
+Normally it will time out after around a minute.
+.LP
+The option
+.B \-v
+causes printout to be in a ``verbose'' format.
+This is the official domain master file format, which is documented 
+in the manual page for
+.I named
+under
+.UX .
+Without this option, output still follows
+this format in general terms, but some attempt is made to make it
+more intelligible to normal users.
+Without
+.B \-v ,
+``a'', ``mx'', and ``cname'' records
+are written out as ``has address'', ``mail is handled by'', and
+``is a nickname for'', and TTL and class fields are not shown.
+.LP
+The option
+.B \-r
+causes recursion to be turned off in the request.
+This means that the name-server will return only data it has in
+its own database.
+It will not ask other servers for more information.
+.LP
+The option
+.B \-d
+turns on debugging.
+Network transactions are shown in detail.
+.LP
+The option
+.B \-t
+allows specification of a particular type of information to be looked up.
+The arguments are defined in the man page for
+.I named .
+Currently supported types are a, ns, md, mf, cname,
+soa, mb, mg, mr, null, wks, ptr, hinfo, minfo, mx, uinfo,
+uid, gid, unspec, and the wildcard, which may be written
+as either ``any'' or ``*''.
+Types must be given in lower case.
+Note that the default is to look first for ``a'', and then ``mx'', except
+that if the verbose option is turned on, the default is only ``a''.
+.LP
+The option
+.B \-a
+(for ``all'') is equivalent to
+.B "\-v \-t any" .
+.LP
+The option
+.B \-l
+causes a listing of a complete domain.
+For example,
+.sC
+host -l rutgers.edu
+.eC
+will give a listing of all hosts in the
+.I rutgers.edu
+domain.
+The
+.B \-t
+option is used to filter what information is presented, as you 
+would expect.
+The default is address information, which also include PTR and NS records.
+The command
+.sC
+host -l -v -t any rutgers.edu
+.eC
+will give a complete download of the zone data for rutgers.edu,
+in the official master file format.
+(However the SOA record is listed twice, for arcane reasons.)
+NOTE:
+.B \-l
+is implemented by doing a complete zone transfer and then filtering out the
+requested information.
+This command should be used only if it is absolutely necessary.
+.mH
+Customizing Host Name Lookup
+.LP
+In general, if the name supplied by the user does not
+have any dots in it, a default domain is appended to the end.
+This domain can be defined in
+.I /etc/resolv.conf ,
+but is normally derived by taking the local hostname after its first dot.
+The user can override
+this, and specify a different default domain, using the environment variable
+.cW LOCALDOMAIN .
+In addition, the user can supply his own abbreviations for host names.
+They should be in a file consisting of one line per abbreviation.
+Each line contains an abbreviation, a space, and then the full host name.
+This file must be pointed to by an environment variable
+.cW HOSTALIASES ,
+which is the name of the file.
+.mH
+Warnings
+.LP
+Unexpected effects can happen when a name is typed that is not
+part of the local domain.
+Always keep in mind the fact that the local domain name is tacked
+onto the end of every name, unless it ends in a dot.
+Only if this fails is the name used unchanged.
+.LP
+The
+.B \-l
+option only tries the first name-server listed for the
+domain that you have requested.
+If this server is dead, you may need to specify a server manually.
+For example,
+to get a listing of
+.I foo.edu ,
+one could try
+.sC
+host -t ns foo.edu
+.eC
+to get a list of all the name-servers for
+.I foo.edu ,
+and then try
+.sC
+host -l foo.edu xxx
+.eC
+for all xxx on the list of name-servers, until one is found that works.
+.\".SH
+.\"See Also
+.\".LP
+.\"named(8).

@@ -1,0 +1,200 @@
+#!/bin/sh
+#	
+#	@(#)do_gcc	1.6	96/02/26 16:01:10
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+DEFS=
+INCLUDES=
+FILES=
+OUTPUT=a.out
+OPTS=
+lOPTS=
+ACVOPTS=
+COMPILING=no
+LINKING=no
+Cplusplus=no
+UNIX=no
+DEPS=yes
+TARGET_ARCH=i80386	# default
+GNUBIN=
+SOFTFLOAT=no
+OBJPRODUCED=""
+
+# Need the following absolute paths to avoid problems when creating the
+# Amoeba Ajax utilities.
+basename_prg=/bin/basename
+rm_prg=/bin/rm
+mv_prg=/bin/mv
+sed_prg=/bin/sed
+echo_prg=/bin/echo
+ProtectDef1=""
+ProtectDef2=""
+ProtectDef3=""
+
+# Parse options
+while [ $# -gt 0 ]
+do
+        case $1 in
+        -D*)		case $1 in
+			-D*=*\ *)
+				# Needs special treatment to avoid problems
+				# with expansion; we only support 3 of these.
+				if [ -z "$ProtectDef1" ] ; then
+				    ProtectDef1="$1"
+				elif [ -z "$ProtectDef2" ] ; then
+				    ProtectDef2="$1"
+				elif [ -z "$ProtectDef3" ] ; then
+				    ProtectDef3="$1"
+				fi
+				;;
+			*)	DEFS="$DEFS $1" ;;
+			esac ;;
+        -U*)		DEFS="$DEFS $1" ;;
+        -I*)		INCLUDES="$INCLUDES $1" ;;
+	-G)     	GNUBIN=$2; shift ;;
+	-o)		OUTPUT=$2; OPTS="$OPTS -o $2"; LINKING=yes; shift ;;
+	-[cS])		COMPILING=yes; OPTS="$OPTS $1" ;;
+	-mam_i80386)	TARGET_ARCH=i80386 ;;
+	-mam_mc68000)	TARGET_ARCH=mc68000 ;;
+	-mam_sparc)	TARGET_ARCH=sparc ;;
+	-mam_*)		$echo_prg "architecture $1 not supported" >&2; exit 1 ;;
+	-msoft)		SOFTFLOAT=yes;;
+	-nodeps)	DEPS=no ;;
+	-unix)		UNIX=yes ;;
+	-gdbx)		OPTS="$OPTS $1" ;;
+	-ggdb)		OPTS="$OPTS $1" ;;
+	-gsdb)		OPTS="$OPTS $1" ;;
+	-l*)		lOPTS="$lOPTS $1" ;;
+	-s)		ACVOPTS="$ACVOPTS $1 $2"; shift ;;
+	-E)		OPTS="$OPTS $1"; COMPILING=yes ;;
+	-[LgmnvfO]*)	OPTS="$OPTS $1" ;;
+	-T*)		OPTS="$OPTS $1 $2"; shift ;;
+	-target)	OPTS="$OPTS $1 $2"; shift ;;
+	# -*)		$echo_prg "unknown option $1" >&2; exit 1 ;;
+        -*)		OPTS="$OPTS $1" ;;
+        *.[oa])		FILES="$FILES $1" ;;
+        *.[csS])	FILES="$FILES $1"; COMPILING=yes ;;
+        *.cc|*.C)	FILES="$FILES $1"; COMPILING=yes; Cplusplus=yes ;;
+        *)		$echo_prg "unrecognized argument $1" >&2; exit 1 ;;
+        esac
+	shift
+done
+
+DEFAULT_FLAGS="-fno-builtin -D$TARGET_ARCH"
+
+if [ $DEPS = yes ]
+then
+	DEPFLAG=-MD
+else
+	DEPFLAG=
+fi
+
+case $TARGET_ARCH in
+i80386)	ARCHFLAG=i386;;
+*)	ARCHFLAG=$TARGET_ARCH;;
+esac
+
+# If not specified, use default for GNUBIN.
+if [ "X$GNUBIN" = X ]
+then
+        GNUBIN=`amdir`/bin.`arch`/gnu
+fi
+GNUBIN_ARCHDEP=$GNUBIN/$TARGET_ARCH
+
+if [ $Cplusplus = yes ]
+then	# add standard c++ includes in front
+	INCLUDES="-I$GNUBIN/g++-incl -I$GNUBIN/g++-incl/g++-include $INCLUDES"
+fi
+
+if [ $SOFTFLOAT = yes ]
+then
+	OPTS="$OPTS -msoft-float"
+	case $TARGET_ARCH in
+	i80386)	OPTS="$OPTS -mno-ieee-fp -mno-fp-ret-in-387";;
+	esac
+fi
+
+
+exitval=0
+if [ $COMPILING = yes ]
+then
+	for src in $FILES
+	do
+		extraflags=
+		case $src in
+		*.c)	base=`$basename_prg $src .c`
+			extraflags=$DEFAULT_FLAGS
+			;;
+		*.cc)	base=`$basename_prg $src .cc`
+			extraflags=$DEFAULT_FLAGS
+			;;
+		*.C)	base=`$basename_prg $src .C`
+			extraflags=$DEFAULT_FLAGS
+			;;
+		*.s)	base=`$basename_prg $src .s` ;;
+		*.S)	base=`$basename_prg $src .S` ;;
+		esac
+
+		if [ $DEPS = yes ]
+		then	# First remove dependency file if present
+			if [ -f $base.d ]; then $rm_prg -f $base.d; fi
+		fi
+
+		$GNUBIN_ARCHDEP/gcc $DEPFLAG -nostdlib -b $ARCHFLAG \
+		    -B$GNUBIN_ARCHDEP/ -ansi $OPTS $INCLUDES $DEFS \
+		    ${ProtectDef1:+"$ProtectDef1"} \
+		    ${ProtectDef2:+"$ProtectDef2"} \
+		    ${ProtectDef3:+"$ProtectDef3"} \
+		    $extraflags $src
+		retval=$?
+
+		if [ $DEPS = yes -a $retval = 0 ]
+		then
+			if [ -f $base.d ]
+			then
+				# transform the Make-style deps in Amake deps
+				$sed_prg -e 's/.*:[ 	][ 	]*\(.*\)/\1/' \
+				    -e 's/[ 	][ 	]*\\$//'	\
+				    -e 's/[ 	][ 	]*$//'		\
+				    -e 's/^[ 	][ 	]*//'		\
+				    -e 's/[ 	][ 	]*/\
+/g' <$base.d >$base.deps
+				$mv_prg $base.deps $base.d
+			else
+				$echo_prg "Warning: no dependency file $base.d" >&2
+			fi
+		else
+			if [ $retval = 0 ]
+			then OBJPRODUCED="$OBJPRODUCED $base.o"
+			else exitval=$retval
+			fi
+		fi
+	done
+fi
+
+if [ $LINKING = yes -a $exitval = 0 ]
+then
+	if [ $UNIX = yes ]
+	then
+		LDFLAGS=
+		lOPTS="$lOPTS -lglibc"	# for ansi routines not in libc.a
+# We don't support cross compiling at the moment
+#		case $TARGET_ARCH in
+#		sparc)	 LDEMULATION=sun4;;
+#		mc68000) LDEMULATION=sun3;;
+#		esac
+#		export LDEMULATION
+		gcc $LIBFLAGS -ansi $OPTS $INCLUDES $DEFS $FILES $lOPTS
+		exitval=$?
+	else
+		LDFLAGS="-nostdlib -b $ARCHFLAG -B$GNUBIN/"
+		do_ld -mam_$TARGET_ARCH -o $OUTPUT $ACVOPTS $LIBFLAGS $FILES $lOPTS
+		exitval=$?
+	fi
+
+fi
+
+exit $exitval

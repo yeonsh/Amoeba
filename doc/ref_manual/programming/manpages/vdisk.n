@@ -1,0 +1,281 @@
+.\"	@(#)vdisk.n	1.9	96/03/15 14:02:31
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.EQ
+delim @@
+.EN
+.aU
+	Software: Gregory J. Sharp, Jan 1989 - Feb 1990
+	Document: Gregory J. Sharp, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.ds Vd "Virtual Disk Server
+.mT "vdisk" L "libamoeba.a, libamunix.a"
+the virtual disk server client interface stubs
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "stderr.h"
+#include "module/disk.h"
+
+errstat disk_info(cap, buf, size, cnt)
+errstat disk_read(cap, l2vblksz, start, numblocks, buf)
+errstat disk_size(cap, l2vblksz, size)
+errstat disk_write(cap, l2vblksz, start, numblocks, buf)
+errstat disk_getgeometry(cap, geom)
+.eC
+.SH
+Description
+.LP
+.kW "virtual disk"
+.kW "physical disk"
+.kW "module/disk.h"
+.kW "\fIdisk_info\fP"
+.kW "\fIdisk_read\fP"
+.kW "\fIdisk_size\fP"
+.kW "\fIdisk_write\fP"
+Along with the standard server stubs (see
+.I std (L))
+the virtual disk stubs provide the programmer's interface to the \*(Vd.
+The \*(Vd allows the user to specify the size of the block they wish to use
+in the call.
+This is convenient for certain applications which work most effectively with a
+particular block size and do not wish to be concerned with the physical reality.
+The block size must be a power of 2.
+To enforce this it must be specified in the call as the logarithm base 2 of the
+desired block size.
+It must be greater than
+.cW D_PHYS_SHIFT
+(see
+.I disk/disk.h ).
+.mH
+Types
+.LP
+The file
+.I server/disk/disk.h
+(which is included by
+.I module/disk.h )
+defines the type
+.I disk_addr
+which is a disk address.
+It is implemented as a large integer.
+.mH
+Access
+.LP
+Access to the disk is determined on the basis of rights in the capability
+given with each command.
+.LP
+The following rights are defined in \*(Vd capabilities:
+.LP
+.DS
+.ta 4c
+\*<RGT_WRITE\*>	permission to write to the disk.
+\*<RGT_READ\*>	permission to read the disk.
+.DE
+.mH
+Errors
+.LP
+All functions return the error status of the operation.
+The user interface to the \*(Vd returns only standard error codes
+(as defined in
+.I stderr.h ).
+All the stubs involve transactions and so in addition to the errors described
+below,
+all stubs may return any of the standard RPC error codes.
+A valid capability is required for all operations and so all operations will
+return
+.cW STD_CAPBAD
+if an invalid capability is used.
+If the required right(s) are not present then
+.cW STD_DENIED
+will be returned.
+If an invalid blocksize is specified then
+.cW STD_ARGBAD
+is returned.
+If illegal parameters (such as NULL-pointers or negative buffer sizes) are
+given,
+exceptions may occur rather than an error status being returned.
+The behavior is not well defined under these conditions.
+.mH
+Functions
+.sH
+disk_getgeometry
+.LP
+.sC
+errstat
+disk_getgeometry(cap, geom)
+capability *cap;
+geometry *geom;
+.eC
+.I Disk_getgeometry
+returns in
+.I geom
+the disk geometry information for the first
+.I piece
+of a virtual disk.
+It is only intended for use on
+.I bootp
+partitions (which are physical disks).
+These consist of exactly one piece.
+However if applied to a virtual disk consisting of more than one piece it
+returns the geometry of the first piece.
+.rR
+\*<RGT_READ\*>
+.eR
+\*<STD_SYSERR\*>:	If the data returned was insufficient for a full
+	geometry struct.
+.DE
+.ne 9
+.sH
+disk_info
+.LP
+.sC
+errstat
+disk_info(cap, buf, size, cnt)
+capability *cap;
+dk_info_data *buf;
+int size;
+int *cnt;
+.eC
+.kW "\fIdisk_info\fP"
+.I Disk_info
+returns information about the physical disk partitions that comprise the
+virtual disk specified by
+.I cap .
+The data returned consists of:
+.IP
+unit number of the virtual disk (type:
+.I long)
+.br
+disk address of the first block in the partition available to the user
+(type:
+.I disk_addr)
+.br
+number of disk blocks available in the partition (type:
+.I disk_addr)
+.LP
+It returns the data in
+.I buf
+(which contains room for
+.I size
+sets of data).
+The structure
+.I dk_info_data
+is defined in the include file
+.I server/disk/disk.h .
+.kW "\fIdisk_info\fP"
+.I Disk_info
+returns in
+.I cnt
+the number of units of information returned.
+NB.  If more partitions are available than fit in the buffer provided it will
+return the number asked for without complaint or warning.
+.rR
+\*<RGT_READ\*>
+.eR
+\*<STD_SYSERR\*>:	If the data returned was insufficient for a full
+	dk_info_data struct.
+.DE
+.sH
+disk_read
+.LP
+.sC
+errstat
+disk_read(cap, l2vblksz, start, numblocks, buf)
+capability *cap;
+int l2vblksz;
+disk_addr start;
+disk_addr numblocks;
+bufptr buf;
+.eC
+.kW "\fIdisk_read\fP"
+.I Disk_read
+reads exactly
+.I numblocks
+of the size specified by
+.I l2vblksz
+(i.e., the disk block size is @roman 2 sup l2vblksz@),
+starting at block number
+.I start ,
+from the virtual disk specified by
+.I cap .
+The data is returned in the buffer pointed to by
+.I buf .
+If it fails to read exactly the right amount of data then it will return an
+error status.
+.rR
+\*<RGT_READ\*>
+.DE
+.sH
+Disk_size
+.LP
+.sC
+errstat
+disk_size(cap, l2vblksz, size)
+capability *cap;
+int l2vblksz;
+disk_addr *size;
+.eC
+.kW "\fIdisk_size\fP"
+.I Disk_size
+returns in
+.I size ,
+the number of blocks of the size specified by
+.I l2vblksz
+(i.e., the disk block size is @roman 2 sup l2vblksz@),
+available on the virtual disk specified by
+.I cap .
+.rR
+\*<RGT_READ\*>
+.DE
+.ne 11
+.sH
+disk_write
+.LP
+.sC
+errstat
+disk_write(cap, l2vblksz, start, numblocks, buf)
+capability *cap;
+int l2vblksz;
+disk_addr start;
+disk_addr numblocks;
+bufptr buf;
+.eC
+.kW "\fIdisk_write\fP"
+.I Disk_write
+writes the
+.I numblocks
+blocks in
+.I buf ,
+whose block-size is specified by
+.I l2vblksz
+(i.e., the disk block size is @roman 2 sup l2vblksz@),
+to the virtual disk specified by
+.I cap ,
+beginning at block
+.I start .
+.rR
+\*<RGT_WRITE\*>
+.DE
+.SH
+See Also
+.LP
+dread(A),
+dwrite(A),
+std(L),
+std_age(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_restrict(U),
+std_touch(U),
+vdisk(A).
+.EQ
+delim off
+.EN

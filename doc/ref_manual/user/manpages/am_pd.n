@@ -1,0 +1,57 @@
+.\"	@(#)am_pd.n	1.2	94/04/05 15:44:48
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Dec 1993
+	Document: Gregory J. Sharp, Dec 1993
+.aE
+.mT "am_pd" U
+determine if a file contains an \*(Am process descriptor
+.SH
+Synopsis
+.LP
+.sC L
+am_pd file [arch]
+.eC
+.SH
+Description
+.LP
+.I Am_pd
+is used to determine if the
+.I file
+specified contains an \*(Am process descriptor.
+This will be the case if the file contains an executable binary or a core
+dump.
+.LP
+The program normally produces no output but simply returns exit status 0 if the
+file contains a process descriptor and 1 otherwise.
+If the optional
+.I arch
+argument is given then an exit status of 0 will only be returned if
+the process descriptor is for the specified architecture.
+.LP
+.I Am_pd
+is typically used in shell scripts.
+.mH
+Diagnostics
+.LP
+If
+.I file
+cannot be opened or read then a message will be printed on
+.I stderr
+to indicate why not.
+.SH
+Example
+.LP
+.sC
+file=/bin/cat/pd.i80386
+if am_pd $file i80386
+then
+    echo "$file is a 386 binary"
+else
+    echo "$file is not a 386 binary"
+fi
+.eC

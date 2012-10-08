@@ -1,0 +1,71 @@
+.\"	@(#)cmp.n	1.4	96/02/15 18:05:40
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995, readability
+.aE
+.mT "cmp" U
+compare two files
+.SH
+Synopsis
+.LP
+.sC L
+cmp [-ls] file1 file2
+.eC
+.SH
+Description
+.LP
+.kW "\fIdiff\fP"
+.kW "file comparison"
+The two files
+.I file1
+and
+.I file2
+are compared.
+If they are identical, exit status 0 is returned.
+If they differ,
+exit status 1 is returned.
+If either of the files cannot be opened,
+exit status 2 is returned.
+If
+.I file1
+is ``\-'',
+.I stdin
+is compared with
+.I file2 .
+.LP
+Unlike
+.I diff (U),
+this program is can used for comparing files containing binary data.
+.mH
+Options
+.LP
+.IP \fB\-l\fP
+Loud mode.
+Print bytes that differ (in octal)
+.IP \fB\-s\fP
+Silent mode.
+Print nothing,
+just return the exit status
+.SH
+Examples
+.LP
+.sC
+cmp file1 file2
+.eC
+Report whether the files are the same.
+.sC
+cmp -l file1 file2
+.eC
+Print all corresponding bytes that differ.
+.SH
+See Also
+.LP
+cdiff(U),
+diff(U),
+treecmp(U).

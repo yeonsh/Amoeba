@@ -1,0 +1,491 @@
+.\"	@(#)om.n	1.14	96/02/15 17:49:00
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael N. Condict, Aug 1990
+	Modified: Ed Keizer, Jan 1991
+	Document: Michael N. Condict, Aug 1990
+	Modified: Gregory J. Sharp, Jan 1991
+			- unification of style
+		  Ed Keizer, Jan 1991, Oct 1992
+			- added startup file info
+		  Gregory J. Sharp, Jun 1993
+			- too many deadly mistakes are made with OM.  Try to
+			  get the message across better.
+		  Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "om" A
+perform replication and garbage collection
+.SH
+Synopsis
+.LP
+.sC L
+om [-dfrvcC] [-s delay] [-t min_touch] [-p path] [-i file]
+.br
+           [-b path] ... [path]...
+.eC
+.SH
+Description
+.LP
+.kW "touch"
+.kW "aging"
+.kW "garbage collection"
+.kW "replication"
+.I Om
+is an object manager for \*(Am.
+Its primary function is to do garbage collection of objects which are no
+longer accessible from the directory graph.
+On systems with duplicated bullet servers,
+.I om
+is also used to replicate files and check the consistency of the replicas.
+.LP
+Garbage collection is necessary since it is possible, for example, to create a
+file and then throw away or lose its capability.
+Since the file server does not know that the capability has been lost it cannot
+release the storage for the inaccessible file.
+Similarly when a file is deleted, all that normally happens is that its
+capability is removed from the directory graph.
+The actual freeing of resources consumed by the file is done later using
+garbage collection.
+.LP
+Normally
+.I om
+runs continuously in the background in server mode but
+.I om
+can also be invoked explicitly as a
+user command to replicate and touch one or more objects (see options, below).
+A small data file known as the
+.I startup
+file (described below) specifies which servers should be replicated and on
+which servers garbage collection should be performed.
+.I Om
+performs replication and touching of all these servers' objects
+which are reachable from the specified starting directories.
+When an object is touched its server sets its
+.I time-to-live
+field to the maximum, which is typically 24.
+Once all objects are believed to be touched
+.I om
+sends a
+.I std_age
+command to the relevant servers which causes the
+.I time-to-live
+field for every object managed by the server to be decreased by 1.
+If
+.I om
+is invoked so that it does a cycle of touching and aging once per hour then
+after one day,
+all objects which have not been touched at least once in the previous 24 hours
+will be destroyed.
+.LP
+It is
+.I vital
+that aging is not performed on servers where no touching has taken place.
+When
+.I om
+is first started in server mode (i.e., so that it does garbage collection),
+make sure that it is touching all the objects as expected before enabling
+.I aging
+in the
+.I startup
+file.
+If some objects are for any reason inaccessible and
+.I om
+is unaware of this, it will age objects without ever touching them.
+Such objects will be destroyed if it continues for too long.
+For safety, always use the
+.B \-t
+option with the
+.B \-s
+option.
+This will restrict the damage if anything goes wrong.
+The number of objects being touched by
+.I om
+in server mode can be checked using the
+.kW std_status
+.I std_status (U)
+command.
+The
+.kW "\fIbstatus\fP"
+.I bstatus (A)
+command should be used to ensure that the \*(Bss are receiving a reasonable
+number of
+.kW std_touch
+.I std_touch
+commands.
+See below for details.
+It is advisable to check the status at least twice per day until it is
+clear that it is functioning correctly.
+.mH
+Options
+.LP
+.IP "\fB\-b\fP \fIpath\fP"
+.br
+.kW "capability-sets"
+Rearrange all capability-sets such that any capabilities with the same port
+as the capability stored in
+.I path
+appear first in the capability-sets.
+Multiple
+.B \-b
+options are allowed.
+In case of conflicts between
+.B \-b
+options, capabilities corresponding with options earlier in the argument list
+are stored earlier in the capability-set.
+.IP \fB\-c\fP
+Check the consistency of all capability-set entries that have at least one
+capability on a server from a replication set.
+If any capabilities in the entry are not in the replication set or any
+replication set members are not in the capability-set it prints a warning.
+The
+.B \-d
+option will enforce consistency silently.
+This option cannot be combined with
+.B \-C ,
+.B \-b ,
+.B \-f
+or
+.B \-d .
+.IP \fB\-C\fP
+Does the same as
+.B \-c ,
+but also tries to compare the contents of all objects in a capability-set.
+It will print a warning if the replicated objects are not identical.
+This option cannot be combined with
+.B \-b ,
+.B \-c ,
+.B \-d
+or
+.B \-f .
+.IP \fB\-d\fP
+This forces all the replicas of an object to be only on the servers in the
+replication set for that object type.
+Therefore it removes capabilities from capability-sets where at least one of
+the capabilities was from one of the servers from a replication set.
+.IP \fB\-f\fP
+Forces full replication as specified by the startup file.
+This causes all missing replicas to be added to the capset even if the
+.I cs_final
+field of the capset is set smaller than the number of replication partners.
+.IP "\fB\-i\fP \fIfile\fP"
+.br
+Use
+.I file
+as the startup file.
+The default startup file is defined in
+.I ampolicy.h
+and is typically
+.I /super/admin/module/om/startup .
+.IP "\fB\-p\fP \fIpath\fP"
+.br
+When
+.I om
+runs as a server (the
+.B \-s
+flag was given)
+this stores the server capability under the name
+.I path .
+.IP \fB\-r\fP
+For each
+.I path
+argument that is a directory,
+find all directories reachable from that directory and
+process all entries in all these directories.
+.I Om
+first traverses the whole directory graph to find the capability with the most
+rights for each directory.
+If the keyword
+.I soap_servers
+is present in the startup file,
+.I om
+will restrict itself to the directory servers mentioned.
+Only one attempt to replicate is done for each directory, no matter how many
+times the
+directory is encountered in the traversal of a directory graph with circuits.
+.IP "\fB\-s\fP \fIdelay\fP"
+.br
+Puts
+.I om
+in server mode.
+This has several effects: after each touching/replication
+pass through the list of specified path names,
+.I std_age
+will be called on all the ports specified by the
+.I aging
+keyword of the
+.I startup
+file.
+.I Om
+will also ensure that it starts a new pass
+.I delay
+seconds after it started the previous pass.
+However if the previous pass took more than
+.I delay
+seconds then it will start the next pass immediately.
+This way it is possible to ensure that, barring serious problems,
+a certain number of passes are done per 24 hours.
+This is very useful for setting the garbage collection timeouts.
+Also in server mode,
+.I om
+will initiate a server thread which accepts
+.cW STD_INFO
+and
+.cW STD_STATUS
+requests.
+The server publishes the capability that it listens to in the directory
+specified by
+.cW DEF_OMSVRDIR
+in
+.I ampolicy.h
+(typically
+.I /super/cap/omsvr ).
+The name used is
+.I om1 .
+It will generate a unique capability under this path name.
+The
+.cW STD_INFO
+command returns a string identifying the capability as the
+``object manager'' and the
+.cW STD_STATUS
+command returns information about how many objects have been processed and
+what was done to them.
+This is the same information as printed with the
+.B \-v
+option, below.
+This summary message is also printed at the end of each pass of the server.
+.IP
+Note that if the
+.B \-s
+option is used it is important to also use the
+.B \-t
+option to protect against
+.I om
+possibly failing to touch certain objects but still sending age commands
+to the server.
+.IP "\fB\-t\fP \fImin_touch\fP"
+.br
+Specifies the minimum number of objects that must be touched on each pass,
+before the
+.I std_age
+commands are performed.
+(This is a safety net, to prevent
+aging when something went wrong with the touching.)
+The 
+.I touch
+keyword in the startup file specifies the servers whose objects
+should be touched.
+If this keyword is not present
+.I om
+will touch all the capabilities it finds.
+Note that if
+.B \-s
+is specified and
+.B \-t
+is not then the minimum number of objects which must be touched before
+aging takes place is 10000.
+If there are fewer than 10000 objects in the system then no aging will be
+done unless the
+.B \-t
+option is used to specify a smaller value.
+.IP \fB\-v\fP
+Print a line of information as each object is touched or replicated and,
+at the end (or the end of each pass, in server mode), prints
+the total number of actions of each type that were performed on the objects.
+.mH
+Startup file
+.LP
+The startup file consists of a sequence of lines.
+Each line is a sequence of tokens separated by white-space.
+White-space is a sequence of tabs and spaces.
+Comments start with a `\*<#\*>' and continue to the end of the line.
+Outside comments the `\*<\e\*>' can be used to strip a character of its
+special meaning.
+A `\*<\e\*>' immediately before a newline can be used to create continuation
+lines.
+Backslashes can also be used to include `\*<#\*>', white-space and
+backslashes in tokens.
+Empty lines and lines only containing a comment are skipped.
+.LP
+The first token in all other lines is considered to be a keyword.
+The following keywords are currently recognized:
+.IP \*<replicas\*>
+.br
+Each line with this keyword describes a replication set.
+All tokens following the keyword should be path names.
+.I Om
+assumes that the capability stored under each path name specifies
+the put-port of a bullet server.
+These put-ports form a replication set.
+.br
+Most normal file creation procedures create a bullet file and store
+the resulting capability in a directory entry.
+If the bullet server of that file is in one of the replication sets
+.I om
+will, when it finds such a file,
+create copies of the file on all other servers mentioned in
+the replication set and store the capabilities for those copies in
+the directory entry.  
+.br
+To be more precise; if
+.I om
+finds a directory entry with a capability-set of which at least
+one capability has same
+put-port as in a replication set,
+.I om
+will check whether all put-ports in the replication set are
+represented in the capability-set.
+.I Om ,
+normally used with the
+.B \-f
+option, will create copies of the file on all missing bullet servers
+and include these copies in the capability-set for the directory entry.
+.IP \*<aging\*>
+.br
+All tokens following the keyword should be path names.
+After each touching/replication pass in server mode (\fB\-s\fP),
+.I std_age
+will be called on all the ports stored under the path names
+specified after all \*<aging\*> keywords.
+.I Om
+assumes that only one capability is stored under each path name.
+.br
+.ne 4
+.IP \*<soap_servers\*>
+.br
+All tokens following the keyword should be path names.
+When the
+.B \-r
+option is specified
+.I om
+will try to access all directory entries reachable from the paths
+given in the arguments to
+.I om .
+If one or more
+.I soap_servers
+keywords are present in the startup file,
+.I om
+will only access directories with the same port as the directory servers
+specified by this keyword. 
+.I Om
+assumes that only one capability is stored under each path name.
+.IP \*<publish\*>
+.br
+The path name under which the server capability is published.
+See the description under the
+.B \-r
+option.
+.IP \*<touch\*>
+.br
+All tokens following the keyword should be path names.
+.I Om
+assumes that only one capability is stored under each path name.
+This keyword specifies the servers whose objects
+should be touched.
+If this keyword is not present
+.I om
+will touch all capabilities it finds.
+It is not necessary to specify the servers mentioned in a replication set
+after this keyword.
+.I Om
+does a
+.I std_info
+on all capabilities from the servers which are in any of
+the replication sets.
+For bullet servers this has the same effect as a
+.I std_touch.
+It is useful to specify all directory servers specified by the startup file,
+because
+.I std_touch
+on a
+.I soap
+server has more effects then a
+.I std_info.
+.br
+If this keyword is not present
+.I om
+will
+.I std_touch
+all capabilities found.
+.LP
+Below is an example of a
+.I startup
+file.
+Note that on the touch line we specify all soap objects accessible from
+.I /
+and all objects on the default bullet server.
+If there is more than one bullet server it should be added to the
+.I touch
+entry.
+.sC L
+# OM startup file for unreplicated file systems.
+# Uncomment the "aging" entry when you've found out what number
+# of objects should be touched in a run before OM is allowed to
+# age the files and directories.  This number can be specified
+# using the "-t" option of om.
+#aging /super/cap/bulletsvr/default /super/cap/soapsvr/soap0
+soap_servers /
+publish om1
+touch / /super/cap/bulletsvr/default
+.eC
+.LP
+Note also that if there are replicated \*(Bss then these \*(Bss
+need only appear in the
+.I replicas
+line.
+It is not necessary to put them in the
+.I touch
+line since they will already be touched automatically by the replication
+process.
+.mH
+Diagnostics
+.LP
+.I Om
+complains if any RPC fails, including
+.I std_touch ,
+.I std_copy ,
+.I std_info ,
+.I name_lookup ,
+.I name_append .
+During each pass through a specified set of
+path names, it will only complain the
+first time that
+.cW RPC_NOTFOUND
+is returned for any specific port.
+Subsequent attempts to send an RPC to the bad port will be suppressed
+until the end of the pass.
+Then the list of bad ports will be cleared, in case any of
+the servers have come back up.
+If the bad port is in one of the replication sets or one of the
+touch ports then the current pass is aborted and no aging is done.
+.SH
+Examples
+.LP
+.sC
+om -fr /home
+.eC
+causes
+.I om
+to replicate and touch everything reachable under the caller's
+.I /home
+directory.
+.sC
+om -fr -s 3600 -t 20000 /super
+.eC
+causes
+.I om
+to run as a server and every hour to touch and age the entire directory
+graph.
+If less than 20000 objects are touched then no aging will be done.
+.SH
+See Also
+.LP
+bstatus(A),
+capset(L),
+std_age(A),
+std_copy(L),
+std_touch(U).

@@ -1,0 +1,9 @@
+# Start text at E0004000.
+#	
+#	@(#)ldmap.kernel	1.1	96/02/16 15:56:40
+#
+# In contrast to Amoeba binaries, there are no special alignment
+# requirements, but we do need to force the data segment right
+# after the text segment (by default the loader introduces a hole).
+text = V0xE0004000;
+data = A0x4;

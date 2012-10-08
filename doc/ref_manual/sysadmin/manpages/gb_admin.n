@@ -1,0 +1,114 @@
+.\"	@(#)gb_admin.n	1.1	96/02/15 17:21:03
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer
+	Document: E.G. Keizer, 95/10/27
+.aE
+.mT "gb_admin" A
+group bullet server administration
+.SH
+Synopsis
+.LP
+.sC L
+gb_admin [-m member] -[pdetD] [-w] [-f] [bullet_server]
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Group Bullet Server"
+.I Gb_admin
+is used to administrate group bullet servers.
+The program can change and interrogate the state of a single member
+or all members of a group bullet
+server.
+The program can perform a single action or a certain combination
+of actions.
+The requests are sent to the
+.I bullet_server
+which can be the group bullet super capability or the capability
+of an individual member.
+.mH
+Action Options
+.LP
+.IP \fB-p\fP
+Change the state to passive.
+A passive member will defer requests to create files to
+.I active
+members.
+A command to set the state of all members to passive is never accepted.
+.IP \fB\-d\fP
+Delete a member from the group bullet server.
+The knowledge of the existence of this member is erased from
+the superblock of all other members.
+The members itself dies when it notices this and refuses to come back up.
+The effect of this action is rather abrupt.
+A command to delete all members is never accepted.
+.IP \fB\-e\fP
+Stop the indicated member or all members.
+Not all members need to be present for this action.
+This option changes the meaning of the
+.I \-f
+option.
+If this command is used with the capability of a member and the member
+number is not specified, that member belonging to that capability will
+exit.
+.IP \fB\-t\fP
+Test whether the indicated member has any uncommitted files.
+An error code is returned when there are uncommitted files.
+A command to test all group bullet servers can not be used with
+the capability of a single member.
+.IP \fP\-D\fP
+Remove a member from the group bullet server in a smooth way.
+This perform the following sequence of commands:
+.RS
+.IP -
+Set the member to
+.I passive
+state
+.IP -
+Start a replication check, return if it fails.
+.IP -
+If the \fB\-w\fP option is not present,
+loop until the member does not have any uncommitted files left.
+.IP -
+Delete the member from the group bullet server.
+.IP -
+Start a replication check, to get the number of replicas back to the
+required number.
+.RE
+.mH
+Other options
+.IP \fB\-f\fP
+The actions performed by
+.I gb_admin
+are normally only allowed
+when all members of a group bullet server are running.
+This flag forces the action to take place, even if not all members are
+running.
+.LP
+In combination with the
+.I \-e
+option this flag take the meaning that the servers can go down smoothly.
+That is, refuse to create new files and wait until there are no more
+uncommitted files.
+.IP "\fB\-m\fP member"
+Used the specify the member number.
+If a member number is not specified and the command is sent
+to the group bullet super capability the command is assumed
+to apply to all members.
+If a member number is not specified and the command is sent
+to a member capability the command is assumed
+to apply to that member.
+.IP \fB\-w\fP
+Only useful in combination with
+.B \-D .
+.SH
+See Also
+.LP
+gbullet(A),
+gb_killfs(A).

@@ -1,0 +1,93 @@
+.\"	@(#)pd_preserve.n	1.4	96/02/15 16:53:56
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, Jun/Jul 1990
+	Document: Siebren van der Zee, Jul 1990
+	Modified: Gregory J. Sharp, Feb 1996
+
+	This software was originally part of the session server.
+.aE
+.mT "pd_preserve" L "libamoeba.a, libamunix.a"
+copy a process image to a file
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/proc.h"
+
+errstat
+pd_preserve(filesvr, pd, pdlen, file)
+capability *filesvr;
+process_d *pd;
+int pdlen;
+capability *file; /*out*/
+.eC
+.SH
+Description
+.LP
+.kW "\fIpd_preserve\fP"
+.kW "core dump"
+.kW "process descriptor"
+.I Pd_preserve
+stores the process descriptor
+.I pd ,
+which has length
+.I pdlen ,
+and copies of the segments on file server
+.I filesvr .
+It returns a capability for the new file in
+.I file .
+The resulting file is in network byte order.
+In theory this file is executable again, but since the capability
+environment and command line arguments are copied as well,
+the resulting program is not very useful.
+It is used to create core dumps, which can be inspected by debuggers.
+.mH
+Diagnostics
+.LP
+In case of an error,
+.I pd_preserve
+returns one of the
+.cW STD
+or
+.cW RPC
+errors defined in
+.I stderr.h .
+In particular,
+.cW STD_NOMEM
+is returned when
+.I malloc
+fails, but unfortunately, the file server is allowed to return this error when
+it ran out of memory as well.
+.SH
+Example
+.LP
+This function tries to store a process descriptor in a file called
+.I core .
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+#include "stderr.h"
+#include "server/bullet/bullet.h"
+
+void dumpcore(pd)
+    process_d *pd;
+{
+    capability filesvr, file;
+    if (name_lookup(DEF_BULLETSVR, &filesvr) == STD_OK &&
+        pd_preserve(&filesvr, pd, pd_size(pd), &file) == STD_OK)
+            (void) name_append("core", &file);
+}
+.eC
+.SH
+See Also
+.LP
+bullet(A),
+pd_read(L),
+process(L),
+process_d(L).

@@ -1,0 +1,135 @@
+.\"	@(#)ail.n	1.7	96/02/15 17:59:11
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, 1989-1990
+	Document: Siebren van der Zee, 1989-1990
+	Modified: Gregory J. Sharp, Oct 1995.
+.aE
+.mT "ail" U
+\*(Am Interface Language
+.SH
+Synopsis
+.LP
+.sC L
+ail [ \-?bBcCdgGn ] [ \-D name[=val] ] [ \-f number ] [ \-i inlist ]
+    [ \-I dir ] [-l language] [ \-o dir ] [ \-p preprocessor ]
+    [ \-U name ] [ \-v version ] [ + code ]...  [ Source ]
+    [ + code ]...
+.eC
+.SH
+Description
+.LP
+.kW "RPC"
+.kW "client"
+.kW "server"
+.kW "stub"
+.kW "stub generator"
+.I Ail
+is the \*(Am stub-compiler.
+It is used to generate RPC stubs for both clients and servers.
+For most simple types it automatically deals with marshaling and
+unmarshaling of data.
+It reads its input through the C-preprocessor.
+.mH
+Options
+.LP
+.IP \fB\-?\fP
+Print a usage string.
+.IP \fB\-b\fP
+Bypass cpp.
+Useful to avoid
+.I popen()
+or replace
+.I /lib/cpp .
+.IP \fB\-B\fP
+Rename all files that otherwise would be overwritten as
+.I old-filename .BAK.
+Any existing .BAK files that get in the way will be deleted.
+.IP \fB\-C\fP
+Stop the macro preprocessor from clobbering comments.
+.IP \fB\-d\fP
+This option sets the debug-flag.
+With this option
+.I ail
+reports debugging information on
+.I stdout .
+.IP "\fB\-D\fP name[=value]"
+.br
+Define the name to the preprocessor, as if by ``#define''.
+.IP "\fB\-f\fP number"
+.br
+Make sure no output file name is longer than \fInumber\fP.
+This is done by deleting the characters just before the first dot.
+.IP \fB\-g\fP
+Display a list of generators.
+.IP \fB\-G\fP
+Like
+.B \-g ,
+but lists the generators flagged with an underscore.
+To list all the generators, use
+.B \-gG .
+.IP "\fB\-i\fP inlist"
+.br
+Save the names of all files that were read to the file \fIinlist\fP.
+This is done by parsing the #line directives in the output of cpp.
+Each file name is listed once.
+.IP "\fB\-I\fP dir"
+.br
+Put dir in the path that cpp searches to find #include files.
+.IP "\fB\-l\fP language"
+.br
+Set the default output language.
+.IP \fB\-n\fP
+Do not generate output.
+.IP "\fB\-o\fP dir"
+.br
+This flag tells where the output should go by default.
+If the named directory does not exist,
+.I ail
+will create it.
+Note that if the source uses the ``Output_directory'', the default is not used.
+.IP "\fB\-p\fP preprocessor"
+.br
+Use a different preprocessor instead of
+.I /lib/cpp .
+.IP "\fB\-U\fP name"
+.br
+Remove any initial definition of the preprocessor symbol
+.I name .
+.IP "\fB\-v\fP version"
+.br
+Specifies the version of the AIL to C mapping.
+Legal versions are currently 3.5 and 4.0.
+The default is 4.0.
+From version 4.0 onward,
+the transaction buffer for a generated server main loop is allocated with 
+.I malloc
+rather than declared on the stack.
+Also,
+starting with version 4.0,
+array upper bounds are passed to a server's implementation functions.
+This is not the case for version 3.5.
+.IP "\+ code"
+.br
+Use \fIcode\fP as input.
+This input is not preprocessed.
+.mH
+Warnings
+.LP
+Ail is currently unable to generate code to marshal unions, pointer
+types, function types, floating point types or void.
+Enumerated constants
+must be declared in increasing order, that is, enum { two=2, one=1 } is illegal.
+.SH
+See Also
+.LP
+rpc(L),
+.br
+In the Programming Guide see the reference information on AIL in the
+.I tools
+section.

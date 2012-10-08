@@ -1,0 +1,884 @@
+.\"	@(#)run.n	1.11	96/02/15 17:51:40
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, June 1989 - 1990, Kees Verstoep, June 1991
+	Document: Guido van Rossum, April 1990, revised May 1990
+	Modified: Kees Verstoep, July 1991
+			(heterogeneity, new args, rights, etc.)
+		  Gregory J. Sharp Oct 1994 - added special exec-only caps
+			to process servers.  General tidy up of manual page.
+		  Gregory J. Sharp Jan 1996 - table headers
+.aE
+.mT run A
+load balancing server
+.SH
+Synopsis
+.LP
+.sC L
+run [-D number] [-U number] [-S number]
+    [-a dir] [-d] [-i] [-n name] [-p dir]
+.eC
+.SH
+Description
+.LP
+.kW "run server"
+.kW "load balancing"
+.kW "pool directory"
+.kW "processor pool"
+.kW "process execution"
+.kW "process descriptor"
+.kW "findhost"
+.kW "run_multi_findhost"
+.kW "load average"
+.kW "statistics"
+The
+.I run
+server is the load balancing server.
+It attempts load balancing of one or more processor pools by directing
+each new job to the most appropriate processor,
+based on available resources and the job's resource requirements.
+.LP
+The
+.I run
+server can manage an arbitrary number of pool directories,
+.I pooldir s
+for short,
+each containing subdirectories for one or more processor architectures,
+dubbed
+.I archdir s.
+For example,
+the default pool directory is
+.I /profile/pool
+and it might have architecture subdirectories named
+.I sparc ,
+.I i80386
+and
+.I mc68000 .
+.LP
+Each
+.I archdir
+can contain an arbitrary number of
+.I host
+(processor) capabilities.
+A host may be a member of more than one pool.
+Pool directories to be maintained by the
+.I run
+server can be added at run-time using the program
+.I makepool (U).
+This will install a new
+.I "run capability"
+in the
+.I pooldir
+under the name
+.I .run .
+A request concerning a particular run capability
+chooses only between the hosts in the corresponding pool directory.
+.LP
+The prime request handled by the
+.I run
+server is
+.I run_multi_findhost .
+.I Run_multi_findhost
+takes as argument a run capability and a set of process descriptors.
+The process descriptors are assumed to be all for the same program 
+but for different architectures.
+It searches in the pool specified by the run capability for the ``best'' host
+on which to run the program.
+It returns a capability which allows the caller to execute the program
+on that host.
+It is normally called indirectly via
+.I exec_multi_findhost
+(see
+.I exec_findhost (L))
+which marshals the process descriptors and handles exceptions if the
+.I run
+server cannot be reached.
+.LP
+Much of the
+.I run
+server's time is devoted to keeping a fairly up-to-date idea of the load
+on each host without using too much of the system's resources.
+It tries to minimize time spent polling a host that went down suddenly.
+The
+.I run
+server itself is not replicated,
+but it is easy to ensure
+that a copy is kept up and running using the boot server (see
+.I boot (A)).
+.LP
+The decision about which host to use is a complicated one.
+One might want to take the following in account:
+available memory,
+memory fragmentation (especially since the current version of \*(Am
+cannot move segments) and whether the text segment is cached in the processor.
+The most interesting bit of information is unfortunately unavailable:
+what is the process going to do?
+Since load balancing is an art in itself
+\(em in fact the subject of doctoral dissertations \(em
+the
+.I run
+server currently uses a simple algorithm,
+but it is easy to change the algorithm without having to
+change the whole program structure.
+.LP
+The current algorithm evaluates a fairly simple formula for each
+host having a suitable architecture,
+and chooses randomly between the hosts that
+evaluate within a certain percentage of the highest value found.
+The formula is based on the amount of memory left after the process is
+started (this means the process size is used as input to the formula),
+the expected speed at which the process will run,
+and the size of the text segment if it is believed to be cached at that host.
+.\" Since tbl crashes when we try to draw a box around the formulas
+.\" we do it in troff assembly code directly.  Copied from section 12
+.\" of the Nroff/Troff User's (sic!) manual, 1976.  Those were the days..
+.de eb
+.sp -1
+.nf
+\h'-.5n'\L'|\\nau-1'\l'\\n(.lu+1n\(ul'\L'-|\\nau+1'\l'|0u-.5n\(ul'
+.fi
+..
+.KF
+.sp
+.\" put current position in register a for the sake of the .eb macro
+.mk a
+.EQ I
+{Speed sub h}~mark =~~{KIPS sub h} over {{LoadAvg sub h}~+~1}
+.EN
+.EQ I
+AvailMem sub {h,^pd}~lineup =~~{FreeMem sub h}^-^{MemReq sub {h,^pd}}^+^{font 5 
+ CACHEMEM}^*^{SegCached sub {h,^pd}}
+.EN
+.EQ I
+Startup sub {h,^pd}~lineup =~~1^+^{{SegCached sub {h,^pd}} over {font 5 CACHETIM
+E}}
+.EN
+.EQ I
+Suitability sub {h,^pd}~lineup =~~{font 5 PREF}({Arch sub h})^*^{Speed sub h}^*^
+min({font 5 MEMTRUNC},^AvailMem sub {h,^pd})^*^{Startup sub {h,^pd}}
+.EN
+.sp 0.5v
+.eb
+.sp 0.5v
+.KE
+.LP
+.EQ
+delim @@
+.EN
+The expected CPU power available to the new process
+on a host @h@ is given by the formula for @Speed sub h@.
+@KIPS sub h@ is the computing power available
+in kilo-instructions per second on host @h@ when it is idle
+(which is estimated by the kernel at boot time),
+and @LoadAvg sub h@ is the estimated number of runnable threads on @h@,
+measured over the last few seconds.
+The ``@+~1@'' represents a single thread of the new process
+that is to be started.
+@SegCached sub {h,^pd}@ is the size of the text segment of process descriptor
+@pd@ if it is thought to be still in the cache on host @h@.
+Otherwise it is 0.
+.cW CACHEMEM
+is a constant between 0 and 1 reflecting the system administrator's expectation
+that the host @h@ is likely to still have the text segment cached.
+.LP
+To make it possible to promote or discourage the use
+of a particular architecture,
+the suitability value is additionally multiplied with an architecture
+dependent factor, @font 5 {PREF-arch}@.
+The amount of memory available is taken into account by means
+of the expression @AvailMem sub {h,^pd}@.
+To avoid starting many processes on a single host solely for the reason
+that it has significantly more memory than the others, the Run server
+ignores available memory exceeding the amount
+.cW MEMTRUNC .
+Finally, the expression @Startup sub {h,^pd}@ gives the host a certain
+preference when its text segment is assumed to be cached at the host,
+thereby allowing it to start more quickly.
+The pool-dependent constants
+.cW PREF-arch ,
+.cW CACHETIME ,
+.cW MEMTRUNC
+and
+.cW CACHEMEM
+in the formula can be modified by the system administrator.
+.LP
+It is possible for the system administrator to disable and enable pools.
+This is done by setting the ENABLE parameter to 0 or 1, respectively, using
+.I std_params (A).
+.mH
+Options
+.LP
+The
+.I run
+server recognizes the following command line options.
+.IP "\fB\-D\fP\ number" "\w'\-D\ number\0\0'u"
+Specifies the number of threads devoted to polling processors that are
+believed to be down (default 2).
+.IP "\fB\-S\fP\ number"
+Specifies the number of server threads (default 4).
+.IP "\fB\-U\fP\ number"
+Specifies the number of threads devoted to polling processors that are
+thought to be up (default 2).
+.IP "\fB\-a\fP\ dir"
+Specifies the directory where the
+.I run
+server should keep its administration file.
+The default is
+.cW DEF_RUN_ADMIN
+as defined in
+.I ampolicy.h
+(typically
+.I /super/module/run ).
+.IP \fB\-d\fP
+Turns on debugging output.
+Repeat to get more.
+.IP \fB\-i\fP
+Causes the initialization of the
+.I run
+server's administration file
+and publication of a new super capability.
+This option should only be given the first time a
+.I run
+server is started.
+.if 0 \{
+.IP \fB\-k\fP
+.kW "orphan killing"
+Kill orphan processes.
+If this option is specified, the run server checks every minute for
+every process running on a pool processor that its owner is still alive.
+It does this by sending a
+.I std_info
+request (see
+.I std (L))
+to the owner capability, if not null.
+Processes for which the owner fails to respond are stunned with signal
+\-1,
+which kills them without mercy (see the description of
+.I pro_stun
+in
+.I process (L)).
+Although there are a few checks to avoid killing system processes and
+processes belonging to the debugger,
+use of this option is not recommended.
+\}
+.IP "\fB\-n\fP name"
+Specifies an alternative name for the
+.I run
+server to use
+when publishing its capability and storing its administration file.
+This makes it possible to have multiple independent
+.I run
+servers.
+The default name for the
+.I run
+server is
+.I default .
+.IP "\fB\-p\fP dir"
+Specifies an alternative name for the directory in which the
+.I run
+server should publish its super capability.
+The default is
+.cW PUB_RUNSVR_DIR
+defined in
+.I ampolicy.h
+(typically
+.I /super/cap/runsvr ).
+.mH
+Diagnostics
+.LP
+During initialization,
+the
+.I run
+server complains about invalid command line syntax,
+missing (if
+.B \-i
+is not given) or inconsistent administration file,
+and a few other unlikely conditions.
+All these complaints cause the
+.I run
+server to exit with a non-zero exit status.
+After the
+.I run
+server has initialized,
+the only fatal error is its inability to rewrite its administration file.
+Other conditions only cause a warning to be printed.
+.if 0 \{
+.LP
+A message is printed on
+.I stdout
+when a process is killed by the
+.B \-k
+option.
+\}
+.mH
+Files and Directories
+.IP \fI/super/cap/runsvr/*\fP 24
+Super capabilities for the currently active run servers
+.IP \fI/super/module/run/*.adm\fP
+Administrative files
+.IP \fI/super/module/run/pools/*\fP
+Links to all pool directories
+.IP \fI/profile/pool\fP
+Default processor pool.
+.IP \fI/profile/pool/.run\fP
+Default pooldir capability.
+.mH
+Warnings
+.LP
+Host names containing periods should be avoided.
+They are ignored by both the
+.I run
+server and the process startup library.
+.LP
+If the 
+.I run
+server has crashed,
+users without the
+.I super
+directory capability will not be able to start new processes.
+The holders of the
+.I super
+capability should be able to start processes.
+The
+.I boot
+server should be charged with keeping the
+.I run
+server available.
+Use
+.I std_status (A)
+to check if the
+.I run
+server is up.
+.LP
+Selecting a host for a program is often a wild guess,
+since the
+.I run
+server can predict neither what a program will do,
+nor what resources will become available soon.
+Hence,
+there should be a second form of load balancing,
+based on migration of processes to processors where they will run better.
+However, this is not supported in the current
+.I run
+server.
+.SH
+Programming Interface Summary
+.LP
+The programmers' interface consists of commands particular to the
+.I run
+server
+(whose names begin with
+.I run_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+The commands are divided into two categories:
+administrative and user.
+A summary of the commands is presented in the following two tables,
+the first listing the administrative commands and the second the user commands.
+The interface for the standard operations is described in detail in
+.I std (L).
+.LP
+Except where otherwise stated,
+requests are specific to one
+.I pooldir .
+Apart from the error conditions explicitly mentioned,
+general RPC errors are also possible.
+.KF
+.TS
+box tab(:) center box;
+cb s s s
+lw(3.2c) | lw(3.2c) | lw(2.2c) | lw(5c)
+lw(3.2c) | lw(3.2c) | lw(2.2c) | lw(5c)
+lw(3.2c) | lp-3w(3.2c) | lp-3w(2.2c) | lw(5c) .
+Administrative Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:T{
+RUN_RGT_ADMIN
+.br
+on super cap
+T}:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Start a garbage collection pass
+T}
+_
+std_touch:RUN_RGT_ADMIN:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_NOSPACE
+T}:T{
+Rescan the pool directory corresponding to
+.I run
+server object, reset its time to live
+T}
+_
+std_getparams:RUN_RGT_ADMIN:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Get evaluation parameters
+of a
+.I run
+server object
+T}
+_
+std_setparams:RUN_RGT_ADMIN:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Set evaluation parameter
+of a
+.I run
+server object
+T}
+_
+std_status:T{
+RUN_RGT_STATUS
+.br
+on run object
+.br
+or super cap
+T}:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Return
+.I run
+server statistics for hosts in a pool
+T}
+_
+.TE
+.KE
+.LP
+More specific information for some of the administrative operations:
+.IP std_status 14
+For pool objects,
+it returns a printable overview of statistics about the hosts in it.
+A
+.I std_status
+on the super capability gives statistics about all hosts
+known by the
+.I run
+server.
+.IP std_setparams 14
+Stores the per-pool parameters for the host evaluation formula.
+.IP std_getparams
+Retrieves the per-pool parameters for the host evaluation formula.
+These commands are normally issued by using the program
+.I std_params (A).
+Details of the arguments and their use are given in the System Administration
+section, below.
+.LP
+.KF
+.TS
+box tab(:) center box;
+cb s s s
+lw(3.2c) | lw(3.2c) | lw(2.2c) | lw(5c)
+lw(3.2c) | lw(3.2c) | lw(2.2c) | lw(5c)
+lw(3.2c) | lp-3w(3.2c) | lp-3w(2.2c) | lw(5c) .
+User Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_destroy:RUN_RGT_DESTROY:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Destroy a
+.I run
+server object
+T}
+_
+std_info:T{
+RUN_RGT_STATUS
+.br
+on run object
+.br
+or super cap
+T}:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Print standard information for a
+.I run
+server object
+T}
+_
+std_restrict:none:T{
+STD_CAPBAD
+.br
+STD_DENIED
+T}:T{
+Produce a
+.I run
+server capability with restricted rights
+T}
+_
+run_create:T{
+RUN_RGT_CREATE
+.br
+on super cap
+T}:T{
+STD_CAPBAD
+.br
+STD_NOSPACE
+.br
+STD_DENIED
+T}:T{
+Create a new
+.I run
+server object for a pool directory
+T}
+_
+run_get_exec_cap:RUN_RGT_FINDHOST:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Return exec cap and architecture corresponding to specified process svr
+T}
+_
+T{
+run_multi_findhost
+T}:RUN_RGT_FINDHOST:T{
+STD_CAPBAD
+.br
+STD_DENIED
+.br
+STD_ARGBAD
+.br
+STD_NOSPACE
+.br
+STD_NOTNOW
+T}:T{
+Return best host in pool for executing one of a set of process descriptors
+(for heterogeneous process startup)
+T}
+_
+.TE
+.sp 1v
+.KE
+.LP
+More specific information for some of the user functions:
+.IP run_get_exec_cap 14
+.br
+This takes as input the capability for a kernel process server from the
+caller's processor pool.
+It returns a) the architecture of that machine, and b) the current capability
+for creating a process on that machine.
+The error code
+.cW STD_NOTNOW
+is returned when the caller's pool is disabled.
+.IP run_multi_findhost
+.br
+Returns the process server capability of the ``best'' host
+that is suitable to run one of set of process descriptors.
+The error code
+.cW STD_NOTNOW
+is returned when no host in the pool specified
+is able to execute one of the process descriptors provided.
+.IP std_info
+On the super capability,
+it returns the string
+.I "run server" .
+On pool objects,
+it returns a string telling for which architectures there is a
+running host available.
+For example,  ``\*<! mc68000 i80386\*>''.
+.LP
+Note that operations which are
+.I run
+server specific (for example
+.I run_multi_findhost)
+should not be called directly,
+but via the higher level
+.I exec
+interface (see
+.I exec_findhost (L))
+that also takes care of marshaling and exception handling,
+in case the
+.I run
+server cannot be reached.
+.SH
+Administration
+.LP
+The first time the
+.I run
+server is started it should be started with the
+.B \-i
+option.
+This will create the necessary administrative files used by the server.
+.LP
+In normal operation,
+one
+.I run
+server should be started for all
+.I pooldir s
+together.
+If
+.I pooldir s
+are disjunct (i.e.,
+no host is a member two or more pools)
+increased performance may be achieved by starting a
+.I run
+server for each
+.I pooldir .
+In this case,
+the
+.B \-n
+option should be used to give the
+.I run
+servers a different name.
+.LP
+Creating a new pool can be done by first creating a minimal
+pool directory containing at least one
+.I archdir .
+In order to be useful,
+the
+.I archdir s
+should contain one or more host capabilities
+of the corresponding architecture.
+Public hosts can be found in the directory
+.I /super/hosts .
+The command
+.I makepool (U)
+with the pool directory as argument should then be used to make
+it known to the
+.I run
+server,
+and retrieve and install a capability for it.
+The
+.I run
+server will also make a link to the pool directory created so that the
+system administrator has an overview of all pools under the server's
+control.
+It is then a simple matter to use the
+.I std_params (A)
+command to enable and disable various pools.
+.LP
+Before making a new pool directory the default,
+it is advisable to test it for a while
+by starting a sub-shell that uses the pool.
+To do this, set the environment variable
+.kW "RUN_SERVER environment variable"
+.cW RUN_SERVER
+as follows:
+.sC
+$ RUN_SERVER=/profile/newpool/.run /bin/sh
+.eC
+.LP
+When a processor is added to or removed from an
+.I archdir ,
+a
+.I run
+server managing it should be told about this by means of a
+.I std_touch
+on the corresponding run capability.
+If the
+.I run
+server's pool objects are brought under the control of
+the object manager
+.I om (A),
+rescans will typically be performed every hour.
+It is a good idea to put the
+.I run
+server into the touching and aging system of
+.I om
+to ensure that temporary pools (such as those used for running Orca programs)
+are garbage collected and that the resources within the
+.I run
+server are thereby released.
+The default lifetime of a pool is 10 hours.
+.LP
+It is a good idea to experiment a little with the host evaluation formula parameters using
+.I std_params (A).
+.LP
+For example,
+.sC
+std_params -s MEMTRUNC=1024 /super/pool/.run
+.eC
+causes the
+.I run
+server to treat available memory exceeding 1024\ KB as
+irrelevant to the decision about which host to pick from the public pool.
+(That is,
+if there is more than 1024\ KB then there is plenty and other factors such
+as CPU load should take precedence.)
+.LP
+After this,
+the command
+.sC
+std_params -v /super/pool/.run
+.eC
+might show something like the following:
+.sC L
+.ps-1
+EQUIVPERC    [0..50 %]          5 (hosts in this range considered equivalent)
+MEMTRUNC     [1..64000 Kb]   1024 (ignore free memory exceeding it)
+CACHETIME    [1..10000 Kb]    500 (twofold speedup at this text size)
+CACHEMEM     [1..200 %]        10 (text segment sharing advantage)
+PREF-mc68000 [0..1000 %]      100 (architecture preference multiplier)
+PREF-sparc   [0..1000 %]      100 (architecture preference multiplier)
+ENABLE       [0..1]             1 (enable/disable pool)
+.ps
+.eC
+.LP
+Valid parameters are:
+.LP
+.TS
+box center tab(:);
+c | c | c | c | c
+lp-3 | c | r | r | lp-1w(7c).
+Parameter:Min:Max:Default:Description
+=
+EQUIVPERC:0:50 %\  :5 %\  :T{
+hosts whose \fIvalue\fP function is \(+-\|\s-2EQUIVPERC\s0 of each other
+are considered equivalent
+T}
+_
+MEMTRUNC:1:64000 KB:2048 KB:T{
+hosts with more than \s-2MEMTRUNC\s0 free memory are considered to have the
+same amount of memory
+T}
+_
+CACHETIME:1:10000 KB:500 KB:T{
+If the text segment is already cached a 2x speedup is expected for a
+\s-2CACHETIME\s0 sized text segment
+T}
+_
+CACHEMEM:1:200 %\  :10 %\  :T{
+We expect an average savings of \s-2CACHEMEM\s0 % of the
+text size if the text segment is found cached due to it possibly already
+being in use
+T}
+_
+PREF-i80386:0:1000 %\  :100 %\  : For every architecture in a pool this
+PREF-mc68000:0:1000 %\  :100 %\  :parameter this parameter promotes or
+PREF-vax:0:1000 %\  :100 %\  :discourages its use (e.g., to account for slow
+PREF-sparc:0:1000 %\  :100 %\  :rpc or process startup time)
+_
+ENABLE:0:1\h'3n':1\h'3n':enable/disable the pool
+_
+.TE
+.LP
+When hosts with highly differing CPU power and/or available memory are
+present in a pool,
+it often happens that the fastest host attracts all the work
+until it is quite overloaded.
+Although this might seem unfair,
+most of the time this gives just what one wants (i.e.,
+executing all available jobs as fast as possible).
+If,
+however,
+the performance as predicted by the available CPU power is an exaggeration
+\(em for example because the RPC performance of the fast host
+is worse than that of slower hosts \(em
+then one could try to adjust some of the
+.cW PREF-arch
+parameters.
+.LP
+Another way to make host selection a bit less predicatable
+is to increase the
+.cW EQUIVPERC
+parameter for a pool.
+.LP
+It is a good idea to regularly monitor the status of the public
+pool directory with
+.sC
+std_status /super/pool/.run
+.eC
+This gives a status report of the following form:
+.sC
+.SM
+HOST     STAT SINCE LREPL LPOLL NPOLL NBEST NCONS   MIPS  NRUN  MBYTE
+bullet3  UP    3:10    0s    0s  2285     7    26  3.700 2.988 11.012
+laser    UP    6:38    4s    4s  4783     2    26  3.700 1.748  0.864
+vmesc1   UP    6:38    0s    0s  4791    10   112  3.000 0.116  2.776
+armada06 UP    6:38    4s    4s  4785     9   112  3.000 1.042  2.451
+armada05 UP    6:38    2s    1s  4783    13   112  3.000 0.244  2.144
+armada04 UP    6:38    1s    1s  4785    10   112  3.000 0.986  1.696
+armada03 UP    6:38    0s    0s  4787    11   112  3.000 0.734  2.880
+armada02 UP    6:38    2s    2s  4803    38   112  3.000 0.209  2.704
+armada01 UP    6:38    5s    5s  4783     4   112  3.000 0.827  2.968
+armada00 UP    6:38    4s    4s  4783     4   112  3.000 0.093  2.968
+blt      UP    6:38    1s    1s  4783     0    18  0.900 0.000  3.650
+hawaii   UP    6:38    4s    4s  4784     4    19 12.500 1.551 10.060
+.LG
+.eC
+The
+.cW HOST
+column shows the host name; the
+.cW STAT
+column its status (\*<UP\*>
+or
+.cW DOWN );
+the
+.cW SINCE
+column shows the time since the last status change
+(``hh:mm'' or various other formats).
+The columns
+.cW LREPL ,
+.cW LPOLL
+and
+.cW NPOLL
+are probably only useful for debugging the
+.I run
+server;
+they give host-polling statistics.
+.LP
+The columns
+.cW NBEST
+and
+.cW NCONS
+give interesting information about the
+.I run
+server's host selection;
+the former tells how many times a particular host was selected as
+being the ``best'',
+while the latter tells how many times the host was considered for selection.
+The columns
+.cW MIPS ,
+.cW NRUN
+and
+.cW MBYTE
+give the load as returned by
+.I pro_sgetload .
+.SH
+See Also
+.LP
+ampolicy(H),
+ax(U),
+exec_file(L),
+exec_findhost(L),
+makepool(U),
+om(A),
+process(L),
+std(L),
+std_params(A).
+.EQ
+delim off
+.EN

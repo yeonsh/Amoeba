@@ -1,0 +1,27 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:24:37
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_ACK_MODULES_STRING = {
+	$PWD/bts2str.c,
+	$PWD/btscat.c,
+	$PWD/btscmp.c,
+	$PWD/btscpy.c,
+	$PWD/btszero.c,
+	$PWD/long2str.c,
+	$PWD/str2bts.c,
+	$PWD/str2long.c,
+	$PWD/strcat.c,
+	$PWD/strcmp.c,
+	$PWD/strcpy.c,
+	$PWD/strindex.c,
+	$PWD/strlen.c,
+	$PWD/strncat.c,
+	$PWD/strncmp.c,
+	$PWD/strncpy.c,
+	$PWD/strrindex.c,
+	$PWD/strzero.c
+};

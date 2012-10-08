@@ -1,0 +1,79 @@
+.\"	@(#)elvprsv.n	1.1	96/02/15 18:11:41
+.aU
+	Software: Steve Kirkendall <kirkenda@cs.pdx.edu>
+	Document: Steve Kirkendall <kirkenda@cs.pdx.edu>
+	Modified: Gregory J. Sharp, Nov 1995 - converted to Amoeba format and
+				     adjusted to reflect the functionality
+				     under Amoeba.
+.aE
+.mT "elvprsv" U
+preserve the the modified version of a file after elvis crashes
+.SH
+Synopsis
+.LP
+.sC L
+elvprsv ["-why reason"] /tmp/filename ...
+elvprsv -R /tmp/filename ...
+.eC
+.SH
+Description
+.LP
+If
+.I elvis
+crashes for some reason after making unsaved changes to a file then it
+calls
+.I elvprsv
+to preserve the changes.
+The changes can be recovered later using the
+.I elvrec
+program.
+.LP
+.I Elvprsv
+should never need to be run from the command line.
+It is run automatically when
+.I elvis
+is about to die.
+.LP
+If editing a file when
+.I elvis
+dies (due to a bug, system crash, power failure, etc.),
+.I elvprsv
+will preserve the most recent version of the file.
+The preserved text is stored in a special directory; it does NOT overwrite
+the original file automatically.
+.LP
+If the program
+.I mail
+has been installed then
+.I elvprsv
+will send mail to any user whose work it preserves.
+.LP
+If a nameless buffer was being edited when
+.I elvis
+died, then
+.I elvrec
+will pretend that the file was named
+.I foo .
+.mH
+Files
+.LP
+.IP \fI/tmp/elv*\fP
+.br
+The temporary file that
+.I elvis
+was using when it died.
+.IP \fI/dev/dead/p*\fP
+.br
+The text that is preserved by
+.I elvprsv .
+.IP \fI/dev/dead/ElvisIndex\fP
+.br
+A text file which lists the names of all preserved files, and the names
+of the
+.I /dev/dead/p*
+files which contain their preserved text.
+.SH
+See Also
+.LP
+elvis(U),
+elvrec(U).

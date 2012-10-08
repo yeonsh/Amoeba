@@ -1,0 +1,24 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/06 08:54:45
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_ARCH = {
+	$PWD/as.S,
+	$PWD/interrupt.S,
+	$PWD/tables.c,
+	$PWD/syscall.c,
+	$PWD/trap.kstat,
+	$PWD/trap.c,
+	$PWD/misc.kstat,
+	$PWD/misc.c
+};
+K_KGDB = {
+	$PWD/kgdb.init,
+	$PWD/kgdb.kstat,
+	$PWD/kgdb.c,
+};
+K_ARCH_LINTLIB = $PWD/lintlib.c;
+

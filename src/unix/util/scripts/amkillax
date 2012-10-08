@@ -1,0 +1,23 @@
+#!/bin/sh
+#	
+#	@(#)amkillax	1.2	94/04/07 14:10:03
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Kill all ax process:
+if [ "$1" = -v ]; then
+	echo 1>&2 "Killing the following ax jobs: "
+	axjobs=`ps -awx | grep ':[0-9][0-9] [^ 	]*ax ' | \
+					tee /dev/tty | awk '{ print $1 }'`
+else
+	axjobs=`ps -awx | grep ':[0-9][0-9] [^ 	]*ax ' | awk '{ print $1 }'`
+fi
+
+if [ "X$axjobs" = X ] ; then
+	echo 1>&2 "No ax jobs."
+	exit 1
+fi
+kill $axjobs

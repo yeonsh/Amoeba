@@ -1,0 +1,11 @@
+/*	@(#)direct.init	1.4	96/02/27 14:13:24 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+INTERFACE init_directory
+KPARAM init_directory
+init_directory DIRECTORY
+THREADS init_dirtask

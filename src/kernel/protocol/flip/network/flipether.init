@@ -1,0 +1,10 @@
+/*	@(#)flipether.init	1.2	94/04/06 08:40:38 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+FLIPSWITCH fleth_init
+fleth_init INTERFACE
+ETH_INIT fleth_init

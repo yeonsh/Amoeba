@@ -1,0 +1,13 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/06 08:35:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/grp/Amake.srclist;
+%include $PWD/network/Amake.srclist;
+%include $PWD/amoeba4rpc/Amake.srclist;
+%include $PWD/rpc/Amake.srclist;
+%include $PWD/sys/Amake.srclist;
+%include $PWD/raw/Amake.srclist;

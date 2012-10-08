@@ -1,0 +1,123 @@
+.\"	@(#)intro.n	1.8	96/02/15 17:03:51
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, June 1991 - at last we can cold start!
+		  Gregory J. Sharp, Jan 1996 - polishing up for 5.3
+.aE
+.cH "Installing \*(Am"
+.nH 1 "Introduction"
+.LP
+.kW installation
+The \*(Am software consists of four major parts:
+.IP \h'1n'\(bu
+The \*(Am kernel.
+.IP \h'1n'\(bu
+The servers and utility programs for native \*(Am.
+.IP \h'1n'\(bu
+The \*(Am FLIP driver for various
+.UX
+kernels.
+.IP \h'1n'\(bu
+The servers and utilities that run under
+.UX
+.kW RPC
+and use \*(Am RPC.
+.LP
+In addition to these there is documentation and a suite of test software.
+The distribution comes with binaries for various \*(Am configurations and
+the SunOS version of
+.UX .
+.LP
+\*(Am runs on various hardware platforms which are described in section 2.2.
+.LP
+It is often possible to upgrade an existing \*(Am system to a new version.
+Section 2.3 describes how to do this.
+Check the release notes to see if it is possible to upgrade your
+current version to the new release.
+If this is not possible or if installing \*(Am for the first time then
+follow the instructions in section 2.4.
+.LP
+Section 2.4 and following describes how to install \*(Am directly from the
+distribution medium onto the computers that will run it.
+The installation of the
+.UX-based
+software, including the \*(Am network protocol in the
+.UX
+kernel and the
+.UX-based
+\*(Am utilities is described in the chapter
+.I "Amoeba and UNIX" .
+.LP
+Installing \*(Am is not a trivial task and should be assigned to
+someone with some experience of system management.
+An understanding of how computer networks function is a great asset to
+understanding the process of installation.
+It is important to understand network structuring when configuring a system.
+For example,
+if possible, \*(Am hosts should be separated by a bridge from other
+systems on the same network or put on a separate network behind a gateway.
+This is due to the ability of \*(Am to consume the entire network bandwidth.
+.LP
+There are some important concepts which must be understood before
+beginning the installation process.
+The most important is that \*(Am is a
+.I distributed
+system.
+Furthermore, the name server and the file server are two separate servers.
+The domain of an \*(Am system is effectively defined by the name server for
+that system, since it defines the name space for \*(Am.
+Therefore normally only one name server should be installed.
+The installation process automatically installs one file server and one
+name server,
+so it should only be run once for a local area network,
+unless more than one name space is explicitly desired.
+If additional file servers are desired they should be installed later using
+.I disklabel (A),
+.I mkfs (A),
+.I mkbootpartn (A),
+etc.
+.LP
+In general it is a bad idea to put workstations or file servers in the
+processor pool.
+This will degrade their performance and therefore the performance of the
+entire system.
+If possible, try to ensure that there are enough hosts running \*(Am to
+leave workstations and file servers free to do their specialized tasks.
+Note that it is essential that you have some hosts in your processor
+.kW "processor pool"
+pool.
+If sufficient processors are available it may also be interesting to have more
+than one processor pool,
+and so divide the available CPU power between various groups of users.
+It is possible to have processors of more than one architecture in a
+pool (so called
+.kW "heterogeneous pools"
+.I heterogeneous
+pools).
+See
+.kW "\fIrun\fP"
+.I run (A)
+for details on how to set this up.
+.LP
+The rest of this chapter is structured as follows.
+There is a brief description of the currently supported hardware configurations.
+This is followed by details of how to load a native \*(Am
+system directly from the tape,
+.kW "time of day server"
+.kW timezone
+setting the time of day clock and the timezone,
+how to install the source code, including a
+description of the source directory structure, and finally where to install
+third party software, such as X windows.
+.kW "X windows"
+The chapter,
+.I "Configuring an Amoeba System" ,
+describes how to configure the various servers to suit the available hardware
+and needs of the user community.
+It also describes how to add new hosts to the system and how to register new
+users.

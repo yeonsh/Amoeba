@@ -1,0 +1,602 @@
+.\"	@(#)dirstruct.n	1.10	96/02/15 17:03:32
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+	Modified: Gregory J. Sharp, May 1991 - it was out of date
+		  Gregory J. Sharp, Jan 1996 - polish
+.aE
+.nH 2 "\*(Am Distribution Directory Structure"
+.LP
+.kW "directory graph structure"
+This section gives a guided tour of the distribution tree structure for \*(Am,
+which consists of the source code, documentation, and configuration tools.
+In addition to the sources,
+programs that run under
+.UX
+have been distributed with the sources to facilitate installation under
+.UX .
+There is a separate installation package which contains all the binaries
+which are to be installed directly under \*(Am.
+.LP
+The binary objects for
+.UX
+and \*(Am are not built in the source tree since several
+different configurations may be required at one site.
+For example,
+a site having more than one machine architecture which runs \*(Am,
+or wanting to build both the
+.UX
+and \*(Am utilities (which share source code) at the same time.
+The program
+.kW amake
+.I amake
+is used to configure the distribution,
+with the exception of third party software which may have its own build
+commands,
+such as the X windows system.
+.LP
+At the top level of the distribution tree there are five directories:
+.IP bin.scripts 12
+.IP bin.<mach>
+These directories contain the binaries of \*(Am utilities that run under
+.UX .
+The
+.I bin.scripts
+directory contains shell scripts and shared data files.
+There is also a subdirectory per supported architecture/operating system
+version.
+The directory
+.I bin.scripts
+and the appropriate machine subdirectory should be put into your path before
+attempting to build \*(Am under
+.UX .
+.IP doc
+The
+.I doc
+directory contains the source of the on-line documentation and the source for
+the printable version of the manual.
+.IP lib
+The
+.I lib
+directory contains support files for various programs.
+In particular the
+.I cat able
+versions of the manuals are stored here.
+.IP src
+The
+.I src
+directory contains the sources for the \*(Am kernel, administrative
+programs, utilities plus the \*(Am network driver for
+.UX
+kernels and
+.UX
+specific utilities.
+In the source directories there are files with the name
+.I Amake.srclist .
+These are lists of the sources which comprise a particular object
+(such as a utility).
+These are included by the
+.I Amakefiles
+in the template tree which actually build the object.
+.IP templates
+The
+.I templates
+directory contains the templates of the
+.I Amakefiles
+for configuration tree for \*(Am.
+The templates are parameterized with the path name of the source tree to use,
+the configuration tree where the binaries are to be made and the architecture
+for which the binaries are to be compiled.
+The kernel
+.I Amakefiles
+are also parameterized with the machine type.
+.LP
+The various subdirectories are now described in detail.
+.nH 3 "bin.scripts and bin.\fI<mach>\fP"
+.LP
+.R
+These subdirectories contains the binaries and shell scripts that run under
+.UX
+but talk with the \*(Am system.
+They are divided into subdirectories by machine/operating system.
+For example the subdirectory
+.I bin.sun3
+contains the binaries and shell scripts that will run on the Sun\ 3/50 and 3/60
+under
+SunOS 4.1.
+The subdirectory
+.I bin.sol
+contains the binaries that run on sun4 systems running Solaris.
+.nH 3 "doc"
+.LP
+The reference manual is written using troff and related tools.
+The
+.I ms
+macros are used with some slight modifications and extensions which
+are in the file
+.I am_macros .
+.LP
+The reference manual is in the directory
+.I ref_manual .
+The reference manual is divided into four sections,
+each having a separate subdirectory.
+Volume\ 1 is the users' guide,
+which contains introductory material about \*(Am and how to use the utilities.
+This is in the subdirectory
+.I user .
+Volume\ 2 is the programmers' guide,
+which contains detailed material about library routines, programming tools
+and how to write programs for \*(Am.
+This is in the subdirectory
+.I programming .
+Volume\ 3 is the system administrators' guide,
+which contains information about how to install, boot and maintain an \*(Am
+system.
+This is in the subdirectory
+.I sysadmin .
+In addition there are release notes in the subdirectory
+.I release .
+.nH 3 "lib"
+.LP
+This contains library data and the
+.I cat able
+versions of the manual pages.
+.mH
+lib/whereis
+.LP
+The database used by the program
+.I amwhereis
+is stored in this directory.
+The database is created the first time
+.I amwhereis
+runs.
+.mH
+lib/man
+.LP
+This contains the program
+.I catman
+for generating the data files required by the
+.I aman
+command.
+The data files are also stored in this directory or subdirectories hereunder.
+The source for the manual pages is in the
+.I doc
+subtree.
+.nH 3 "src"
+.LP
+The source directory is the largest and most complicated of the distribution
+tree.
+It contains all the sources that are directly a part of the \*(Am system.
+Third party software such as X windows is provided separately from the \*(Am
+distribution.
+It is usually installed in the top-level directory
+.I thirdp .
+.LP
+Note that nearly all assembly code has to be passed through the C preprocessor
+since it has been written in a ``higher level'' macro language so that it can
+be compiled by the different assemblers.
+.LP
+The subdirectories of
+.I src
+are now described in alphabetical order.
+.mH
+src/admin
+.LP
+This directory contains the source code for the administrative utilities and
+servers.
+Various shell scripts are in the subdirectory
+.I scripts .
+The source for servers is kept separate from related administrative
+utilities.
+For example,
+the subdirectory
+.I soap
+contains the utilities
+and
+.I soapsvr
+contains the source code for the actual \*(Ss.
+.mH
+src/Amakelib
+.LP
+This directory contains the definitions of the
+.kW amake
+.I amake
+tools used to build the \*(Am distribution.
+.mH
+src/X11R6.am
+.LP
+Porting X to \*(Am required altering some of the source files.
+This directory contains the sources that needed modification.
+The subdirectories parallel the original X distribution tree structure.
+Since X is compiled using a configuration tree with symbolic links to the
+sources (instead of path names as with \*(Am) the relevant symbolic links in
+the configuration are changed to point to the modified version
+(see
+.I "Installing the Source Code" .)
+.mH
+src/h
+.LP
+The include files are stored in this sub-tree.
+At the top level are the include files used by user programs and libraries
+and which are not specific to the
+.UX
+emulation or a server.
+.mH
+src/h/ajax
+.LP
+.kW POSIX
+.kW Ajax
+This directory holds the include files specific to the
+.I Ajax
+POSIX emulation.
+.mH
+src/h/byteorder
+.LP
+There are two include files to support architecture dependencies due to byte
+ordering,
+.kW little-endian
+.kW big-endian
+one for little-endian and one for big-endian architectures.
+Programs that need these include files do not include them from here but
+get them from the
+.I machdep
+subdirectory where there are links to these files.
+.mH
+src/h/class
+.LP
+This directory contains AIL class definitions for various servers and some
+include files.
+The include files are generated by AIL and probably not worth
+reading too closely.
+.mH
+src/h/machdep
+.LP
+This sub-tree contains the include files for the machine dependent code.
+It is divided into three sub-trees:
+.IP \fIarch\fP 6
+architecture dependent includes, including a link to the byteorder include file.
+.IP \fIdev\fP
+device dependent include files
+.IP \fImmu\fP
+mmu dependent include files.
+.mH
+src/h/module
+.LP
+The module include files are primarily function prototypes for specific
+library modules such as server stubs.
+.mH
+src/h/posix
+.LP
+.kW "STD C"
+.kW POSIX
+This sub-tree is the collection of STD C and POSIX include files.
+.mH
+src/h/server
+.LP
+The server sub-tree contains the include files specific to particular servers.
+For each server there is a subdirectory.
+.mH
+src/h/sys
+.LP
+This directory has the include files for the machine independent part of the
+kernel.
+.mH
+src/h/window
+.LP
+This directory contains include files for the original window manager for \*(Am.
+These are still used by the kernel for display management on the Sun3.
+.mH
+src/kernel
+.LP
+This directory contains all the source code for the \*(Am kernel.
+It is divided into the machine dependent code in
+.I machdep ,
+the servers that may reside in a kernel in
+.I servers
+and the machine independent code in
+.I sys .
+.mH
+src/kernel/machdep
+.LP
+As with the include files the machine dependent code is divided into
+architecture dependencies, mmu dependencies and device drivers.
+.mH
+src/kernel/machdep/arch
+.LP
+The architecture dependent code is typically the exception handling and
+system call interface.
+There is a subdirectory for each supported architecture.
+.mH
+src/kernel/machdep/dev
+.LP
+A device driver is classified as
+.I generic
+if it works for all machines.
+There are few of these.
+The rest of the devices are divided up according to which machines they
+work on and there should be a directory here for each supported machine.
+.mH
+src/kernel/machdep/mmu
+.LP
+For each supported memory management unit there is a subdirectory containing
+the run-time start-up for the kernel and the routines for managing the
+memory mappings.
+.mH
+src/kernel/server
+.LP
+For each kernel server there is a subdirectory for that server containing the
+necessary source code for it.
+Some of these servers can run in either kernel or user space.
+.mH
+src/kernel/sys
+.LP
+This contains the machine independent part of the kernel.
+It includes the transaction layer, system initialization and one special
+server which is not optional for the kernel:
+the `sys' server which provides the kernel directory and access to internal
+system tables.
+.mH
+src/lib
+.LP
+This contains the source code for the \*(Am libraries.
+Some of this is specific to native \*(Am but much of it is also useful
+for programs which run under
+.UX
+and do \*(Am transactions.
+It also contains the run-time start-up for the native \*(Am executables.
+.mH
+src/lib/head
+.LP
+For each architecture there is a subdirectory containing the source code for
+the run-time start-up for native \*(Am of that architecture.
+It is typically written in assembler.
+.mH
+src/lib/libajax
+.LP
+This directory contains the sources for the part of the
+.kW POSIX
+POSIX emulation that requires a session server to manage I/O.
+.mH
+src/lib/libam
+.LP
+This directory contains the source code for the architecture independent
+utility routines that are specific to \*(Am.
+.mH
+src/lib/libc
+.LP
+.kW "STD C"
+.kW POSIX
+This directory contains the implementations of STD C and POSIX required
+functions for use in native \*(Am programs.
+It is divided into several subdirectories.
+.IP \fIajax\fP 10
+The
+.kW POSIX
+.kW "session server"
+POSIX emulation routines that are independent of the session server.
+.IP \fImachdep\fP
+The machine dependent code, which is in many cases written in
+assembler for efficiency.
+For each architecture there is a sub-tree containing the various routines
+classified according to function:  either string handling, memory handling,
+miscellaneous or system based.
+Where possible a portable version of the routine has been written and stored
+under the
+.I generic
+sub-tree.
+.IP \fImisc\fP
+This directory contains miscellaneous routines such as malloc and getopt.
+.IP \fIstdio\fP
+.kW "STD C"
+This directory contains the STD C stdio library routines.
+.IP \fItime\fP
+.kW POSIX
+This directory contains the STD C\|/\|POSIX routines for manipulating time.
+.mH
+src/lib/math
+.LP
+This contains the STD C math library routines.
+For each architecture there is a subdirectory plus a generic subdirectory
+containing a portable version of each routine.
+.mH
+src/lib/stubs
+.LP
+For each server interface there is a subdirectory containing the RPC stubs
+for that server.
+In general, stubs return the type
+.I errstat
+which is the error status of the RPC.
+.mH
+src/lib/sysam
+.LP
+This directory contains architecture specific routines for \*(Am programs
+and in particular the system call stubs.
+For each architecture there is a subdirectory and in addition a directory
+for generic routines.
+.mH
+src/mmdf.am
+.LP
+.kW "MMDF II"
+This directory contains those source files from the MMDF II mail system
+that were modified from the original sources.
+Note that if the MMDF II mail system is to be built then under
+.UX
+a symbolic link or similar must be made from
+.I src/mmdf
+to the original sources.
+Under \*(Am the sources should be installed under
+.I src/mmdf .
+.mH
+src/test
+.LP
+This sub-tree contains utilities and test programs for \*(Am.
+There are tests for the kernel,
+utilities and servers.
+They serve as a set of acceptance tests for the system.
+.mH
+src/tex.am
+.LP
+.kW \*(Tx
+This directory contains those source files from the \*(Tx text formatting
+system that were modified from the original sources.
+Note that if the \*(Tx text-processing system is to be built then under
+.UX
+a symbolic link or similar must be made from
+.I src/tex
+to the original sources.
+Under \*(Am the sources should be installed under
+.I src/tex .
+.mH
+src/unix
+.LP
+This sub-tree contains the \*(Am network driver that runs in the
+.UX
+kernel,
+system dependent library routines (such as system call replacements) and
+special utilities and servers that only run under
+.UX .
+.mH
+src/unix/admin
+.LP
+Administrative utilities and servers which are only capable of running under
+.UX
+are kept here, each in its own subdirectory.
+.mH
+src/unix/flip-driver
+.LP
+This contains the source code for the FLIP driver that runs in the
+.UX
+kernel.
+.UX .
+.mH
+src/unix/h
+.LP
+The include files that are specific to \*(Am under
+.UX
+are kept here.
+.mH
+src/unix/lib
+.LP
+Library routines specific to programs that run under
+.UX
+such as system call replacements are kept here.
+.mH
+src/unix/sol_flipd
+.LP
+This contains the flip driver sources for the Solaris version of SunOS.
+It is based on streams.
+.mH
+src/unix/util
+.LP
+There are a few user utilities specific to
+.UX .
+Many programs written for native \*(Am also run under
+.UX
+but their source code is kept in
+.I src/util .
+The most important utility is
+.kW ainstall
+.I ainstall (U)
+which installs an \*(Am executable onto a Bullet file server so that it can
+be started from
+.UX
+on an \*(Am machine.
+There are also programs for transferring an arbitrary file from a
+.UX
+file system onto a \*(Bs and vice versa and for manipulating the
+Soap directory server.
+.mH
+src/util
+.LP
+This directory contains the user utilities used by native \*(Am.
+Many of them also work under
+.UX
+although a few may have #ifdefs for this purpose.
+Each subdirectory contains one or more programs.
+For example the subdirectory
+.I soap
+contains several programs for manipulating the \*(Ss.
+The
+.I ajax
+subtree is special.
+It contains versions of programs typically available under
+.UX .
+The
+.I scripts
+subdirectory contains shell scripts.
+These are compatible with the Bourne shell and work with the shell provided
+with the distribution.
+.nH 3 "templates"
+.LP
+The templates are used to generate the configuration tree for \*(Am.
+They are parameterizable
+.I Amakefile s.
+The idea is that using the tools provided, a configuration tree for a particular
+architecture can be made by cloning the template directory structure,
+with special editing of the
+.I Amakefiles
+before they are installed in the configuration tree.
+To each
+.I Amakefile
+is added the source tree root, configuration tree root and
+the architecture for which the configuration is to be made.
+This information is used to select the correct source files and libraries.
+Kernel templates are handled separately from the rest of the process since the
+.I Amakefiles
+may need local adjustments or other servers and drivers from
+those selected by the standard
+.I Amakefile .
+.LP
+There are several subdirectories each of which is briefly described.
+.mH
+amoeba
+.LP
+This sub-tree contains the
+.I Amakefiles
+for the libraries,
+servers and utilities for native amoeba.
+.mH
+doc
+.LP
+This contains the template for the
+.I Amakefile
+for building the \*(Am manuals.
+.mH
+kernel
+.LP
+There is a subdirectory under
+.I kernel
+for each machine type.
+For each machine type there is a set on configuration files for different
+types of kernel.
+Typically there will be a workstation kernel,
+a pool processor kernel,
+a \*(Bs kernel and an IP server kernel.
+.mH
+toolset
+.LP
+For each set of compilers, loaders, etc\. there is a standard set of clusters
+and tools for making the libraries, programs and kernels.
+These can be further tuned on the basis of local preference for a particular
+compiler or loader.
+.mH
+unix
+.LP
+This sub-tree contains the
+.I Amakefiles
+for the libraries, servers and utilities for \*(Am programs that run under
+.UX .
+.nH 3 "thirdp"
+.LP
+The third party software that is not tightly integrated with \*(Am is kept
+here.
+In particular, GNU software is kept here so that it can be distributed
+independently of the rest of \*(Am.
+The program
+.I patch
+is also kept here.
+It can be used for including patches into extant source trees.

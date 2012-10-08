@@ -1,0 +1,139 @@
+#!/bin/sh
+#	
+#	@(#)makesubtree	1.4	94/04/06 11:55:27
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	makesubtree
+#
+#	This program recursively copies the directory tree specified to the
+#	destination, editing the configuration files as it goes so that they
+#	contain the architecture and source code tree root.  Configuration
+#	files have the name `$CFNAME'.
+#	All other files are copied unmolested.
+#	makesubtree assumes that its parameters have been checked by the caller
+#	and just gets on with the job.
+#	It expects the caller to have defined the shell variable ECHO which
+#	determines the verbosity of the output.
+#	It also expects the caller to have defined the variable CHMOD which
+#	selects the correct chmod command for the system on which it is running.
+#
+CFNAME=Amakefile
+PROG=`basename $0`
+if [ $# -ne 6 ]
+then
+	echo "Usage: $PROG <template> <confdir> <conf root> <source code root> <architecture> toolset"
+	exit 1;
+fi
+TEMPLATE=$1
+CONFDIR=$2
+CONF_ROOT=$3
+SRC_ROOT=$4
+ARCH=$5
+TOOLSET=$6
+ARCHDIR=$5.$6
+#
+# check that the template directory really is one!
+#
+if [ ! -d $TEMPLATE ]
+then
+	echo $PROG: directory \`$TEMPLATE\' not found!
+	exit 1
+fi
+#
+# Make the new directory in the config tree if necessary
+# Don't take top level kernel directory from kernel!
+#
+# Don't clone RCS/SCCS directories or kernel directories!
+if [ $TEMPLATE = RCS -o $TEMPLATE = SCCS -o ! -d $TEMPLATE -o $CONFDIR/$TEMPLATE = $CONF_ROOT/$ARCHDIR/./kernel ]
+then
+	exit 0
+fi
+NEWDIR=$CONFDIR/$TEMPLATE
+: # this line is needed to stop a sun OS shell bug
+if [ ! -d $NEWDIR ]
+then
+	$ECHO Creating directory: $NEWDIR
+	mkdir $NEWDIR
+else
+	$ECHO $NEWDIR: directory already exists
+fi
+#
+# Progress down the directory tree and copy the files in this template
+# directory.  Recursively copy subdirectories, if any. If we find a file
+# called $CFNAME then insert the source tree root and the architecture.
+#
+cd $TEMPLATE
+for file in `ls`
+do
+	if [ -d $file ]
+	then
+		# ECHO, UEXIT, E_PRE and E_SUF are already in environment
+		$0 $file $NEWDIR $CONF_ROOT $SRC_ROOT $ARCH $TOOLSET
+		case $? in
+		$UEXIT) exit $UEXIT
+		esac
+	else
+		# skip Markfiles
+		if [ "$file" = Markfile ]
+		then continue
+		fi
+
+		newfile=$NEWDIR/$file
+		if [ "$file" = $CFNAME ]
+		then
+#		    Colons are used as separators in the sed script
+#		    since $SRC_ROOT contains slashes.
+			tmpfile=/tmp/mkt_$$
+			sed "
+			/<CROOT>/s:<CROOT>:$CONF_ROOT/$ARCHDIR:
+			/<SROOT>/s:<SROOT>:$SRC_ROOT:
+			/<ARCH>/s:<ARCH>:$ARCH:
+			" $file > $tmpfile
+			deletefile="/bin/rm -f $tmpfile"
+		else
+			tmpfile=$file
+			deletefile=:
+		fi
+		if [ -f $newfile ]
+		then
+			if cmp -s $tmpfile $newfile
+			then
+				$ECHO "$newfile: file already exists and is up to date."
+				answer=n
+			else
+				answer=d
+				while [ x$answer = xd ]
+				do
+				    echo "$newfile: file already exists but is different."
+				    echo $E_PRE "Overwrite existing version? [nydq] " $E_SUF
+				    read answer
+				    if [ x$answer = xd ]
+				    then
+					diff $newfile $tmpfile
+				    fi
+				done
+
+			fi
+		else
+			answer=y
+		fi
+#
+		case X$answer in
+		Xy)	$ECHO "Creating file     :" $newfile
+			rm -f $newfile
+			cp $tmpfile $newfile
+			$CHMOD $newfile # make file writable
+			$deletefile ;;
+		Xq)
+			$deletefile
+			exit $UEXIT ;;
+		*)
+			$deletefile
+		esac
+	fi
+done
+exit 0

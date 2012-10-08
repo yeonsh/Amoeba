@@ -1,0 +1,25 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:22:56
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_ACK_MODULES_OBJECT = {
+	$PWD/byte_order.h,
+	$PWD/object.h,
+	$PWD/rd.c,
+	$PWD/rd_arhdr.c,
+	$PWD/rd_bytes.c,
+	$PWD/rd_int2.c,
+	$PWD/rd_long.c,
+	$PWD/rd_ranlib.c,
+	$PWD/rd_unsig2.c,
+	$PWD/wr.c,
+	$PWD/wr_arhdr.c,
+	$PWD/wr_bytes.c,
+	$PWD/wr_int2.c,
+	$PWD/wr_long.c,
+	$PWD/wr_putc.c,
+	$PWD/wr_ranlib.c,
+};

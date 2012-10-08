@@ -1,0 +1,33 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 11:17:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Part of the Soap stubs containing -DOWNDIR dependent code:
+L_STUBS_SOAP_OWNDIR_DEP = {
+	$PWD/sp_workdir.c,
+	$PWD/sp_mktrans.c,
+};
+
+L_STUBS_SOAP = {
+	$L_STUBS_SOAP_OWNDIR_DEP,
+	$PWD/sp_stubs.h,
+	$PWD/sp_buf.h,
+	$PWD/sp_buf.c,
+	$PWD/sp_append.c,
+	$PWD/sp_chmod.c,
+	$PWD/sp_create.c,
+	$PWD/sp_delete.c,
+	$PWD/sp_discard.c,
+	$PWD/sp_getmasks.c,
+	$PWD/sp_getseqno.c,
+	$PWD/sp_install.c,
+	$PWD/sp_list.c,
+	$PWD/sp_lookup.c,
+	$PWD/sp_replace.c,
+	$PWD/sp_setlookup.c,
+	$PWD/sp_traverse.c,
+};
+

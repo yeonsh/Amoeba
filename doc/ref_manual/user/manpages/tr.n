@@ -1,0 +1,65 @@
+.\"	@(#)tr.n	1.3	94/04/05 16:12:50
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "tr" U
+translate character codes
+.SH
+Synopsis
+.LP
+.sC L
+tr [-cds] [string1] [string2]
+.eC
+.SH
+Description
+.LP
+.I Tr
+performs simple character translation.
+When no flag is specified,
+each character in
+.I string1
+is mapped onto the corresponding character in
+.I string2 .
+.LP
+A string may consist of one or more of
+.IP "range" 8
+e.g.:  [a-z] or [0-9]
+.IP "escape"
+e.g.:  \e\^012 (meaning newline) or \e\e (``\^\e'' itself)
+.IP "other"
+e.g.:  A or ( or 1
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+Complement the set of characters in string1.
+.IP \fB\-d\fP
+Delete all characters specified in string1.
+.IP \fB\-s\fP
+Squeeze all runs of characters in string1 to one character.
+.SH
+Examples
+.LP
+.sC
+tr '[a-z][A-Z]' '[A-Z][a-z]' < x > y
+.eC
+Convert upper case to lower case,
+and vice versa,
+reading the input from the file
+.I x
+and writing it to the file
+.I y .
+.sC
+tr -d '0123456789' < f1 > f2
+.eC
+Write on the file
+.I f2
+the contents of
+.I f1
+but with all the digits deleted.

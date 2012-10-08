@@ -1,0 +1,70 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:13:20
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_EMCODE = {
+	$PWD/bhcst.c,
+	$PWD/bhdlb.c,
+	$PWD/bhdnam.c,
+	$PWD/bhfcon.c,
+	$PWD/bhicon.c,
+	$PWD/bhilb.c,
+	$PWD/bhpnam.c,
+	$PWD/bhucon.c,
+	$PWD/crcst.c,
+	$PWD/crdlb.c,
+	$PWD/crdnam.c,
+	$PWD/crxcon.c,
+	$PWD/crilb.c,
+	$PWD/crpnam.c,
+	$PWD/crscon.c,
+	$PWD/cst.c,
+	$PWD/dfdlb.c,
+	$PWD/dfdnam.c,
+	$PWD/dfilb.c,
+	$PWD/dlb.c,
+	$PWD/dnam.c,
+	$PWD/end.c,
+	$PWD/endarg.c,
+	$PWD/exc.c,
+	$PWD/fcon.c,
+	$PWD/getid.c,
+	$PWD/icon.c,
+	$PWD/ilb.c,
+	$PWD/insert.c,
+	$PWD/internerr.c,
+	$PWD/msend.c,
+	$PWD/op.c,
+	$PWD/opcst.c,
+	$PWD/opdlb.c,
+	$PWD/opdnam.c,
+	$PWD/opilb.c,
+	$PWD/opnarg.c,
+	$PWD/oppnam.c,
+	$PWD/pnam.c,
+	$PWD/pro.c,
+	$PWD/pronarg.c,
+	$PWD/msstart.c,
+	$PWD/psdlb.c,
+	$PWD/psdnam.c,
+	$PWD/pspnam.c,
+	$PWD/scon.c,
+	$PWD/ucon.c,
+	$PWD/C_out.c,
+	$PWD/failed.c,
+	$PWD/em.c,
+
+	$PWD/insert.h,
+	$PWD/em_private.h,
+};
+
+H_NOGEN = {
+	$PWD/em.nogen[no-gen]
+};
+
+MAKE_EM_GEN = {
+	$PWD/make.em.gen[type = script] # instead of an Ail source!
+};

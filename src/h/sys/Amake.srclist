@@ -1,0 +1,30 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 10:38:53
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/flip/Amake.srclist;
+
+H_SYS_FILES = {
+	$PWD/assert.h,
+	$PWD/boot.h,
+	$PWD/debug.h,
+	$PWD/global.h,
+	$PWD/internet.h,
+	$PWD/kerneldir.h,
+	$PWD/kparam.h,
+	$PWD/kthread.h,
+	$PWD/mpx.H,
+	$PWD/portcache.H,
+	$PWD/printbuf.h,
+	$PWD/profile.h,
+	$PWD/proto.h,
+	$PWD/randseed.h,
+	$PWD/seg.h,
+	$PWD/table.h,
+	$PWD/trans.H,
+	$H_PACKET,
+	$H_FFLIP,
+};

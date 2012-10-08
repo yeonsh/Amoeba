@@ -1,0 +1,207 @@
+#!/bin/sh
+#	
+#	@(#)mkindex	1.5	96/02/15 16:34:25
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	MKINDEX
+# This script is used to take the Contents & Keywords Index file produced by
+# troff.amk, separate the contents and keywords entries and then generate
+# something that will closely correspond with the desired index for an Amoeba
+# manual.
+#
+#
+#  The inputfile name is the concatentation of $1 & $2
+#
+if [ $# -ne 2 -a $# -ne 3 ]
+then
+	echo usage: $0 root index-src-suffix see-also
+	exit 1
+fi
+ROOTNAME=$1
+INFILE=$1$2
+CONTENTS=$ROOTNAME.contents.n
+INDEX=$ROOTNAME.index.n
+
+if [ $# -eq 3 ]
+then
+	SEE_ALSO=$3
+else
+	SEE_ALSO=""
+fi
+
+#
+#
+#	GENERATE THE CONTENTS PAGE SOURCES
+#	**********************************
+#
+echo ".bp" > $CONTENTS
+if egrep -v "^KW:" $INFILE >> $CONTENTS
+then
+    echo ".if o .bp" >> $CONTENTS
+else
+    echo "No contents page generated"
+    rm -f $CONTENTS
+fi
+
+#
+#	GENERATE THE INDEX SOURCES
+#	**************************
+#
+if grep "^KW:" $INFILE > $INDEX
+then
+    :
+else
+    echo "No index for $ROOTNAME"
+    exit 0	# it is not an error to have no index
+fi
+
+#
+TMP0=mkindt_$$
+TMP1=mkindx_$$
+TMP2=mkindh_$$
+trap "rm -f $TMP0 $TMP1 $TMP2" 0
+#
+# Get the heading number for the index section and the page number on which
+# it begins
+#
+sed -e 's/^KW://p' -e 's/\\\^//p' $INDEX | \
+sort -u -t +0 -1d +1n | \
+awk '
+BEGIN	{ FS = ""; CURNAME = "" }
+{
+	if (NF != 2) { print "Error at line",  NR, ", NF = ", NF; exit }
+	if ($1 != CURNAME)
+	{
+	    if (CURNAME != "")
+	    {
+		if (FIRST != LAST)
+		{
+		    LIST = LIST ", " FIRST "-" LAST
+		}
+		else
+		{
+		    LIST = LIST ", " FIRST
+		}
+		print CURNAME LIST
+	    }
+	    CURNAME = $1
+	    LIST = ""
+	    FIRST = $2
+	    LAST = $2
+	}
+	else
+	{
+	    if ($2 == LAST + 1)
+	    {
+		LAST = $2
+	    }
+	    else
+	    {
+		if (FIRST != LAST)
+		{
+		    LIST = LIST ", " FIRST "-" LAST
+		}
+		else
+		{
+		    LIST = LIST ", " FIRST
+		}
+		FIRST = $2
+		LAST = $2
+	    }
+	}
+}
+END	{
+	    if (CURNAME != "")
+	    {
+		if (FIRST != LAST)
+		{
+		    LIST = LIST ", " FIRST "-" LAST
+		}
+		else
+		{
+		    LIST = LIST ", " FIRST
+		}
+		print CURNAME LIST
+	    }
+	}
+' | \
+sed -e 's/\\fI/____/' > $TMP0
+# Add in the see-also stuff now.
+sort -df $TMP0 $SEE_ALSO | \
+awk '
+BEGIN	{ CURLET = "";
+	  C["0"] = "0";
+	  C["1"] = "1";
+	  C["2"] = "2";
+	  C["3"] = "3";
+	  C["4"] = "4";
+	  C["5"] = "5";
+	  C["6"] = "6";
+	  C["7"] = "7";
+	  C["8"] = "8";
+	  C["9"] = "9";
+	  C["a"] = "A"; C["A"] = "A";
+	  C["b"] = "B"; C["B"] = "B";
+	  C["c"] = "C"; C["C"] = "C";
+	  C["d"] = "D"; C["D"] = "D";
+	  C["e"] = "E"; C["E"] = "E";
+	  C["f"] = "F"; C["F"] = "F";
+	  C["g"] = "G"; C["G"] = "G";
+	  C["h"] = "H"; C["H"] = "H";
+	  C["i"] = "I"; C["I"] = "I";
+	  C["j"] = "J"; C["J"] = "J";
+	  C["k"] = "K"; C["K"] = "K";
+	  C["l"] = "L"; C["L"] = "L";
+	  C["m"] = "M"; C["M"] = "M";
+	  C["n"] = "N"; C["N"] = "N";
+	  C["o"] = "O"; C["O"] = "O";
+	  C["p"] = "P"; C["P"] = "P";
+	  C["q"] = "Q"; C["Q"] = "Q";
+	  C["r"] = "R"; C["R"] = "R";
+	  C["s"] = "S"; C["S"] = "S";
+	  C["t"] = "T"; C["T"] = "T";
+	  C["u"] = "U"; C["U"] = "U";
+	  C["v"] = "V"; C["V"] = "V";
+	  C["w"] = "W"; C["W"] = "W";
+	  C["x"] = "X"; C["X"] = "X";
+	  C["y"] = "Y"; C["Y"] = "Y";
+	  C["z"] = "Z"; C["Z"] = "Z";
+	}
+{
+	XX = "_"
+	for (i = 1; i <= length($1) && (XX == "_" || XX == "/" || XX == "." || XX == "," || XX == "'\''"); i++)
+	{
+	    XX = substr($1, i, 1)
+	}
+
+	if (CURLET != C[XX]) {
+	    CURLET = C[XX]
+	    print ".sp"
+	    print ".ne 3"
+	    print "\s+9" CURLET "\s0"
+	    print ".sp"
+	}
+	XX = substr($0, 1, 1)
+	if (XX == "'\''" || XX == ".") {
+	    print "\\&" $0
+	} else {
+	    print $0
+	}
+	print ".br"
+}
+' | \
+sed -e 's/____/\\fI/' > $TMP1
+#echo ".ns" >> $TMP2
+echo ".cH Index" >> $TMP2
+echo ".LP" >> $TMP2
+echo "The italic references in the index are to programs or routines described in this manual." >> $TMP2
+echo ".sp 1v" >> $TMP2
+echo ".LP" >> $TMP2
+echo ".nf" >> $TMP2
+echo ".MC" >> $TMP2
+cat $TMP2 $TMP1 > $INDEX
+exit 0

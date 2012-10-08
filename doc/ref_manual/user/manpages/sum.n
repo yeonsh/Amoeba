@@ -1,0 +1,40 @@
+.\"	@(#)sum.n	1.5	96/03/19 13:10:02
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Mar 1996
+.aE
+.mT "sum" U
+compute the checksum and block count of a file
+.SH
+Synopsis
+.LP
+.sC L
+sum file ...
+.eC
+.SH
+Description
+.LP
+.I Sum
+computes the checksum of one or more files.
+It prints the checksum and the number of blocks in the file.
+The block size is 512 bytes.
+It is most often used to see
+if a file copied from another machine has been correctly received.
+This works best when both machines use the same checksum algorithm.
+.SH
+Examples
+.LP
+.sC
+sum /home/xyz
+.eC
+might print
+.sC
+38349   161
+.eC

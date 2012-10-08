@@ -1,0 +1,188 @@
+.\"	@(#)sty.n	1.7	96/02/16 11:09:07
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, January 1990
+	Document: Siebren van der Zee, Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, Nov 1995 - style conformance
+.aE
+.mT "sty" U
+show or change tty settings
+.SH
+Synopsis
+.LP
+.sC L
+sty [tty \fIcap\fP] [all]
+sty [+-]help
+sty [tty \fIcap\fP [reset\ |\ size] [[+-]\fIflag\fP]\ ... [[+-]\fIchar\fP]\ ... [\fIchar\fP\ \fIvalue\fP]\ ...
+.eC
+.SH
+Description
+.LP
+.kW "tty"
+.kW "terminal settings"
+.kW "parity"
+.kW "carriage return"
+.kW "interrupt character"
+.kW "xon/xoff"
+.kW "tab expansion"
+.kW "modem status lines"
+.kW "hangup"
+.kW "stop bits"
+.kW "echo"
+.kW "kill character"
+.kW "erase character"
+.kW "input editing"
+.kW "baud"
+A tty controls the way the keystrokes typed at the keyboard to a process are
+interpreted, and the way read and write transactions of the process are
+handled.
+The tty interface keeps flags and characters, which can be
+displayed and set by
+.I sty .
+The flags and characters that
+.I sty
+.kW POSIX
+understands are defined by POSIX 1003.1.
+For each flag and character,
+.I sty
+knows a default value which is suitable for use on \*(Am.
+Without any options
+.I sty
+prints the current tty settings,
+insofar as they differ from the compiled-in defaults.
+.mH
+Options
+.LP
+.IP \fBall\fP
+.br
+This makes
+.I sty
+print every flag and character,
+instead of just the ones that differ from the defaults.
+.IP [\fB+-\fP]\fBhelp\fP
+.br
+Prints help:
+.B \-help
+gives a very short synopsis.
+.B help
+gives the synopsis and tells what the defaults for the flags and characters
+are.
+.B +help
+lists the meaning of every flag and character.
+.IP "\fBtty\fP \fIcapability\fP"
+.br
+This tells
+.I sty
+to use
+.I capability
+as the capability for the tty instead of the default
+.cW STDIN
+from the capability environment.
+.IP \fBreset\fP
+.br
+This means use the compiled-in defaults instead of the current
+tty settings.
+.IP \fBsize\fP
+.br
+This prints the size of the tty in rows and columns of characters, if known.
+.LP
+To turn off a flag, pass the option
+.B \-\fIflag\fP .
+To turn on a flag, pass the option
+.I flag .
+To set a flag to its default, pass the option
+.B +\fIflag\fP .
+.LP
+To disable a ttychar, pass the option
+.I \-\fIcharname\fP .
+To set a ttychar, pass the option
+.I "charname charvalue" ,
+where
+.I charvalue
+is of the form
+.I 0xhexvalue ,
+.I ^character 
+or
+.I character .
+To set a ttychar to its default, pass the option
+.I +charname .
+(Note that if the character ``^'' is special to the shell, it needs to
+be quoted or preceded by a backslash.)
+.LP
+The output of
+.I sty
+is usable as arguments to
+.I sty
+itself,
+so it is possible to save tty settings in a readable form with
+.sC
+sty > Nice_Settings
+.eC
+and then later restore them with
+.sC
+sty \(gacat Nice_Settings\(ga
+.eC
+.LP
+For a complete list of characters and flags, consult the POSIX standard,
+or type
+.sC
+sty +help
+.eC
+.mH
+Environment
+.LP
+If no tty option is passed,
+.I sty
+uses the capability
+.cW STDIN
+as the tty capability.
+.SH
+Examples
+.LP
+Three ways to set the ttychar ``eof'' to CTRL\-D are shown:
+.sC
+sty +eof
+.eC
+works because CTRL\-D is the default for this character.
+.sC
+sty eof 0x4
+.eC
+works because 0x4 happens to be CTRL\-D.
+.sC
+sty eof '^d'
+.eC
+is the common way to set eof to CTRL\-D.
+.LP
+To turn off the possibility to signal eof altogether, type:
+.sC
+sty -eof
+.eC
+.LP
+To display the complete tty configuration, type:
+.sC
+sty all
+.eC
+If all settings have their default values, this produces:
+.sC L
+.ps-1
+brkint icrnl -ignbrk -igncr -ignpar -inlcr -inpck -istrip ixoff ixon
+-parmrk opost -clocal cread -cstopb -hupcl -parenb -parenodd echo echoe
+echok -echol icanon -iexten isig -noflsh -tostop eof '^D' -eol erase '^H'
+intr '^C' kill '^X' quit '^\' -susp start '^Q' stop '^S' min 1 time 0
+baud 9600
+.ps
+.eC
+.SH
+See Also
+.LP
+POSIX Standard 1003.1-1988
+.LP
+ax(U),
+tios_getattr(L),
+tios_setattr(L),
+tios_getwsize(L).

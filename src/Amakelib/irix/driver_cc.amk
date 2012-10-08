@@ -1,0 +1,38 @@
+#	
+#	@(#)driver_cc.amk	1.2	94/04/06 10:36:29
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/../common/mkdep.amk;
+
+%if (%not defined(CC), {
+    CC = cc;
+});
+
+# Special tool for the amoeba driver in unix
+%tool driver_cc-c (
+    src:         %in         [type = C-src];
+    object:      %out        [type = loadable]		=> match($src);
+    flags:       %string %list				=> $CFLAGS;
+    unixversion: %string;
+    objflags:    %string %list				=>
+		    if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:     %in         [type = command]		=> $CC;
+    temp:	 %tmp				        => only-once;
+    incl:        %in %list   [C-incl, implicit]		=>
+		    mkdep($src, flags => $flags + $objflags, deps => %return);
+)
+{
+    %if ($unixversion == irix3.3,
+	    exec($program, args => '-c -DECLIPSE -DIP6 -D_KERNEL -g' +
+	       '-G 8 -prototypes -DDEFAULTSEMAMETER=0 -DSPLOCKMETER=0' +
+					$src + $flags + $objflags)
+    ,
+	echo('Do not know how to make amoeba driver for ' + $unixversion)
+    );
+
+};
+
+%include $PWD/../common/cc-c.common;

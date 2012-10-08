@@ -1,0 +1,36 @@
+#	
+#	@(#)am_driver.amk	1.4	96/02/15 15:57:48
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/common/common.amk;
+
+%include $PWD/common/ctags.amk;
+%include $PWD/common/lint.amk;
+
+#
+#  cc-c tool for unix amoeba driver and related utilities.
+#	For the utilities this is identical to the executable cc-c tool
+#	except that we accept .H files.
+#	The tool for the driver does special things on a per Unix version basis
+#
+%instance deftypesuffix(C-src, '%.c');
+%instance deftypesuffix(C-h-incl, '%.h');
+%instance deftypesuffix(C-H-incl, '%.H');
+%instance deftypesuffix(loadable, '%.o');
+
+%derive f[C-incl] %when (get($f, type) == C-h-incl)
+			   %or (get($f, type) == C-H-incl);
+
+%if ($COMPILER_SET == sun %or $COMPILER_SET == sunpro %or
+			$COMPILER_SET == ultrix %or $COMPILER_SET == irix, {
+    %include $PWD/$COMPILER_SET/driver_cc.amk;
+} , {
+    %include $PWD/common/driver_cc.amk;
+});
+
+%include $PWD/common/assembler.amk;
+%include $PWD/common/archiver.amk;
+%include $PWD/common/loader.amk;

@@ -1,0 +1,233 @@
+.\"	@(#)login.n	1.7	96/02/15 17:48:05
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Leendert van Doorn, March 1992
+	Document: Gregory J. Sharp, March 1992
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT login A
+login utility
+.SH
+Synopsis
+.LP
+.sC L
+login [-bdw] [username]
+.eC
+.SH
+Description
+.LP
+.kW password
+.kW "/Environ"
+.kW "logging in"
+.I Login
+lets you log in on \*(Am.
+When
+.I login
+is started it must have unrestricted access to the directory
+.I /super/users .
+If
+.I username
+is not specified it prints a banner which shows the version of \*(Am and then
+prompts for a user name and a password.
+If
+.I username
+is specified then it only prompts for a password.
+The user name must be a directory entry in
+.I /super/users .
+Therefore a user name cannot be empty.
+Once the user name is entered
+.I login
+turns off echoing and asks for a password.
+An empty password may be valid.
+Then it creates a rudimentary environment,
+executes the any commands in the
+.I environment
+file
+.I /Environ
+\- which involves validating the password \- and finally starts a shell.
+To its owner process,
+.I login
+appears to exit when the shell it started exits.
+.mH
+Options
+.LP
+.IP "\fB\-b\fP" 5
+This option causes
+.I login
+not to print its banner.
+.IP "\fB\-d\fP"
+This option causes
+.I login
+to print debug information about what it encountered in the environment file.
+.IP "\fB\-w\fP"
+This option causes
+.I login
+to suppress warning messages.
+.mH
+Diagnostics
+.LP
+.I Login
+reports an invalid login when the user does not exist,
+has no
+.I Environ
+file or the password is incorrect.
+If there is an error while evaluating the
+.I Environ
+file then the default environment will be used and warning messages will be
+printed.
+.mH
+Environment Variables
+.LP
+The following capability environment variables are set by
+.I login :
+.IP \*<HOME\*>
+.br
+What the user's shell will see as ``/'',
+i.e., what
+.I login
+sees as
+.I /super/users/<username> .
+.IP \*<WORK\*>
+.br
+The initial working directory of the new shell.
+.IP "\*<STDIN, STDOUT, STDERR, TTY\*>"
+.br
+These point to a tty.
+They refer to the shell's standard input, output, diagnostics output,
+and the controlling tty respectively.
+.LP
+The following string environment variables are set by
+.I login :
+.IP \*<HOME\*>
+.br
+Absolute path name for the home directory.
+Defaults to ``/home''.
+.br
+.ne 4
+.IP \*<USER\*>
+.IP \*<LOGNAME\*>
+.br
+The login name of the user.
+Both variables are supported so that software from the different versions of
+.UX
+has a chance of running).
+.LP
+The following variable is used by
+.I login :
+.IP \*<SHELL\*>
+.br
+This variable is not set by
+.I login
+unless it is defined in the
+.I environment
+file.
+If it is set in the
+.I environment
+file,
+.I login
+will invoke this shell instead of the default
+.I /bin/sh
+if no
+.I exec
+line is defined in
+.I /Environ .
+.SH
+Examples
+.LP
+As a first example,
+consider someone who only wants to be able to login:
+.IP
+.sC
+passwd 55PLc3q.TynSko
+.eC
+.LP
+Now consider a session server user (see
+.I session (U)),
+who wants start his own shell in a directory called
+.I /home .
+In case a window environment exists, he wants the session
+server to start
+.I xterm ,
+which in turn starts the shell.
+If there is no window environment,
+.I xterm
+will not be started.
+Note that putting
+.I xexec
+beyond
+.I exec
+is not useful.
+The
+.I xexec
+will be ignored in that case.
+.sC L
+passwd 55PLc3q.T&nSko
+setenv HOME /home
+setcap WORK /home
+setenv _WORK /home
+setenv PATH .:/home/bin:/bin:/profile/util:/profile/module/x11/bin
+setenv SHELL /bin/sh
+xexec /profile/util/session -a /bin/xterm -reverse -e /bin/sh
+exec /profile/util/session -a /bin/sh
+.eC
+.mH
+Files
+.LP
+.I /Environ
+\- the default environment file.
+.SH
+File Format
+.LP
+Comments in the
+.I Environ
+file start with a ``#'' in the first column
+and extend to the end of the line.
+.br
+The commands recognized by
+.I login
+are:
+.TS
+center;
+l l .
+passwd	Validate typed password with the crypted version.
+setenv	Set the value of an environment variable.
+setcap	Set the value of a capability variable.
+exec	Execute a shell.
+xexec	Execute a shell if and only if running in a window environment.
+.TE
+.LP
+.I Passwd
+takes at most one argument:
+an encrypted password.
+If the argument is missing,
+an empty password will be accepted by
+.I login .
+.I Setenv
+and
+.I setcap
+take two arguments:
+the first is the name of the variable,
+the second is the value (a path name to be looked up in the case of
+.I setcap ).
+The arguments to
+.I exec
+form the command to be executed.
+The initial owner of this process is the original owner of
+.I login .
+.I Exec
+does not return.
+If the
+.I environment
+file does not contain an
+.I exec ,
+an implicit
+.I exec
+of the default shell is performed.
+.SH
+See Also
+.LP
+chpw(U).

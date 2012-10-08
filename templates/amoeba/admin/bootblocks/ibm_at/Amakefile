@@ -1,0 +1,117 @@
+#	
+#	@(#)Amakefile	1.11	96/02/16 15:36:25
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/bootblocks/ibm_at/Amake.srclist;
+
+%if (%not ($ARCH == 'i80386'), {
+	echo('You can only compile this for an i80386 target.');
+	echo('Aborting ...');
+	exit();
+});
+
+%include $CONF_ROOT/toolset/generic;
+
+INCLUDES = {
+	-I$SRC_ROOT/ack/h,
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/module,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/posix/machdep/$ARCH,
+	-I$SRC_ROOT/h/machdep/dev,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/h/toolset/$COMPILER_SET,
+	-I$SRC_ROOT/kernel/machdep/dev/ibm_at,
+};
+
+%if ($COMPILER_SET == ack, {
+	# fetch ACKDIR from environment;  if not available take default
+	%import ACKDIR;
+	%if ($ACKDIR <> '', {
+		ACK_DIR = $ACKDIR;
+	}, {
+		ACK_DIR = vpath(lib, { /usr/local/ack, /profile/module/ack });
+	});
+
+	DEFINES = {'-DNO_ASM', -D$ARCH };
+});
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+
+AJAX_LIBS = {
+	$LIB_AJAX,
+	$LIB_AMOEBA
+};
+
+AJAX_LINTLIBS = {
+	$LINT_AJAX,
+	$LINT_AMOEBA
+};
+
+%instance gcluster(isamkprom, $U_IBMAT_ISAMKPROM, $AJAX_LIBS, $AJAX_LINTLIBS);
+%instance gcluster(isamkimage, $U_IBMAT_ISAMKIMAGE, $AJAX_LIBS, $AJAX_LINTLIBS);
+%instance gcluster(fdisk, $U_IBMAT_FDISK, $AJAX_LIBS, $AJAX_LINTLIBS);
+%instance gcluster(showbadblk, $U_IBMAT_SHOWBADBLK, $AJAX_LIBS, $AJAX_LINTLIBS);
+%instance gcluster(installboot.ibm_at, $U_IBMAT_INSTALLBOOT, $AJAX_LIBS, $AJAX_LINTLIBS);
+
+%if ($COMPILER_SET == ack, {
+# Additional software that only compiles with ACK
+
+ACK_LIB_DIRS = { $ACK_DIR/lib, $ACK_DIR/lib.bin, $ACK_DIR/lib/back/any };
+
+EM_LED_DIR  = vpath(em_led, $ACK_LIB_DIRS);
+%if ($EM_LED_DIR <> '.', {
+	EM_LEDI86 = $EM_LED_DIR/em_led;
+}, {
+	EM_LED_DIR  = vpath(led, $ACK_LIB_DIRS);
+	%if ($EM_LED_DIR <> '.', {
+		EM_LEDI86 = $EM_LED_DIR/led;
+	}, {
+		exit('Cannot find the ack link editor led.');
+	});
+});
+
+EM_LIBI86  = $ACK_DIR/lib/i86/tail_em;
+LDFLAGSI86 = { '-a0:1', '-a1:1', '-a2:1', '-a3:1', '-s' };
+DEFINESI86 = { '-mi86' + $INCLUDES + '-DBOOT512' };
+
+
+%default isa.hdboot;
+%cluster {
+	%targets isa.hdboot[type = program];
+	%sources $U_IBMAT_HDBOOT_START, $U_IBMAT_HDBOOT;
+	%use	 cc-c(flags => $DEFINESI86 + '-DHDBOOT'),
+		 assembler(flags => $DEFINESI86 + '-DHDBOOT'),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+
+%default isa.flboot;
+%cluster {
+	%targets isa.flboot[type = program];
+	%sources $U_IBMAT_FLBOOT_START, $U_IBMAT_FLBOOT;
+	%use	 cc-c(flags => $DEFINESI86 + '-DFLBOOT'),
+		 assembler(flags => $DEFINESI86 + '-DFLBOOT'),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+
+};
+
+%default isa.dosboot;
+%cluster {
+	%targets isa.dosboot[type = program];
+	%sources $U_IBMAT_DOSBOOT;
+	%use	 assembler(flags => $DEFINESI86),
+		 loader(program => $EM_LEDI86,
+			flags => $LDFLAGSI86, libraries => $EM_LIBI86);
+};
+
+}); # end ACK

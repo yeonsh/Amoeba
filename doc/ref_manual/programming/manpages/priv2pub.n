@@ -1,0 +1,83 @@
+.\"	@(#)priv2pub.n	1.5	96/02/15 16:54:11
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1988
+	Document: Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, Sept 1991 - we use it now!
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT priv2pub L "libamoeba, libamunix.a"
+convert private port (get-port) to public port (put-port)
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+
+void
+priv2pub(priv, pub)
+port *priv; /* in */
+port *pub;  /* out */
+.eC
+.SH
+Description
+.LP
+.kW "\fIpriv2pub\fP"
+.kW "private port"
+.kW "public port"
+.kW "one-way function"
+.kW "F-box"
+.kW "cryptography"
+.kW RPC
+The \*(Am publications describe how a one-way function is
+applied by the F-box to convert a get-port to a put-port.
+This routine is used to implement the F-box in software.
+The
+.I priv2pub
+function is a one-way function (in that it is extremely difficult to
+invert) which is used to encrypt the port of a server.
+.LP
+.I Priv2pub
+converts a private port (also known as a
+.I get-port )
+to a public port (also known as
+.I put-port ).
+A private port is the port used by a server in its
+.I getreq
+call;
+a public port is the port used by a client of that server in its
+.I trans
+call (see
+.I rpc (L)).
+When
+.I getreq
+is called the kernel calls
+.I priv2pub
+to  encrypt the private port and only accepts requests to the encrypted port.
+Thus it is difficult for someone to pretend to be a server for which they do not
+know the
+.I get-port .
+Note that when
+.I getreq
+returns the
+.I header
+argument will contain the
+.I put-port
+since that is what the client sent.
+.LP
+It is legal for the
+.I priv
+and
+.I pub
+arguments to point to the same location.
+Neither should be a NULL-pointer.
+.SH
+See Also
+.LP
+one_way(L),
+rpc(L).

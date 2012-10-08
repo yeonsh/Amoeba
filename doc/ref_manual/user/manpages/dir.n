@@ -1,0 +1,180 @@
+.\"	@(#)dir.n	1.5	96/02/15 18:09:28
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Gregory J. Sharp, Oct 1995 - layout conformance and glitches
+.aE
+.mT "dir" U
+list information about directory entries
+.SH
+Synopsis
+.LP
+.sC L
+dir [-cdklrtux] [pathname ...]
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "directory listing"
+.kW "directory server"
+For each
+.I pathname ,
+.I dir
+displays on standard output, information about the specified directory entry,
+such as rights masks and creation time,
+and (optionally) about the object referred to by the entry.
+If no
+.I pathname
+is specified it defaults to the current working directory.
+If
+.I pathname
+refers to a directory,
+the entries in that directory
+are listed in alphabetic name order,
+rather than listing the entry that
+refers to the directory (but see
+.B \-d ,
+below).
+.LP
+If the path name cannot be found in the directory server
+or insufficient rights are available,
+a suitable error message will be printed.
+.mH
+Options
+.LP
+.IP \fB\-c\fP 10
+List the rights masks of each directory entry.
+The listing begins with a header line in this case.
+Above the file name(s) are the rights for
+.I delete
+and
+.I modify
+rights.
+If either is present it will appear between braces.
+Then for each column of the directory is printed a heading over the column
+showing the rights masks per directory entry.
+The heading printed consists of the name of each column
+(typically
+.I "owner  group  other" ).
+If read permission for the column is present then an ``*'' will appear
+immediately after the column name.
+.IP \fB\-d\fP
+If the object is a directory, list information about the entry for the
+directory object, rather than listing each entry in the directory.
+.IP \fB\-k\fP
+Print, in a human-readable form, an approximation of the capability
+in the directory entry.
+This form is useful only for certain debugging purposes and cannot be
+translated back into a valid capability.
+.IP \fB\-l\fP
+Use
+.I std_info (L)
+to obtain an informational string describing the
+object from the server that owns it.
+If the object is a directory, this string will show the rights on the
+directory (after the rights-masking operation is applied).
+.IP \fB\-r\fP
+When listing a directory (in the absence of
+.B \-d ),
+sort the directory entries in reverse alphabetic name order, or the reverse
+of whatever order is specified by the other flags.
+.IP \fB\-t\fP
+When listing a directory (in the absence of
+.B \-d ),
+sort the directory entries by their creation date, from newest to oldest.
+.IP \fB\-u\fP
+When listing a directory (in the absence of
+.B \-d ),
+use the actual order that the entries appear in the directory, rather than
+alphabetic order.
+.IP \fB\-x\fP
+Print three numbers, separated by commas, describing the capability-set in
+the directory entry: the initial member of the suite, the number of
+current members and the final member of the suite.
+.LP
+Certain
+.I std_info
+strings have been encoded to increase the amount of information that can be
+contained in them.
+For example,
+the
+.I std_info
+string for a Bullet file begins with the character ``\-'' followed by the
+size of the file in bytes.
+The
+.I std_info
+string for a Soap directory begins with a ``/\^'' followed by the rights
+present for that directory.
+The ``d'' stands for
+.I delete
+permission,
+the ``w'' stands for
+.I write
+permission (i.e., modify)
+and the digits refer to the columns of the directory in which
+read permission is granted.
+If any of the positions in the string has a ``\-'' character then that right
+is not present.
+For kernel directories the information is the same but the initial character
+identifying the object type is a ``%'' instead of a ``/\^''.
+For details of other encoded strings see
+.I std_info (U).
+.mH
+Warnings
+.LP
+Note that if
+the
+.B \-d
+flag has
+.I not
+been specified and
+.I pathname
+refers to an object for which no server is available, then
+an attempt will be made to locate the server which will result in a time-out
+of several seconds.
+.SH
+Example
+.LP
+.sC
+dir -lc /home/foo lib/bar
+.eC
+might produce the following output:
+.sC L
+.ps-1
+{delete|modify} owner*   group*   other*
+/home/foo    ffffffff ffffffff ffffffff  Mar  9 00:31  -   362 bytes
+                owner    group*   other*
+lib/bar            ff       ff       ff  Mar 27 17:36  - 73952 bytes
+.ps
+.eC
+The {delete|modify} above
+.I /home/foo
+says that
+.I delete
+and
+.I modify
+permission is granted for
+.I /home .
+This is not present for the listing of
+.I lib/bar
+so this permission is not present for the directory
+.I lib .
+An ``*'' adjacent to a column name in the header lines implies that
+read permission for that column is present.
+The OR of the rights masks in the columns for which read permission is granted
+is used to restrict the capability's rights before returning it to the user.
+.SH
+See Also
+.LP
+chm(U),
+del(U),
+get(U),
+getdelput(U),
+mkd(U),
+put(U).

@@ -1,0 +1,4 @@
+.\"	@(#)copyright.vu.n	1.1	96/03/20 13:08:01
+.sp 3v
+Copyright \(co 1996 Vrije Universiteit te Amsterdam, The Netherlands.
+All Rights Reserved.

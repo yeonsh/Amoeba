@@ -1,0 +1,9 @@
+#!/bin/sh
+#	
+#	@(#)awkscript	1.1	96/02/15 15:58:12
+#
+
+awk   ' /.*:/ { name = substr( $1, 1, length( $1 ) - 1 ) }
+	/.skip/ { if ($1 != "!") { print "#define " name " 0" } }
+	/.word/ { if ($1 != "!") { print "#define " name " " $6 } }
+	/.long/ { if ($1 != "!") { print "#define " name " " $6 } } ' $1

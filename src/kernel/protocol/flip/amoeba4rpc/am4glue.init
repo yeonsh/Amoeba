@@ -1,0 +1,12 @@
+/*	@(#)am4glue.init	1.2	94/04/06 08:35:39 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+#ifndef THROW_AWAY
+CONSOLE initnetdev
+eth_init initnetdev
+initnetdev NETWORK
+#endif

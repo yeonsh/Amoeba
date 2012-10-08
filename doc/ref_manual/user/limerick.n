@@ -1,0 +1,17 @@
+.\"	@(#)limerick.n	1.1	91/12/05 09:44:53
+.bp
+.LP
+.rs
+.sp 6c
+.in+5c
+.nf
+.I
+An amoeba called George and his brother
+were sharing a joke with each other.
+They laughed 'til they cried
+and both split their sides
+And now each of the boys is a mother.
+.R
+.fi
+.in 0
+.bp \" to get the odd/even page business right

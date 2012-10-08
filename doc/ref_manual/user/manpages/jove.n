@@ -1,0 +1,431 @@
+.\"	@(#)jove.n	1.5	96/02/16 11:01:34
+.aU
+	Software: Jonathan Payne
+	Document: Jonathan Payne
+.aE
+.hy 0
+.nr Na 0	\" options not available on Amoeba
+.mT jove U
+emacs-like text editor
+.SH
+Synopsis
+.LP
+.sC L
+jove [-d directory] [-w] [-t tag] [+[n] file] [-p file] [files]
+.eC
+.SH
+Description
+.LP
+.kW Emacs
+.kW editor
+.kW "text editor"
+.I Jove
+is Jonathan's Own Version of Emacs.  It is based on the original
+.I Emacs
+editor written at MIT by Richard Stallman.  Although 
+.I jove
+is meant to be
+compatible with
+.I Emacs ,
+there are some major differences between the two
+editors and you should not rely on their behaving identically.
+.LP
+.I Jove
+works on any reasonable display terminal that is described in the
+.I termcap
+file (see
+.I termcap (U)
+for more details).  When you start up
+.I jove ,
+it checks
+to see whether you have your
+.kW "TERM environment variable"
+.kW termcap
+.cW TERM
+environment variable set.  On most systems that will automatically be set up
+for you, but if it is not 
+.I jove
+will ask you what kind of terminal you are
+using.  To avoid having to type this every time you run 
+.I jove
+you can set your
+.cW TERM
+environment variable yourself.  How you do this depends on which shell you
+are running.
+.if \n(Na \{
+If you are running the C Shell, as most of you are, you type
+.sp 1
+     % setenv TERM
+.I type
+.sp 1
+\}
+In the Bourne Shell and the Korn Shell, you type
+.sC
+     $ TERM=type; export TERM
+.eC
+where
+.I type
+is the name of the kind of terminal you are using (e.g., vt100).  If
+neither of these works get somebody to help you.
+.\" .SH INVOKING JOVE
+.LP
+If you run 
+.I jove
+with no arguments you will be placed in an empty buffer,
+called
+.I Main.
+Otherwise, any arguments you supply are considered file names and each is
+given its own buffer.  Only the first file is actually read in \(em reading
+other files is deferred until you actually try to use the buffers they are
+attached to.  This is for efficiency's sake: most of the time, when you run
+.I jove
+on a big list of files, you end up editing only a few of them.
+.LP
+The names of all of the files specified on the command line are saved in a
+buffer, called
+.I *minibuf*.
+The mini-buffer is a special 
+.I jove
+buffer that is used when 
+.I jove
+is prompting
+for some input to many commands (for example, when 
+.I jove
+is prompting for a
+file name).  When you are being prompted for a file name, you can type C-N
+(that is Control-N) and C-P to cycle through the list of files that were
+specified on the command line.  The file name will be inserted where you are
+typing and then you can edit it as if you typed it in yourself.
+.mH
+Options
+.LP
+.I Jove
+recognizes the following options:
+.IP "\fB\-d\fP \fIdirectory\fP" 4
+.br
+The
+.I directory
+argument is taken to be the name of the current directory.
+.if \n(Na \{
+This is for systems that do not have a version of C shell that automatically
+maintains the
+.cW CWD
+environment variable.  If
+.B \-d
+is not specified on a system without a modified C shell, 
+.I jove
+will have to
+figure out the current directory itself, and that can be VERY slow.  You
+can simulate the modified C shell by putting the following lines in your
+C shell initialization file (.cshrc):
+.nf
+.sp 1
+	alias cd        'cd \e!*; setenv CWD $cwd'
+	alias popd      'popd \e!*; setenv CWD $cwd'
+	alias pushd     'pushd \e!*; setenv CWD $cwd'
+.fi
+\}
+.IP "\fB+\fP[\fIn\fP] \fIfile\fP"
+.br
+Reads the file, designated by the following argument, and positions 
+the current point at the
+.I n 'th
+line instead of the (default) 1st line.  This can be specified more than
+once but it does not make sense to use it twice on the same file; in that
+case the second one wins. If no numeric argument is given after the
+.B + ,
+the point is positioned at the end of the file.
+.IP "\fB\-p\fP \fIfile\fP"
+.br
+Parses the error messages in the designated
+.I file .
+The error messages are assumed to be in a format similar to the C compiler,
+.\" LINT,
+or
+.I grep (U)
+output.
+.IP "\fB\-t\fP \fItag\fP"
+.br
+Runs the
+.cW find-tag 
+command on the string of characters immediately following 
+the
+.B \-t
+if there is one (as in ``\fB\-t\fPTagname''), or on
+the following argument (as in ``\fB\-t\fP Tagname'') otherwise (see
+.I ctags (U)).
+.IP "\fB\-w\fP"
+Divides the window in two.  When this happens, either the same file is
+displayed in both windows, or the second file in the list is read in and
+displayed in its window.
+.if \n(Na \{
+.SH "RECOVERING BUFFERS AFTER A CRASH"
+The
+.I -r
+option of jove runs the 
+.I jove
+recover program.  Use this when the system
+crashes, or 
+.I jove
+crashes, or you accidentally get logged out while in
+.I jove .
+If there are any buffers to be recovered, this will find them.
+.LP
+Recover looks for 
+.I jove
+buffers that are left around and are
+owned by you.  (You cannot recover other peoples' buffers, obviously.)
+If there were no buffers that were modified at the time of the
+crash or there were but recover cannot get its hands on them, you will be
+informed with the message, ``There is nothing to recover''.  Otherwise,
+recover prints the date and time of the version of the buffers it has,
+and then waits for you type a command.
+.LP
+To get a list of the buffers recover knows about, use the
+.I list
+command.  This will list all the buffers and the files and the number of
+lines associated with them.  Next to each buffer is a number.  When you want
+to recover a buffer, use the
+.I get
+command.  The syntax is
+.I get buffer filename
+where
+.I buffer
+is either the buffer's name or the number at the beginning of the line.  If
+you do not type the buffer name or the filename, recover will prompt you
+for them.
+.LP
+If there are a lot of buffers and you want to recover all of them, use the
+.I recover
+command.  This will recover each buffer to the name of the buffer with ``.#''
+prepended to the name (so that the original is not over-written).  It asks
+for each file and if you want to restore that buffer to that name you type
+``yes''.  If you want to recover the file but to a different name, just type
+the new name in.  If you type ``no'' recover will skip that file and go on
+to the next one.
+.LP
+If you want to look at a buffer before deciding to recover it, use the
+.I print
+command.  The syntax for this is
+.I print buffer
+where
+.I buffer
+again is either its name or the number.  You can type ^C if you want to
+abort printing the file to the terminal, and recover will respond with
+an appropriate message.
+.LP
+When you are done and have all the buffers you want, type the
+.I quit
+command to leave.  You will then be asked whether it is okay to delete the
+tmp files.  Most of the time that is okay and you should type ``yes''.  When
+you say that, 
+.I jove
+removes all traces of those buffers and you will not be able
+to look at them again.  (If you recovered some buffers they will still be
+around, so do not worry.)  So, if you are not sure whether you have gotten all
+the buffers, you should answer ``no'' so that you will be able to run
+recover again at a later time (presumably after you have figured out
+which ones you want to save).
+.LP
+If you type ^C at any time other than when you are printing a file to the
+terminal, recover will exit without a word.  If you do this but wish you
+had not, just type
+.B "jove \-r
+to the shell again, and you will be put back
+with no loss.
+\}
+.mH
+Getting Help
+.LP
+Once in
+.I jove ,
+there are several commands available to get help.  To execute
+any 
+.I jove
+command, you type ``<ESC> X command-name'' followed by <Return>.  To
+get a list of all the 
+.I jove
+commands you type ``<ESC> X'' followed by ``?''.  The
+.cW describe-bindings
+command can be used to get a list containing each key, and its associated
+command (that is, the command that gets executed when you type that key).
+If you want to save the list of bindings, you can set the jove variable
+.cW send-typeout-to-buffer
+to ``on'' (using the 
+.cW set
+command), and then execute the
+.cW describe-bindings
+command.  This will create a buffer and put in it the bindings list it
+normally would have printed on the screen.  Then you can save that buffer to
+a file and print it to use as a quick reference card.  (See
+.I Variables
+below.)
+.LP
+Once you know the name of a command, you can find out what it does with the
+.cW describe-command
+command, which you can invoke quickly by typing ``ESC ?''.  The
+.cW apropos
+command will give you a list of all the command with a specific string in
+their names.  For example, if you want to know the names of all the
+commands that are concerned with windows, you can run
+.cW apropos
+with the keyword
+.cW window.
+.LP
+If you are not familiar with the
+.I Emacs
+command set, it would be worth your
+while to run
+.kW teachjove
+.I teachjove .
+To do that, just type
+.B teachjove
+to the shell and you will be placed in 
+.I jove
+in a file which contains directions.
+This is highly recommended for beginners;
+it may save a lot of time and headaches.
+.\" .SH KEY BINDINGS and VARIABLES
+.mH
+Key Bindings and Variables
+.LP
+You can alter the key bindings in 
+.I jove
+to fit your personal tastes.  That
+is, you can change what a key does every time you strike it.  For example,
+by default the C-N key is bound to the command
+.cW next-line
+and so when you type it you move down a line.  If you want to change a
+binding or add a new one, you use the
+.cW bind-to-key
+command.  The syntax is ``bind-to-key <command> key''.
+.LP
+You can also change the way 
+.I jove
+behaves in little ways by changing the
+value of some variables with the
+.cW set
+command.  The syntax is ``set <variable> value'', where value is a number or a
+string, or ``on'' or ``off'', depending on the context.  For example, if you
+want 
+.I jove
+to make backup files, you set the
+.cW make-backup-files
+variable to
+.cW on .
+To see the value of a variable, use the ``print <variable>'' command.
+.\" .SH INITIALIZATION
+.mH
+Initialization
+.LP
+.I Jove
+automatically reads commands from an initialization file
+called
+.I .joverc
+in your
+.cW HOME
+directory,
+In this file you can place commands that you would normally type in
+.I jove .
+If you like to rearrange the key bindings and
+set some variables every time you get into
+.I jove ,
+you should put them in your
+initialization file.  Here are a few examples:
+.sC
+	set match-regular-expressions on
+	auto-execute-command auto-fill /tmp/Re\e|.*drft
+	bind-to-key i-search-forward  ^\e
+	bind-to-key i-search-reverse  ^R
+	bind-to-key find-tag-at-point ^[^T
+	bind-to-key scroll-down       ^C
+	bind-to-key grow-window       ^Xg
+	bind-to-key shrink-window     ^Xs
+.eC
+(Note that the Control Characters can be either two character sequences
+(e.g., ^ and C together as ^C) or the actual control character.  If you want
+to use an ^ by itself you must BackSlash it (e.g., ``
+.cW "bind-to-key grow-window ^X\e^" ''
+binds
+.cW grow-window
+to
+.cW ^X^ ).
+.\" .SH SOME MINOR DETAILS
+.mH
+Some minor details
+.LP
+You may have to type C-\e instead of C-S in some cases.  For example, the way
+to search for a string is documented as being ``C-S'' but in reality you
+should type ``C-\e''.  This is because C-S is the
+.cW XOFF
+character (what gets
+sent when you type the
+.cW NO-SCROLL
+key), and clearly that will not work.  The
+.cW XON
+character is ``C-Q'' (what gets sent when you type
+.cW NO-SCROLL
+again) which is
+documented as the way to do a quoted-insert.  The alternate key for this is
+``C-^'' (typed as ``C-\(ga'' on vt100s and its look-alikes).  If you want to
+enable C-S and C-Q and you know what you are doing, you can put the line:
+.sC
+	set allow-^S-and-^Q on
+.eC
+in your initialization file.
+.LP
+If your terminal has a metakey, 
+.I jove
+will use it if you turn on the
+.cW meta-key
+variable.  
+.I Jove
+will automatically turn on
+.cW meta-key
+if the
+.cW METAKEY
+environment variable exists.  This is useful for if you have
+different terminals (e.g., one at home and one at work) and one has a
+metakey and the other does not.
+.mH
+Files
+.LP
+.IP \fI/profile/module/jove/.joverc\fP 28
+system wide initialization file
+.IP \*<$HOME\*>\fI/.joverc\fP
+personal initialization file
+.IP \fI/tmp\fP
+where temporary files are stored
+.IP \fI/profile/module/jove/teach-jove\fP
+the document used by the interactive tutorial \fIteachjove\fP
+.if \n(Na \{
+.sp 0
+LIBDIR/portsrv - for running shells in windows (pdp11 only)
+\}
+.if \n(Na \{
+.SH SEE ALSO
+.nf
+ed(1) - for a description of regular expressions
+.sp 0
+teachjove(1) - for an interactive 
+.I jove
+tutorial.
+.fi
+\}
+.mH
+Diagnostics
+.LP
+.I Jove
+diagnostics are meant to be self-explanatory, but you are advised
+to seek help whenever you are confused.  You can easily lose a lot of
+work if you do not know
+.I exactly
+what you are doing.
+.mH
+Warnings
+.LP
+Lines cannot be more than 1024 characters long.
+.LP
+Searches cannot cross line boundaries.
+.\" .SH AUTHOR
+.\" Jonathan Payne

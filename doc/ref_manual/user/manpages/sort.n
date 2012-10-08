@@ -1,0 +1,113 @@
+.\"	@(#)sort.n	1.4	96/02/16 11:07:53
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - adjusted for style conventions.
+.aE
+.mT "sort" U
+sort a file of ASCII lines
+.SH
+Synopsis
+.LP
+.cW
+sort [-bcdfimnru] [-tx] [-o name] [+pos1] [-pos2] [file ...]
+.SH
+Description
+.LP
+.kW ASCII
+.I Sort
+sorts the contents of one or more files on a per line basis.
+If no files are specified,
+.I stdin
+is sorted.
+Output is written on standard output,
+unless
+.B \-o
+is specified.
+The default sort key is an entire line.
+The options
+.B "+pos1 \-pos2
+use only fields
+.I pos1
+up to,
+but not including
+.I pos2
+as the sort key,
+where a field is a string of characters delimited by spaces and tabs,
+unless a different field delimiter is specified with
+.B \-t .
+Both
+.I pos1
+and
+.I pos2
+have the form
+.I m.n
+where
+.I m
+tells the number of fields
+and
+.I n
+tells the number of characters.
+Either
+.I m
+or
+.I n
+may be omitted.
+.mH
+Options
+.LP
+.IP \fB\-b\fP
+Skip leading blanks when making comparisons.
+.IP \fB\-c\fP
+Check to see if a file is sorted.
+.IP \fB\-d\fP
+Dictionary order: ignore punctuation.
+.IP \fB\-f\fP
+Fold upper case onto lower case.
+.IP \fB\-i\fP
+Ignore non-ASCII characters.
+.IP \fB\-m\fP
+Merge presorted files.
+.IP \fB\-n\fP
+Numeric sort order.
+.IP "\fB\-o\fP \fIname\fP"
+.br
+Use
+.I name
+as the output file.
+Default is
+.I stdout .
+.IP \fB\-r\fP
+Reverse the sort order.
+.IP \fB\-t\fP
+Following character is field separator.
+.IP \fB\-u\fP
+Unique mode: delete duplicate lines after sorting.
+.SH
+Examples
+.LP
+.sC
+sort -nr file
+.eC
+Sort keys numerically, reversed.
+.sC
+sort +2 -4 file
+.eC
+Sort using fields 2 and 3 as key.
+.sC
+sort +2 -t: -o out
+.eC
+Field separator is ``:''.
+.sC
+sort +.3 -.6
+.eC
+Characters 3 through 5 form the key.
+.SH
+See Also
+.LP
+uniq(U).

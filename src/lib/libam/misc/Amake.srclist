@@ -1,0 +1,28 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/27 11:01:35
+#
+# Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Things that are allowed in the kernel
+L_AM_KMISC = {
+	$PWD/str_copy.c,
+	$PWD/strdup.c,
+	$PWD/memaccess.c
+};
+
+# Things not permitted in the kernel library + those that are
+L_AM_MISC = {
+	$PWD/bprintf.c,
+	$PWD/env_delete.c,
+	$PWD/env_lookup.c,
+	$PWD/env_put.c,
+	$PWD/isamdir.c,
+	$PWD/host_lookup.c,
+	$PWD/hostlk_sup.c,
+	$PWD/ip_host_lkup.c,
+	$PWD/syscap_look.c,
+	$L_AM_KMISC,
+};

@@ -1,0 +1,19 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 08:40:00
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_FLIP_NETWORK_ETHER = {
+	$PWD/flipether.c,
+	$PWD/flipether.init,
+	$PWD/flipeth.kstat
+};
+
+K_FLIP_NETWORK_SHMEM = {
+	$PWD/smif.c,
+	$PWD/smif.h,
+	$PWD/smif.init,
+	$PWD/smif.kstat,
+};

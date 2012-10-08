@@ -1,0 +1,79 @@
+.\"	@(#)ftpsvr.n	1.1	96/02/15 17:20:35
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, Nov 1994
+	Document: Kees Verstoep, May 1995; adapted from telnetsvr.n
+	Modified: Gregory J. Sharp, Sept 1995: new command-line convention
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "ftpsvr" A
+a front-end for the FTP daemon
+.SH
+Synopsis
+.LP
+.sC L
+ftpsvr [-T <tcp-cap>] [-daemon <ftpd-prog>] [-v]
+.eC
+.SH
+Description
+.LP
+.kW ftp
+.kW FTP
+.kW "\fIftpd\fP"
+The
+.I ftpsvr
+is used to start FTP daemons (see
+.I ftpd (A)).
+When a client tries to make an FTP connection,
+.I ftpsvr
+starts an FTP daemon for that client.
+.LP
+.I Ftpsvr
+is typically started by the
+.I boot (A)
+server.
+.mH
+Options
+.LP
+.IP "\fB\-T\fP \fItcp-cap\fP"
+.br
+This causes the server to use the TCP/IP server specified by
+.I tcp-cap .
+If this option is omitted it uses the server specified by the string
+environment variable
+.cW TCP_SERVER .
+If this is not defined it uses the default TCP server as specified in
+.I ampolicy.h
+(typically
+.I /profile/cap/ipsvr/tcp ).
+.IP "\fB\-daemon\fP \fIftpd-prog\fP"
+.br
+This changes the FTP daemon to be started to
+.I ftpd-prog .
+The default is
+.I /super/admin/bin/ftpd .
+.IP \fB\-v\fP
+Verbose mode.
+Various debugging information is printed.
+.LP
+.mH
+Environment Variables
+.LP
+.cW TCP_SERVER
+specifies the TPC/IP server to use if the
+.B \-T
+option is not specified.
+.mH
+Files
+.LP
+.I /super/admin/bin/ftpd
+is the default FTP daemon.
+.SH
+See Also
+.LP
+ftpd(A),
+ftp(U).

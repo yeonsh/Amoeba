@@ -1,0 +1,78 @@
+#	
+#	@(#)ail.amk	1.4	96/02/15 15:58:37
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(AIL), {
+    AIL = ail[type = ail_command];
+});
+
+%if (%not defined(AIL_DEFINES), {
+    AIL_DEFINES = {};
+});
+
+%if (%not defined(AIL_INCLUDES), {
+    %if (defined(INCLUDES), {
+	AIL_INCLUDES = $INCLUDES;
+    }, {
+	AIL_INCLUDES = {};
+    });
+});
+AIL_INCLUDES = $AIL_INCLUDES + -I$SRC_ROOT/h/toolset/$COMPILER_SET;
+
+%if (%not defined(AIL_FLAGS), {
+    AIL_FLAGS = {'-f13'};
+});
+
+
+#	To help mkdep-style calculation on dependents:
+%instance deftypesuffix(dependents, '%.d');
+
+#	This reflects my habit of calling class definitions .cls,
+#	generate-only files .gen, and mixed files .ail. These
+#	often contain my experimental class and generate just
+#	whatever-I-need-now.
+%instance deftypesuffix(Ail_gen, '%.gen');
+%instance deftypesuffix(Ail_incl, '%.cls');
+%instance deftypesuffix(Ail_src, '%.ail');
+
+#	This attribute means: usable as argument to ail
+%derive f[Ail_gen]
+	%when get($f, type) == Ail_src %or get($f, type) == Ail_gen;
+
+
+#	By default, Ail_gen files don't generate a thing:
+%derive f[dummy_gen = {}] %when get($f, Ail_gen) == %true;
+%derive f[c_gen = {}] %when get($f, Ail_gen) == %true;
+%derive f[h_gen = {}] %when get($f, Ail_gen) == %true;
+
+
+#	The attribute `generates-C-src' is used to select the sources of
+#	a lint cluster. When C-sources and/or C-includes are generated
+#	from an ail source, the c_gen and h_gen attributes will be set
+#	accordingly so we can use that information here:
+%derive f[generates-C-src]
+	%when get($f, Ail_gen) == %true
+	%and  ((get($f, c_gen) <> {}) %or (get($f, h_gen) <> {}));
+
+
+%tool stub-generator (
+    src:	%in [Ail_gen];
+
+    c_gen:	%out %list [type = C-src, compare]	=> get($src, c_gen);
+    h_gen:	%out %list [type = C-incl, compare]	=> get($src, h_gen);
+    dummy_gen:	%out %list [type = ail_dummy]		=> get($src, dummy_gen);
+
+    incl:	%string %list				=> $AIL_INCLUDES;
+    defs:	%string %list				=> $AIL_DEFINES;
+    flags:	%string %list				=> $AIL_FLAGS;
+    deps:	%out       [type = dependents]		=> match($src);
+    real_incls:	%in %list  [is-source, C-incl, implicit]=> %computed $deps;
+    program:	%in	   [type = command]		=> $AIL;
+)
+{
+    exec($program, args =>  $flags + '-i' + $deps + $incl + $defs +$src);
+};
+

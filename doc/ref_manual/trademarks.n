@@ -1,0 +1,68 @@
+.\"	@(#)trademarks.n	1.6	96/02/15 16:34:33
+.\"  This file contains a list of Trademarks used in the Amoeba Manuals.
+.\"  It should be included after the cover page in every manual.
+.\"
+.LP
+.sp 4v
+Amoeba
+is a registered trademark of the Vrije Universiteit in some countries.
+.br
+.sp 2c
+.F+
+delim @@
+.F-
+.tr__
+@ figure logo.ps height 2c @ is a trademark of the Vrije Universiteit.
+.F+
+delim
+.F-
+.br
+Sun-3, Sun-4, NFS, SPARCclassic, SPARCstation, MicroSPARC,
+SunOS and Solaris\(rg
+are trademarks of Sun Microsystems,\ Inc.
+.br
+SPARC
+is a registered trademark of SPARC International,\ Inc.
+.br
+.rm UX
+.de UX
+\\$2\s-1UNIX\s0\\$1
+..
+.UX
+is a trademark of Unix International.
+.br
+Irix and Personal Iris are trademarks of Silicon Graphics Corporation.
+.br
+DEC, VAX, MicroVAX, Ultrix and DEQNA
+are registered trademarks of Digital Equipment Corporation.
+.br
+Intel 386, Pentium, Multibus and Intel
+are trademarks of Intel Corporation.
+.br
+Ethernet
+is a registered trademark of Xerox Corporation.
+.br
+IBM and PC AT
+are registered trademarks of International Business Machines Corporation.
+.br
+X Window System
+is a trademark of the Massachusetts Institute of Technology.
+.br
+WD, EtherCard PLUS and EtherCard PLUS16
+are trademarks of Standard Microsystems Corporation.
+.br
+Logitech
+is a trademark of Logitech,\ Inc.
+.br
+Novell
+is a trademark of Novell,\ Inc.
+.br
+3Com and Etherlink II
+are registered trademarks of 3Com Corporation.
+.br
+MS-DOS
+is a trademark of Microsoft Corporation.
+.LP
+.tr_\(ru
+\*(Am includes software developed by the University of California,
+Berkeley and its contributors.

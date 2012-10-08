@@ -1,0 +1,48 @@
+.\"	@(#)dirname.n	1.2	94/04/05 15:56:47
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp, Jan 1994
+	Document: Gregory J. Sharp, Jan 1994
+.aE
+.mT "dirname" U
+print the directory component of a path name
+.SH
+Synopsis
+.LP
+.sC L
+dirname path
+.eC
+.SH
+Description
+.LP
+.I Dirname
+is often useful in shell scripts.
+It takes a path name and prints all of it up to, but excluding, the last
+slash (``/'').
+If the path contains no slash character it prints ``.'' (dot).
+.SH
+Example
+.LP
+.sC
+dirname home/foo/bar
+.eC
+will print
+.sC
+home/foo
+.eC
+and
+.sC
+dirname bar
+.eC
+will print
+.sC
+\&.
+.eC
+.SH
+See Also
+.LP
+basename(U).

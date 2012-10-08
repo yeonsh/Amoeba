@@ -1,0 +1,38 @@
+#	
+#	@(#)driver_cc.amk	1.2	94/04/06 10:32:46
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/mkdep.amk;
+
+%tool driver_cc-c (
+    src:         %in         [type = C-src];
+    object:      %out        [type = loadable]		=> match($src);
+    flags:       %string %list				=> $CFLAGS;
+    unixversion: %string;
+    objflags:    %string %list				=>
+		    if (get($src, flags) <> %unknown, {get($src, flags)}, {});
+    program:     %in         [type = command]		=> $CC;
+    incl:        %in %list   [C-incl, implicit]		=>
+		    mkdep($src, flags => $flags + $objflags, deps => %return);
+)
+{
+    %if ($unixversion == sunos4.0.3,
+	exec($program, args => '-c' + $flags + $objflags + $src), %true
+    );
+
+    %if ($unixversion == bsd4.2 %or $unixversion == ultrix2.0,
+	exec($program, args => '-S' + $flags + $objflags + $src);
+	exec(/usr/sys/vax/inline/inline,
+	     stdin => basename($src, '%.c').s,
+	     stdout => basename($src, '%.c').so);
+	exec(as, stdin => basename($src, '%.c').so,
+		 args => '-o' + $object);
+	exec(rm, args => '-f' + basename($src, '%.c').s +
+			 basename($src, '%.c').so),
+    );
+};
+
+%include $PWD/cc-c.common;

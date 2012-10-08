@@ -1,0 +1,32 @@
+#	
+#	@(#)LLgen.amk	1.2	94/04/06 10:30:49
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%instance deftypesuffix(LLgen-src, '%.g');
+
+%if (%not defined(LLGEN), {
+	LLGEN = LLgen;		# let PATH determine the right one
+});
+
+%if (%not defined(LLFLAGS), {
+	LLFLAGS = {};
+});
+
+# The files generated from an LLgen source can be used as input for lint:
+%derive f[generates-C-src] %when $f ? type == LLgen-src;
+
+%tool LLgen-tool (
+    verbose: %boolean				=> %false;
+    flags:   %string %list			=> $LLFLAGS;
+    src:     %in %list	[type = LLgen-src];
+    dest:    %out %list	[type = C-src]		=> match($src) + Lpars.c;
+    tokens:  %out	[type = C-incl, compare] => Lpars.h;
+    diagn:   %out	[type = text]		=> LL.output  %conform $verbose;
+    program: %in	[type = command]	=> $LLGEN;
+)
+{
+    exec($program, args => if ($verbose, {'-vvv'}, {}) + $flags + $src);
+};

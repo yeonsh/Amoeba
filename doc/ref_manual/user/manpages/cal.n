@@ -1,0 +1,48 @@
+.\"	@(#)cal.n	1.3	94/04/05 15:53:18
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "cal" U
+print a calendar
+.SH
+Synopsis
+.LP
+.sC L
+cal [month] year
+.eC
+.SH
+Description
+.LP
+.I Cal
+prints a calendar for a month or year.
+The year can be between 1 and 9999.
+Note that the year 91 is not a synonym for 1991,
+but is itself a valid year about 19 centuries ago.
+The calendar produced is the one used by England and her colonies.
+Try Sept. 1752, Feb 1900, and Feb 2000.
+If it is not clear what is going on,
+look up Calendar,
+Gregorian in a good encyclopedia.
+.SH
+Example
+.LP
+.sC
+cal 3 1992
+.eC
+Prints the following calendar for March 1992.
+.sC
+      Mar 1992
+
+ S  M Tu  W Th  F  S
+ 1  2  3  4  5  6  7
+ 8  9 10 11 12 13 14
+15 16 17 18 19 20 21
+22 23 24 25 26 27 28
+29 30 31
+.eC

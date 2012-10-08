@@ -1,0 +1,103 @@
+.\"	@(#)bprintf.n	1.5	96/02/16 13:28:38
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: The original kernel version was by Gregory J. Sharp.
+	Document: Gregory J. Sharp, Oct 1991
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "bprintf" L "libamoeba.a, libamunix.a"
+like sprintf but with bounds checking
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/strmisc.h"
+
+char * bprintf(begin, end, fmt, ...)
+char * begin;
+char * end;
+char * fmt;
+.eC
+.SH
+Description
+.LP
+.kW "\fIbprintf\fP"
+.kW "stdio"
+.I Bprintf
+is a function similar to
+.I sprintf
+in the
+.I
+STD C stdio
+.R
+library.
+It takes the format string
+.I fmt
+and copies it to the buffer specified by
+.I begin
+and
+.I end ,
+doing any conversions of extra arguments according to the rules of
+.I printf .
+However it does bounds checking so that it does not overrun the end of
+the buffer.
+It returns a pointer to the next free position in the buffer.
+This is useful for doing multiple
+.I bprintf 's
+to the same buffer.
+If it overruns the buffer it returns the NULL-pointer.
+If
+.I begin
+is the NULL-pointer and
+.I end
+is non-NULL
+then it will immediately return the NULL-pointer without modifying the buffer.
+This means that one can put many
+.kW "\fIbprintf\fP"
+.I bprintf
+requests after another for the same buffer, using the result of the
+previous
+.I bprintf
+as the
+.I begin
+pointer for the next and never need to check for an error until after the
+last one.
+For example,
+.sC
+#define BSZ 30
+char buf[BSZ];
+char * end = buf + BSZ;
+char * p:
+int i = 20;
+.sp 0.5v
+p = bprintf(buf, end, "foo %d", i);
+p = bprintf(p, end, " test");
+p = bprintf(p, end, "\en");
+if (p == (char *) 0)
+    ERROR("buffer overflow");
+/* else all is well ... */
+.eC
+.LP
+If the
+.I end
+pointer is the NULL-pointer then
+.kW "\fIbprintf\fP"
+.I bprintf
+functions as though it was
+.I printf .
+Note that
+.I bprintf
+will NULL-terminate the resultant string only if it has not yet reached the
+.I end
+of the buffer.
+Thus,
+if the buffer is too small to hold all the data then it will not be
+NULL-terminated.
+.SH
+See Also
+.LP
+buffer(L).

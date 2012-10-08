@@ -1,0 +1,124 @@
+.\"	@(#)zdump.n	1.5	96/02/15 17:54:49
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Arthur D. Olson and many others
+	Document: Arthur D. Olson and many others
+	Document: Updated by Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "zdump" A
+timezone dumper
+.SH
+Synopsis
+.LP
+.sC L
+zdump [\-v] [\-c cutoffyear] [zonename] ...
+.eC
+.SH
+Description
+.LP
+.kW "local time"
+.kW "timezone"
+.kW "Daylight Saving Time"
+(This utility is part of the
+.I localtime
+package distributed though USENET.
+Its purpose is to inspect the timezone definition files created by
+.I zic (A).)
+.LP
+.I Zdump
+prints the current time in each
+.I zonename
+named on the command line.
+.mH
+Options
+.LP
+.IP \fB\-v\fP
+For each
+.I zonename
+on the command line,
+print the current time,
+the time at the lowest possible time value,
+the time one day after the lowest possible time value,
+the times both one second before and exactly at
+each detected time discontinuity,
+the time at one day less than the highest possible time value,
+and the time at the highest possible time value,
+Each line ends with
+.B isdst=1
+if the given time is Daylight Saving Time or
+.B isdst=0
+otherwise.
+.IP "\fB\-c\fP \fIcutoffyear\fP"
+.br
+Cut off the verbose output near the start of the given year.
+.LP
+.mH
+Warnings
+.LP
+The
+.B \-v
+option usually takes a long time to run (minutes) and if there
+are few continuities little is printed most of the time.
+.LP
+If no
+.I zonename
+arguments are specified, nothing is printed.
+.SH
+Examples
+.LP
+To show the current time in GMT, MET and EST:
+.sC
+zdump GMT MET EST
+.eC
+This produces output like:
+.sC
+GMT  Mon Jun  1 11:57:02 1992 GMT
+MET  Mon Jun  1 13:57:02 1992 MET DST
+EST  Mon Jun  1 11:57:02 1992 EST
+.eC
+To show the time discontinuities in MET before 1991:
+.sC
+zdump \-v \-c 1991 MET
+.eC
+This might produce:
+.sC L
+.ps-1
+MET  Tue Feb 13 11:13:18 1990 MET
+MET  Fri Dec 13 20:45:52 1901 GMT = Fri Dec 13 21:45:52 1901 MET isdst=0
+MET  Sat Dec 14 20:45:52 1901 GMT = Sat Dec 14 21:45:52 1901 MET isdst=0
+MET  Sun Mar 30 00:59:59 1986 GMT = Sun Mar 30 01:59:59 1986 MET isdst=0
+MET  Sun Mar 30 01:00:00 1986 GMT = Sun Mar 30 03:00:00 1986 MET DST isdst=1
+MET  Sun Sep 28 00:59:59 1986 GMT = Sun Sep 28 02:59:59 1986 MET DST isdst=1
+MET  Sun Sep 28 01:00:00 1986 GMT = Sun Sep 28 02:00:00 1986 MET isdst=0
+MET  Sun Mar 29 00:59:59 1987 GMT = Sun Mar 29 01:59:59 1987 MET isdst=0
+MET  Sun Mar 29 01:00:00 1987 GMT = Sun Mar 29 03:00:00 1987 MET DST isdst=1
+MET  Sun Sep 27 00:59:59 1987 GMT = Sun Sep 27 02:59:59 1987 MET DST isdst=1
+MET  Sun Sep 27 01:00:00 1987 GMT = Sun Sep 27 02:00:00 1987 MET isdst=0
+MET  Sun Mar 27 00:59:59 1988 GMT = Sun Mar 27 01:59:59 1988 MET isdst=0
+MET  Sun Mar 27 01:00:00 1988 GMT = Sun Mar 27 03:00:00 1988 MET DST isdst=1
+MET  Sun Sep 25 00:59:59 1988 GMT = Sun Sep 25 02:59:59 1988 MET DST isdst=1
+MET  Sun Sep 25 01:00:00 1988 GMT = Sun Sep 25 02:00:00 1988 MET isdst=0
+MET  Sun Mar 26 00:59:59 1989 GMT = Sun Mar 26 01:59:59 1989 MET isdst=0
+MET  Sun Mar 26 01:00:00 1989 GMT = Sun Mar 26 03:00:00 1989 MET DST isdst=1
+MET  Sun Sep 24 00:59:59 1989 GMT = Sun Sep 24 02:59:59 1989 MET DST isdst=1
+MET  Sun Sep 24 01:00:00 1989 GMT = Sun Sep 24 02:00:00 1989 MET isdst=0
+MET  Sun Mar 25 00:59:59 1990 GMT = Sun Mar 25 01:59:59 1990 MET isdst=0
+MET  Sun Mar 25 01:00:00 1990 GMT = Sun Mar 25 03:00:00 1990 MET DST isdst=1
+MET  Sun Sep 30 00:59:59 1990 GMT = Sun Sep 30 02:59:59 1990 MET DST isdst=1
+MET  Sun Sep 30 01:00:00 1990 GMT = Sun Sep 30 02:00:00 1990 MET isdst=0
+MET  Mon Jan 18 03:14:07 2038 GMT = Mon Jan 18 04:14:07 2038 MET isdst=0
+MET  Tue Jan 19 03:14:07 2038 GMT = Tue Jan 19 04:14:07 2038 MET isdst=0
+.ps
+.eC
+.SH
+See Also
+.LP
+date(U),
+ctime(L),
+zic(A).

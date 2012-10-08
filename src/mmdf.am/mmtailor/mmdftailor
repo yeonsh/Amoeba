@@ -1,0 +1,78 @@
+;
+#	
+#	@(#)mmdftailor	1.2	96/02/27 09:57:56
+#
+; This MMDF tailor file is for a server that will act as a relay for
+; its diskless clients.
+;
+; The local channel will be used to deliver mail to users (home
+; directories) on this host.
+;
+; The smtp channel will be used to deliver local mail, within the
+; vu.nl domain, using the nameserver to get addresses.
+;
+; Non-local mail will be forwarded to the main mail host via the 
+; badhosts channel.
+;
+; A delay channel is needed to handle nameserver timeouts.
+;
+MLNAME		am
+MLDOMAIN	cs.vu.nl
+MLOCMACHINE	vmesc1
+
+; general table entries
+MTBL	alias,		file="/profile/module/mmdf/table/aliases",
+	show="System Aliases"
+MTBL	forward,	file="/profile/module/mmdf/table/forward",
+	show="Local User Aliases"
+MTBL	local,		file="/profile/module/mmdf/table/local", 
+	show="Local Host Aliases"
+MTBL    smtp,           file="/profile/module/mmdf/table/smtp",
+	show="SMTP Hosts"
+MTBL	list,		file="/profile/module/mmdf/table/list-aliases",
+	show="Mailing List Aliases"
+MTBL	am-cs-vu-nl-dom,file="/profile/module/mmdf/table/am-cs-vu-nl-dom",
+	show="am.cs.vu.nl"
+MTBL	cs-vu-nl-dom,	file="/profile/module/mmdf/table/cs-vu-nl-dom",
+	show="cs.vu.nl"
+MTBL	vu-nl-dom,	file="/profile/module/mmdf/table/vu-nl-dom",
+	show="vu.nl"
+
+; Alias definitions
+ALIAS	table=alias, trusted, nobypass
+ALIAS	table=list, trusted, nobypass
+ALIAS	table=forward
+ALIAS	table=local
+ALIAS	table=smtp
+
+; Channel definitions
+MCHN	local, show="Local Delivery", que=local, tbl=local,
+	pgm=local, mod=imm,level=FTR,ttl=0,log=local.log
+MCHN    smtp, show="SMTP Delivery", que=smtp, tbl=smtp,
+        pgm=smtp, mod=imm, mod=host, ap=822, confstr="vmesc1.am.cs.vu.nl",
+	level=FTR,ttl=0,log=smtp.log
+MCHN	badhosts, show="Bad Host Forwarding", que=badhosts, tbl=smtp,
+	ttl=0, pgm=smtp, mod=imm, ap=822, host="top.cs.vu.nl",
+	confstr="vmesc1.am.cs.vu.nl",level=FTR,log=smtp.log
+MCHN	list, show="List Processing", que=list, tbl=list,
+	pgm=list, mod=imm, mod=host,ap=822, level=FTR, ttl=0, log=list.log,
+	host="vmesc1.am.cs.vu.nl"
+MCHN    delay, show="Delayed Delivery", que=delay, tbl=smtp,
+        pgm=delay, mod=reg, ap=822, level=FTR, ttl=0
+
+; Domain definitions
+MDMN	"am.cs.vu.nl", show="am.cs.vu.nl domain", table=am-cs-vu-nl-dom
+MDMN	"cs.vu.nl", show="cs.vu.nl domain", table=cs-vu-nl-dom
+MDMN	"vu.nl", show="vu.nl domain", table=vu-nl-dom
+
+; Logging levels
+MMSGLOG     level=FTR,size=20
+MCHANLOG    level=FTR,size=20
+
+MDLVRDIR	"/super/users"
+MMBXNAME	"home/mailbox"	
+MMBXPROT	"0600"
+
+
+
+

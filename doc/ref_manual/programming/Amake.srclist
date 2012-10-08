@@ -1,0 +1,37 @@
+#	
+#	@(#)Amake.srclist	1.6	96/03/20 13:27:25
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/languages/Amake.srclist;
+%include $PWD/tools/Amake.srclist;
+%include $PWD/manpages/Amake.srclist;
+%include $PWD/sysprog/Amake.srclist;
+
+D_PROGRAMMING_SEEALSO = {
+	$PWD/See_also_idx.n,
+};
+
+D_PROGRAMMING_COVER = {
+	$PWD/cover.n,
+	$PWD/../trademarks.n,
+	$PWD/../copyright.both.n,
+};
+
+D_PROGRAMMING_BODY = {
+	$PWD/usage.n,
+	$PWD/paradigms.n,
+	$PWD/servers.n,
+	$PWD/amunix.n,
+	$PROG_LANGS,
+	$PROG_TOOLS,
+	$PROG_SYSPROG,
+	$LIB_MANPAGES
+};
+
+D_PROGRAMMING = {
+	$D_PROGRAMMING_COVER,
+	$D_PROGRAMMING_BODY
+};

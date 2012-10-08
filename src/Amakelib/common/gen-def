@@ -1,0 +1,49 @@
+#!/bin/sh
+#	
+#	@(#)gen-def	1.2	94/04/06 10:33:03
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# tool that generates a C header file from one "def" file
+# and a list of "param" description files.
+#
+
+PROG=$0
+FILES=""
+CPPFLAGS=""
+CPPLIB=/lib
+OUTFILE=gen-def.h
+
+while [ $# -gt 0 ]
+do
+        case $1 in
+        -o)
+                shift
+                OUTFILE=$1
+                shift
+                ;;
+	-C)
+		shift
+		CPPLIB=$1
+		shift
+		;;
+	-D*)
+		CPPFLAGS="$CPPFLAGS $1"
+		shift
+		;;
+        -*)
+		echo "flag $1 ignored" 2>&1
+                shift
+                ;;
+        *)
+                FILES="$FILES $1"
+                shift
+                ;;
+        esac
+done
+
+# just fake output, currently
+echo "#define FILES \"$FILES\"" >$OUTFILE

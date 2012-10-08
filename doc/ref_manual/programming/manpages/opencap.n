@@ -1,0 +1,76 @@
+.\"	@(#)opencap.n	1.5	96/02/15 16:53:41
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, April 1990
+	Document: Guido van Rossum, April 1990
+.aE
+.mT "opencap" L "libamoeba.a"
+open a file given by capability
+.SH
+Synopsis
+.LP
+.sC L
+#include "fcntl.h"
+
+int opencap(cap, flags)
+capability *cap;
+int flags;
+.eC
+.SH
+Description
+.LP
+.kW "\fIopencap\fP"
+.kW "fcntl.h"
+.kW "O_RDONLY"
+.kW "O_WRONLY"
+.kW "O_RDWR"
+.kW "open"
+.kW "file"
+.kW "capability"
+.kW "POSIX"
+This function returns an open file descriptor for the file referenced by
+the `capability' argument.
+The `flags' argument is interpreted as for
+.I open()
+(see
+.I posix (L)),
+but only the flags
+.cW O_RDONLY ,
+.cW O_WRONLY
+and
+.cW O_RDWR
+are supported.
+Furthermore, bullet files may only be opened for reading; other files
+(such as tty devices) may be opened for reading and/or writing.
+Errors are the same as for
+.I open() ,
+insofar as they are relevant to the supported flags.
+.SH
+Example
+.LP
+The following code fragment (without error handling) looks up a
+capability and opens it, then copies some bytes from it to standard
+output:
+.sC
+capability cap;
+int fd, n;
+char buf[100];
+
+if (name_lookup("/foo/bar", &cap) == STD_OK) {
+    fd = opencap(&cap, O_RDONLY);
+    if (fd >= 0) {
+	n = read(fd, buf, 100);
+	write(1, buf, n);
+	close(fd);
+    }
+}
+.eC
+.SH
+See Also
+.LP
+posix(L).

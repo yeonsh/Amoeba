@@ -1,0 +1,84 @@
+.\"	@(#)b_am_utils.n	1.4	94/04/05 15:16:00
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, June 1990
+.aE
+.nH 1 "Building the \*(Am Utilities under UNIX"
+.LP
+This section describes how to build the \*(Am utilities under
+.UX
+and then install them on an \*(Am system.
+.kW UNIX
+.kW configuration
+The building of a configuration tree and compiling all the utilities is the
+same as described in the chapter
+.I "Building \*(Am Configurations"
+with the only addition being that some
+.UX
+systems have problems with long command lines as observed in the previous
+section and the solution described there is equally applicable here.
+The configuration tree is built using the command
+.kW "\fIamoebatree\fP"
+.I amoebatree (A).
+Thereafter the various commands
+.kW "\fIbuild\fP"
+.I build ,
+.kW "buildlibs"
+.I buildlibs
+and
+.kW "\fIbuildX\fP"
+.I buildX
+(see
+.I build (A))
+can be used to compile the various utilities, servers and kernels.
+.LP
+Once the build is complete there should be many utilities that should run
+under \*(Am.
+To run under \*(Am they must be installed on a \*(Bs.
+The binary cannot be started by loading it from a
+.UX
+file system.
+.kW "Bullet Server"
+It may be possible to construct a \*(Bs that runs under
+.UX
+.kW "virtual disk"
+using a Virtual Disk Server running under
+.UX
+but that is beyond the scope of this document.
+.LP
+The binaries produced by the compiler under
+.UX
+have a
+.UX
+.I a.out
+header at the front.
+This must be replaced with an \*(Am process descriptor and then the file
+installed on a \*(Bs.
+This is all done by a program called
+.kW "ainstall"
+.I ainstall (U)
+or
+.I tob
+.kW ACK
+if the program was compiled using ACK.
+It uses the default \*(Bs unless otherwise instructed.
+If you wish to install an entire configuration then
+.I aminstall (A)
+can be used.
+.LP
+.B NB.
+Before the \*(Am binaries can be generated under
+.UX
+it is necessary to build the
+.UX
+utilities for \*(Am.
+In particular,
+the program
+.I flex (U)
+must be built since it cannot be distributed with the other
+.UX
+binaries since it has various site dependencies.

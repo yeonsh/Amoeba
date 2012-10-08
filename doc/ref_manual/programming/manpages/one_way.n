@@ -1,0 +1,41 @@
+.\"	@(#)one_way.n	1.5	96/02/15 16:53:29
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: See Federal Register, March 17, 1975 (40FR12134)
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "one_way" L "libamoeba.a, libamunix.a"
+encrypt a port
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+
+one_way(p, q)
+port *p, *q;
+.eC
+.SH
+Description
+.LP
+.kW "\fIone_way\fP"
+.kW "\fIpriv2pub\fP"
+.kW "F-box"
+.I One_way
+computes an encrypted version of
+.I p
+and returns the result in
+.I q .
+It keeps an internal cache of encrypted ports for efficiency reasons.
+.SH
+See Also
+.LP
+priv2pub(L),
+posix(L),
+rpc(L).

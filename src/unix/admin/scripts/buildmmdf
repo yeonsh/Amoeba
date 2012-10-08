@@ -1,0 +1,195 @@
+#!/bin/sh
+#	
+#	@(#)buildmmdf	1.4	96/03/07 15:34:01
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	buildmmdf confdir srcdir arch toolset
+#
+#	Generates an mmdf config tree and compiles it.
+#
+PROG=`basename $0`
+AMDIR=`amdir`
+
+if [ $# -ne 4 ]
+then
+    echo Usage: $PROG confdir srcdir arch toolset
+    exit 1
+fi
+conf=$1
+src=$2
+arch=$3
+toolset=$4
+
+case $conf in
+/*) confdir=$conf ;;
+*)  confdir=$AMDIR/$conf/amoeba ;;
+esac
+
+case $src in
+/*) ;;
+*)  src=$AMDIR/$src;;
+esac
+
+srcdir=$src/mmdf
+amsrcdir=$src/mmdf.am
+mmdfdir=$confdir/$arch.$toolset/mmdf
+
+# Make sure the sources are there.
+for dir in $srcdir $amsrcdir $confdir/$arch.$toolset
+do
+    if [ ! -d $dir ]
+    then
+	echo $PROG: cannot find directory $dir
+	exit 1
+    fi
+done
+
+if [ ! -d $mmdfdir ]
+then
+    echo "$PROG: creating directory $mmdfdir"
+    mkdir $mmdfdir
+fi
+
+# Figure out which compilers/archivers,loaders,etc to use
+ainstall=aminstallit
+case $toolset in
+ack)	compiler=ack
+	cflags="-mam_$arch -O"
+	loader=ack
+	ldflags="-.c -mam_$arch"
+	archiver=aal
+	arflags=r
+	ranlib=/bin/true
+	mkdepflags="-A -Rcem-m -c.k -o /dev/null"
+	head=
+	;;
+sunpro)	compiler=$confdir/$arch.$toolset/toolset/do_cc
+	cflags=-xO2
+	archiver=ar
+	arflags=r
+	ranlib=/bin/true
+	mkdepflags=-xM
+	head=$confdir/$arch.$toolset/lib/head/head.o
+	case $arch in
+	sparc)
+	    loader=ld
+	    ldflags="-M $confdir/$arch.$toolset/toolset/ldmap -dn -e start -zdefs -Qn"
+	    ;;
+	*)  echo "Only sparc is supported for the sunpro compiler at the moment"
+	    exit 1
+	    ;;
+	esac
+	;;
+sun)	compiler=cc
+	cflags=-O
+	archiver=ar
+	arflags=r
+	ranlib=ranlib
+	mkdepflags=-M
+	head=$confdir/$arch.$toolset/lib/head/head.o
+	case $arch in
+	sparc)
+	    loader=$confdir/$arch.$toolset/toolset/do_gld
+	    ldflags="-n -Ttext 40000 -Bstatic"
+	    ;;
+	mc68000)
+	    loader=ld
+	    ldflags="-Bstatic -e start"
+	    ;;
+	esac
+	;;
+gnu-2)	compiler=$confdir/$arch.$toolset/toolset/do_gcc
+	cflags="-mam_$arch -O2"
+	archiver=$confdir/$arch.$toolset/toolset/do_ar
+	arflags="crs -mam_$arch"
+	ranlib=/bin/true
+	mkdepflags=-M
+	head=$confdir/$arch.$toolset/lib/head/head.o
+	loader=$confdir/$arch.$toolset/toolset/do_ld
+	ldflags="-G /usr/proj/amwork/bin.sun4/gnu -mam_$arch"
+	case $arch in
+	sparc)
+	    ldflags="$ldflags -Bstatic -Ttext 40000"
+	    ;;
+	i80386|mc68000)
+	    ldflags="$ldflags -lsoft"
+	    ;;
+	esac
+	;;
+*)	echo "Unknown compiler set"
+	echo "Guessing what might work ..."
+	compiler=cc
+	cflags=-O
+	loader=ld
+	ldflags=
+	ldflags="-e start"
+	archiver=ar
+	arflags=r
+	ranlib=/bin/true
+	mkdepflags=-M
+	head=$confdir/$arch.$toolset/lib/head/head.o
+	;;
+esac
+
+
+cd $mmdfdir
+# Create the DeleteFiles.sh shell script which we will need shortly
+(cd $amsrcdir && sh MkDelFiles.sh) > DeleteFiles.sh
+
+# Make the configuration tree
+# The idea is that we clone the mmdf source tree by making (sym)links to it
+# and then delete the links in the config for those files which we have
+# modified and then put in the links to our modified version.
+#
+echo "$PROG: making clone of mmdf src tree"
+setupbuild $srcdir .
+echo "$PROG: substituting Amoeba versions of mmdf sources"
+sh DeleteFiles.sh
+setupbuild $amsrcdir .
+
+# Now we start the build process
+cd $mmdfdir/conf
+./sitesetup amoeba
+cd $mmdfdir
+
+# Now we have to edit the Makefile.com to configure it for compiler set and
+# architecture.  It is not symlinked but copied by sitesetup.  We just need
+# to make sure it is writeable
+#
+chmod 644 Makefile.com
+ed Makefile.com << %
+/<SRCROOT>/s::$AMDIR/src:
+/<CONFROOT>/s::$confdir:
+/<ARCH>/s::$arch:
+/<COMPILERSET>/s::$toolset:
+/<AR>/s::$archiver:
+/<ARFLAGS>/s::$arflags:
+/<LD>/s::$loader:
+/<LDFLAGS>/s::$ldflags:
+/<CC>/s::$compiler:
+/<CFLAGS>/s::$cflags:
+/<AINSTALL>/s::$ainstall:
+/<MKDEPFLAGS>/s::$mkdepflags:
+/<HEAD>/s::$head:
+w
+q
+%
+
+chmod 644 lib/Makefile
+ed lib/Makefile << %%
+/<RANLIB>/s::$ranlib:
+w
+q
+%%
+
+#
+# Now we can get on and make things
+#
+make clean
+make depend
+make
+exit 0

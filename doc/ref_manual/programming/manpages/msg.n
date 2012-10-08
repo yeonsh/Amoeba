@@ -1,0 +1,512 @@
+.\"	@(#)msg.n	1.4	96/02/15 16:52:50
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Mark D. Wood, 1992
+	Document: Mark D. Wood, Nov 1992
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "msg" L "libamoeba.a"
+message-based RPC routines
+.SH
+Synopsis
+.LP
+.sC L
+#include "rrpc/msg_rpc.h"
+
+message	*msg_newmsg();
+void 	msg_delete(mp);
+void	msg_rewind(mp);
+int	msg_increfcount(mp);
+.sp 0.5v
+void 	msg_put(mp, type, val);
+void 	msg_put_int(mp, val);
+void 	msg_put_real(mp, val);
+void 	msg_put_string(mp, val);
+void 	msg_put_port(mp, val);
+.sp 0.5v
+int	msg_next_type(mp)
+.sp 0.5v
+int 	msg_get(mp, type, val);
+int 	msg_get_int(mp, v);
+int 	msg_get_real(mp, v);
+int 	msg_get_port(mp, v);
+int 	msg_get_string(mp, v);
+.sp 0.5v
+char	*MSG_SENDER_NAME(mp)
+port	*msg_sender_port(mp);
+int	MSG_ENTRY(mp)
+.sp 0.5v
+int 	msg_rpc(addr, entry, req_mp, reply);
+message	*msg_rpc_rcv(rcv_port);
+int 	msg_rpc_reply(req_mp, reply_mp);
+.sp 0.5v
+void 	msg_printaccess(mp);
+.eC
+.SH
+Description
+.LP
+The standard \*(Am communication primitives operate using user-defined
+buffers.
+The
+.I msg_
+routines provide an alternative based upon a
+.I message
+object.
+Messages are
+.I typed ;
+a message consists of a sequence of values each tagged with its type.
+By using typed messages, the recipient of a message need not know beforehand
+the types of the values being sent to it.
+The use of types also provides a degree of protection against programming
+errors, ensuring that the contents of a message are interpreted correctly.
+.LP
+The supported types are denoted by integer constants as shown in the
+following table:
+.TS
+box tab(:) center box;
+l | l .
+Name : Description
+=
+\*<TYPE_INT\*>: (32-bit) integer
+_
+\*<TYPE_REAL\*>: (float) floating-point
+_
+\*<TYPE_STRING\*>: NULL-terminated string
+_
+\*<TYPE_ADDRESS\*>: \*(Am port
+.TE
+.mH
+Error codes
+.LP
+All routines with return type \*<int\*> return \(mi1 upon failure.
+.sH
+msg_newmsg
+.LP
+.sC
+message	*
+msg_newmsg()
+.eC
+.kW "\fImsg_newmsg\fP"
+.LP
+A message is created by invoking
+.I msg_newmsg .
+This routine returns a pointer to a message structure;
+this pointer is used for all subsequent references to the message.
+Values are stored in a message using the various
+.I msg_put
+routines.
+If a new message could not be allocated then this routine will not
+return but abort the calling program.
+.sH
+msg_put
+.LP
+.sC
+void
+msg_put(mp, type, val)
+message *mp;
+int type;
+void *val;
+.eC
+.kW "\fImsg_put\fP"
+.LP
+Each invocation of a
+.I msg_put_
+routine appends the value to the end of the message.
+Routines are provided for each of the four types currently supported.
+In addition,
+.I msg_put
+may be called with the type and a pointer to the value;
+this routine provides a type-generic way of storing values in a message.
+.sH
+msg_put_int
+.LP
+.sC
+void
+msg_put_int(mp, val)
+message *mp;
+int val;
+.eC
+.kW "\fImsg_put_int\fP"
+.LP
+The integer value
+.I val
+is stored in the message pointed to by
+.I mp .
+.sH
+msg_put_real
+.LP
+.sC
+void
+msg_put_real(mp, val)
+message *mp;
+float val;
+.eC
+.kW "\fImsg_put_int\fP"
+.LP
+The floating-point value
+.I val
+is stored in the message pointed to by
+.I mp .
+.sH
+msg_put_string
+.LP
+.sC
+void
+msg_put_string(mp, val)
+message *mp;
+char *val;
+.eC
+.kW "\fImsg_put_string\fP"
+.LP
+The NULL-terminated string pointed to by
+.I val
+is stored in the message pointed to by
+.I mp .
+.sH
+msg_put_port
+.LP
+.sC
+void
+msg_put_port(mp, val)
+message *mp;
+port *val;
+.eC
+.kW "\fImsg_put_port\fP"
+.LP
+The \*(Am port value pointed to by
+.I val
+is stored in the message pointed to by
+.I mp .
+.sH
+msg_rpc
+.LP
+.sC
+int
+msg_rpc(addr, entry, req_mp, reply)
+port *addr;
+int entry;
+message *req_mp;
+message **reply;
+.eC
+.kW "\fImsg_rpc\fP"
+.LP
+A message-based RPC with a server is carried out by calling
+.I msg_rpc ,
+passing as parameters the server's
+.I put-port ,
+the procedure entry number, and the parameters
+for the remote procedure as encapsulated in a message.
+The final parameter to
+.I msg_rpc
+is an out-parameter, set upon successful return to point to a message
+containing the server's response.
+If the RPC fails for any reason then
+.I msg_rpc
+returns \(mi1.
+.sH
+msg_get
+.LP
+.sC
+int
+msg_get(mp, type, val)
+message *mp;
+int type;
+void *val;
+.eC
+.kW "\fImsg_rpc\fP"
+.LP
+The message received from the server is examined by using the various
+.I msg_get
+routines.
+The parameter
+.I val
+points to an object of sufficient size to hold a value of the indicated
+.I type .
+The value of the indicated type is extracted from the message
+.I mp
+and stored in the object pointed to by
+.I val .
+.sH
+msg_get_int
+.LP
+.sC
+int
+msg_get_int(mp, val)
+message *mp;
+int *val;
+.eC
+.kW "\fImsg_get_int\fP"
+.LP
+Reads the next value from the message, which must be an integer,
+and stores the value in object
+.I val .
+.sH
+msg_get_float
+.LP
+.sC
+int
+msg_get_float(mp, val)
+message *mp;
+float *val;
+.eC
+.kW "\fImsg_get_float\fP"
+.LP
+Reads the next value from the message, which must be an float,
+and stores the value in object
+.I val .
+.sH
+msg_get_port
+.LP
+.sC
+int
+msg_get_port(msg, val)
+message *mp;
+port *val;
+.eC
+.kW "\fImsg_get_port\fP"
+.LP
+Copies the next value from the message, which must be an \*(Am port,
+and stores the value in
+.I val .
+.sH
+msg_get_string
+.LP
+.sC
+int
+msg_get_string(msg, val)
+message *mp;
+char **val;
+.eC
+.kW "\fImsg_get_string\fP"
+.LP
+Sets
+.I val
+to point to the character string at the current read position within
+the message
+.I msg .
+The pointer is only valid for the lifetime of the message.
+.sH
+msg_next_type
+.LP
+.sC
+int
+msg_next_type(mp)
+message *mp;
+.eC
+.kW "\fImsg_rpc\fP"
+.LP
+.I Msg_next_type
+may be called to determine the type of the next value;
+if no more values are present in the message, then
+.I msg_next_type
+returns \(mi1.
+.LP
+All the
+.I msg_get_
+routines likewise return \(mi1 if the message
+.I mp
+has been exhausted.
+A type mismatch occurs when the requested type and the type of the next
+value in the message differ.
+This results in a fatal library error:
+the program exits after printing a descriptive error message.
+.sH
+MSG_ENTRY
+.LP
+.sC
+int
+MSG_ENTRY(mp)
+message *mp;
+.eC
+.kW "\fIMSG_ENTRY\fP"
+.LP
+The intended entry number of a message is returned by
+.cW MSG_ENTRY .
+.sH
+MSG_SENDER_NAME
+.LP
+.sC
+char *
+MSG_SENDER_NAME(mp)
+message *mp;
+.eC
+.kW "\fIMSG_SENDER_NAME\fP"
+.LP
+If the sender or creator of a message has called
+.I ctx_define_context
+(see
+.I msg_rpc (L)),
+then
+.cW MSG_SENDER_NAME
+returns the name of the process which sent the message
+.sH
+msg_sender_port
+.LP
+.sC
+port *
+msg_sender_port(mp)
+message *mp;
+.eC
+.kW "\fImsg_sender_port\fP"
+.LP
+If the sender or creator of a message has called
+.I ctx_define_context
+(see
+.I msg_rpc(L)),
+then
+.I msg_sender_port
+returns a pointer to the put-port of the process which sent the message.
+.sH
+msg_delete
+.LP
+.sC
+void
+msg_delete(mp)
+message *mp;
+.eC
+.kW "\fImsg_delete\fP"
+.LP
+Once the contents of a message are no longer needed, the space
+consumed by the message should be freed by calling
+.I msg_delete .
+Note that a client doing an RPC should invoke
+.I msg_delete
+on both its request message and the reply message returned by
+.I msg_rpc .
+The message library maintains with each message a reference counter,
+only freeing the space consumed by a message when the counter drops to zero.
+.sH
+msg_increfcount
+.LP
+.sC
+int
+msg_increfcount(mp)
+message *mp;
+.eC
+.kW "\fImsg_increfcount\fP"
+.LP
+Increments the reference counter for message
+.I mp .
+If a message pointer variable is set to point to some message,
+and all other references to the message are deleted, but it is desired
+that the contents of the message remain, then the message reference counter
+should be explicitly incremented by calling
+.I msg_increfcount .
+In general,
+.I msg_increfcount
+should be called after each time some pointer is set to point to a
+given message, and
+.I msg_delete
+should be called each time the value of a variable pointing to the
+given message is changed, or becomes undefined (for example, before
+leaving some program scope).
+.sH
+msg_rewind
+.LP
+.sC
+void
+msg_rewind(mp)
+message *mp;
+.eC
+.kW "\fImsg_rewind\fP"
+.LP
+Since the
+.I msg_get
+routines sequentially access the contents of a message, it may be
+desirable to \fIrewind\fP a message to the beginning.
+This is accomplished by calling
+.I msg_rewind .
+Separate get and put pointers are maintained for each message;
+.I msg_rewind
+resets the get pointer to the beginning of the message.
+.sH
+msg_rpc_rcv
+.LP
+.sC
+message *
+msg_rpc_rcv(getport)
+port *getport;
+.eC
+.kW "\fImsg_rpc_rcv\fP"
+.LP
+To receive a remote procedure call, a program calls
+.I msg_rpc_rcv ,
+passing as a parameter the
+.I get-port .
+.I Msg_rpc_rcv
+returns the next message received on the specified port,
+blocking until such a request is received.
+Note that the
+.I msg_rpc_rcv
+routine is a wrapper on top of
+.I getreq .
+.sH
+msg_rpc_reply
+.LP
+.sC
+int
+msg_rpc_reply(req_mp, rep_mp)
+message *req_mp;
+message *rep_mp;
+.eC
+.kW "\fImsg_rpc_reply\fP"
+.LP
+The reply message is transmitted by calling
+.I msg_rpc_reply ,
+passing as parameters the corresponding request message and the reply
+message.
+Note that the
+.I msg_rpc_reply
+routine is a wrapper on top of
+.I putrep .
+.sH
+msg_printaccess
+.LP
+.sC
+void
+msg_printaccess(mp)
+message *mp;
+.eC
+.kW "\fImsg_printaccess\fP"
+.LP
+The routine
+.I msg_printaccess
+prints the contents of the message
+.I mp
+to
+.I stdout
+in a form convenient for program debugging.
+.SH
+Warning
+.LP
+The maximum size of a message is limited to a fixed constant.
+.LP
+Some of the above functions may be implemented as macros.
+.LP
+Floating point values are only correctly passed between machines of
+the same architecture, and the floating-point value must occupy no
+more than 32 bits.
+.LP
+The restrictions imposed by \*(Am on the use of
+.I getreq
+and
+.I putput
+routines apply to
+.I msg_rpc_rcv
+and to
+.I msg_rpc_reply .
+.SH
+Examples
+.LP
+There are examples showing how these routines are used in the sources.
+They are in the directory
+.I src/test/lib/amoeba .
+.SH
+See Also
+.LP
+msg_grp(L),
+msg_rpc(L).

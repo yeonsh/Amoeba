@@ -1,0 +1,193 @@
+.\"	@(#)m2.n	1.5	96/02/16 11:03:04
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Ceriel J.H. Jacobs
+	Document: Ceriel J.H. Jacobs
+	Modified: Kees Verstoep, 8/11/90 - converted to Amoeba manual macros
+					   and Amoeba-specific modifications
+		  Gregory J. Sharp, Nov 1995
+.aE
+.mT "m2" U
+ACK Modula-2 compiler
+.SH
+Synopsis
+.SH
+.sC L
+m2 [options] file ...
+.eC
+.SH
+Description
+.LP
+.kW "programming language"
+.kW "compiler"
+.kW "Modula-2"
+.kW ACK
+.kW "\fIack\fP"
+This document provides a short introduction to the use
+of the ACK Modula-2 compiler.
+It also tells where to find definition modules for ``standard'' modules.
+.mH
+File Names
+.LP
+Usually,
+a Modula-2 program consists of several definition and implementation modules,
+and one program module.
+Definition modules must reside in files with names having a ``.def'' suffix.
+Implementation modules and program modules must reside in files having
+a ``.mod'' suffix.
+.LP
+The name of the file in which a definition module is stored
+must be the same as the module-name,
+apart from the extension.
+For historic reasons,
+the compiler truncates to 10 characters
+the basename of the definition modules it tries to read.
+So, given an IMPORT declaration for a module called
+.I LongModulName ,
+the compiler will try to open a file called
+.I LongModulN.def .
+This requirement does not hold for implementation or program modules,
+but is certainly recommended.
+.mH
+Calling the compiler
+.LP
+The easiest way to call the compiler is to let the
+.I ack (U)
+program do it.
+So, to compile a program module
+.I prog.mod ,
+just call
+.sC
+m2 \-m\fImach\fR prog.mod [ objects of implementation modules ]
+.eC
+where
+.I mach
+is one of the target machines of ACK.
+If there are no errors,
+this will produce a binary program
+.I prog
+that can be run on a machine of type
+.I mach .
+When no
+.B \-m
+option is given,
+the architecture of the driver itself is assumed.
+The program
+.I m2
+is actually a link to the generic driver
+.I ack ,
+which can be used to compile any type of source file supported by ACK
+(see
+.I ack (U)
+for a full list of options available).
+.LP
+To compile an implementation module,
+use the
+.B \-c
+flag to produce a
+.I .o
+file.
+Definition modules can not be compiled;
+the compiler reads them when they are needed.
+.mH
+Definition Modules
+.LP
+``Standard'' definition modules can be found in the directory
+.I /profile/module/ack/lib/m2 .
+When the compiler needs a definition module,
+it is first searched for in the current directory,
+then in the directories given to it by the
+.B \-I
+flag in the order given,
+and then in the directory mentioned above.
+.mH
+Options
+.LP
+The
+.I ack (U)
+program recognizes (among others) the following flags,
+that are passed to the Modula-2 compiler:
+.IP \fB\-I\fIdirname\fR 8
+.br
+append \fIdirname\fR to the list of directories where definition modules
+are looked for.
+.IP \fB\-I\fP
+do not look in the directory
+.I /profile/module/ack/lib/m2 .
+.IP \fB\-M\fP\fIn\fP
+set maximum identifier length to \fIn\fR.
+The minimum value of \fIn\fR is 14,
+because the keyword ``IMPLEMENTATION'' is that long.
+.IP \fB\-d\fIfile\fR
+generate a list of
+.I amake (U)
+dependencies
+\(em consisting of a list of all included files \(em
+on the file specified.
+.IP \fB\-n\fR
+do not generate EM register messages.
+The user-declared variables will not be stored into registers on the target
+machine.
+.IP \fB\-w\fR[\fIclasses\fR]
+.br
+suppress warning messages whose class is a member of
+.I classes .
+Currently,
+there are three classes:
+.B O ,
+indicating old-fashioned use,
+.B W ,
+indicating ``ordinary'' warnings,
+and
+.B R ,
+indicating restricted Modula-2.
+If no
+.I classes
+are given,
+all warnings are suppressed.
+By default,
+warnings in class
+.B O
+and
+.B W
+are given.
+.IP \fB\-W\fR\fIclasses\fR
+.br
+allow for warning messages whose class is a member of
+.I classes .
+.IP \fB\-x\fR
+make all procedure names global,
+so that a debugger understands them.
+.IP \fB\-Xs\fR
+make INTEGER ranges symmetric, that is,
+MIN(INTEGER) = \(mi MAX(INTEGER).
+This is useful for interpreters that use the ``real''
+MIN(INTEGER) to indicate ``undefined.''
+.SH
+Examples
+.LP
+The directory
+.I src/ack/examples/modula2
+contains a Modula-2 version of an \*(Am client/server performance test.
+It shows how Modula-2 programs can call functions in the \*(Am libraries.
+.mH
+Diagnostics
+.LP
+All warning and error messages are written on standard error output.
+.mH
+Files
+.LP
+.I /profile/module/ack/bin/m2
+\- the compiler driver.
+.LP
+.I /profile/module/ack/lib/front/em_m2
+\- the Modula-2 front end.
+.SH
+See Also
+.LP
+ack(U),
+amake(U).

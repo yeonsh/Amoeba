@@ -1,0 +1,581 @@
+.\"	@(#)signals.n	1.9	96/02/15 16:56:03
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, 1989
+	Software: Guido van Rossum (rewritten), February 1990
+	Document: Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "signals" L "libamoeba.a"
+signal and exception handling
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "exception.h"
+#include "fault.h" /* From src/h/machdep/arch/<architecture> */
+#include "module/signals.h"
+
+typedef long signum;
+#define SIG_TRANS 1
+
+signum  sig_uniq()
+void    sig_raise(sig)
+errstat sig_catch(sig, catcher, extra)
+void    sig_block()
+void    sig_unblock()
+
+void    my_catcher(sig, us, extra)
+
+/* Low-level interface: */
+
+typedef struct {...} sig_vector;
+
+sys_setvec(v, n)
+sys_sigret(us)
+
+my_sys_catcher(sig, us, arg3, arg4)
+.eC
+.SH
+Description
+.LP
+.kW "signals"
+.kW "exceptions"
+.kW "fault.h"
+.kW "signals.h"
+.kW "signum"
+.kW "SIG_TRANS"
+.kW "\fIsig_uniq\fP"
+.kW "\fIsig_raise\fP"
+.kW "\fIsig_catch\fP"
+.kW "\fIsig_block\fP"
+.kW "\fIsig_unblock\fP"
+.kW "\fIsig_mu_lock\fP"
+.kW "\fIsig_mu_trylock\fP"
+.kW "\fIsig_mu_unlock\fP"
+.kW "\fIsys_setvec\fP"
+.kW "\fIsys_sigret\fP"
+.kW "asynchronous communication"
+.kW RPC
+.kW "sig_vector"
+.kW "signal number"
+.kW "signal generation"
+.kW "signal catcher"
+.kW "client-to-server signal"
+.kW "interrupt"
+.kW "blocking signals"
+.kW "STD_INTR"
+.kW "checkpoint"
+.kW "frame pointer"
+.kW "signal vector"
+.kW "system catcher"
+.I Signals
+are used for asynchronous communication between threads within a process.
+A thread may specify a
+.I catcher
+function for a particular
+.I "signal number" ;
+another thread may asynchronously cause a call to this catcher in the
+catching thread by
+.I generating
+a signal.
+The signal catching mechanism is also used to catch exceptions and
+client-to-server signals; more about those later.
+.LP
+Do not confuse signals with
+.I stuns ,
+which are used for asynchronous communication between different
+processes (see
+.I process (L)).
+Signals are also used to emulate the C/
+.UX
+signal mechanism (see
+.I ansi_C (L)
+and
+.I posix(L)).
+.LP
+When a signal is generated, it is broadcast to all threads in the same
+process that have a catcher for it.
+This may include the thread that generated the signal.
+Threads that have no catcher for the signal are completely unaffected.
+In threads that catch the signal, system calls are completed or aborted
+(see the next paragraph); the catcher is called just before the system
+call returns.
+If the catcher returns, the thread continues where it was interrupted.
+A thread may temporarily block signals; in this case the calls to
+catchers are postponed until signals are unblocked again (but system
+calls are still aborted).
+.LP
+RPC system calls (see
+.I rpc (L))
+are aborted or continue depending on the
+state they are in when the signal is generated:
+.kW "\fItrans\fP"
+.IP trans 7
+When locating the server or sending the request, the call is aborted.
+When the server is already processing the request, a client-to-server
+signal is generated in the server (see below) and the call continues.
+.kW "\fIgetreq\fP"
+.IP getreq
+When waiting for an incoming request, the call is aborted.
+When a request is already arriving, it is allowed to complete.
+.kW "\fIputrep\fP"
+.IP putrep
+Always allowed to complete.
+.LP
+Other system calls always continue, since they cannot block very long,
+with two exceptions.
+.kW "\fImu_trylock\fP"
+.IP mu_trylock 11
+returns \(mi1, for failure to acquire the mutex (see
+.I mutex (L)).
+Note that
+.kW "\fImu_lock\fP"
+.I mu_lock
+is not a system call but loops until
+.I mu_trylock
+succeeds; thus, the catcher is called immediately but the
+.I mu_lock
+call does not return until it has acquired the mutex, which may be much later.
+Note that there are special versions of the mutex routines which block
+signals from having an effect until the critical region is complete.
+These are described in
+.I mutex (L).
+.kW "\fIseg_map\fP"
+.IP seg_map
+(see
+.I segment (L))
+is aborted when it is busy in a transaction reading the
+initial data for a segment; otherwise it continues.
+.LP
+When a thread is busy in a
+.kW "\fItrans\fP"
+.I trans
+and the server is already serving the request, the transaction is not
+aborted but a
+.I client-to-server
+signal is generated in the server (which may be executing on another machine).
+This client-to-server signal (\*<SIG_TRANS\*>) is not
+broadcast; it is only generated for the thread that is serving the
+transaction, and only if it has a catcher for it.
+When the server thread catches the client-to-server signal, it may
+decide to stop whatever it is doing and reply immediately.
+By convention, interrupted servers report a special error,
+.cW STD_INTR .
+This is up to the server; many servers ignore this signal (although this
+is a bug if the server itself may wait or compute indefinitely).
+The client-to-server signal is generated under other circumstances
+as well, e.g., when a process is stunned or crashes.
+.LP
+When a thread causes an exception (e.g., it tries to divide by zero),
+and it has a catcher for the corresponding (negative) exception number,
+that catcher is called.
+Exceptions are not broadcast to other threads, nor can they be blocked
+by the blocking mechanism or ignored.
+When a thread causes an exception for which it has no catcher, the
+process is stunned and its owner receives a checkpoint.
+The owner usually prints a stack trace (e.g.,
+.I ax (U))
+or saves a ``core image'' (e.g.,
+.I session (U)),
+and then kills the process.
+A debugger may allow close inspection of the process and
+let the user attempt repair and continuation.
+.mH
+Type
+.LP
+The type
+.sC
+signum
+.eC
+is used to specify signal numbers.
+This is an integral type; it is defined in
+.I exception.h
+(see
+.I exception (H)).
+Ordinary signals are identified by numbers larger than one.
+Signal number one (\*<SIG_TRANS\*>) identifies the client-to-server signal.
+Negative numbers identify exceptions; the names of the exceptions are
+defined in
+.I exception.h .
+Signal number zero is unused (it means ``no signal'' internally).
+Small signal numbers are reserved by the
+.UX
+signal emulation;
+applications should use larger numbers.
+.mH
+High-level Functions
+.sH
+sig_uniq
+.LP
+.sC
+signum
+sig_uniq()
+.eC
+.kW "\fIsig_uniq\fP"
+Each call returns a unique signal number in the range [2^16 .. 2^31).
+It should be called no more than 2147418112 times in one program.
+.sH
+sig_raise
+.LP
+.sC
+void
+sig_raise(sig)
+signum sig;
+.eC
+.kW "\fIsig_raise\fP"
+This broadcasts the signal number
+.I sig
+to all threads in the same process that have catchers for it.
+The signal number should be larger than one.
+.sH
+sig_catch
+.LP
+.sC
+errstat
+sig_catch(sig, catcher, extra)
+signum sig;
+void (*catcher)();
+void *extra;
+.eC
+.kW "\fIsig_catch\fP"
+This specifies that signal
+.I sig
+must be caught in the current thread by the function
+.I catcher
+with extra argument
+.I extra .
+If a NULL-pointer is passed as catcher, the signal will be ignored.
+.LP
+The catcher should be declared by the user as follows (the function name
+and parameter names may be freely chosen):
+.sC
+void
+my_catcher(sig, us, extra)
+signum sig;
+thread_ustate *us;
+void *extra;
+.eC
+where
+.I sig
+is the signal number,
+.I us
+is the pointer to machine dependent user state at the time of the call
+(only useful for code that attempts to repair exceptions, and not
+available to calls postponed by the blocking mechanism), and
+.I extra
+is the
+.I extra
+argument passed to the corresponding
+.kW "\fIsig_catch\fP"
+.I sig_catch
+call.
+The catcher is called in the catching thread.
+If and when it returns, the thread continues at the point where it was
+interrupted.
+System calls may be aborted as described earlier.
+.LP
+Note well: handlers are not cleared when an exception occurs.
+If exceptions are caught then the exception handler should not return
+without taking corrective action since an attempt will be made to restart the
+offending instruction.
+This will result in an infinite loop of calling the exception handler.
+One should certainly not ignore exceptions since the program will go into
+an infinite loop attempting to restart the offending instruction.
+.sH
+sig_block
+.LP
+.sC
+void
+sig_block()
+.eC
+.kW "\fIsig_block\fP"
+This blocks calls to signal catchers in the current thread until a
+matching call to
+.kW "\fIsig_unblock\fP"
+.I sig_unblock
+is made.
+Pairs of calls to
+.I sig_block
+and
+.I sig_unblock
+may be nested.
+They can be seen as brackets around critical sections; only the last
+(outermost) call to
+.I sig_unblock
+will unblock signals.
+Blocking signals only delays the call to the catcher; the other effects
+.kW "aborting system calls"
+of catching a signal (aborting system calls, sending client-to-server
+signals) still happen immediately when the signal is generated.
+Exception catchers are unaffected by the blocking mechanism.
+.sH
+sig_unblock
+.LP
+.sC
+void
+sig_unblock()
+.eC
+.kW "\fIsig_unblock\fP"
+This unblocks calls to signal catchers in the current thread, when not
+nested between another pair of calls to
+.kW "\fIsig_block\fP"
+.I sig_block
+and
+.I sig_unblock .
+Any catcher calls pending for the current thread are performed at this
+point.
+Catchers called through
+.I sig_unblock
+get a NULL-pointer passed for their frame pointer argument, since the
+frame will probably be invalid by the time the call is made.
+.mH
+Low-level Functions
+.LP
+The following structure type is defined in
+.I exception.h :
+.sC
+typedef struct {
+    signum  sv_type;
+    long    sv_pc;
+    long    sv_arg3;
+    long    sv_arg4;
+} sig_vector;
+.eC
+It is used for the vector argument to
+.kW "\fIsys_setvec\fP"
+.I sys_setvec .
+.sH
+sys_setvec
+.LP
+.sC
+sys_setvec(v, n)
+sig_vector *v;
+int n;
+.eC
+.kW "\fIsys_setvec\fP"
+This is the kernel interface used by
+.kW "\fIsig_catch\fP"
+.I sig_catch .
+The argument
+.I v
+is a vector with
+.I n
+entries of type
+.I sig_vector .
+When a signal is generated, the kernel searches the vector for a
+catcher, from beginning to end, until either an entry is found whose
+.I sv_type
+matches the signal number,
+an entry is found whose
+.I sv_type
+is zero is found (an optional sentinel),
+or
+.I n
+entries have been inspected.
+If no matching entry is found or its
+.I sv_pc
+is a NULL-pointer, the signal is ignored; otherwise, the signal is
+caught and
+.I sv_pc
+points to the system catcher function.
+The system catcher should be declared as follows (the function name
+and parameter names may be freely chosen):
+.sC
+my_sys_catcher(sig, us, arg3, arg4)
+signum sig;
+thread_ustate *us;
+long arg3, arg4;
+.eC
+where arguments
+.I sig
+and
+.I us
+are as for the user catcher, and arguments
+.I arg3
+and
+.I arg4
+are copied from
+.I sv_arg3
+and
+.I sv_arg4
+from the vector entry.
+The implementation of
+.kW "\fIsig_catch\fP"
+.I sig_catch
+uses
+.I arg3
+to hold the user catcher and
+.I arg4
+to store the extra argument.
+.LP
+The program may modify the vector entries while it is running; this
+makes specifying different catchers fast.
+Changing the size or location of the vector on the other hand requires a
+call to
+.kW "\fIsys_setvec\fP"
+.I sys_setvec
+to tell the kernel about the new values.
+.LP
+The system catcher must not return directly; instead, it should call
+.kW "\fIsys_sigret\fP"
+.I sys_sigret(us) ,
+see below.
+It may also ``return'' via a call to
+.I longjmp
+(see
+.I ansi_C (L)).
+Calls that terminate the thread or process are also allowed.
+System catchers are unaffected by
+.kW "\fIsig_block\fP"
+.I sig_block
+described above; the system catcher used by
+.kW "\fIsig_catch\fP"
+.I sig_catch
+implements signal blocking by saving the pending catcher call when necessary.
+.sH
+sys_sigret
+.LP
+.sC
+sys_sigret(us)
+thread_ustate *us;
+.eC
+.kW "\fIsys_sigret\fP"
+This function must be called to return from a system catcher; the stack
+frame of a system signal catcher looks peculiar so an ordinary return
+statement would crash the program.
+The argument must be the
+.I us
+argument passed to the system catcher.
+.mH
+Diagnostics
+.LP
+Possible return values from
+.kW "\fIsig_catch\fP"
+.I sig_catch
+are:
+.IP \*<STD_OK\*> "\w'STD_ARGBAD\0\0'u"
+all went well.
+.IP \*<STD_NOMEM\*>
+no memory was available to update the signal administration.
+.IP \*<STD_ARGBAD\*>
+an invalid signal number was given (e.g., zero).
+.mH
+Warnings
+.LP
+Resist the temptation to put calls to
+.I printf
+(see
+.I ansi_C (L))
+in a catcher function, even for debugging.
+When such a catcher is called during another
+.I printf
+call (or any other stdio call),
+the stdio administration may be damaged and output
+garbled or further printing made impossible.
+It is safe to call
+.I write
+however (see
+.I posix (L)).
+.\" XXX This may be fixed by Mike's changes to stdio
+.LP
+A thread which never makes a blocking system call cannot be interrupted
+by a signal when non-preemptive scheduling is used by the process.
+This happens because in that case no other thread is scheduled
+to generate a signal.
+.LP
+When more than one signal arrives for a thread while signals are
+blocked, it is not guaranteed that all catcher calls will be made;
+only the catcher call corresponding to the signal that arrived last is
+guaranteed.
+.LP
+Returning from an exception catcher is usually not a good idea.
+Unless you have repaired its cause, the same exception will be triggered
+again immediately.
+It usually requires a fair amount of machine-dependent hacking to find
+out what caused the exception, let alone to repair it.
+Breakpoint exceptions are not regenerated, but they are used by the
+debugger and should not be caught at all.
+.LP
+Do not use the
+.kW "\fIsys_setvec\fP"
+.I sys_setvec
+or
+.kW "\fIsys_sigret\fP"
+.I sys_sigret
+calls; they are considered part of the implementation and are documented
+here only for completeness' sake.
+.LP
+Code which does a lot of processing in a signal catcher is frowned upon.
+The most important reason for catching signals is to break out of
+unbounded waits; the catchers are only there to make emulation of
+.UX
+signals possible.
+.LP
+The
+.I read
+function (see
+.I posix(L))
+interacts somewhat with signals; when it
+receives a
+.cW STD_INTR
+error from the server, it assumes the request was
+interrupted by a signal catcher and sets
+.I errno
+to
+.cW EIO .
+.SH
+Example
+.LP
+The following program sleeps two seconds and then prints the string
+.I "catcher called" :
+.sC
+#include "amoeba.h"
+#include "exception.h"
+#include "fault.h"
+#include "module/signals.h"
+
+int flag = 0;
+
+/*ARGSUSED*/
+void catcher(sig, us, extra)
+signum sig;
+thread_ustate *us;
+void *extra;
+{
+    flag = 1;
+}
+
+void async()
+{
+    sleep(2);
+    sig_raise(1234);
+}
+
+main()
+{
+    sig_catch(1234, catcher, (void *) 0);
+    thread_newthread(async, 8000, (char *) 0, 0);
+    sleep(5);
+    if (flag) printf("catcher called\en");
+    exit(0);
+}
+.eC
+.SH
+See Also
+.LP
+ax(U),
+exception(H),
+mutex(L),
+posix(L),
+process(L),
+rpc(L),
+session(U),
+ansi_C(L),
+thread(L).

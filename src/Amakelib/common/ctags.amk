@@ -1,0 +1,27 @@
+#	
+#	@(#)ctags.amk	1.2	94/04/06 10:32:34
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(CTAGS), {
+	CTAGS = ctags;
+});
+
+%if (%not defined(CTAGSFLAGS), {
+	CTAGSFLAGS = {};
+});
+
+%derive f[C-src-or-incl] %when (get($f, type) == C-src)
+			   %or (get($f, C-incl) == %true);
+
+%tool ctags-tool (
+    srcs:	%in %list	[C-src-or-incl];
+    flags:	%string %list				=> $CTAGSFLAGS;
+    result:	%out		[type = ctags-output];
+    program:	%in		[type = command]	=> $CTAGS;
+)
+{
+    exec($program, args => '-f' + $result + $flags + $srcs, stderr => %diag);
+};

@@ -1,0 +1,45 @@
+#	
+#	@(#)Amake.srclist	1.6	94/04/06 11:29:20
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_IBMAT_FDISK = {
+	$PWD/fdisk.c
+};
+U_IBMAT_SHOWBADBLK = {
+	$PWD/showbadblk.c
+};
+U_IBMAT_ISAMKPROM = {
+	$PWD/isamkprom.c
+};
+U_IBMAT_ISAMKIMAGE = {
+	$PWD/isamkimage.c
+};
+U_IBMAT_INSTALLBOOT = {
+	$PWD/installboot.c
+};
+U_IBMAT_FLBOOT_START = {
+	$PWD/flstart.S
+};
+U_IBMAT_FLBOOT = {
+	$PWD/boot.h,
+	$PWD/support.S,
+	$PWD/boot.c,
+	$PWD/printf.c
+};
+U_IBMAT_HDBOOT_START = {
+	$PWD/hdstart.S
+};
+U_IBMAT_HDBOOT = {
+	$PWD/boot.h,
+	$PWD/support.S,
+	$PWD/boot.c,
+	$PWD/printf.c
+};
+U_IBMAT_DOSBOOT = {
+	$PWD/boot.h,
+	$PWD/dos.S
+};
+

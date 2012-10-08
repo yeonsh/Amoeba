@@ -1,0 +1,57 @@
+#	
+#	@(#)modula.amk	1.2	94/04/06 10:30:43
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# modula-2 to objectfile compiler
+
+%if (%not defined(MOD_INCLUDES), {
+	MOD_INCLUDES = {};
+});
+%if (%not defined(MOD_DEFINES), {
+	MOD_DEFINES = {};
+});
+
+%instance deftypesuffix(modula-src, '%.mod');
+%instance deftypesuffix(modula-def, '%.def');
+
+%if (%not defined(MOD_COMPILER), {
+	MOD_COMPILER = ack;
+});
+MOD_FLAGS = {
+	$MOD_INCLUDES,
+	$MOD_DEFINES,
+	-mam_$ARCH,
+	-c.o
+};
+MOD_LDFLAGS = {
+        -.mod,
+        -mam_$ARCH,
+};
+
+%generic mcluster(tar, src, libs) # modula cluster
+{
+	%default $tar;
+	%cluster
+	{
+		%targets $tar[type = program];
+		%sources $src;
+		%use	 loader(libraries => $libs, flags => $MOD_LDFLAGS);
+	};
+};
+
+%tool modula-c (
+    src:	%in	  [type = modula-src];
+    spec:	%in %list [type = modula-def]	=> {};
+    flags:	%string %list			=> $MOD_FLAGS;
+    object:	%out	  [type = loadable]	=> match($src);
+    prog:	%in	  [type = command]	=> $MOD_COMPILER;
+    deps:       %out      [type = dependents]   => match($src);
+    incl:       %in %list [type = modula-def, implicit] => %computed $deps;
+)
+{
+    exec($prog, args => '-Rm2-d'$deps + $flags + $src);
+};
+

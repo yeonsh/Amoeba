@@ -1,0 +1,404 @@
+.\"	@(#)session.n	1.6	96/02/16 11:07:30
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1989-1990
+	Modified: Kees Verstoep, Nov 1993 - implemented /dev/proc + security
+	Modified: Gregory J. Sharp, Aug 1994 - added /dev/console.
+	Document: Guido van Rossum, April 1990
+	Modified: Gregory J. Sharp, Nov 1993 - almost totally rewritten due to
+			the implementation of /dev/proc and a desperate need
+			for an intelligible explanation of the server.
+	Modified: Gregory J. Sharp, Aug 1994 - added /dev/console.
+	Modified: Gregory J. Sharp, Nov 1995 - tidy up.
+.aE
+.mT "session" U
+session server for POSIX emulation and process management
+.SH
+Synopsis
+.LP
+.sC L
+session [-a|-p] [-b] [-c capname] [-d] [-f] [command [arg] ...]
+.eC
+.SH
+Description
+.LP
+.kW "session server"
+.kW "POSIX emulation"
+.kW "Ajax"
+.kW "/dev/session"
+.kW "/dev/null"
+.kW "/dev/dead"
+.kW "/dev/proc"
+.kW "shared files"
+.kW "pipes"
+.kW "process ID"
+.kW "kill a process"
+.kW "_SESSION environment variable"
+.kW "process execution"
+.kW "fork"
+The
+.I session
+server is needed by most user applications.
+It is normally started when a user logs in and remains present for the
+duration of the user's login session.
+The
+.I session
+server provides many of the services needed by the POSIX emulation library
+(known as
+.I Ajax ).
+With the help of the
+.I session
+server, this library implements pipes, process
+management, shared file descriptors and
+.I /dev/null .
+Some POSIX functions do not use the
+.I session
+server or use it only when necessary.
+For example,
+.I read
+and
+.I write
+only use the
+.I session
+server when the file descriptor is shared.
+.LP
+The
+.I session
+server provides a
+.I personal
+POSIX emulation: each user runs a separate
+.I session
+server and users'
+.I session
+servers do not communicate.
+Process IDs are only unique per
+.I session
+server.
+Users cannot kill each others' processes using
+.I kill (U)
+since the processes belong to different
+.I session
+servers.
+As a consequence, the
+.I session
+server does not need to maintain user IDs or group IDs per process.
+The access granted to a process depends solely on the capability it
+presents for an object.
+In practice this is determined by the directory graph reachable from the
+user's root directory.
+.LP
+There are several ways to use the
+.I session
+server.
+The normal way is to create a session by specifying the
+.B \-a
+option and a command to execute.
+A command consists of all the arguments after the options, if any.
+It is used as the argv argument to
+.I exec_file (L).
+The command (for example, a shell) may spawn sub-processes which also
+belong to the session.
+When started this way the
+.I session
+server will publish its server capability under
+.I /dev/session ,
+the null device capability under
+.I /dev/null
+and the process directory
+.I /dev/proc
+which contains the capabilities for all the processes created under the
+session.
+If none of the
+.B \-a ,
+.B \-p
+or
+.B \-c
+options are specified then the various capabilities are not published.
+.LP
+There are very few uses for the server without the
+.B \-a
+option.
+(It is not the default for historical reasons.)
+It can be used this way only to start a process that must run within its
+own session.
+If
+.B \-c
+is not specified then the capability for the process will be inaccessible to
+the user and it will not be possible to stun the process, although it can
+receive signals via the interrupt key from the terminal.
+It is strongly recommended that the
+.B \-a
+option always be specified.
+.LP
+One minute after the last process in the session finishes, the
+.I session
+server exits and any published capabilities are removed.
+This typically occurs when a user logs out.
+During the minute wait, new processes can be started which attach themselves
+to the
+.I session
+server.
+For example,
+if the user logs out and then logs in again within one minute, then the
+previous
+.I session
+server will continue to be used.
+.LP
+To add a process to a session, the
+.I session
+server capability (taken from
+.I /dev/session )
+should be passed as
+.cW _SESSION
+in the capability environment when the process is started.
+A shell already running under a
+.I session
+server does this automatically.
+.I Ax (U)
+also does this by default if it can find
+.I /dev/session ,
+so normally it is not necessary to worry about this.
+.mH
+Options
+.LP
+The session server recognizes the following options:
+.IP \fB\-a\fP "\w'\-c capname\0\0'u"
+Attach mode preserves an existing session if one exists,
+but will create a new one if no (usable) session exists.
+If the name under which the server capability is to be published already
+exists and a server is responding to the capability found under that name,
+the new
+.I session
+server normally refuses to run.
+If it is started with
+.B \-a
+then it hands over any command it has to the extant server and exits.
+This is used to ensure that users, no matter how many times they login,
+always have a single
+.I session
+server.
+.IP \fB\-b\fP
+By default,
+if a command is given as an argument to the
+.I session
+server ,
+the name of the command will be prefixed with a '-'.
+This is useful in case the command is a login shell,
+which will typically perform extra initialization
+(e.g., 
+the user's
+.I profile )
+as a result of this.
+Specifying the
+.B \-b
+option causes the command name to be passed unchanged.
+.IP "\fB\-c\fP capname"
+Specifies the name where the server capability is published.
+The default is
+.I /dev/session .
+This option also forces the publication of the
+.I session
+server's various capabilities.
+.IP \fB\-d\fP
+Debugging.
+Turns on extensive debugging output (unless the program is compiled with
+NDEBUG defined).
+The output is unlikely to be helpful for users.
+.IP \fB\-f\fP
+Force publication of the capability even if a server is still responding
+to the currently published capability.
+This option is incompatible with the
+.B \-a
+option.
+.IP \fB\-p\fP
+Make the server permanent.
+Normally the server exits 1 minute after the last process using its
+services has terminated.
+This option prevents this.
+.mH
+Environment Variables
+.LP
+.IP \*<_SESSION\*> "\w'_SESSION\0\0'u"
+The
+.I session
+server's server capability is exported to the capability
+environment of the
+.I command
+under this name.
+.mH
+Files and Directories
+.LP
+.IP \fI/dev/session\fP "\w'\fI/dev/session\fP\0\0'u"
+Default server capability (use
+.B \-c
+option to override).
+.IP \fI/dev/null\fP
+Null device server.
+.IP \fI/dev/proc\fP
+This directory is implemented inside the
+.I session
+server.
+Process capabilities for all processes known to the
+.I session
+server are stored
+here, with their process ID as object name.
+Process ID 1 is the
+.I session
+server.
+These capabilities can be presented to
+.I stun (U)
+to stun them.
+When a process terminates, the
+.I session
+server removes its capability from
+.I /dev/proc .
+Note that to kill a
+.I session
+server it is better to do
+.sC
+std_destroy /dev/session
+.eC
+than to use
+.I stun
+since the
+.I session
+server can then clean up properly before exiting.
+.IP \fI/dev/dead\fP
+If this directory exists, the corpses of processes that died because of
+an exception or were killed by SIGQUIT are embalmed and put on display
+in this directory, with their process ID as filename.
+Such dumps can be inspected with
+.I pdump (U).
+.IP \fI/dev/console\fP
+.kW "/dev/console"
+This is the write-only capability for
+.I stdout
+and
+.I stderr
+for the
+.I session
+server where it writes any messages.
+Typically it is the capability for a tty device although it is permitted
+to be a file.
+It can be used for sending messages to system users
+(see
+.I notify (U)).
+Per default the session owner and the members of the groups in which the
+session owner is registered can write this device.
+If the latter is not desired then the
+.I /dev/console
+permissions can be modified with
+.I chm (U).
+This can be done in your
+.I .profile .
+The
+.I /dev/console
+capability can be altered for debugging purposes or when logged in to an
+X windows session.
+See
+.I sess_setout(U)
+for details.
+.mH
+Limits
+.LP
+.IP \(bu "\w'\(bu\(bu'u"
+The process table has space for 300 processes.
+.IP \(bu
+Process IDs range from 2 to 32767 inclusive (and are reused).
+.IP \(bu
+The pipe server uses two threads per open pipe.
+This makes pipe creation slow.
+Further, memory shortage may limit the number of threads that can be created
+and therefore the number of pipes.
+.SH
+Programming Interface Summary
+.LP
+There are two aspects to the programming interface of the
+.I session
+server.
+One is the commands that it accepts via the RPC mechanism and the other
+is the set of POSIX functions it supports.
+The RPC interface to the
+.I session
+server is defined in the file
+.I src/h/class/sessvr.cls.
+Below is a short list of the POSIX functions for which the
+.I session
+server
+is required.
+The list is indicative, not complete.
+.LP
+The
+.I session
+server is required for the following POSIX process
+management functions:
+fork, execve and family, wait, sigaction, kill,
+getpid, getppid, getpgrp, setpgrp, pipe (see
+.I posix (L)),
+by the Standard C function signal (see
+.I stdc (L))
+and by the \*(Am functions newproc and newprocp (see
+.I newproc (L)).
+.SH
+Administration
+.LP
+Most users will start a
+.I session
+server when they login.
+This is best done from the
+.I /Environ
+file.
+When a
+.I session
+server dies, the directory
+.I /dev/proc
+will disappear with it.
+Any processes that were still registered there but do not need the
+.I session
+server for their continued survival may continue to run to completion.
+These orphans can no longer be killed by the user but only by someone
+with the
+.I /super
+capability.
+A new incarnation of the
+.I session
+server will not find and adopt the orphan processes.
+This presents a small cleanup problem and system administrators should
+regularly tidy up processes with no valid owner capability.
+.SH
+Examples
+.LP
+To start a permanent
+.I session
+server from
+.UX ,
+with its output ignored:
+.sC
+ax -n /profile/util/session -a -p
+.eC
+This command returns as soon as the server process is started.
+.LP
+To start a temporary
+.I session
+with a shell running in it:
+.sC
+ax /profile/util/session -a /bin/sh
+.eC
+This returns when the shell returns.
+.SH
+See Also
+.LP
+ax(U),
+gax(U),
+exec_file(L),
+newproc(L),
+pdump(U),
+posix(L),
+sess_setout(U),
+stdc(L),
+stun(U).

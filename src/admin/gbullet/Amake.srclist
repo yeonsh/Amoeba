@@ -1,0 +1,33 @@
+#	
+#	@(#)Amake.srclist	1.1	96/02/27 10:00:58
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+LIB_ROOT = $SRC_ROOT/lib/stubs/gbullet ;
+
+U_BULLET_GB_KILLFS = $PWD/gb_killfs.c;
+ 
+U_BULLET_GB_MKFS = {
+	$PWD/gb_mkfs.c,
+	$PWD/mkfs.c
+};
+
+U_BULLET_GB_INFO = $PWD/gb_info.c;
+
+U_BULLET_GB_REPCHK = {
+	$LIB_ROOT/gb_repchk.c,
+	$PWD/gb_repmain.c
+};
+
+U_BULLET_GB_ADMIN = {
+	$LIB_ROOT/gb_repchk.c,
+	$LIB_ROOT/gb_state.c,
+	$PWD/gb_admain.c
+};
+
+U_BULLET_GB_ATTACH = {
+	$LIB_ROOT/gb_attach.c,
+	$PWD/gb_attmain.c
+};

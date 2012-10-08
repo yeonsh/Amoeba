@@ -1,0 +1,38 @@
+#	
+#	@(#)Amake.srclist	1.6	96/03/20 13:27:47
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/amunix/Amake.srclist;
+%include $PWD/build/Amake.srclist;
+%include $PWD/config/Amake.srclist;
+%include $PWD/install/Amake.srclist;
+%include $PWD/manpages/Amake.srclist;
+
+D_SYSADMIN_SEEALSO = {
+	$PWD/See_also_idx.n,
+};
+
+D_SYSADMIN_COVER = {
+	$PWD/cover.n,
+	$PWD/../trademarks.n,
+	$PWD/../copyright.both.n,
+};
+
+D_SYSADMIN_BODY = {
+	$PWD/usage.n,
+	$ADMIN_INSTALL,
+	$ADMIN_CONFIG,
+	$ADMIN_BUILD,
+	$ADMIN_AMUNIX,
+	$PWD/maintain.n,
+	$PWD/t_shoot.n,
+	$ADMIN_MANPAGES
+};
+
+D_SYSADMIN = {
+	$D_SYSADMIN_COVER,
+	$D_SYSADMIN_BODY
+};

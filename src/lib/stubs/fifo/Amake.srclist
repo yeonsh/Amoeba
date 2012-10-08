@@ -1,0 +1,16 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/07 11:01:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_FIFO = {
+	$PWD/fifo.gen[c_gen = {
+		fifo_create.c,
+		fifo_open.c,
+		fifo_share.c,
+		fifo_close.c,
+		fifo_bufsiz.c,
+	}]
+};

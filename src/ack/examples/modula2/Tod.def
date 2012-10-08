@@ -1,0 +1,16 @@
+/*	@(#)Tod.def	1.2	94/04/06 11:10:52 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+(*$Foreign language module *)
+(*$U+ allow for underscores in identifiers *)
+
+DEFINITION MODULE Tod;
+
+  PROCEDURE tod_gettime(VAR finish, ms, tz, dst: INTEGER);
+			(* actually: "long *" *)
+
+END Tod.

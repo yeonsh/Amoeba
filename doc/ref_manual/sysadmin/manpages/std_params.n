@@ -1,0 +1,125 @@
+.\"	@(#)std_params.n	1.6	96/02/15 17:52:17
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, June 1991
+	Document: Kees Verstoep, July 1991
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "std_params" A
+set and/or show server parameters
+.SH
+Synopsis
+.LP
+.sC L
+std_params [-s param=value] [-v] server
+.eC
+.SH
+Description
+.LP
+.kW "standard command"
+.kW "server parameters"
+.I Std_params
+can be used to print or modify the runtime parameters
+of a server implementing the
+.I std_getparams/std_setparams
+interface.
+In general,
+server parameters can be global
+(in which case
+.I std_params
+should probably be applied to the server's
+super capability) or per object.
+In order to be as flexible as possible,
+the
+.I std_params
+interface is string-based,
+and conversions needed (e.g.,
+to integer or boolean) have to be done by the server itself.
+.mH
+Options
+.LP
+.IP "\fB\-s \fIparam=value\fR" 16
+Sets parameter
+.I param
+to
+.I value .
+Multiple
+.B \-s
+arguments are allowed,
+but
+.I std_params
+uses a separate RPC for each parameter.
+.IP "\fB\-v\fP"
+Gives a verbose overview of the server's parameters.
+The information shown is the parameter's name,
+its type,
+its current value,
+and a short description telling what it does.
+.LP
+If no options are given,
+.I std_params
+just prints the parameters and their values.
+.mH
+Diagnostics
+.LP
+Error messages
+\(em for example,
+the server's refusal to set a parameter \(em
+are self-explanatory.
+.SH
+Example
+.LP
+The command
+.sC
+std_params -v /super/pool/.run
+.eC
+gives a verbose overview of the parameters for the run object
+(see
+.I run (A))
+corresponding to the public pool directory.
+It might print something like the following
+.sC
+.SM
+EQUIVPERC    [0..50 %]        5 (hosts in this range considered equivalent)
+MEMTRUNC     [1..64000 Kb] 2048 (ignore free memory exceeding it)
+CACHETIME    [1..10000 Kb]  500 (twofold speedup at this text size)
+CACHEMEM     [1..200 %]      10 (text segment sharing advantage)
+PREF-i80386  [0..1000 %]    100 (architecture preference multiplier)
+PREF-mc68000 [0..1000 %]    100 (architecture preference multiplier)
+PREF-sparc   [0..1000 %]     50 (architecture preference multiplier)
+.LG
+.eC
+.LP
+The parameter
+.cW MEMTRUNC
+for this pool can be decreased to
+.cW 1024
+using the command
+.sC
+std_params -s MEMTRUNC=1024 /super/pool/.run
+.eC
+.LP
+After this,
+the new values can be shown by
+.sC
+std_params /super/pool/.run
+.eC
+which will print
+.sC
+EQUIVPERC        5
+MEMTRUNC      1024
+CACHETIME      500
+CACHEMEM        10
+PREF-i80386    100
+PREF-mc68000   100
+PREF-sparc      50
+.eC
+.SH
+See Also
+.LP
+run(A),
+std(L).

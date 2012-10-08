@@ -1,0 +1,26 @@
+The files in the subdirectories doc, src and templates as distributed with
+The Amoeba Distributed Operating System are all copyright.
+
+All the files which contain one of the following copyright notices are
+subject to the restrictions described below.  All other files are subject
+to the copyright descriptions with those files.
+
+ Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+ The Netherlands.
+
+ Copyright 1994 Vrije Universiteit, The Netherlands.
+
+ (c) copyright 1987,1990,1991,1992 by the Vrije Universiteit, Amsterdam, The Netherlands.
+
+Permission is hereby granted to universities to use this software for
+educational and research purposes only.  For all other uses by universities
+and all use by others, a written license is required.  For information
+about obtaining such a license, please contact:
+
+	ACE Associated Computer Experts, BV.
+	Van Eeghenstraat 100
+	1071 GL Amsterdam
+	The Netherlands
+	Email: amoeba@ace.nl
+	Tel: +31 20 6646416
+	Fax: +31 20 6750389

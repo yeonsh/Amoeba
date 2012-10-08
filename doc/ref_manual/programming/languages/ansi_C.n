@@ -1,0 +1,533 @@
+.\"	@(#)ansi_C.n	1.7	96/02/15 16:46:09
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Hans van Eck
+	Modified: Gregory Sharp, 14 November 1990 - converted to Amoeba format
+		  Kees Verstoep - merged in Guido's stdc.n and
+				  adapted to match changes made to libraries
+		  Gregory Sharp, Dec 1993 - separated the STD C specific
+				  things from the ACK specific things to
+				  make an ansi_C(L) manpage.
+		  Gregory Sharp, Feb 1996
+.aE
+.de Ns
+.LP
+.ne 2
+\\fBANS \\$1:\\fP
+..
+.bp
+.nH 2 "ACK STD C Compiler"
+.LP
+.kW "STD C"
+.kW "STD C support"
+.kW "STD C conformance"
+.kW "deviations from STD C"
+.kW Ajax
+.kW "header files"
+.kE
+This document specifies the implementation-defined behavior of the STD C
+front end of the Amsterdam Compiler Kit as required by ANS X3.159-1989.
+Although the C compiler available on \*(Am
+is fully derived from the Standard Conforming ACK STD C Compiler,
+some parts of the \*(Am libraries still require some work
+in order to reach full Standard C conformance.
+Details of the \*(Am library conformance are in
+.I ansi_C (L).
+.kW POSIX
+A companion document,
+.I posix (L),
+provides information about functions not defined by the C Standard but by the
+POSIX standard,
+as well as additional information about functions defined
+(partially) by both standards.
+.LP
+As the \*(Am Standard C library is also used by cross compilers for \*(Am
+that are not necessarily STD C compatible,
+the section specifying implementation defined behavior
+of the Standard C library (marked
+.B "ANS A.6.3.14" )
+deserves attention in any case.
+.mH
+ACK STD C compliance statements
+.LP
+.Ns A.6.3.1
+.IP \(bu
+Diagnostics are placed on the standard error output.
+They have the following specification:
+.sp 0.5v
+``<file>'', line <nr>: [(<class>)] <diagnostic>
+.sp 0.5v
+There are three classes of diagnostics:
+.I error ,
+.I strict
+and
+.I warning .
+When the class is
+.I error ,
+the <class> is absent.
+.br
+The class
+.I strict
+is used for violations of the standard which are
+not severe enough to stop compilation.
+An example is the occurrence
+of non white-space after an `#else' or `#endif' preprocessing directive.
+The class
+.I warning
+is used for legal but dubious constructions.
+An example is overflow of constant expressions.
+.Ns A.6.3.2
+.IP \(bu
+The function `main' can have two arguments.
+The first argument is an integer specifying the number of arguments on the
+command line.
+The second argument is a pointer to an array of pointers to the arguments (as
+strings).
+.IP \(bu
+Interactive devices are terminals.
+.Ns A.6.3.3
+.IP \(bu
+The number of significant characters is an option.
+By default it is 64.
+There is a distinction between upper and lower case.
+.Ns A.6.3.4
+.IP \(bu
+The compiler assumes ASCII-characters in both the source and execution
+character set.
+.IP \(bu
+There are no multi-byte characters.
+.IP \(bu
+There are 8 bits in a character.
+.IP \(bu
+Character constants with values that can not be represented in 8 bits
+are truncated.
+.IP \(bu
+Character constants that are more than 1 character wide will have the
+first character specified in the least significant byte.
+.IP \(bu
+The only supported locale is ``C''.
+.IP \(bu
+A plain `char' has the same range of values as `signed char'.
+.Ns A.6.3.5
+.IP \(bu
+The compiler assumes that it works on,
+and compiles for,
+a 2's-complement binary-number system.
+Shorts will use 2 bytes and longs will use 4 bytes.
+The size of integers is machine dependent.
+.IP \(bu
+Converting an integer to a shorter signed integer is implemented by
+ignoring the high-order byte(s) of the former.
+Converting a unsigned integer to a signed integer of the same type is
+only done in administration.
+This means that the bit-pattern remains unchanged.
+.IP \(bu
+The result of bitwise operations on signed integers are what can be
+expected on a 2-complement machine.
+.IP \(bu
+If either operand is negative,
+whether the result of the / operator is the
+largest integer less than or equal to the algebraic quotient or the
+smallest integer greater than or equal to the algebraic quotient is machine
+dependent,
+as is the sign of the result of the % operator.
+.IP \(bu
+The right-shift of a negative value is negative.
+.Ns A.6.3.6
+.IP \(bu
+The representation of floating-point values is machine-dependent.
+When native floating-point is not present an IEEE-emulation is used.
+The compiler uses high-precision floating-point for constant folding.
+.IP \(bu
+Truncation is always to the nearest floating-point number that can
+be represented.
+.Ns A.6.3.7
+.IP \(bu
+The type returned by the sizeof-operator (also known as size_t)
+is 'unsigned int'.
+This is done for backward compatibility reasons.
+.IP \(bu
+Casting an integer to a pointer or vice versa has no effect in
+bit-pattern when the sizes are equal.
+Otherwise the value will be truncated or zero-extended (depending on the
+direction of the conversion and the relative sizes).
+.IP \(bu
+When a pointer is as large as an integer,
+the type of a 'ptrdiff_t' will be 'int'.
+Otherwise the type will be 'long'.
+.Ns A.6.3.8
+.IP \(bu
+Since the front end has only limited control over the registers,
+it can only make it more likely that variables that are declared as
+registers also end up in registers.
+The only things that can possibly be
+put into registers are : `int', `long', `float', `double', `long double'
+and pointers.
+.Ns A.6.3.9
+.IP \(bu
+When a member of a union object is accessed using a member of a
+different type,
+the resulting value will usually be garbage.
+The compiler makes no effort to catch these errors.
+.IP \(bu
+The alignment of types is a compile-time option.
+The alignment of a structure-member is the alignment of its type.
+Usually,
+the alignment is passed on to the compiler by the `ack' program.
+When a user wants to do this manually,
+he/she should be prepared for trouble.
+.IP \(bu
+A
+.I plain
+`int' bit-field is taken as a `signed int'.
+This means that
+a field with a size 1 bit can only store the values 0 and \(mi1.
+.IP \(bu
+The order of allocation of bit-fields is a compile-time option.
+By default,
+high-order bits are allocated first.
+.IP \(bu
+An enum has the same size as a
+.I plain
+`int'.
+.Ns A.6.3.10
+.IP \(bu
+An access to a volatile declared variable is done by just mentioning
+the variable.
+For example,
+the statement
+.cW x;
+where x is declared volatile,
+constitutes an access.
+.Ns A.6.3.11
+.IP \(bu
+There is no fixed limit on the number of declarators that may modify an
+arithmetic,
+structure or union type,
+although specifying too many may
+cause the compiler to run out of memory.
+.Ns A.6.3.12
+.IP \(bu
+The maximum number of cases in a switch-statement is in the order of 1e9,
+although the compiler may run out of memory somewhat earlier.
+.Ns A.6.3.13
+.IP \(bu
+Since both the preprocessor and the compiler assume ASCII-characters,
+a single character constant in a conditional-inclusion directive
+matches the same value in the execution character set.
+.IP \(bu
+The preprocessor recognizes \(enI... command-line options.
+The directories thus specified are searched first.
+After that,
+depending on the command that the preprocessor is called with,
+machine and system-dependent directories are searched.
+After that,
+.I /profile/module/ack/include/posix
+and
+.I /profile/module/ack/include
+are visited.
+.IP \(bu
+Quoted names are first looked for in the directory in which the file
+which does the include resides.
+.IP \(bu
+The characters in a h- or q- character sequence are taken to be path names.
+.IP \(bu
+Neither the compiler nor the preprocessor know any pragmas.
+.IP \(bu
+Since the compiler runs on \*(Am,
+__DATE__ and __TIME__ will always be defined.
+When the time-of-day server does not respond within few seconds,
+time and date will be set to the local equivalent of Jan 1, 1970.
+.Ns A.6.3.14
+.IP \(bu
+NULL is defined as ((void *) 0).
+This in order to flag dubious constructions like
+.br
+.cW "int x = NULL;" .
+.IP \(bu
+The diagnostic printed by `assert' is as follows:
+.sC
+Assertion "<expr>" failed, file "<file>", line <line>
+.eC
+where <expr> is the argument to the assert macro,
+printed as string.
+(the <file> and <line> should be clear)
+.KS
+.IP \(bu
+The sets for character test macros.
+.TS
+l l.
+name:	set:
+isalnum()	0-9A-Za-z
+isalpha()	A-Za-z
+iscntrl()	\e000-\e037\e177
+islower()	a-z
+isupper()	A-Z
+isprint()	<space>-~ (== \e040-\e176)
+.TE
+.KE
+As an addition,
+there is an
+.I isascii()
+macro,
+which tests whether a character is an ASCII character.
+Characters in the range from \e000 to \e177 are ASCII characters.
+.KS
+.IP \(bu
+The behavior of mathematical functions on domain error:
+.TS
+l c
+l n.
+name:	returns:
+asin()	0.0
+acos()	0.0
+atan2()	0.0
+fmod()	0.0
+log()	\(miHUGE_VAL
+log10()	\(miHUGE_VAL
+pow()	0.0
+sqrt()	0.0
+.TE
+.KE
+.IP \(bu
+Underflow range errors do not cause
+.I errno
+to be set.
+.IP \(bu
+The function
+.I fmod()
+returns 0.0 and sets
+.I errno
+to EDOM when the second argument is 0.0.
+.IP \(bu
+Under native \*(Am,
+the set of signals for the
+.I signal()
+function is listed in the file
+.I /profile/module/ack/include/posix/signal.h .
+The default handling,
+semantics and behavior of signals in \*(Am
+are intended to be (or become) POSIX compatible.
+The signal SIGILL is handled like all other signals.
+.IP \(bu
+A text-stream need not end in a new-line character.
+.IP \(bu
+White space characters before a new-line appear when read in.
+.IP \(bu
+No null characters will be appended to a binary stream.
+.IP \(bu
+The file position indicator of an append-mode stream is initially
+positioned at the beginning of the file.
+.IP \(bu
+A write on a text stream does not cause the associated file to be
+truncated beyond that point.
+.IP \(bu
+The buffering intended by the standard is fully supported.
+.IP \(bu
+A zero-length file actually exists.
+.IP \(bu
+A file name can consist of any character,
+except for the '\e0' and
+the '/'.
+.IP \(bu
+When a file is opened for writing,
+all modifications will be made on a private,
+.I uncommitted
+(see
+.I bullet (A)
+) copy of the original.
+As soon as the file is closed,
+it is
+.I committed ,
+installed in the directory using the name server (see
+.I soap (A)),
+after which any old version is destroyed.
+So while a file is being written to,
+it should be open only once.
+Having a file open for reading multiple times is safe,
+however.
+.IP \(bu
+When a
+.I remove()
+is done on an open file,
+reading and writing behave just as can be expected from a non-removed file.
+When the associated stream is closed,
+all written data will be retained,
+as a result of the file semantics described above.
+.IP \(bu
+When the destination file exists prior to a call to
+.I rename() ,
+it is removed first.
+.IP \(bu
+The %p conversion in
+.I fprintf()
+has the same effect as %#x or %#lx,
+depending on the sizes of pointer and integer.
+.IP \(bu
+The %p conversion in
+.I fscanf()
+has the same effect as %x or %lx,
+depending on the sizes of pointer and integer.
+.IP \(bu
+A `\-' character that is neither the first nor the last character in the
+scanlist for %[ conversion is taken to be a range indicator.
+When the first character has a higher ASCII-value than the second,
+the `\-' will just be put into the scanlist.
+.IP \(bu
+The value of
+.I errno
+when
+.I fgetpos()
+or
+.I ftell()
+failed is that of
+.I lseek() .
+This means:
+.RS
+.IP "EBADF" 10
+\- when the stream is not valid
+.IP "ESPIPE"
+\- when fildes is associated with a pipe or another non-file server
+.IP "EINVAL"
+\- when an invalid seek mode is specified,
+or when the resulting file pointer would be negative
+.IP "EIO"
+\- when the bullet file server does not respond.
+.RE
+.LP
+.IP \(bu
+The messages generated by
+.I perror()
+depend on the value of
+.I errno .
+The mapping of errors to strings is done by
+.I strerror() .
+.IP \(bu
+When the requested size is zero,
+.I malloc() ,
+.I calloc()
+and
+.I realloc()
+return a null-pointer.
+.IP \(bu
+When
+.I abort()
+is called,
+output buffers will be flushed.
+Temporary files (made with the
+.I tmpfile()
+function) will have disappeared when SIGABRT is not caught or ignored.
+.IP \(bu
+The
+.I exit()
+function returns the low-order eight bits of its argument to the environment.
+.IP \(bu
+The predefined environment names are controlled by the user.
+Setting environment variables is done through the
+.I putenv()
+function.
+This function accepts a pointer to char as its argument.
+Example: to set the environment variable TERM to a230 one writes
+.sC
+static char terminal[] = "TERM=a230"; putenv(terminal);
+.eC
+The argument to
+.I putenv()
+is stored in an internal table,
+strings allocated with
+.I malloc()
+can not be freed until another call to
+.I putenv()
+(which sets the same environment variable) is made.
+The argument to
+.I putenv()
+must be writable,
+which means that officially,
+the argument cannot be a string constant.
+The function returns 1 if it fails,
+0 otherwise.
+.IP \(bu
+The argument to system is passed as argument to
+.I "/bin/sh -c" .
+.IP \(bu
+The strings returned by
+.I strerror()
+depend on
+.I errno
+in the following way:
+.TS
+l l.
+errno	string
+0	"Error 0"
+EPERM	"Operation not permitted"
+ENOENT	"No such file or directory"
+ESRCH	"No such process"
+EINTR	"Interrupted system call"
+EIO	"Input/output error"
+ENXIO	"No such device or address"
+E2BIG	"Arg list too long"
+ENOEXEC	"Exec format error"
+EBADF	"Bad file descriptor"
+ECHILD	"No child processes"
+EAGAIN	"Resource temporarily unavailable"
+ENOMEM	"Not enough core"
+EACCES	"Permission denied"
+EFAULT	"Bad address"
+EBUSY	"Resource busy"
+EEXIST	"File exists"
+ENODEV	"No such device"
+ENOTDIR	"Not a directory"
+EISDIR	"Is a directory"
+EINVAL	"Invalid argument"
+ENFILE	"Too many open files in system"
+EMFILE	"Too many open files"
+ENOTTY	"Inappropriate ioctl operation"
+EFBIG	"File too large"
+ENOSPC	"No space left on device"
+ESPIPE	"Invalid seek"
+EROFS	"Read-only file system"
+EMLINK	"Too many links"
+EPIPE	"Broken pipe"
+EDOM	"Domain error"
+ERANGE	"Result too large"
+EDEADLK	"Operation would block"
+ENAMETOOLONG	"File name too long"
+ENOTEMPTY	"Directory not empty"
+ENOLCK	"No locks available"
+ENOSYS	"Function not implemented"
+.TE
+Errors that lie within the range 0..ENOSYS,
+and are not presented in the table cause
+.I strerror()
+to return ``Error <num>'',
+where <num> is the error number in decimal.
+Everything else causes
+.I strerror()
+to return ``unknown error''
+.IP \(bu
+The local time zone is per default MET (GMT + 1:00:00).
+This can be changed through the TZ environment variable.
+.IP \(bu
+The function
+.I clock()
+always returns -1 on \*(Am.
+.SH
+References
+.IP [1]
+ANS X3.159-1989
+.I
+American National Standard for Information Systems -
+Programming Language C
+.R
+.rm Ns
+.SH
+See Also
+.LP
+posix(L),
+ctime(L),
+bullet(A),
+soap(A).

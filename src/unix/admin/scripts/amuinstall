@@ -1,0 +1,60 @@
+#!/bin/sh
+#	
+#	@(#)amuinstall	1.5	94/04/07 14:00:09
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# install the UNIX versions of the Amoeba commands from the 
+# conf directory tree to `amdir`/bin.`arch`:
+
+if [ $# -ne 2 ]
+then
+	echo USAGE: $0 confroot binroot
+	exit 1
+fi
+
+case $2 in
+/*) target_dir=$2 ;;
+*)  target_dir=`pwd`/$2 ;;
+esac
+
+# Go to confroot where we will find the binaries
+cd $1
+
+if [ ! -d $target_dir ]
+then
+	echo Creating directory $target_dir
+	mkdir $target_dir
+fi
+
+echo "Installing UNIX utilities from `pwd` to $target_dir:"
+
+find admin flip-driver util \
+	\( -name .Amake -a -prune \) -o -type f -print |
+
+    while read pathname
+    do
+	if [ -x $pathname ]
+	then
+	    file=`basename $pathname`
+	    case "$file" in
+	    amake|amoeba.*.o)
+		continue ;;
+	    Amake)
+		if [ -f $target_dir/amake ] ; then
+		    echo "Backing up amake to amake.bak"
+		    cp $target_dir/amake $target_dir/amake.bak
+		fi
+		echo amake
+		cp $pathname $target_dir/amake
+		;;
+	    *)
+		echo $pathname
+		cp $pathname $target_dir/$file
+		;;
+	    esac
+	fi
+    done
+exit 0

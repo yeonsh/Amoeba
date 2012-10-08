@@ -1,0 +1,57 @@
+.\"	@(#)bsync.n	1.4	96/02/15 17:07:19
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Document: Gregory Sharp, 08 February 1990
+	Modified: Ed Keizer, Nov 1995 - support for gbullet.
+		  Gregory J. Sharp, 1996 - polished up
+.aE
+.mT "bsync" A
+ensure that all committed Bullet files are written to disk
+.SH
+Synopsis
+.LP
+.sC L
+bsync [bullet_server]
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "sync"
+.kW "committed file"
+.I Bsync
+ensures that all the committed Bullet files on the \*(Bs specified by the
+.I bullet_server
+argument are written to disk.
+(This happens regularly in the
+.I sweeper
+of the \*(Bs but is also useful if the server must be shutdown.)
+If no argument is given, the default \*(Bs, as defined by
+.cW DEF_BULLETSVR
+in
+.I ampolicy.h ,
+is flushed.
+(\*<DEF_BULLETSVR\*> is typically
+.I /profile/cap/bulletsvr/default .)
+The capability specified by this path name must be the super-capability of
+the \*(Bs.
+No rights are required to do this.
+.SH
+Example
+.LP
+.sC
+bsync /super/cap/bulletsvr/bullet3
+.eC
+This will flush all committed files to disk that were not already there.
+.SH
+See Also
+.LP
+bstatus(A),
+bullet(A),
+gbullet(A),
+printbuf(A).

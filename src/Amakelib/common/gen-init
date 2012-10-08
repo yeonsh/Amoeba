@@ -1,0 +1,65 @@
+#!/bin/sh
+#	
+#	@(#)gen-init	1.4	96/02/15 15:58:50
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+
+PROG=$0
+FILES=""
+CPPFLAGS=""
+CPPLIB=/lib
+OUTFILE=gen_init.c
+
+while [ $# -gt 0 ]
+do
+        case $1 in
+        -o)
+                shift
+                OUTFILE=$1
+                shift
+                ;;
+	-C)
+		shift
+		CPPLIB=$1
+		shift
+		;;
+	-D*)
+		CPPFLAGS="$CPPFLAGS $1"
+		shift
+		;;
+        -*)
+		echo "flag $1 ignored" 2>&1
+                shift
+                ;;
+        *)
+		if [ -r $1 ]
+		then
+			FILES="$FILES $1"
+		else
+			echo Cannot read $1
+			exit 1
+		fi
+                shift
+                ;;
+        esac
+done
+
+cat $FILES|
+	$CPPLIB/cpp -P $CPPFLAGS|
+	sed '/^$/d'|
+	tsort>/tmp/gk$$		|| exit 1
+(
+	sed -n '/[a-z]/s/.*/extern void &();/p' </tmp/gk$$
+	echo ''
+	echo 'extern void checkints();'
+	echo 'initialise() {'
+	echo ''
+	sed '/^[A-Z_]*$/s:.*:    /* & */:
+	     /[a-z]/s/.*/    &();/
+ 	    /NETWORK/,$s/.*[a-z]/    checkints();&/' </tmp/gk$$
+	echo '}'
+)>$OUTFILE
+rm /tmp/gk$$

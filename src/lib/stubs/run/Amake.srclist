@@ -1,0 +1,14 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 11:17:17
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_RUN = {
+	$PWD/run.gen[c_gen = {
+		run_get_exe.c,
+		run_multi_f.c,
+		run_create.c
+	}]
+};

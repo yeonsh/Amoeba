@@ -1,0 +1,56 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 11:07:05
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# IP routines needed by the kernel
+L_LIBIP_KTCPIP =
+{
+	$PWD/oneCsum_c.c,
+	$PWD/tcpip_why.c,
+};
+
+# IP routines needed in users space
+L_LIBIP_TCPIP =
+{
+	$PWD/getservent.c,
+	$PWD/gethostname.c,
+	$PWD/getproto.c,
+	$PWD/getprotoent.c,
+	$PWD/getprotoname.c,
+	$PWD/getsrvbyname.c, 
+	$PWD/getsrvbyport.c, 
+	$PWD/inet_addr.c, 
+	$PWD/inet_ntoa.c,
+	$PWD/sethostent.c,
+	$PWD/udp.c,
+	$L_LIBIP_KTCPIP
+};
+
+L_LIBIP_TCPIP_KEEPALIVE =
+{
+	$PWD/keepalive.c,
+};
+
+L_LIBIP_TCPIP_DEBUG =
+{
+	$PWD/ip_debug.c,
+};
+
+L_LIBIP_TCPIP_HTON =
+{
+	$PWD/hton.c,
+};
+
+L_LIBIP_TCPIP_RESOLV=
+{
+	$PWD/gethnmadr.c, 
+	$PWD/res_comp.c,
+	$PWD/res_debug.c,
+	$PWD/res_init.c,
+	$PWD/res_mkquery.c,
+	$PWD/res_query.c,
+	$PWD/res_send.c,
+};

@@ -1,0 +1,96 @@
+.\"	@(#)mv.n	1.5	96/03/19 13:09:29
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995, added a warning about orphans.
+		  Gregory J. Sharp, Nov 1995, rewrote to reflect amoeba.
+		  Gregory J. Sharp, Mar 1996, safer example
+.aE
+.mT "mv" U
+move or rename an object
+.SH
+Synopsis
+.LP
+.sC L
+mv obj1 obj2
+mv obj ... directory
+.eC
+.SH
+Description
+.LP
+.kW "object rename"
+.kW "file rename"
+.kW "rename"
+.I Mv
+moves one or more directory entries from one directory in the name server to
+another.
+Note that no copying of objects takes place.
+Only directory entries are moved.
+.mH
+Warnings
+.LP
+It is possible to ``lose'' a directory using
+.I mv .
+.sC
+	home
+       /    \e
+    foo1    foo2
+             |
+            bar
+.eC
+For example,
+if in the directory
+.I /home
+there is a file
+.I foo1,
+and a directory
+.I foo2 ,
+and if
+.I foo2
+has a subdirectory
+.I bar ,
+then the command sequence
+.sC
+cd /home/foo2/bar
+mv /home/foo* .
+.eC
+will also move the directory
+.I foo2
+to the directory
+.I bar ,
+resulting in a directory graph cut off from
+.I /home .
+Unless there is another link to
+.I foo2
+or
+.I bar ,
+this orphan directory graph will be inaccessible and eventually
+be garbage collected.
+.SH
+Examples
+.LP
+.sC
+mv oldname newname
+.eC
+Move the object
+.I oldname
+to
+.I newname .
+.sC
+mv file1 file2 /home
+.eC
+Move the two objects
+.I file1
+and
+.I file2
+to the directory
+.I /home .
+.SH
+See Also
+.LP
+cp(U).

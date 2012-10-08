@@ -1,0 +1,88 @@
+.\"	@(#)c2a.n	1.6	94/04/05 15:53:10
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, April 1990
+	Document: Siebren van der Zee, April 1990
+	Changed:  Leendert van Doorn, November 1991
+.aE
+.mT "c2a" U
+convert capabilities to ar-format and vice versa
+.SH
+Synopsis
+.LP
+.sC L
+a2c ar newcap
+c2a [ -v ] capability...
+.eC
+.SH
+Description
+.LP
+.kW "capability"
+.kW "ASCII"
+.kW "\fIa2c\fP"
+In some instances it is necessary to deal with capabilities as human readable
+strings.
+To do this a special format has been devised known as
+.I ar -format.
+It is described in
+.I ar (L).
+.LP
+.I A2c
+coverts
+.I ar -format
+to a capability and stores it as
+.I newcap
+using the directory primitives,
+or when
+.I newcap
+is a dash (``-'') it is written to standard output.
+.LP
+.I C2a
+prints each capability in ar-format on a separate line.
+The
+.B \-v
+flag tells
+.I c2a
+to prefix each line with the name of the capability, and a tab.
+.mH
+Diagnostics
+.LP
+The error messages of these programs should be self-explanatory.
+The exit status is 2 in case of an illegal command line.
+.I A2c
+will exit with 1 if it cannot append the new capability.
+.I C2a
+will exit with 1 if it cannot lookup the capability.
+.mH
+Warning
+.LP
+Since the ar-format contains parentheses,
+which are special to the shell,
+the first argument to
+.I a2c
+must be quoted.
+.SH
+Examples
+.LP
+To save the capability
+.I foo
+in readable form on a file
+.I foo.cap ,
+type:
+.sC
+c2a foo > foo.cap
+.eC
+.LP
+To restore the very same capability, issue:
+.sC
+a2c "\(gacat foo.cap\(ga" foo
+.eC
+.SH
+See Also
+.LP
+ar(L).

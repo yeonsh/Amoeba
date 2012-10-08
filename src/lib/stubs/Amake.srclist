@@ -1,0 +1,27 @@
+#	
+#	@(#)Amake.srclist	1.8	94/04/07 10:59:00
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/bullet/Amake.srclist;
+%include $PWD/direct/Amake.srclist;
+%include $PWD/fifo/Amake.srclist;
+%include $PWD/fs/Amake.srclist;
+%include $PWD/iop/Amake.srclist;
+%include $PWD/ip/Amake.srclist;
+%include $PWD/name/Amake.srclist;
+%include $PWD/process/Amake.srclist;
+%include $PWD/random/Amake.srclist;
+%include $PWD/run/Amake.srclist;
+%include $PWD/sak/Amake.srclist;
+%include $PWD/segment/Amake.srclist;
+%include $PWD/soap/Amake.srclist;
+%include $PWD/std/Amake.srclist;
+%include $PWD/systask/Amake.srclist;
+%include $PWD/tape/Amake.srclist;
+%include $PWD/tios/Amake.srclist;
+%include $PWD/tod/Amake.srclist;
+%include $PWD/virdisk/Amake.srclist;
+%include $PWD/x11/Amake.srclist;

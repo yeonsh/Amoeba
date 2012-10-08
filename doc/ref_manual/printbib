@@ -1,0 +1,29 @@
+#!/bin/sh
+#	
+#	@(#)printbib	1.3	94/04/05 14:56:40
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# We collect up all the reference tags in a diversion and then throw them away.
+#
+if [ $# -ne 1 ]
+then
+	echo "Usage: " $0 " <bibliography file>"
+else
+	awk    'BEGIN	{print ".LP"
+			 print ".di gR"
+			 print ".["}
+		/\%.*/	{print $0}
+		/^$/	{print ".]"
+			 print "\\&"
+			 print ".["}
+		END	{print ".]"
+			 print ".br"
+			 print ".di"
+			 print ".rm gR"
+			 print ".["
+			 print "$LIST$"
+			 print ".]"}'  $1 | refer -a -e -n -sAD
+fi

@@ -1,0 +1,86 @@
+
+#	
+#	@(#)README.AMOEBA	1.3	96/02/27 09:55:59
+#
+****************************************************************************
+NOTE:  There are two header files in mmdf/h which may be modified.
+deliversvr.h contains the definition NTHREADS, which defines how many
+msgs can be simultaneuosly processed by the deliversvr.
+
+smtpsrvr.h contains the definitions NTHREADS and PERTHREAD.  NTHREADS
+gives the number of simultaneous tcpip_listens which are done.  
+NTHREADS X PERTHREAD gives the number of simultaneous tcpip connections.
+This was done to get around limitations in the old tcpipsvr, which 
+could handle only 2 simultaneous listens.  It is recommended to keep
+PERTHREAD 1 and vary NTHREADS, as desired.
+
+****************************************************************************
+
+`amdir`/conf/amoeba/mc68000.sun/mmdf, which will be called TOP
+in the following, contains links to the unadulterated files in 
+`amdir`/src/mmdf and to the modified files in `amdir`/src/mmdf.am.
+
+
+To make the mmdf utilities:
+1)Login to a sun3.  Run
+  a) Create a script to delete links to files we have own versions of
+	cd `amdir`/src/mmdf.am
+	MkDelFiles.sh
+  b) Make the TOP directory and set up the symlinks to the sources
+	mkdir `amdir`/conf/amoeba/mc68000.sun/mmdf
+	cd `amdir`/conf/amoeba/mc68000.sun/mmdf
+	setupbuild `amdir`/src/mmdf .
+	`amdir`/src/mmdf.am/DeleteFiles.sh
+	setupbuild `amdir`/src/mmdf.am .
+	
+2)Type:
+	cd conf
+	sitesetup amoeba
+
+3)Go to TOP and type:
+	make clean
+
+3)Then type:
+	make depend
+
+4)Then type:
+	make
+
+All of the above can done using the script buildmmdf under UNIX.
+
+*** Important Note: To do a make in any of the subdirectories, like 
+TOP/src/smtp, cd to that directory and type  gen.  gen causes make to be 
+run with TOP/Makefile.com, as well as with the local Makefile.real.
+
+
+5)When the make is finished, type:
+	make aminstall
+
+This installs the excutables on amoeba.
+
+
+
+6)Make sure that the file TOP/mmtailor/mmdftailor is moved to
+/super/module/mmdf/mmdftailor on amoeba.  This file will need to
+be touched when you want to change the level of logging.
+
+
+7)On amoeba, in /profile/module/mmdf, type:
+	setup
+
+This will set up the subdirectories.
+
+
+8)Note that for logging to occur into a particular .log file in
+/profile/module/mmdf/log, that empty log file must be created by
+hand.
+
+
+9)User-specific tailoring files should be placed in the user's /home.
+The default mailbox will also be placed in /home.
+
+
+
+
+These directions are essentially like the original directions for making 
+mmdf, so look at the mmdf documentation in TOP/doc.

@@ -1,0 +1,35 @@
+.\"	@(#)debugging.n	1.5	94/04/05 15:13:40
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J. Sharp, 27 November 1990
+.aE
+.nH 1 "Debugging Tools"
+.LP
+.kW debugging
+\*(Am has several aids for debugging and performance tuning of programs.
+.LP
+The GNU debugger
+.I gdb
+has been ported to \*(Am.
+Special support for multi-threaded programs has been added.
+The debugger is available with the third-party software.
+.LP
+.kW monitor
+.kW events
+For tracing server operations there is also special monitoring software.
+This is available through including the file
+.I monitor.h
+in the program sources and making calls to various macros where various
+``events'' take place.
+The software automatically collects statistics about how often each event has
+occurred and also provides the possibility of logging the order in which
+events occurred from a particular point in time.
+A user utility (see
+.I monitor (U))
+allows you to recover the event information from the server.
+.LP
+The monitoring system is described below.

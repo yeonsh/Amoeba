@@ -1,0 +1,258 @@
+.\"	@(#)capset.n	1.5	96/02/15 16:48:07
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse, 1989
+	Document: Gregory J. Sharp, May 1990
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "capset" L "libamoeba.a, libkernel.a, libamunix.a"
+routines for manipulating capability-sets
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "capset.h"
+
+int cs_copy(new, cs)
+void cs_free(cs)
+errstat cs_goodcap(cs, cap)
+int cs_member(cs, cap)
+errstat cs_purge(cs)
+int cs_singleton(cs, cap)
+errstat cs_to_cap(cs, cap)
+.eC
+.SH
+Description
+.LP
+.kW "capability-set"
+.kW "\fIcs_copy\fP"
+.kW "\fIcs_free\fP"
+.kW "\fIcs_member\fP"
+.kW "\fIcs_purge\fP"
+.kW "\fIcs_singleton\fP"
+Capability-sets are used by the \*(Ss to hold several capabilities for a single
+name.
+This permits the multiple capabilities for a replicated object to be stored
+under a single name.
+.mH
+Types
+.LP
+The type
+.I capset
+is defined in
+.I capset.h .
+The definition of a capset is as follows.
+.sC
+typedef struct {
+	short cs_initial;
+	short cs_final;
+	suite *cs_suite;
+} capset;
+.eC
+and a
+.I cs_suite
+is a pointer to an array of the following structure.
+.sC
+typedef struct {
+	capability s_object;
+	short s_current;
+} suite;
+.eC
+The
+.I suite
+array may have been allocated with
+.I malloc (L)
+so it is important to use the
+routines provided to manipulate them so as to avoid memory leaks.
+The structure member
+.I s_current
+in the
+.I suite
+tells whether the capability in
+.I s_object
+is valid.
+Invalid capabilities are not thrown out of the
+.I suite ,
+but simply marked invalid so that their slot may be reused later.
+This saves lots of fooling around with
+.I malloc ed
+data.
+.LP
+The structure member
+.I cs_final
+in the
+.I capset
+holds the size of the array of
+.I suite
+structs.
+The structure member
+.I cs_initial
+must be greater than or equal to 0 and less than or equal to
+.I cs_final .
+It is not otherwise used and is obsolete.
+.sH
+cs_copy
+.LP
+.sC
+int
+cs_copy(new, cs)
+capset *new, *cs;
+.eC
+.LP
+.kW "\fIcs_copy\fP"
+.I Cs_copy
+copies the capability-set
+.I cs
+to the capability-set
+.I new .
+Any suites needed are allocated with
+.I calloc
+(see
+.I malloc (L))
+and added to the structure.
+Note that
+.I *new
+is not allocated, but must already exist.
+It returns 1 if the copy was successful and zero if it failed (due to the
+failure of
+.I calloc ).
+.sH
+cs_free
+.LP
+.sC
+void
+cs_free(cs)
+capset *cs;
+.eC
+.LP
+.kW "\fIcs_free\fP"
+.I Cs_free
+frees any memory allocated for suites and marks
+.I cs
+as containing no capabilities.
+It is not an error to call this routine for a capset that has already
+been freed.
+.sH
+cs_member
+.LP
+.sC
+int
+cs_member(cs, cap)
+capset *cs;
+capability *cap;
+.eC
+.LP
+.kW "\fIcs_member\fP"
+.I Cs_member
+returns 1 if the capability
+.I cap
+is a member of the capability-set
+.I cs .
+Otherwise it returns 0.
+.sH
+cs_purge
+.LP
+.sC
+errstat
+cs_purge(cs)
+capset *cs;
+.eC
+.LP
+.kW "\fIcs_purge\fP"
+.I cs_purge
+attempts to destroy all the objects whose capabilities are in the
+capability-set
+.I cs .
+If the destroy command for a capability succeeds it is marked as no longer
+being a valid member of the capability-set.
+If any of the destroy operations fail then it returns the error status of
+the first failure but continues to try to destroy the other objects.
+If the value of the function is not
+.cW STD_OK
+the only way to see what was not destroyed is to look at
+.I cs
+and see which capabilities are still valid.
+.sH
+cs_singleton
+.LP
+.sC
+int
+cs_singleton(cs, cap)
+capset *cs;
+capability *cap;
+.eC
+.kW "\fIcs_singleton\fP"
+.I Cs_singleton
+allocates a
+.I suite
+structure and stores the capability
+.I cap
+in it.
+It then takes the capability-set
+.I cs ,
+which it assumes to be empty,
+and makes it contain the single
+.I suite .
+It returns 0 if it failed and 1 if it succeeds.
+.sH
+cs_goodcap
+.LP
+.sC
+errstat
+cs_goodcap(cs, cap)
+capset *cs;
+capability *cap;
+.eC
+.I Cs_goodcap
+attempts to
+get a usable capability from a capset, copying it to
+.I *cap .
+If the capset is empty, it returns
+.cW STD_SYSERR .
+If there are no caps for which
+.I std_info
+returns
+.cW STD_OK ,
+it copies the last capability in the set
+and returns the error status from
+.I std_info
+with it.
+The
+.I goodport (L)
+module is used to avoid attempting a transaction with a port that
+has previously returned
+.cW RPC_NOTFOUND.
+.sH
+cs_to_cap
+.LP
+.sC
+errstat
+cs_to_cap(cs, cap)
+capset *cs;
+capability *cap;
+.eC
+.LP
+.I Cs_to_cap
+gets a capability from the capset pointed to by
+.I cs
+and copies it to the capability pointed to by
+.I cap .
+It is functionally the same as
+.I cs_goodcap ,
+above, except that when the capset contains only one capability, it copies
+that capability without checking whether it is good.
+Also, it always returns
+.cW STD_OK ,
+unless the capset is empty.
+.SH
+See Also
+.LP
+buffer(L),
+capcache(L),
+goodport(L).

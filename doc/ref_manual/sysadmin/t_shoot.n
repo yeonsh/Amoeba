@@ -1,0 +1,152 @@
+.\"	@(#)t_shoot.n	1.9	96/02/15 17:00:43
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Trouble-shooting"
+In general, \*(Am is fairly reliable, but occasionally things can go wrong due
+to a corrupted disk or a power problem.
+.kW "trouble-shooting"
+The more trivial problems such as
+.I
+make sure it is plugged in
+.R
+will not be discussed here.
+There are however possibilities for other problems to arise and these
+are described in the following sections.
+The section headings indicate the types of problems addressed.
+.nH 1 "Installation Failure" nobp
+.LP
+Sometimes when booting a Sun 3/60 from tape it will print the message
+.sC
+getbyte error, target never set REQ
+getbyte error, phase mismatch
+invalid status msg = FFFFFFFF
+.eC
+Normally it will proceed from here and continue to boot without problem.
+If it does not,
+but instead returns to the PROM monitor then the most probable cause is that
+.kW "tape, 150M"
+.kW "QIC-150 tape"
+the tape  or the tape drive is a 150M (QIC-150) tape.
+The Sun\ 3 PROM does not understand 150M tapes.
+.kW "QIC-24 tape"
+.kW "QIC-11 tape"
+.kW "tape drive"
+Only QIC-24 and QIC-11 tapes and tape drives can be used to install \*(Am.
+Once \*(Am is running 150M tapes and tape drives can be used with the Sun\ 3.
+.nH 1 "Kernel Crashes" nobp
+.LP
+.kW "trouble-shooting"
+.kW "kernel crashes"
+From time to time an \*(Am kernel may crash.
+If this occurs it will probably be due to an assertion failure in the kernel.
+In the case of Sun and MC68000 kernels it will generally be the case that if
+the machine is rebooted
+.I
+without power-cycling the machine,
+.R
+the command
+.kW "\fIprintbuf\fP"
+.I printbuf (A)
+.kW "console buffer"
+can be used to display the contents of the console just before the machine
+crashed.
+This output will include a stack trace and details of the assertion that
+failed, if any.
+.LP
+In the case of the i80386 ISA bus machines it is often the case that the
+console buffer information is not available after a reboot.
+After crashing the i80386 machines normally attempt to reboot,
+destroying the console record and clearing it from the console screen.
+Therefore at boot time it is possible to specify the
+.kW "noreboot option"
+.I -noreboot:1
+option
+(see
+.kW "\fIisaboot\fP"
+.I isaboot (A))
+which will prevent the kernel from rebooting automatically after a crash.
+This will leave any stack trace and assertion failure information on the
+console screen for inspection and analysis.
+.LP
+If a Sun 3 crashes with an NMI trap it will print something like
+.sC
+NMI trap: memory control register = d2
+virtual address = f340004
+context         = 3
+DVMA cycle      = 0
+.eC
+This indicates that a parity error occurred at the address specified.
+Check that all the memory SIMMs are correctly seated and if so then replace
+the SIMMs one for one until the problem goes away.
+.LP
+If a Sun 4c panics just after it has been booted then it is probably
+the case that resetting the machine and rebooting should solve the problem.
+There may have been interrupts pending from the previously running kernel
+which were not cleared before rebooting.
+Sun 4 machines with PROM revisions higher than 2 do not have this
+problem since they automatically reset when a reboot is requested.
+.LP
+Certain SBUS cards which worked on the Sun 4c may not work with the Sun 4m.
+If a card does not work with \*(Am, see if SunOS/Solaris can drive it.
+.LP
+.kW DOS
+.kW MS-DOS
+If an i80386 ISA bus machine has been running DOS and then \*(Am is booted
+without a hard reset of the machine, then the \*(Am kernel may crash
+when the first user process runs.
+Therefore,
+after running DOS, press the reset button or power-cycle the machine before
+booting \*(Am.
+.nH 1 "Amoeba \(em UNIX Communication" nobp
+.LP
+When the FLIP driver has been installed in a
+.UX
+kernel it is sometimes the case that communication between the
+.UX
+host and the \*(Am system does not work.
+The following are common reasons for difficulty:
+.IP 1.
+No
+.I .capability
+file is present.
+In this case a
+.I dir (U)
+command under
+.UX
+will complain about the absence of the file.
+.IP 2.
+An incorrect
+.I .capability
+file was installed.
+.IP 3.
+The
+.UX
+host and the \*(Am host are not on the same network.
+.IP 4.
+There is a bridge or gateway between the
+.UX
+host and the \*(Am host that is filtering out the FLIP packets.
+.LP
+The last three possibilities will cause a
+.I dir (U)
+command under
+.UX
+to report ``not found''.
+In this case the first step is to ensure that the
+.I .capability
+file contains the correct value.
+If that does not solve the problem then
+the best way to check where the problem lies is to physically connect the
+.UX
+machine to the \*(Am network and see if communication can be established.
+If so then it is question of local networking which must be solved by
+the local network administrator.
+Of course, if a
+.UX
+host is acting as a gateway between the \*(Am network and the
+.UX
+network then it must also have a FLIP driver installed in it to route
+the FLIP packets.

@@ -1,0 +1,26 @@
+#	
+#	@(#)archiver.amk	1.1	96/02/15 15:58:10
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%if (%not defined(AR), {
+	AR = /usr/proj/amwork/bin.sun4/gnu/ar;
+});
+
+%if (%not defined(ARFLAGS), {
+	ARFLAGS = crs;
+});
+
+%tool archiver (
+    object_files: %in %list	[type = loadable];
+    library:	  %out		[type = archive];
+    templib:	  %tmp		[type = archive]	=> new-library.a;
+    flags:	  %string %list				=> $ARFLAGS;
+    program:	  %in		[type = command]	=> $AR;
+)
+{
+    exec($program, args => $flags + $templib + $object_files) %and
+    move($templib, $library);
+};

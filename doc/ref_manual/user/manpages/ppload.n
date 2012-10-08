@@ -1,0 +1,84 @@
+.\"	@(#)ppload.n	1.4	96/02/16 11:06:23
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum
+	Document: Guido van Rossum, February 1990
+	Modified: gregory J. Sharp, Nov 1995
+.aE
+.mT "ppload" U
+show processor load and up-time statistics
+.SH
+Synopsis
+.LP
+.sC L
+ppload [-t timeout] [-v] [directory]
+.eC
+.SH
+Description
+.LP
+.kW "load average"
+.kW "up-time"
+.kW "statistics"
+.kW "kernel version"
+.kW "version string"
+.kW "processor"
+This program shows some statistics of the (pool) processors.
+For each processor, it prints its name,
+the average number of runnable threads during the last few seconds,
+the potentially available CPU power when the processor is idle (in MIPS),
+the free memory (in Mbytes),
+and the time the processor is up.
+.LP
+The optional directory argument specifies an alternate directory where
+to look for processor names.
+The default is specified in
+.I ampolicy.h
+as
+.cW HOST_DIR
+(typically
+.I /profile/hosts ).
+.mH
+Options
+.LP
+.IP "\fB\-t\fP timeout" 12
+Specifies the timeout (in milliseconds) used when polling a processor.
+The default is 2000.
+.IP \fB\-v\fP
+This adds a second line for each processor, listing the kernel version string
+returned by the kernel running on the processor.
+.SH
+Examples
+.LP
+.sC
+ppload
+.eC
+might print:
+.sC L
+zoo00    load 0.00, 36.4 Mips, 27.1 Mb free, up 2 hrs 46 min
+zoo01    load 0.20, 36.4 Mips, 26.5 Mb free, up 2 hrs 46 min
+.eC
+An example giving verbose output:
+.sC
+ppload -v
+.eC
+which might print:
+.sC L
+.ps-2
+zoo00    load 0.00, 36.4 Mips, 27.1 Mb free, up 2 hrs 47 min
+         Amoeba 5.3 #22 <sun> by versto@splash.cs.vu.nl (Wed Mar  1 13:24:32 MET 1995)
+         in directory /amconf/conf0/amoeba/sparc.sun/kernel/sun4m/pool
+zoo01    load 0.00, 36.4 Mips, 26.5 Mb free, up 2 hrs 47 min
+         Amoeba 5.3 #22 <sun> by versto@splash.cs.vu.nl (Wed Mar  1 13:24:32 MET 1995)
+         in directory /amconf/conf0/amoeba/sparc.sun/kernel/sun4m/pool
+.ps
+.eC
+.SH
+See Also
+.LP
+aps(U),
+kstat(A).

@@ -1,0 +1,95 @@
+.\"	@(#)err.n	1.7	96/02/15 16:48:39
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Katie Algeo, 1989
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "error" L "libamoeba.a, libamunix.a"
+return names of standard exceptions and standard errors
+.SH
+Synopsis
+.LP
+.sC L
+#include "exception.h"
+
+char *
+exc_name(sig)
+signum sig;
+
+#include "stderr.h"
+
+char *
+err_why(err)
+errstat err;
+.eC
+.SH
+Description
+.LP
+.kW "error names"
+.kW "exception names"
+.kW "error"
+.kW "exception"
+.kW "\fIerr_why\fP"
+.kW "\fIexc_name\fP"
+.I Exc_name
+returns a pointer to a static string describing the exception specified by
+.I sig .
+.LP
+.I Err_why
+returns a pointer to a static string describing the error specified by
+.I err .
+.LP
+They only know about the more common errors and exceptions, and return a
+generic description, such as
+.sC
+amoeba error \-842780
+.eC
+in other cases.
+More specific errors are covered by other functions, such as
+.I tape_why .
+.mH
+Warnings
+.LP
+Both
+.I exc_name
+and
+.I err_why
+use an internal buffer to store their generic descriptions.
+This buffer will be overwritten by a subsequent call, possibly by another
+thread.
+.SH
+Example
+.LP
+The function
+.I find_cap
+tries to find a capability.
+It prints a descriptive message and exits if it cannot.
+.sC L
+void
+find_cap(name, capp)
+char name[];
+capability *capp;
+{
+    errstat err;
+
+    err = name_lookup(name, capp);
+    if (err != STD_OK) {
+	fprintf(stderr, "Cannot lookup %s: %s\en",
+	    name, err_why(err));
+	exit(1);
+    }
+}
+.eC
+.SH
+See Also
+.LP
+exception(H),
+rpc(L),
+signals(L),
+tape(L).

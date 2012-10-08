@@ -1,0 +1,115 @@
+.\"	@(#)ctags.n	1.4	96/02/15 18:07:20
+.aU
+	Software: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Document: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Modified: Gregory J. Sharp, Oct 1995
+			- beter conformance to amoeba manpage format
+.aE
+.mT "ctags" U
+generates ``tags'' and (optionally) ``refs'' files
+.SH
+Synopsis
+.LP
+.sC L
+ctags [-r] files...
+.eC
+.SH
+Description
+.LP
+.kW "editor"
+.kW "tags file"
+.I Ctags
+generates the
+.I tags
+and
+.I refs
+files from a group of C source files.
+The
+.I tags
+file is used by
+.I Elvis '
+``:tag'' command,
+CTRL\-] command,
+and
+.B \-t
+option.
+The ``refs'' file is used by the
+.I ref (U)
+program.
+.LP
+Each C source file is scanned for \*<#define\*> statements and
+global function definitions.
+The name of the macro or function becomes the name of a tag.
+For each tag,
+a line is added to the
+.I tags
+file which contains:
+.DS
+\(bu the name of the tag
+\(bu a tab character
+\(bu the name of the file containing the tag
+\(bu a tab character
+\(bu a way to find the particular line within the file.
+.DE
+.LP
+The
+.I refs
+file is used by the
+.I ref (U)
+program,
+which can be invoked via the
+.B K
+command in
+.I elvis .
+When
+.I ctags
+finds a global function definition,
+it copies the function header into the
+.I refs
+file.
+The first line is flushed against the right margin,
+but the argument definitions are indented.
+The
+.I ref
+program can search the
+.I refs
+file
+.I much
+faster than it could search all of the C source files.
+.mH
+Options
+.IP \fB\-r\fP
+This causes
+.I ctags
+to generate both
+.I tags
+and
+.I refs .
+Without
+.B \-r ,
+it would only generate
+.I tags .
+.mH
+Warnings
+.LP
+This version of ctags does not parse STD C source code very well.
+It has trouble recognizing the new-style function definitions.
+.mH
+Files
+.IP \fItags\fP 6
+The ``tags'' file.
+.IP \fIrefs\fP
+The ``refs'' file.
+.SH
+Example
+.LP
+The file names list will typically be the names of all C source
+files in the current directory.
+.sC
+ctags -r *.[ch]
+.eC
+.SH
+See Also
+.LP
+elvis(U),
+ref(U).

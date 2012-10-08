@@ -1,0 +1,86 @@
+.\"	@(#)std_age.n	1.4	96/02/15 17:52:11
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "std_age" A
+cause a server to do garbage collection
+.SH
+Synopsis
+.LP
+.sC L
+std_age server_cap
+.eC
+.SH
+Description
+.LP
+.kW "standard command"
+.kW "garbage collection"
+.I Std_age
+causes the standard server command
+.cW STD_AGE
+to be executed on the server specified by
+.I server_cap .
+The capability may be required to have special rights and/or object number
+before the server will execute the command.
+The idea behind the command is that every virtual object has a maximum life
+time.
+Any object not
+.I touched
+(see
+.I std_touch (U))
+or otherwise accessed
+within a certain time period is probably no longer in use and can be destroyed.
+This effectively deals with the problem of people creating objects but then
+losing the capability for them.
+.LP
+Normally a special server touches all the objects that it has capabilities
+for and then sends the
+.cW STD_AGE
+command to all the registered servers to cause garbage collection.
+However this command provides a utility to deal with malicious or incompetent
+users' overuse of resources.
+.LP
+This command is not applicable to physical objects, such as disks.
+Servers not capable of supporting this command will reject or ignore it.
+.mH
+Diagnostics
+.LP
+If all is well the command exits with status zero.
+The only errors are that the look up of the
+.I server_cap
+in the directory server failed
+or that the
+.cW STD_AGE
+command failed.
+In both cases the command prints a message detailing the error and
+exits with non-zero status.
+.mH
+Warnings
+.LP
+Repetitive invocation of this command can lead to the destruction of objects.
+It should be used as a tool to repair damaged or over-full systems and not
+be randomly invoked.
+.SH
+Example
+.LP
+.sC
+std_age /super/hosts/bullet1/bullet
+.eC
+causes the
+.cW STD_AGE
+command to be run on the \*(Bs on the host
+.I bullet1 .
+This will result in all its files that have not been touched in the past 24
+.I std_age
+commands being deleted.
+.SH
+See Also
+.LP
+std_touch(U).

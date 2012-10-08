@@ -1,0 +1,85 @@
+#	
+#	@(#)Amakefile	1.7	94/04/05 17:18:51
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/lib/libam/Amake.srclist;
+%include $SRC_ROOT/lib/stubs/Amake.srclist;
+%include $SRC_ROOT/unix/lib/Amake.srclist;
+# A temporary measure until memmove appears in unix libraries
+%include $SRC_ROOT/lib/libc/machdep/generic/memory/Amake.srclist;
+
+%include $CONF_ROOT/toolset/unix.defines;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/unix/h,
+	-I$SRC_ROOT/h/class,
+	-I$SRC_ROOT/h/sys/flip,
+	$UNIX_INCLUDE,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+};
+
+%if (%not defined(VOIDSTAR_DEF), {
+	VOIDSTAR_DEF='-D_VOIDSTAR=void*';
+});
+
+DEFINES = {
+	-Dsysamoeba'='ioctl,
+	-DUNIX,
+	$UNIX_DEFINES,
+	$VOIDSTAR_DEF,
+	-DFCNTL
+};
+
+SOURCEFILES = {
+	$L_AM_CAP,
+	$L_AM_CAPSET,
+	$L_AM_CRYPT,
+	$L_AM_DEBUG,
+	$L_AM_DIRGRAPH,
+	$L_AM_DISKLABEL,
+	$L_AM_ERROR,
+	$L_AM_GOODPORT,
+	$L_AM_MISC,
+	$L_AM_MONITOR,
+	$L_AM_PATH,
+	$L_AM_PROCESS,
+	$L_AM_PROCESS_SUPPORT,
+	$L_AM_PRV,
+	$L_AM_PUTGET,
+	$L_AM_SYMTAB,
+	$L_AM_SOAP,
+	$L_STUBS_BULLET,
+	$L_STUBS_DIRECT,
+	$L_STUBS_FS,
+	$L_STUBS_IP,
+	$L_STUBS_NAME,
+	$L_STUBS_PROCESS,
+	$L_STUBS_RND,
+	$L_STUBS_RUN,
+	$L_STUBS_SEGMENT,
+	$L_STUBS_SOAP,
+	$L_STUBS_STD,
+	$L_STUBS_SYSTASK,
+	$L_STUBS_TAPE,
+	$L_STUBS_TIOS,
+	$L_STUBS_TIOS_MARSHAL,
+	$L_STUBS_TOD,
+	$L_STUBS_VIRDISK,
+	$L_STUBS_X11,
+	$L_SYSFLIP_UX,
+	$L_LIBC_MEMMOVE,
+};
+
+LIBNAME = amunix;
+%include $CONF_ROOT/toolset/unix.lib;

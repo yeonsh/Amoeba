@@ -1,0 +1,112 @@
+.\"	@(#)mkkdir.n	1.6	96/02/15 17:48:38
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren,
+		  Leendert van Doorn
+	Document: Gregory J. Sharp, Nov 1991
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "mkkdir" A
+make a kernel bootstrap directory for a disk
+.SH
+Synopsis
+.LP
+.sC L
+mkkdir
+.eC
+.SH
+Description
+.LP
+.kW "bootstrap"
+.kW "kernel boot directory"
+.kW "\fIprkdir\fP"
+.I Mkkdir
+makes a special bootstrap directory which is used by the secondary bootstrap
+loader of \*(Am.
+This directory contains details of where to find a kernel to boot and how
+big it is.
+.I Mkkdir
+reads a table describing the directory from
+.I stdin
+and writes the directory to
+.I stdout .
+It contains the start block (which must be greater than zero),
+the number of blocks allocated for the kernel and the name of the kernel.
+The format of the table is described below.
+The kernels must be installed later at the addresses specified in the table.
+This can be done using
+.I dwrite (A)
+(although see
+.I installk (A)
+and
+.I mkbootpartn (A)).
+.LP
+If invalid input is given it will stop processing,
+a warning will be printed on
+.I stderr
+and nothing will be written to
+.I stdout .
+.mH
+Warnings
+.LP
+If valid but stupid input is given it will not be detected.
+For example,
+a directory entry that permits a kernel of only ten blocks is acceptable but
+will not work if the kernel is actually larger.
+Similarly,
+a kernel entry that extends beyond the disk will not be detected.
+If such a directory is created on a disk then it may no longer be possible to
+boot \*(Am from disk.
+In that case it will be necessary to boot from tape, floppy or the network.
+.SH
+File Formats
+.LP
+The input for a kernel directory consists of lines.
+Each line consists of three fields separated by tabs.
+The first field is the start block of the kernel on the disk.
+This must be greater than zero.
+Block 0 holds the directory information.
+The second field contains the number of blocks allocated on the disk
+for storage of the kernel.
+The third field is a symbolic name by which the kernel can be selected
+at bootstrap time.
+.LP
+Note that no checking is done for overlapping directory entries or directory
+entries that do not fit on the disk.
+.SH
+Example
+.LP
+In the following example we create two directory entries on the virtual disk
+for kernels on the host named
+.I bullet0 .
+The command
+.I dwrite (A)
+will write the kernel directory to block 0 of the specified virtual disk.
+The table is read from standard input.
+Therefore we type a CTRL\-D at the end of the input.
+.sC L
+mkkdir | dwrite /super/hosts/bullet0/vdisk:01
+1	800	amoeba
+801	800	test
+^D
+.eC
+Each kernel has been allocated 800 blocks (each 512 bytes, thus 400 Kbytes).
+The first is found at block 1 and has the symbolic name
+.I amoeba .
+The second is found at block 801 and has the symbolic name
+.I test .
+It is important that when installing the kernels that they indeed be written
+to the correct place on the disk.
+.SH
+See Also
+.LP
+dread(A),
+dwrite(A),
+installk(A),
+mkbootpartn(A),
+prkdir(A),
+vdisk(A).

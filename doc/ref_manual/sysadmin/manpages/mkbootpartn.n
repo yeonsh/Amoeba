@@ -1,0 +1,242 @@
+.\"	@(#)mkbootpartn.n	1.8	96/02/15 17:48:24
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, April 1992
+	Document: Gregory J. Sharp, April 1992
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "mkbootpartn" A
+make a bootable floppy or hard disk partition
+.SH
+Synopsis
+.LP
+.sC L
+.ps-1
+mkbootpartn [-v] [-o offset] [-f flboot] [-C confdir]
+	arch mach toolset vdisk kernel ...
+.ps
+.eC
+.SH
+Description
+.LP
+.I Mkbootpartn
+.kW "bootable floppy"
+.kW "bootable vdisk"
+is used to construct a floppy or virtual disk from which an \*(Am kernel can
+be booted.
+.kW "kernel directory"
+In the case of the floppy,
+a secondary bootstrap (see
+.kW \fIinstallboot\fP
+.I installboot (A))
+is installed on the disk.
+A bootable hard disk should already have a secondary bootstrap.
+If not, use
+.I installboot (A)
+to install one.
+Thereafter, in both cases, a kernel directory (see
+.kW \fImkkdir\fP
+.I mkkdir (A))
+and one or more kernels which can be booted are installed.
+.LP
+The kernels to be installed on the disk are specified on the command line.
+The
+.I kernel
+arguments, if not absolute path names, specify the names of kernel directories
+in the configuration tree.
+For example, if the kernel name
+.I bullet
+is given as an argument then the file
+.I \(gaamdir\(ga/conf/amoeba/\*<arch.toolset\*>/kernel/\*<mach\*>/bullet/kernel
+will be put onto the disk.
+If
+.I kernel
+is an absolute path name then the name of the kernel on the disk can be
+specified with an optional name as
+.I path-name:kernel-name .
+If the
+.I kernel-name
+option is omitted the kernels on disk are numbered from 0 as
+.I kernel.\*<n\*> ,
+where n is an integer.
+.LP
+It is also necessary to specify the
+.I vdisk
+where the bootable partition is to be made.
+It can be either a floppy or a virtual disk.
+It is also necessary to know the
+.I arch itecture
+(e.g., i80386),
+target
+.I mach ine
+.kW toolset
+type (e.g., ibm_at or sun3) and the compiler
+.I toolset
+used to make the kernel so that the kernel can be correctly processed.
+For example, it is necessary to strip kernels made with
+.I sun
+compilers for Motorola 680x0 machines.
+The information is also necessary to determine which type of bootstrap loader
+should be put onto the disk.
+.mH
+Options
+.LP
+.IP "\fB\-C\fP \fIconfdir\fP
+.br
+Allows the default configuration directory
+.I \(gaamdir\(ga/conf/amoeba
+to be overridden by
+.I confdir .
+.IP "\fB\-f\fP \fIflboot\fP
+.br
+This tells
+.I mkbootpartn
+to use the file
+.I flboot
+as the floppy secondary bootstrap instead of the default in the configuration
+tree.
+The standard secondary bootstrap is also normally kept in
+.I /super/admin/kernel/isa.flboot
+under \*(Am,
+so if there is no configuration tree available then this path name can be
+given with the
+.B \-f
+option.
+.IP "\fB\-o\fP \fIoffset\fP
+.br
+Start writing at disk block number
+.I offset .
+The default is 0.
+.IP "\fB\-v\fP
+Switch off verbose mode.
+Default is verbose on.
+.mH
+Diagnostics
+.LP
+Other than the usage message, the following are the main messages produced by
+.I mkbootpartn .
+.LP
+.sC
+Amoeba Configuration Root argument expected
+.eC
+This means that the
+.I confdir
+argument for
+.B \-C
+is missing.
+.sC
+no configuration directory \fIconfdir\fP
+.eC
+The configuration directory
+.I confdir
+(either specified with the
+.B \-C
+option or the default)
+does not exist.
+.sC
+\fIvdisk\fP is not a vdisk
+.eC
+The specified
+.I vdisk
+is not a virtual disk object.
+.sC
+Kernels need more blocks (nnn) than available (mmm)
+.eC
+The kernels specified are too big to all fit on the virtual disk.
+The total number of blocks needed is
+.I nnn
+while only
+.I mmm
+blocks are available on the disk.
+Note that
+.I nnn
+also includes the space needed for the bootstrap loader and the kernel
+directory.
+.sC
+Cannot install floppy bootstrap loader
+.eC
+The
+.I installboot
+program failed while trying to install the floppy bootstrap loader.
+.sC
+Cannot make kernel directory
+.eC
+The attempt to write the kernel directory to disk failed.
+.sC
+Cannot store kernel \fIname\fP
+.eC
+The attempt to write the kernel called
+.I name
+to disk failed.
+.sC
+Don't know how to install a \fIarch/toolset\fP kernel
+.eC
+The combination of
+.I arch itecture
+and
+.I toolset
+is unknown to the
+.I mkbootpartn
+command.
+It does not know if any stripping or
+.I a.out
+conversion is required.
+.mH
+Files
+.LP
+.I /super/admin/kernel/isa.hdboot
+or
+.br
+.I $CONFIG/admin/bootblocks/ibm_at/isa.hdboot
+\ \-\ i80386 hard disk bootstrap loader for installboot.
+.br
+.I /super/admin/kernel/isa.flboot
+or
+.br
+.I $CONFIG/admin/bootblocks/ibm_at/isa.flboot
+\ \-\ i80386 floppy disk bootstrap loader for installboot.
+.LP
+Where
+.cW $CONFIG
+is the default configuration directory or the one specified by the
+.B \-C
+option,
+concatenated with the \*<arch.toolset\*>.
+.mH
+Warnings
+.LP
+Overwriting an extant bootable partition with kernels that do not function
+will require that an alternative boot medium be used to restart the machine.
+Test kernels before installing them as the bootable version on disk.
+.SH
+File Formats
+.LP
+The kernel directory structure and layout of the kernels on disk is
+described in
+.I mkkdir (A).
+.SH
+Example
+.LP
+The following makes a bootable floppy for an i80386 ISA bus system
+containing a
+.I bullet
+and a
+.I pool
+kernel.
+It writes it to the floppy drive on host
+.I xxx .
+.sC L
+mkbootpartn i80386 ibm_at ack /super/hosts/xxx/floppy:00 \e
+	/home/conf/bullet/kernel:bullet /home/conf/pool/kernel:pool
+.eC
+.SH
+See Also
+.LP
+amdir(U),
+dwrite(A),
+installboot(A),
+mkkdir(A).

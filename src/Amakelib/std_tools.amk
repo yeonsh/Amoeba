@@ -1,0 +1,32 @@
+#	
+#	@(#)std_tools.amk	1.4	96/02/15 15:58:00
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Tools and definitions needed for Amakefiles for amoeba
+
+%include $PWD/common/common.amk;
+
+%include $PWD/common/ail.amk;
+%include $PWD/common/lex.amk;
+%include $PWD/common/yacc.amk;
+%include $PWD/common/LLgen.amk;
+%include $PWD/common/ctags.amk;
+%include $PWD/common/lint.amk;
+%include $PWD/common/cc-c.amk;
+%include $PWD/common/assembler.amk;
+%if ($COMPILER_SET == ack  %or
+     $COMPILER_SET == sysv %or
+     $COMPILER_SET == gnu-2 %or
+     $COMPILER_SET == sunpro, {
+    %include $PWD/$COMPILER_SET/archiver.amk;
+}, {
+    %if ($COMPILER_SET == irix, {
+	%include $PWD/sysv/archiver.amk;
+    },{
+	%include $PWD/common/archiver.amk;
+    });
+});
+%include $PWD/common/loader.amk;

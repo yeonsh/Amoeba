@@ -1,0 +1,97 @@
+.\"	@(#)uniqport.n	1.5	96/02/15 16:57:39
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert and/or Hans
+	Modified: Gregory J. Sharp, March 1992
+	Document: Gregory J. Sharp, 26 November 1990
+	Modified: Gregory J. Sharp, Jan 1994
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT uniqport L "libamoeba.a, libamunix.a"
+generate a random port
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/rnd.h"
+
+void uniqport(p)
+void uniqport_reinit()
+.eC
+.SH
+Description
+.LP
+.kW "\fIuniqport\fP"
+.kW "\fIuniqport_reinit\fP"
+.kW "random number"
+.kW "port"
+Routines to generate unique RPC and group communication ports and check fields.
+.sH
+uniqport
+.LP
+.sC
+void
+uniqport(p)
+port * p;
+.eC
+.LP
+.I Uniqport
+produces a non-NULL, random
+.I port .
+In general the result should be unique to the system.
+It is useful for servers that need to create new check fields or a new port
+to listen to.
+It uses a random number server to get the seed for the random number
+generator.
+.sH
+uniqport_reinit
+.LP
+.sC
+void
+uniqport_reinit()
+.eC
+.LP
+.I Uniqport_reinit
+causes the next call to
+.I uniqport
+to choose a new seed for the generation of random numbers.
+.mH
+Environment Variables
+.LP
+If set,
+.cW RANDOM
+determines which random number server to use when generating the seed.
+Otherwise the default random server is used.
+.mH
+Warnings
+.LP
+It is possible that the port generated is not unique within the system.
+If it is to be used as a
+.I port
+then it may be necessary to test to see if anyone
+is already listening to that port before using it.
+This is done by doing a
+.I std_info
+(see
+.I std (L))
+on the port with a short locate timeout (say 2 seconds).
+.SH
+Example
+.LP
+.sC
+#include "amoeba.h"
+#include "module/rnd.h"
+
+port listen;
+
+uniqport(&listen);
+.eC
+.SH
+See Also
+.LP
+rnd(L),
+rpc(L).

@@ -1,0 +1,108 @@
+.\"	@(#)test.n	1.5	96/02/16 11:09:37
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "test" U
+test for a condition
+.SH
+Synopsis
+.LP
+.sC L
+test expr
+[ expr ]
+.eC
+.SH
+Description
+.LP
+.I Test
+checks to see if objects exist,
+are readable,
+etc\. and returns an exit status of zero if true and nonzero if false.
+The legal operators are
+.IP "\fB\-r\fP object" 10
+true if the file is readable.
+.IP "\fB\-w\fP object"
+true if the file is writable.
+.IP "\fB\-x\fP file"
+true if the file is a directory and readable or an executable file.
+A file is executable if it begins with a process descriptor or begins with
+the string ``#!''.
+.IP "\fB\-f\fP file"
+true if the object is an \*(Am file (and not a directory or some other object
+type).
+.IP "\fB\-d\fP object"
+true if the object is a directory.
+.IP "\fB\-s\fP file"
+true if the file exists and has a size > 0.
+.IP "\fB\-t\fP fd"
+true if file descriptor \fIfd\fP (default 1) is a terminal.
+.IP "\fB\-z\fP s"
+true if the string \fIs\fP has zero length.
+.IP "\fB\-n\fP s"
+true if the string \fIs\fP has nonzero length.
+.IP "\fIs1\fP \fB=\fP \fIs2\fP"
+true if the strings
+.I s1
+and
+.I s2
+are identical.
+.IP "\fIs1\fP \fB!=\fP \fIs2\fP"
+true if the strings
+.I s1
+and
+.I s2
+are different.
+.IP "\fIm\fP  \fB\-eq\fP  \fIn\fP"
+true if the integers
+.I m
+and
+.I n
+are numerically equal.
+.LP
+The operators
+.B \-gt ,
+.B \-ge ,
+.B \-ne ,
+.B \-le
+and
+.B \-lt
+may be used as well in place of
+.B \-eq .
+These operands may be combined with
+.B \-a
+(Boolean and),
+.B \-o
+(Boolean or),
+.B !
+(negation).
+The priority of
+.B \-a
+is higher than that of
+.B \-o .
+Parentheses are permitted,
+but must be escaped to keep the shell from trying to interpret them.
+.mH
+Warning
+.LP
+.I Test
+is built-in in some shells and may implement different semantics.
+.SH
+Example
+.LP
+.sC
+test -r file
+.eC
+See if
+.I file
+is readable.
+.sC
+[ -r file ]
+.eC
+The same but with the other syntax.

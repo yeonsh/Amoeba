@@ -1,0 +1,63 @@
+.\"	@(#)std_touch.n	1.4	96/02/16 11:08:42
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 16/02/90
+	Modified: Gregory J. Sharp, Nov 1995, style conformance
+.aE
+.mT "std_touch" U
+touch an object so that the server does not garbage collect it
+.SH
+Synopsis
+.LP
+.sC L
+std_touch objectcap ...
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "garbage collection"
+.kW "touch"
+.I Std_touch
+executes an
+.cW STD_TOUCH
+command for each object in its argument list.
+The purpose of this is to tell the server not to garbage collect the object.
+(If the capability for an object is lost there is no way to recover the
+resources it is using other than to garbage collect all objects not accessed
+within a certain time period.)
+The exit status of the command is equal to the number of errors encountered.
+.mH
+Diagnostics
+.LP
+Two types of error are possible:
+.IP 1.
+Errors while looking up the capability of the object in the directory server.
+.IP 2.
+Errors during the actual touch operation itself
+(such as insufficient permission).
+.LP
+The error messages for the three different types are clear and include
+the explanation of the error status.
+.SH
+Example
+.LP
+.sC
+std_touch /home/myfile
+.eC
+will tell the \*(Bs that
+.I /home/myfile
+should not be garbage collected since someone still has an interest in it.
+.SH
+See Also
+.LP
+std_age(A),
+std_copy(U),
+std_destroy(U),
+std_info(U),
+std_restrict(U).

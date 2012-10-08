@@ -1,0 +1,44 @@
+#	
+#	@(#)Amake.srclist	1.3	96/02/27 11:13:21
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_MATH_COMMON_FP = {
+	$PWD/../generic/asin.c,
+	$PWD/../generic/atan.c,
+	$PWD/../generic/atan2.c,
+	$PWD/../generic/ceil.c,
+	$PWD/../generic/exp.c,
+	$PWD/../generic/fabs.c,
+	$PWD/../generic/floor.c,
+	$PWD/../generic/fmod.c,
+	$PWD/../generic/gamma.c,
+	$PWD/../generic/hypot.c,
+	$PWD/../generic/j0.c,
+	$PWD/../generic/j1.c,
+	$PWD/../generic/jn.c,
+	$PWD/../generic/log.c,
+	$PWD/../generic/log10.c,
+	$PWD/../generic/pow.c,
+	$PWD/../generic/sin.c,
+	$PWD/../generic/sinh.c,
+	# $PWD/../generic/sqrt.c,
+	$PWD/../generic/tan.c,
+	$PWD/../generic/tanh.c
+};
+
+L_MATH = $L_MATH_COMMON_FP + $PWD/../generic/sqrt.c;
+L_MATH_HWFP = $L_MATH_COMMON_FP + $PWD/sqrt_gen.c + $PWD/sqrt.s;
+
+L_MATH_PRIMITIVE_COMMON = {
+	$PWD/../generic/hugeval.c,
+	$PWD/../ieee/isnan.c,
+	$PWD/../ieee/ldexp.c
+};
+
+L_MATH_PRIMITIVE_C = {
+	$PWD/../generic/modf.c,
+	$PWD/../ieee/frexp.c
+};

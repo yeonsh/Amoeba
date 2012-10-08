@@ -1,0 +1,59 @@
+#! /bin/sh
+#	
+#	@(#)amdumpfile	1.3	94/04/07 14:09:27
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# amdumpfile: copy a unix file to amoeba
+# Note that no backup of files to .old is done if the -n option is specified.
+
+PROG=$0
+backup=true
+
+case $1 in
+-n)
+    backup=false
+    shift
+    ;;
+esac
+
+if [ $# -ne 2 ]
+then
+    echo usage: $PROG [-n] unixpath amoebadir 2>&1
+    exit 1
+fi
+
+# echo $PROG $backup $1 $2
+
+unixpath=$1
+amdir=$2
+path=$amdir/$unixpath
+
+temp=/tmp/temp$$
+# only install it if it didn't exist or when it has changed!
+if fromb $path >$temp 2>/dev/null
+then 
+    if cmp -s $unixpath $temp
+    then
+	: # echo $unixpath unchanged
+    else
+	# install new version
+	echo $unixpath changed
+	del -d $path.old 2>/dev/null	# remove any old version
+	if $backup
+	then
+	    get $path | put $path.old	# current version becomes old version
+	fi
+	del -d $path && tob $unixpath $path
+	chm ff:2:2 $path
+    fi
+else
+    echo installing $unixpath
+    del -d $path 2>/dev/null		# maybe an invalid capability
+    tob $unixpath $path
+    chm ff:2:2 $path
+fi
+
+rm -f $temp

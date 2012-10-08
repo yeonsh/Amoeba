@@ -1,0 +1,182 @@
+.\"	@(#)makesuper.n	1.5	96/02/15 17:48:14
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Kees Verstoep, Oct 1991
+	Document: Kees Verstoep, Oct 1991
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Jan 1996
+.aE
+.mT "makesuper" A
+create Soap super files
+.SH
+Synopsis
+.LP
+.sC L
+makesuper [-f] [-c cap] bullet0 bullet1 vdisk0 vdisk1 size
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "directory server"
+.I Makesuper
+is used to create new super files for Soap,
+the \*(Am directory server.
+It also creates an initial directory that can be used as ``root''
+of a new Soap directory graph.
+.LP
+The arguments are the following:
+.IP "bullet[01]" 12
+These are the capabilities for the bullet servers
+that the \*(Sss should use to store their directories.
+If Soap is going to be used as a duplicated directory service,
+they should be two different \*(Bss
+in order to achieve fault tolerance.
+If the directory service is not going to be duplicated,
+argument
+.I bullet1
+can be specified as ``\-''.
+.IP "vdisk[01]"
+These are the capabilities for the virtual disk servers used
+to store the super files of Soap 0 and Soap 1 respectively.
+If the directory service is not going to be duplicated,
+argument
+.I vdisk1
+must be specified as ``\-''.
+.IP "size"
+This argument specifies the size of the super file in blocks.
+The minimum size allowed is 3;
+the maximum size depends on the number of blocks of the virtual disk partition.
+The actual size depends on how many directories are likely to be needed.
+Each 512 byte block can store the capabilities for 16 directories,
+so for 3200 directories you will need 3200/16 = 200 blocks.
+.LP
+Under
+.UX ,
+the capability for the initial directory is stored
+by default in the file ``\*<.capability\*>''
+in the user's home directory (taken from environment variable \*<HOME\*>).
+If
+.I makesuper
+is executed under \*(Am,
+the new directory is published as ``\*<new_root\*>''
+in the current working directory.
+Note that
+.I makesuper
+refuses to overwrite an already existing capability;
+the
+.B \-c
+option (see below) can be used to specify an alternative name.
+.LP
+.I Makesuper
+also creates files containing the capability-sets for the private ports
+of the new \*(Sss.
+These private ports are used in the duplication protocol
+and for administrative commands.
+The capability-sets are stored as files in the current directory,
+with names ``\*<super_cs.0\*>''
+and (in case Soap is duplicated) ``\*<super_cs.1\*>''.
+They should be published under \*(Am (typically in directory
+.I /super/cap/soapsvr )
+using
+.I put (U).
+.LP
+The virtual disk servers and \*(Bss used by the \*(Sss
+may in principle be located on any host of the system.
+However,
+to achieve good performance it is advisable to run
+each \*(Ss on the host on which both its
+virtual disk server and its preferred \*(Bs are located.
+.LP
+For bootstrapping purposes,
+.I makesuper
+can also be used without the help of a directory server.
+In this case,
+files containing the capabilities for the required hosts should be
+created using
+.I mkhost (A).
+The Bullet and virtual disk capabilities can then be specified
+by a path relative to the corresponding host name
+(see the
+.I Examples
+section below).
+The host capabilities are looked up with
+.I super_host_lookup .
+(See
+.I host_lookup (L)
+for details.)
+.mH
+Options
+.LP
+.IP "\fB\-c\fP cap" 12
+This tells
+.I makesuper
+to store (or publish) the capability for the initial directory
+under the name
+.I cap .
+.IP "\fB\-f\fP"
+By default,
+.I makesuper
+refuses to overwrite a virtual disk that already contains
+a Soap super file.
+The
+.B \-f
+option can be used to override this check.
+.mH
+Warnings
+.LP
+.I Makesuper
+makes no effort to protect you from destroying a non-Soap
+virtual disk partition.
+The
+.B \-f
+flag only checks to see if the disk already has a Soap super file on it.
+.LP
+When in doubt,
+use the command
+.I dread (A)
+to fetch the first block of the virtual disk partition.
+This (binary) block can then be examined using
+.I od (U).
+.SH
+Examples
+.LP
+The command
+.sC
+makesuper h0/bullet h1/bullet h0/vdisk:03 h1/vdisk:03 200
+.eC
+creates the super files for a duplicated \*(Ss,
+to be run on hosts
+.I h0
+and
+.I h1
+respectively.
+Under
+.UX ,
+this could give the following diagnostics:
+.sC
+Soap 0 super capset stored in "./super_cs.0"
+Soap 1 super capset stored in "./super_cs.1"
+Created new capability file "/usr/joe/.capability"
+Writing super file #0...
+Writing super file #1...
+New Soap System ready.
+.eC
+To create the super file for a single copy mode \*(Ss,
+storing the capability in ``new_soap'',
+specify the following:
+.sC
+makesuper -c new_soap host2/bullet - host2/vdisk:03 - 200
+.eC
+.SH
+See Also
+.LP
+dread(A),
+host_lookup(L),
+mkhost(A),
+put(U),
+soap(A).

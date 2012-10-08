@@ -1,0 +1,23 @@
+#	
+#	@(#)Amake.srclist	1.5	96/02/27 13:07:13
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_UNIX_AX = {
+	$PWD/ax.c,
+	$PWD/fserver.c,
+	$PWD/handle.c,
+	$PWD/tc_getattr.c,
+	$PWD/tc_setattr.c,
+	$PWD/tc_ux_marsh.c
+};
+
+U_AMOEBA_AX = $PWD/ax.c;
+
+U_STUN = {
+	$PWD/stun.c,
+	$PWD/handle.c
+};

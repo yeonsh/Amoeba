@@ -1,0 +1,528 @@
+.\"	@(#)process.n	1.5	96/02/15 16:54:15
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, Guido van Rossum, Greg Sharp, 1989-1990
+	Document: Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "process" L "libamunix.a, libamoeba.a"
+kernel process server interface
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "cmdreg.h"
+#include "fault.h" /* From src/h/machdep/arch/<architecture> */
+#include "module/proc.h"
+
+#define PROCESS_SVR_NAME        "..."
+#define PROCESS_LIST_NAME       "..."
+
+errstat pro_exec(svr, pd, proc_ret)
+errstat pro_getdef(svr, log2ps_ret, first_ret, last_ret)
+errstat pro_getload(svr, speed_ret, load_ret, mem_ret)
+errstat pro_setload(svr, speed_ret, load_ret, mem_ret, exec_cap)
+
+errstat pro_swapproc(svr, oldproc, newproc)
+
+errstat pro_setowner(proc, owner)
+errstat pro_getowner(proc, owner_ret)
+errstat pro_setcomment(proc, comment)
+errstat pro_getcomment(proc, buf, len)
+errstat pro_stun(proc, stuncode)
+
+#define PS_CHECKPOINT           ...
+#define TERM_NORMAL             ...
+#define TERM_STUNNED            ...
+#define TERM_EXCEPTION          ...
+.eC
+.SH
+Description
+.LP
+.kW "process server"
+.kW "fault.h"
+.kW "proc.h"
+.kW "PROCESS_SVR_NAME"
+.kW "PROCESS_LIST_NAME"
+.kW "\fIpro_exec\fP"
+.kW "\fIpro_getdef\fP"
+.kW "\fIpro_getload\fP"
+.kW "\fIpro_setowner\fP"
+.kW "\fIpro_getowner\fP"
+.kW "\fIpro_setcomment\fP"
+.kW "\fIpro_getcomment\fP"
+.kW "\fIpro_stun\fP"
+.kW "\fIpro_swapproc\fP"
+.kW "PS_CHECKPOINT"
+.kW "TERM_NORMAL"
+.kW "TERM_STUNNED"
+.kW "TERM_EXCEPTION"
+.kW "process descriptor"
+.kW "process capability"
+.kW "memory management"
+.kW "page size"
+.kW "virtual memory layout"
+.kW "load average"
+.kW "CPU speed"
+.kW "owner capability"
+.kW "process owner"
+.kW "comment string"
+.kW "user name"
+.kW "stun a process"
+.kW "stun code"
+.kW "checkpoint"
+.kW "execute a process"
+.kW "exception"
+.kW "blocking system calls"
+.kW "RPC_ABORTED"
+.kW "process termination"
+.kW "process continuation"
+.kW "debugging"
+The description of the process interface is split in several parts.
+The process descriptor data structure and its basic access methods are
+described in
+.I process_d (L).
+The low-level kernel process server interface is described here.
+The high-level process execution interface is described in
+.kW "\fIexec_file\fP"
+.I exec_file (L).
+See also
+.I pd_read (L).
+.mH
+Process Server Interface
+.LP
+The capability for the process server for a particular processor is
+found by looking up
+.cW PROCESS_SVR_NAME
+(typically ``proc'') in its processor directory.
+An alternative way to get a process server capability is to use
+.I exec_findhost (L)
+(or,
+for heterogeneous process startup,
+.I exec_multi_findhost ).
+The following three requests must be directed directly at this process
+server.
+.br
+.ne 9
+.sH
+pro_exec
+.LP
+.sC
+errstat
+pro_exec(svr, pd, proc_ret)
+capability *svr;
+process_d *pd;
+capability *proc_ret;
+.eC
+.kW "\fIpro_exec\fP"
+This starts a new process whose initial status is specified by the
+process descriptor pointed at by
+.I pd .
+See
+.I process_d (L)
+for a description of the contents of a process descriptor.
+Like almost all functions in the library with process descriptor
+arguments (except where explicitly specified otherwise), the argument
+must be in native (i.e., the current machine's) byte order;
+it will be converted to standard (network) byte order as needed by
+.I pro_exec .
+The capability for the new process is returned in
+.I *proc_ret .
+.sH
+pro_getdef
+.LP
+.sC
+errstat
+pro_getdef(svr, log2ps_ret, first_ret, last_ret)
+capability *svr;
+int *log2ps_ret;
+int *first_ret;
+int *last_ret;
+.eC
+.kW "\fIpro_getdef\fP"
+This returns three parameters of the memory management system of a
+process server.
+In
+.I *log2ps_ret
+it returns the logarithm base 2 of the page
+size (the number
+.I log2ps
+such that
+.I "1<<log2ps"
+is the page size in bytes).
+In
+.I *first_ret
+it returns the lowest page number usable in the address space of a user program.
+In
+.I *last_ret
+it returns one more than the highest page number usable in the address
+space of a user program.
+These parameters are constants for a particular process server instance.
+They are expressed in pages rather than bytes to avoid overflow, since
+.I "first<<log2ps"
+or
+.I "last<<log2ps"
+may exceed the size of numbers that fit in a long int.
+.sH
+pro_getload
+.LP
+.sC
+errstat
+pro_getload(svr, speed_ret, load_ret, mem_ret)
+capability *svr;
+long *speed_ret;
+long *load_ret;
+long *mem_ret;
+.eC
+.kW "\fIpro_getload\fP"
+This returns three numbers that give an indication of the current load
+on a process server.
+In
+.I *speed_ret
+it returns a rough indication of the CPU speed of the machine in
+instructions per second.
+The number returned is an estimate made by the kernel at boot time for a
+particular configuration; it should only be used to compare processors
+of the same architecture.
+In
+.I *load_ret
+it returns a load average over the past few seconds, computed from the
+average number of runnable threads times 1024.
+This is a running average; more recent events have more effect.
+In
+.I *mem_ret
+it returns the available memory, in bytes.
+This does not necessarily mean that a contiguous memory segment of this
+size is available; it is the sum of all free memory segments.
+.sH
+pro_sgetload
+.LP
+.sC
+errstat
+pro_sgetload(svr, speed_ret, load_ret, mem_ret, exec_cap)
+capability *svr;
+long *speed_ret;
+long *load_ret;
+long *mem_ret;
+capability * exec_cap;
+.eC
+.kW "\fIpro_sgetload\fP"
+.I Pro_sgetload
+does all the things
+.I pro_getload
+does.
+In addition it also causes the kernel to modify its process server's capability.
+The new capability for the process server is returned via
+.I exec_cap .
+The process server accepts two capabilities at any one time: the old
+capability and the new capability.
+The
+.I run (A)
+server uses this routine to keep changing the process server's capability
+so that malicious users do not gain permanent access to a host just because
+they had access to it once.
+.mH
+The Process Owner Interface
+.LP
+The process owner (typically the process creator) is expected to run a
+small server loop to collect messages about any change in the process that it
+owns.
+In certain circumstances a process A may create a process B to replace itself
+with.
+If this happens the owner of process A needs to be informed that process B is
+now the process in question.
+This sort of thing happens in programs like
+.I login (A)
+which starts up a shell but needs to tell the system that it has simply mutated
+into a shell and has not gone away.
+(Otherwise the boot server will start another
+.I login
+while the user is still running a shell.)
+If the process owner is not interested in this information then they should
+still implement the server loop to avoid causing timeouts.
+.sH
+pro_swapproc
+.LP
+.sC
+errstat
+pro_swapproc(svr, oldproc, newproc)
+capability *svr;
+capability *oldproc;
+capability *newproc;
+.eC
+.kW "\fIpro_swapproc\fP"
+This routine does a transaction with the owner capability,
+.I svr ,
+of a process.
+It sends the capability of the original process which was owned and the
+capability of the new process which has replaced it.
+.mH
+Process Interface
+.LP
+The following requests must be directed at a process capability as
+returned by
+.kW "\fIpro_exec\fP"
+.I pro_exec .
+A process can obtain its own process capability using
+.kW "\fIgetinfo\fP"
+.I getinfo (L).
+.LP
+.\" *** The following may have to go to process(A) ***
+The process capabilities of all processes running on a particular
+processor can be found by looking up
+.cW PROCESS_LIST_NAME
+(typically ``ps'')
+relative to its processor capability, and listing the contents of the
+directory thus found.
+Its directory entries have numeric names which are unique identifiers
+with no meaning outside this directory.
+.ne 9
+.sH
+pro_setowner
+.LP
+.sC
+errstat
+pro_setowner(proc, owner)
+capability *proc;
+capability *owner;
+.eC
+.kW "\fIpro_setowner\fP"
+This changes the owner capability of the process to the capability
+pointed to by
+.I owner .
+If
+.I owner
+is NULL or points to a capability with a NULL-port, the process has no
+owner from now on.
+.sH
+pro_getowner
+.LP
+.sC
+errstat
+pro_getowner(proc, owner_ret)
+capability *proc;
+capability *owner_ret;
+.eC
+.kW "\fIpro_getowner\fP"
+This returns the owner capability of the process in the variable
+.I owner.
+If the process has no owner,
+.I owner
+is set to a capability with a NULL-port.
+.sH
+pro_setcomment
+.LP
+.sC
+errstat
+pro_setcomment(proc, comment)
+capability *proc;
+char *comment;
+.eC
+.kW "\fIpro_setcomment\fP"
+This sets the comment string of the process to the NULL-terminated
+string
+.I comment .
+The string stored with the process is truncated to a system-dependent
+limit (typically 31).
+By convention, the comment string contains the username of the user
+who started the process, a colon, the command name of the executing
+program with leading path components stripped, and the command line
+arguments, or as much of this as fits within the limit.
+A comment of this form is set automatically when a process is started by
+.kW "\fIexec_file\fP"
+.I exec_file (L).
+.sH
+pro_getcomment
+.LP
+.sC
+errstat
+pro_getcomment(proc, buf, len)
+capability *proc;
+char *buf;
+int len;
+.eC
+.kW "\fIpro_getcomment\fP"
+This returns the comment string of a process in the buffer
+.I buf ,
+truncated to
+.I len\(mi1
+bytes and terminated with a NULL-byte.
+.sH
+pro_stun
+.LP
+.sC
+errstat
+pro_stun(proc, stuncode)
+capability *proc;
+long stuncode;
+.eC
+.kW "\fIpro_stun\fP"
+This
+.I stuns
+the process specified by
+.I proc .
+The argument
+.I stuncode
+is made available to the process' owner when it receives a checkpoint
+(see below).
+A negative stun code implies an
+.I "emergency stop"
+to the kernel; this aborts transactions instead of waiting for them to
+complete, and is allowed even when the process is already stopped.
+If the owner has already received a checkpoint when an emergency stop is
+made, it will receive a client-to-server signal that aborts the
+checkpoint transaction, and another checkpoint is sent.
+It is not allowed to stun an already stopped process unless an
+emergency stop is being made.
+It may take a long time to stun a process; the call does not wait for
+the stun to complete but returns as soon as the stun is initiated.
+.LP
+.\" *** This text may have to move to process(A) once we have it ***
+A process may be stopped for other reasons than being stunned:
+when a thread causes an exception for which it has no catcher,
+and also when the process terminates normally.
+.LP
+The following happens when a process is stopped.
+All activities of all its threads are stopped.
+If a thread is serving (between
+.I getreq
+and
+.I putrep ),
+this state is preserved.
+A client-to-server signal is sent to all servers serving outstanding
+transactions of the process.
+If an emergency stop is being made, transactions are then aborted;
+otherwise, they are allowed to complete and the process is not
+completely stopped until each server has sent a reply (or crashes).
+Calls to
+.I putrep
+may be aborted or not depending on the internal state of the RPC layer.
+Other blocking system calls (\fIgetreq\fP,
+.kW "\fImu_trylock\fP"
+.I mu_trylock )
+are aborted.
+If a process has an owner, the owner is notified when all threads have
+stopped.
+This is done by constructing a process descriptor that contains the
+current state of the process and sending it to the owner capability in a
+.cW PS_CHECKPOINT
+request, described below.
+If the owner returns a valid process descriptor, the process continues,
+unless it was stopped because of normal termination.
+If the process is continued, system calls that were aborted will return
+an error (\*<RPC_ABORTED\*> for the RPC calls),
+except
+.I putrep
+which returns no error code.
+Note that
+.kW "\fImu_lock\fP"
+.I mu_lock
+will not fail; it is implemented as a library
+routine that retries
+.kW "\fImu_trylock\fP"
+.I mu_trylock
+until it succeeds (see
+.I mutex (L)).
+If the process has no owner, or the process cannot be continued after
+the owner replies, the stopped process is discarded and all the
+resources it occupies in the kernel are freed.
+.mH
+Process Owner Interface
+.LP
+The final part of the low-level process interface is the up-call made
+to the owner of a process when it is stopped.
+The owner should have some kind of server loop, waiting for requests on
+the port in the owner capability (which the owner should have created
+itself using
+.I uniqport (L)).
+The owner up-call is a request whose
+.I h_command
+value is
+.cW PS_CHECKPOINT .
+The
+.I h_extra
+field in the RPC header specifies the reason why the process was stopped:
+.IP TERM_NORMAL "\w'TERM_EXCEPTION\0'u"
+Normal termination: a thread called
+.kW "\fIexitprocess\fP"
+.I exitprocess (L)
+or the last thread called
+.kW "\fIexitthread\fP"
+.I exitthread
+(see
+.I sys_newthread (L)).
+The
+.I h_offset
+field contains the exit status passed to
+.I exitprocess() ;
+0 if the
+process was terminated because the last thread called
+.I exitthread() .
+.IP TERM_STUNNED
+The process was stunned by a call to
+.kW "\fIpro_stun\fP"
+.I pro_stun .
+The
+.I h_offset
+field contains the stun code passed as the second argument to
+.I pro_stun .
+.IP TERM_EXCEPTION
+A thread has caused an exception for which it has no handler.
+The
+.I h_offset
+field contains the exception number (see
+.I exception (H)).
+.LP
+The request buffer contains a process descriptor in standard (network)
+byte order,
+containing the state of the process at the time it was stopped.
+This should be converted to native byte order using
+.I buf_get_pd
+(see
+.I process_d (L)).
+.LP
+If the owner wants to let the process continue (if it can), it should
+send the process descriptor back unchanged in the reply (in standard
+byte order), with
+.I h_status
+set to
+.cW STD_OK .
+To let the process die, return a different error status or an empty
+reply buffer.
+.LP
+A debugger may change some parts of the process descriptor before
+letting the process continue; this is architecture-dependent and beyond
+the scope of this manual page.
+.LP
+When a stopped process is continued, the owner is not restored from the
+process descriptor; to change the owner of a stopped process, use
+.kW "\fIpro_setowner\fP"
+.I pro_setowner .
+.SH
+Example
+.LP
+Code to run a process with these primitives would be too big to give a
+working example here.
+See the source code of
+.kW "\fIexec_file\fP"
+.I exec_file (L)
+for a working example.
+.SH
+See Also
+.LP
+exception(H),
+exec_file(L),
+exec_findhost(L),
+exitprocess(L),
+getinfo(L),
+mutex(L),
+pd_read(L),
+process_d(L),
+run(A),
+sys_newthread(L).

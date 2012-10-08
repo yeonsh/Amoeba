@@ -1,0 +1,134 @@
+.\"	@(#)rnd.n	1.4	96/02/15 16:54:45
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Siebren van der Zee, March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "r\^nd" L "libamoeba.a, libamunix.a"
+random server interface
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/rnd.h"
+
+void rnd_setcap(cap)
+errstat rnd_defcap();
+errstat rnd_getrandom(buf, size)
+.eC
+.SH
+Description
+.LP
+.kW "random number"
+.kW "random generator"
+.kW "random server"
+.kW "\fIrnd_getrandom\fP"
+.kW "\fIrnd_setcap\fP"
+.kW "\fIrnd_defcap\fP"
+.kW "MAX_RANDOM"
+.kW "RANDOM"
+This module is used for obtaining random numbers from a random number server
+(see
+.I random (A)).
+.sH
+rnd_setcap
+.LP
+.sC
+void
+rnd_setcap(cap)
+capability *cap;
+.eC
+.kW "\fIrnd_setcap\fP"
+.I Rnd_setcap
+sets
+the random number server capability to be used by subsequent calls to
+.I rnd_getrandom
+to
+.I cap .
+It can be used to override the default random number server capability.
+Note that it sets the random number server per process and not per thread.
+.sH
+rnd_defcap
+.LP
+.sC
+errstat
+rnd_defcap()
+.eC
+.kW "\fIrnd_defcap\fP"
+.I Rnd_defcap
+selects the default random number server to be the random number server
+used by subsequent calls to
+.I rnd_getrandom .
+If the capability environment variable
+.cW RANDOM
+is set it uses that capability.
+Otherwise it uses the capability specified by
+.cW DEF_RNDSVR
+in the include file
+.I ampolicy.h .
+This is typically
+.I /profile/cap/randomsvr/default .
+The value returned by
+.I rnd_defcap
+is the error status from the lookup of the default server.
+.LP
+Note that it is not necessary to call this routine before using
+.I rnd_getrandom .
+If no call has been made to
+.I rnd_setcap
+then
+.I rnd_getrandom
+will use the default server as defined by
+.I rnd_defcap .
+.sH
+rnd_getrandom
+.LP
+.sC
+errstat
+rnd_getrandom(buf, size)
+char *buf;
+int size;
+.eC
+.kW "\fIrnd_getrandom\fP"
+.I Rnd_getrandom
+fills in the buffer pointed to by
+.I buf ,
+which is
+.I size
+bytes long, with random data using a random number server.
+.I Size
+must not exceed
+.cW MAX_RANDOM ,
+which is typically 1 kilobyte.
+.rR
+NONE
+.eR
+RPC errors
+\*<STD_OVERFLOW\*>:	size > \*<MAX_RANDOM\*>
+.DE
+.mH
+Environment Variables
+.LP
+.cW RANDOM
+\- capability for the random server.
+.mH
+Warnings
+.LP
+When
+.I rnd_getrandom
+fails, it undoes the effect of any previous call to
+.I rnd_setcap .
+That is, the next
+.I rnd_getrandom
+will call
+.I rnd_defcap .
+.SH
+See Also
+.LP
+ansi_C(L),
+uniqport(L).

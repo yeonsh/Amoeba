@@ -1,0 +1,16 @@
+#!/bin/sh
+#	
+#	@(#)preremove	1.1	96/02/27 11:49:22
+#
+
+# run "rem_drv flip"
+/usr/sbin/rem_drv flip
+
+# edit /etc/devlink.tab
+/usr/bin/sed '/type=ddi_pseudo;name=flip/d' /etc/devlink.tab > /tmp/flip.$$
+/usr/bin/cp /tmp/flip.$$ /etc/devlink.tab
+
+# remove entries in /dev and /device
+/usr/bin/rm /dev/flip_rpc0
+/usr/bin/rm /dev/flip_ctrl
+/usr/bin/rm /devices/pseudo/clone@0:flip_rpc0

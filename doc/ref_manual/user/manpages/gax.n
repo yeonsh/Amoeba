@@ -1,0 +1,188 @@
+.\"	@(#)gax.n	1.6	96/02/16 11:00:04
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Kees Verstoep, may 1994
+        Document: Greg Sharp and Kees Verstoep, June 1994
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "gax" U
+group ax
+.SH
+Synopsis
+.LP
+.sC L
+gax [options] progname NCPU [args ...]
+.eC
+.SH
+Description
+.LP
+.kW "process execution"
+.kW "executable file"
+.kW "capability environment"
+.kW "group communication"
+.kW "Orca run-time system"
+In \*(Am it is possible to write programs which comprise several
+interdependent processes working together in parallel (for example, Orca
+programs).
+.I Gax
+is used to start such programs.
+It takes as its main argument a program to be executed and
+starts several copies of the program simultaneously.
+Typically each copy is started on a different processor, although this
+can be controlled with the options.
+The primary duties of
+.I gax
+are to select the appropriate processors upon which to run a job
+and then start the job running.
+It will continue as the parent of the job to deal with any signals or
+other process management for all members of the job.
+.LP
+.I Gax
+must be provided with the capabilities for a pool directory
+from which it is to select processors upon which to execute
+the processes that form the job.
+It will then poll all these processors in the manner of the run server
+(see
+.I run (A))
+and determine their load and available memory.
+Based on this and any selection criteria specified in the options
+(described below) it will select the best available processors
+to execute the job.
+.mH
+Options
+.LP
+.IP \fB\-1\fP
+Do not run more than one process on a processor.
+If more processes are required to be started than available processors in
+the pool (for example, if some machines have crashed) it is an error
+and the program will not be executed.
+Additionally,
+this option causes
+.I gax
+to delay starting the job until sufficient memory (as specified by the
+.B \-m
+option) is available.
+.IP "\fB\-e\fP \fIhost-list\fP
+.br
+The
+.I host-list
+is a file containing the names of the processors to be used.
+Only processors that are both in the processor pool and in the list
+will be used to run processes.
+Processors will be selected in the order in which they appear in the list.
+.IP "\fB\-m\fP \fImbytes\fP"
+.br
+Only use hosts with at least
+.I mbytes
+megabytes of free memory.
+.\" TODO:
+.\" .IP \fB\-n\fP
+.\" Do not share hosts with other users.
+.\" This option is not needed if a reservation has been made (see
+.\" .I reserve (U)).
+.IP "\fB\-p\fP \fIpool\fP"
+.br
+Specifies that
+.I pool
+should be used as the pool directory from which to select processors.
+Pool directories should be structured in the same manner as
+.I run (A)
+server pools.
+The default pool is
+.I /profile/gaxpool .
+.IP \fB\-r\fP
+By default,
+.I gax
+examines the run server status maintained for the pool
+in order to skip hosts that are down.
+This may help speeding up process startup in case one or more
+hosts in the pool are down.
+However, when the hosts are reserved by means of the reservation service
+(see reserve (U)),
+the run server also reports them to be down, even though they are not.
+In this case, the information can be ignored by specifying
+.B \-r
+option.
+Setting the \*<POOL\*> environment variable also has this effect.
+.IP \fB\-s\fP
+Some systems have hosts on more than one network, with the networks
+being joined by a switch.
+This option causes hosts to be allocated so that processes are evenly
+.I scattered
+over the different network segments.
+The name of the hosts are used to determine the network structure.
+The last character of the name specifies the host id within a segment
+and the second last character the network segment id.
+For example, the host
+.I zoo41
+is processor 1 on segment 4 of the set of processors known as
+.I zoo .
+It will be necessary to use letters as well as digits if there are more than
+10 hosts on a segment.
+.IP "\fB\-t\fP \fItimeout\fP"
+.br
+Kill all the processes after
+.I timeout
+seconds if they have not already terminated.
+.IP \fB\-v\fP
+Verbose mode.
+Details of processor selection and process startup are printed.
+.mH
+Environment Variables
+.LP
+.IP \*<POOL\*>
+.br
+This is an alternative way to specify the pool parameter.
+Putting ``POOL=pool'' in the environment of
+.I gax
+has the same effect as providing it with the ``-p pool -r'' options.
+This feature is used by the reservation service to indicate the reserved
+pool to be used by
+.I gax .
+.LP
+The capability environment of the executed programs is augmented with
+the following capabilities:
+.\" TODO: is the following one used for something useful?
+.IP \*<MEMBERCAP\*>
+.br
+per-process put-port for communication with its `control' thread.
+.\" (only used for checkpointing).
+.IP \*<GROUPCAP\*>
+.br
+port for group communication shared by all spawned processes
+.IP \*<MEMBER%d\*>
+.br
+.cW NCPU
+get-ports.
+Usually
+.cW MEMBER \fIn\fP
+is used by process
+.I n .
+Because all processes get this list it can (also) be used for interprocess
+communication.
+.mH
+Files
+.LP
+.IP \fI/profile/gaxpool\fP
+.br
+The default pool directory.
+.SH
+Example
+.LP
+To run the Orca program
+.I tsp
+on 5 processors from the private processor pool
+.I /my_pool :
+.sC
+gax -p /my_pool tsp 5
+.eC
+.SH
+See Also
+.LP
+ax(U),
+reserve(U),
+run(A).

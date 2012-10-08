@@ -1,0 +1,32 @@
+#	
+#	@(#)Amake.srclist	1.7	96/02/27 13:45:14
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/sys/Amake.srclist;
+%include $PWD/protocol/amoeba4/Amake.srclist;
+%include $PWD/protocol/generic/Amake.srclist;
+%include $PWD/protocol/flip/Amake.srclist;
+%include $PWD/machdep/arch/$ARCH/Amake.srclist;
+%include $PWD/machdep/mmu/$MMU/Amake.srclist;
+%include $PWD/machdep/dev/generic/Amake.srclist;
+%include $PWD/machdep/dev/$MACH/Amake.srclist;
+#%include $PWD/server/bootmon/Amake.srclist;
+%include $PWD/server/bootuser/Amake.srclist;
+%include $PWD/server/bullet/Amake.srclist;
+%include $PWD/server/gbullet/Amake.srclist;
+%include $PWD/server/directory/Amake.srclist;
+%include $PWD/server/disk/Amake.srclist;
+%include $PWD/server/flip_ip/Amake.srclist;
+%include $PWD/server/ip/Amake.srclist;
+%include $PWD/server/iop/Amake.srclist;
+%include $PWD/server/printbuf/Amake.srclist;
+%include $PWD/server/process/Amake.srclist;
+%include $PWD/server/profile/Amake.srclist;
+%include $PWD/server/random/Amake.srclist;
+%include $PWD/server/syssvr/Amake.srclist;
+%include $PWD/server/tape/Amake.srclist;
+%include $PWD/server/tod/Amake.srclist;
+%include $PWD/server/tty/Amake.srclist;

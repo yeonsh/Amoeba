@@ -1,0 +1,45 @@
+Elvis may be distributed in either source form or executable form.
+#	
+#	@(#)MANIFEST	1.1	94/08/31 10:36:58
+#
+When distributed in source form, the documentation is packaged separately
+from the C source code.  Consequently, there are at least three overlapping
+sets of files available:
+
+C source code:
+	Elvis.lnk        ctype.c          instman.sh       regsub.c
+	Elvis.mak        ctype.h          main.c           shell.c
+	Elvis.prj        curses.c         misc.c           sysdos.c
+	INSTALL          curses.h         modify.c         system.c
+	MANIFEST         cut.c            move1.c          tinyprnt.c
+	Makefile.mix     doc/ctags.doc    move2.c          tinytcap.c
+	Pkgfile          doc/ctags.man    move3.c          tio.c
+	README           doc/elvis.doc    move4.c          tmp.c
+	alias.c          doc/elvis.man    move5.c          unix.c
+	amiga.c          doc/elvprsv.doc  novice.rc        vars.c
+	amiprsv.c        doc/elvprsv.man  opts.c           vcmd.c
+	amistat.h        doc/elvrec.doc   osk.c            vi.c
+	amisysio.c       doc/elvrec.man   osk.h            vi.h
+	amitty.c         doc/fmt.doc      pc.c             vmsbuild.com
+	amiwild.c        doc/fmt.man      profile.sh       vmsio.c
+	atari.c          doc/ref.doc      prsvdos.c        vmslink.opt
+	blk.c            doc/ref.man      prsvunix.c       vmssetup.com
+	borland.h        elvprsv.c        recycle.c        vmswild.c
+	cmd1.c           elvrec.c         redraw.c         wildcard.c
+	cmd2.c           ex.c             ref.c
+	config.h         fmt.c            regexp.c
+	ctags.c          input.c          regexp.h
+
+Documentation source code:
+	INSTALL          doc/cutbufs.ms   doc/fmt.man      doc/ref.man
+	MANIFEST         doc/differ.ms    doc/index.ms     doc/regexp.ms
+	Pkgfile          doc/elvis.man    doc/internal.ms  doc/termcap.ms
+	README           doc/elvprsv.man  doc/intro.ms     doc/title.ms
+	doc/Makefile     doc/elvrec.man   doc/makefile.ms  doc/ver.ms
+	doc/cflags.ms    doc/environ.ms   doc/options.ms   doc/versions.ms
+	doc/ctags.man    doc/ex.ms        doc/question.ms  doc/visual.ms
+
+MS-DOS executables:
+	Elvisman.txt  Pkgfile       elvis.exe     ex.exe        vi.exe
+	INSTALL       README        elvprsv.exe   fmt.exe       view.exe
+	MANIFEST      ctags.exe     elvrec.exe    ref.exe       wildcard.exe

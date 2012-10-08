@@ -1,0 +1,672 @@
+.\"	@(#)boot.n	1.7	96/02/15 17:07:08
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Siebren van der Zee, May-September 1990
+	Document: Siebren van der Zee, June-September 1990
+	Modified: Gregory J.  Sharp, September 1990
+			- corrected spelling, grammar & style
+		  Gregory J.  Sharp, Jan 1996
+			- eliminated VAX references, corrected misapprehensions
+			  about setting TZ.
+.aE
+.mT "boot" A
+keep system services available
+.SH
+Synopsis
+.LP
+.sC L
+boot [-dtv] [dir]
+.eC
+.SH
+Description
+.LP
+.kW "boot server"
+.kW "cold start"
+The
+.I boot
+server polls capabilities to find
+out whether services are available,
+and starts processes to make them available if they are not.
+Normally, it is started by the
+.I bootuser (A)
+thread in the
+kernel of the main machine in an \*(Am system.
+When started by hand,
+you should pass the processor on which it is
+supposed to find its virtual disk in
+.I dir ,
+so that
+.I boot
+sets its root directory correctly.
+Also, it is wise to run the
+.I boot
+server on that machine,
+since it is possible that the
+.I boot
+server's configuration
+depends on this.
+.LP
+The server requires a virtual disk and an operational file server,
+which is currently reasonable since the \*(Bs is in the kernel.
+The virtual disk is used to hold the configuration
+data and to store data that must survive server crashes.
+The file server holds executables.
+It does not depend on any directory server,
+since it needs to be able to start one.
+.LP
+The lay-out of the virtual disk is defined in
+.I h/server/boot/bsvd.h .
+To initialize the disk, use
+.I iboot (A).
+.mH
+Options
+.LP
+.IP \fB\-d\fP
+Set the debugging flag,
+which produces output for gurus.
+.IP \fB\-t\fP
+This makes the
+.I boot
+server print the time as part of each messages it prints on the console.
+.IP \fB\-v\fP
+Turns on the verbose flag, which makes the
+.I boot
+server report more than usual.
+Normally, the
+.I boot
+server is only verbose until it has scanned the
+services it keeps alive  a few times.
+With this flag it will remain verbose.
+.SH
+Configuration format
+.LP
+The configuration file is a human readable file.
+It is currently copied to the virtual disk by
+.I iboot (A).
+Below is described the syntax, each containing
+a precise syntax definition, an explanation, and sometimes
+an example.
+.LP
+The keywords are: down, procsvr, machine, after, bootrate, pollrate, cap,
+environ, capv, argv, program and pollcap.
+Furthermore, C-style identifiers and strings,
+ar-format capabilities (see
+.I ar (L))
+and decimal numbers are recognized.
+Comments start with a ``#'' symbol, and extend till the end-of-line.
+.sC
+config_file: ( assignment | service | stringenv ) *
+.eC
+.LP
+The configuration file consists of a list of
+variable assignments, services and a string environment.
+The string environment is defined below, and used to
+set the string environment of the
+.I boot
+server.
+If you do not set
+.cW TZ
+(see
+.I ctime (L))
+correctly, all times reported by the
+.I boot
+server are expressed in UTC (GMT).
+For example,
+.sC
+environ { "TZ=:/super/module/time/zoneinfo/localtime" };
+.eC
+will set the timezone.
+.LP
+NB. If when the
+.I boot
+server starts there is no
+.I soap (A)
+server running, then it will not be possible to look up and access the timezone
+information.
+This will result in the times being shown in UTC no matter what value is
+given to the
+.cW TZ
+variable.
+.LP
+The variables hold capabilities, and are used to avoid
+extensive repetition of capabilities and paths in the services.
+Variables can be assigned to once, and must be assigned to
+before usage.
+.sC
+assignment: 'cap' IDENT '=' reference ';'
+reference:  capability [ STRING ]
+capability: CAPABILITY | IDENT | '\(ga' IDENT '\(ga'
+.eC
+.LP
+Examples of assignment:
+.sC
+cap SLASH = e8:cc:77:15:4a:2a/287(ff)/94:cd:23:6f:c0:a7;
+cap HOSTS = SLASH "profile/hosts";
+cap MYPOOL = SLASH "profile/pool/i80386";
+cap THISMACHINE = \(gaROOT\(ga;
+# Where to dump core:
+cap CORE_DIR = SLASH "profile/module/boot/dumps";
+.eC
+.LP
+After the above definitions,
+you can use the identifier
+.cW SLASH
+.kW ASCII
+instead of the ASCII encoded capability (known as a capability literal)
+at the right of the equals sign.
+Starting from
+.cW SLASH ,
+the capabilities
+.I profile/hosts
+and
+.I profile/pool/i80386
+are looked up, to assign
+them to
+.cW HOSTS
+and
+.cW MYPOOL
+respectively.
+Any leading slashes in the string arguments are stripped
+before the
+.I name_lookup
+(see
+.I name (L))
+is performed,
+to stop it from using the
+.I boot
+server's
+.cW ROOT
+capability.
+.LP
+To generate the capability literal for a given capability,
+you should use
+.I c2a (U).
+For example, if you want
+.cW HOME
+to point to your home directory,
+the command
+.sC
+c2a /home
+.eC
+prints it for you.
+The value for
+.cW SLASH
+in the above example was obtained with
+.sC
+c2a /
+.eC
+Note that because an
+.I ar -format capability
+(see
+.I ar (L))
+is just as powerful as a normal
+capability they should be protected.
+The capabilities in the bootfile may give access to the entire system so
+you should protect this file.
+.\" Hint for burglars: try to find the bootfile for the
+.\" system you want to break into.
+.\" You only need read permission to get lots of interesting stuff.
+.LP
+Variables are really syntactic sugar.
+They do not cut down the number of directory
+lookups performed by the server in any way.
+.LP
+The second last assignment in the above examples makes the
+.I boot
+server assign
+the
+.I boot
+server's environment capability
+.cW ROOT
+to
+.cW THISMACHINE .
+This is usually the capability for the machine the
+.I boot
+server runs on.
+This way, any capability in the
+.I boot
+server's environment can be found.
+The capabilities
+.cW STDIN ,
+.cW STDOUT
+and
+.cW STDERR
+can be modified at run-time
+by the
+.I boot
+server in response to a
+.I boot_setio
+request (see below).
+Of course, the change only takes effect for services that need to be rebooted.
+.LP
+The last assignment is a magic one.
+The special name
+.cW CORE_DIR
+is recognized by the
+.I boot
+server as the directory to store core dumps.
+The core dump will have the name of the service.
+If a file by that name exists already, no dump will be made.
+Core dumps are produced for programs that get an exception or a negative stun.
+.sC
+service: IDENT '{' option* '}' ';'
+option: 'down' ';'
+      | 'after' serviceIDENT ';'
+      | 'bootrate' NUMBER ';'
+      | 'pollrate' NUMBER ';'
+      | 'machine' reference ';'
+      | 'procsvr' reference ';'
+      | 'pollcap' reference ';'
+      | 'program' command ';'
+.eC
+Each service describes a service that should be available,
+or a program that should be running.
+Note that throughout this document, the word ``service''
+is used to mean either an instance of the above syntactic
+definition, or the concrete system service which it keeps alive.
+.LP
+The
+.I down
+option means that the
+.I boot
+server should not manage the service, e.g., because you are already managing it.
+A service with this option is not polled or restarted by the
+.I boot
+server.
+However, if there is already a process running for the service,
+the
+.I boot
+server remains the process owner, and will remember any
+process capability associated with the service.
+.LP
+The
+.I after
+option gives the name of a service that has to be running before
+it is useful to even look at this service.
+This can be used to only start most services after the directory service,
+or to start an X-application only after the X-server is running.
+.LP
+The
+.I bootrate
+specifies how many milliseconds should pass between
+successive attempts to boot a program.
+This is to prevent
+.I boot
+from starting a second copy of a program that takes a long time to initialize.
+.LP
+The
+.I pollrate
+specifies how often the availability of a service
+should be tested, in milliseconds.
+.LP
+The
+.I machine
+reference points to a processor directory
+on which the program should run.
+The reference is resolved just before
+the program is started,
+allowing the process server to pick a
+new capability each time it starts.
+In fact, all the paths in references are resolved when needed.
+.LP
+.I Procsvr
+is slightly different from
+.I machine .
+Instead of a processor directory, the capability
+should point directly to a process server.
+This can be
+.I proc
+in a processor directory, or the
+.I run
+server.
+Because the process server of a machine is found in
+.I proc
+of the processor directory, the option
+.sC
+procsvr MACH "proc";
+.eC
+is equivalent to
+.sC
+machine MACH;
+.eC
+.LP
+The
+.I pollcap
+points to any object that understands
+.I std_info (L).
+This is useful when you cannot poll a process capability,
+e.g., because no process is associated with a running kernel.
+Using
+.I pollcap
+when possible has other desirable properties, as discussed below.
+If no
+.I pollcap
+is specified, the process-capability is polled.
+.LP
+The
+.I program
+directive specifies how the service should be started.
+.LP
+.sC
+command: '{' reference cmdopt* '}'
+
+cmdopt : stringenv ';'
+       | arguments ';'
+       | capenv ';'
+       | 'stack' NUMBER ';'
+
+stringenv: 'environ' '{' STRING (',' STRING)* '}'
+arguments: 'argv' '{' STRING (',' STRING)* '}'
+capenv   : 'capv' '{' envcap (',' envcap)* '}'
+
+envcap : IDENT ['=' reference]
+.eC
+.LP
+Commands describe how a program must be started.
+The reference points to an executable file.
+The string environment defined with
+.I environ ,
+is passed as is, so the strings had better each contain one ``='' sign.
+The
+.I argv
+is the command line to use.
+.I capv
+is the capability environment.
+If the value of a capability
+is missing, the capability is inherited from the
+.I boot
+server.
+With
+.I stack
+you can set the stack size, in bytes.
+If not specified, the default for the architecture of the binary will be used.
+.LP
+This is an example service for the soap server:
+.sC
+Soap_0 {
+    pollcap SLASH;
+    machine \(gaROOT\(ga;
+    bootrate 40000;
+    program {
+	SOAPBINARY;
+	stack 50000;
+	argv { "soap", "0" };
+	capv {
+	    STDOUT, STDERR,
+	    TOD = \(gaROOT\(ga "tod",
+	    RANDOM = \(gaROOT\(ga "random",
+	    BULLET = \(gaROOT\(ga "bullet",
+	    SOAP_SUPER = \(gaROOT\(ga "vdisk:05"
+	};
+	environ { "LOGNAME=Daemon" };
+    };
+};
+.eC
+.SH
+Programming Interface
+.LP
+Besides listening to its super capability, the
+.I boot
+server listens to the owner capabilities of the processes it starts.
+The
+.I boot
+server supports the standard operations listed below.
+.LP
+A
+.I std_info
+on the super capability returns
+the string ``bootsvr supercap 0x<rr>'',
+where <rr> is the rights in two hexadecimal digits.
+A
+.I std_info
+on an owner capability returns
+a string of the form ``bootsvr: <name>'',
+where <name> is the identifier for the service.
+.LP
+The
+.I std_restrict
+request works for both the super capability and the
+owner capabilities, with the behavior defined in
+.I std (L).
+.LP
+Regrettably, the parser for the bootfile is wired in the server,
+as opposed to in
+.I iboot ,
+where it belongs.
+Any errors detected while parsing the bootfile are reported in the
+.I std_status
+message.
+The rest of the message contains one line per service.
+The line starts with the name of the service,
+followed by a ``flags'' field.
+The flags are:
+.sC
+.fi
+.TS
+l l.
+0	The service will not be restarted if it fails.
+1	The service will be restarted if it fails.
+X	T{
+The service has not yet responded to a poll.
+It may not have been polled at all.
+T}
+P	T{
+The \fIboot\fP server knows the process' capability.
+This is used (possibly in addition to the \fIpollcap\fP) to see
+if the process is still alive.
+T}
+.TE
+.eC
+.LP
+Note that the
+.I boot
+server stores process capabilities on disk so this information should
+survive a restart of the
+.I boot
+server.
+.LP
+The flags-field is followed by a ``text'' field that can hold either an error
+message or a quoted
+.I std_info
+string suggesting that the service is ok.
+If the service is restarted by the current incarnation of the
+.I boot
+server,
+the time it was started is printed in the
+.cW INFO
+field as well.
+Beware that this time is in UTC unless you have set
+the
+.cW TZ
+environmental variable of the
+.I boot
+server.
+.LP
+An example of a status message is:
+.sC L
+.ps-1
+configuration ok
+NAME            FLAGS   INFO
+Soap_0          1P      "Run: Daemon: soap -k"    Tue Nov 19 18:49:33 1991
+Login_self      1P      "Run: Daemon: login"      Wed Nov 20 07:55:15 1991
+Random_cap      1       "random number server"
+Tod_cap         1       "TOD server"
+Smtp_svr        1P      "SMTP server"             Tue Nov 19 19:45:00 1991
+Deliver_svr     1P      "Deliver Server"          Tue Nov 19 19:44:45 1991
+Xsvr_chuck      1P      "X server on chuck"
+Xlogin_chuck    1P      "Run: Daemon: xlogin "   Wed Nov 20 07:46:35 1991
+Xsvr_ast        0X      stdinfo process error: invalid capability Wed Nov
+20 07:52:17 1991
+Xlogin_ast      1X      After Xsvr_ast
+.ps
+.eC
+Note in the last line that the ``After Xsvr_ast'' means that ``Xlogin_ast'' is
+waiting for ``Xsvr_ast'' before any attempt will be made to start it.
+The `X' flag is on because the service has not been polled.
+.LP
+There is also a set of
+.I boot
+server specific requests:
+.TS
+center;
+l l .
+boot_reinit	reinitializes the \fIboot\fP server.
+boot_shutdown	gracefully terminates the server.
+boot_setio	sets the servers I/O capabilities.
+boot_conf	tells the server (not) to deal with a service.
+boot_ctl	tells the server to be (not) verbose.
+.TE
+.LP
+Their stubs are not in the library.
+They are documented in
+.I bootutil (A).
+.SH
+Pollcap Entries Are Good.
+.LP
+This chapter explains some the internals of the
+.I boot
+server
+(especially initialization), and why its title is a true statement.
+.LP
+On initialization, the
+.I boot
+server repeatedly executes
+.I boot_shutdown
+until it returns
+.cW RPC_NOTFOUND
+(server not found),
+to make it easy to start a new, compatible version of the server
+without shutting down all of your system.
+This strategy does not prevent two
+.I boot
+servers from getting in each
+others' way after a network partitioning, but it is hard to see
+why anybody would setup a system so that this can actually occur.
+The
+.I boot
+server does not reply to the
+.I boot_shutdown
+request before it has saved its internal state,
+and all server threads have exited.
+At this point, during which the new incarnation of the server
+is finding out that it cannot reach old incarnations any more,
+the
+.I boot
+server is deaf to all requests.
+.LP
+Then it starts with an empty set of services to maintain.
+It executes a
+.I boot_reinit ,
+which involves reading the
+.I bootfile
+on the virtual disk.
+The super-capability is also found this way.
+It is not reasonable to expect the
+.I boot
+server
+to do a
+.I name_lookup
+for this, because the directory server may be down.
+Conceptually, old services that are not in the new
+set of services are killed if possible.
+This is a no-op for the first reinit action,
+since the set of services is initially empty.
+The
+.I boot
+server kills processes by
+sending them a stun code of \-9.
+It may also decide to stun a process when it reboots
+a service, e.g., after the
+.I pollcap
+stopped responding.
+Then the server reads data \- owner capabilities,
+process capabilities etc., saved by previous
+incarnations \- from the virtual disk.
+If this initialization fails, the server exits.
+Otherwise it starts serving.
+.LP
+After the first reinitialization, the
+.I boot
+server never panics.
+.\" Perhaps the absence of stable storage would be a good
+.\" reason to panic, but then, how would you expect an operator
+.\" to solve the problem if everything starts to fail?
+.\" I personally think this is what you would expect from the first
+.\" process on any operating system, but some error handling of the
+.\" server is doubtlessly clumsy.
+.\" I think there is a PhD in this stuff - especially for
+.\" distributed systems - and I am not the one you should
+.\" consult. Exponential back-off could help something, but
+.\" then the server should understand the dependencies of
+.\" the various services it keeps alive, or Amoeba users
+.\" would have to be very patient if the system restarts.
+.\"	- SZ.
+.LP
+Note that being deaf is a potential source of problems with the
+.I boot
+server.
+This is exactly the reason why the
+.I boot_shutdown
+request was invented.
+Using this, the operator can essentially
+.I minimize
+the time during which the server is deaf.
+.LP
+Any
+.I ps_checkpoint
+or
+.I pro_swapproc
+request made in this time interval can get lost,
+since its timeout is probably in the same order of magnitude as the one the
+.I boot
+server uses to find out there is no other
+.I boot
+server around.
+Losing the
+.I ps_checkpoints
+is not so much of a problem: the
+.I boot
+server will notice that the
+process has gone anyway, and start a new incarnation.
+(Note that the
+.I boot
+server does not consider exit statuses to be worthwhile.).
+At worst, you would lose a core dump.
+.LP
+Losing the
+.I pro_swapproc ,
+however, is definitely a problem for processes polled without the
+.I pollcap
+option described above.
+The new incarnation of the
+.I boot
+server will
+assume that the last-known process capability
+is to be polled, instead of the one published
+in the missed
+.I pro_swapproc
+request.
+.\" I think it is wise to remark here that the
+.\" proswapproc operation is idempotent,
+.\" since any sane server should reject a
+.\" repetition of old requests.
+.\" In particular, Ail can be told that
+.\" certain operations are idempotent.
+The new process-capability will not be known
+by the server, so it will decide to restart
+it eventually, since the
+.I boot
+server strives
+for availability - not reliability.
+.SH
+See Also
+.LP
+ar(L),
+bootutil(A),
+c2a(U),
+iboot(A).

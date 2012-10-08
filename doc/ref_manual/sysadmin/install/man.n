@@ -1,0 +1,40 @@
+.\"	@(#)man.n	1.6	96/02/15 17:04:20
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 2 "Installing the On-line Manuals"
+.LP
+.kW "manual pages"
+The on-line manual pages for \*(Am can be viewed using the command
+.kW "aman"
+.I aman (U).
+This command can either display preformatted manual pages or, if no
+preformatted version is available it will try to produce the manual
+page from the source.
+Under \*(Am the latter is not possible since the text formatting programs
+are not available.
+Normally the preformatted manual pages are installed as part of the binary
+distribution.
+.LP
+Should it be necessary to remake or add to the manpages
+this must be done under
+.UX .
+This is done by going to the top level of the distribution tree and
+then changing to the directory
+.I lib/man .
+The command
+.kW "catman"
+.I catman
+can be found here and it should be run without arguments in this directory.
+Once it has successfully completed the manual pages should be installed
+under \*(Am using
+.I amdumptree (A).
+.kW "\fIamdumptree\fP"
+The command to do this is
+.sC
+.B
+amdumptree \(gaamdir\(ga/lib /super/module/amoeba
+.cW
+.eC

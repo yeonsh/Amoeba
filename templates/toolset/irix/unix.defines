@@ -1,0 +1,13 @@
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+#	
+#	@(#)unix.defines	1.2	94/04/05 17:07:32
+#
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# because /usr/include isn't guaranteed to be the right thing to use we have
+# a variable for the public includes for unix
+UNIX_INCLUDE = -I/usr/include;
+
+UNIX_DEFINES = { -DSYSV };

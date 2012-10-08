@@ -1,0 +1,74 @@
+.\"	@(#)fromb.n	1.4	96/02/16 10:58:51
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory Sharp
+	Document: Gregory Sharp, Feb 1990
+	Modified: Gregory Sharp, Nov 1995
+.aE
+.mT "fromb" U
+read a file from the \*(Bs
+.SH
+Synopsis
+.LP
+.sC L
+fromb [-o offset] [-s size] filename
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "UNIX"
+.kW "read file"
+.kW "remote file transfer"
+.I Fromb
+reads the Bullet file named
+.I filename
+and writes its contents to standard output.
+If the file name cannot be found in the directory server or the capability
+is invalid a suitable error message will be printed.
+If the offset is greater than the file size it will print an error message
+and exit.
+If the offset is valid and
+.I offset
+plus
+.I size
+is greater than the file size it will read up until the end of the file.
+.LP
+Since this command works under
+.UX
+it provides a mechanism for transferring Bullet files from \*(Am to
+.UX .
+.mH
+Options
+.LP
+.IP "\fB\-o\fP offset" 10
+starts reading the file at
+.I offset
+bytes from the start of the file.
+The default is 0.
+.IP "\fB\-s\fP size"
+says to read a maximum of
+.I size
+bytes.
+The default is the whole file.
+.SH
+Example
+.LP
+.sC
+fromb /home/textfile | wc -l
+.eC
+will read the file
+.I /home/textfile
+and pipe it through the
+.I wc
+command and print the number of lines in the file.
+.SH
+See Also
+.LP
+bsize(U),
+cat(U),
+tob(U).

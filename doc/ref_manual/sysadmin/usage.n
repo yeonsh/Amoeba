@@ -1,0 +1,82 @@
+.\"	@(#)usage.n	1.5	96/02/15 17:00:46
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Using This Manual"
+.SH
+Intended Audience
+.LP
+This manual is intended for use by system administrators.
+.SH
+Scope
+.LP
+It is assumed that the reader is familiar with the introductory material
+in the User Guide.
+This manual explains how to install,
+configure and maintain an \*(Am system.
+Security,
+hardware,
+resource management and user management are all described.
+.SH
+Advice on Using this Manual
+.LP
+The manual is divided into several major sections.
+The first chapter describes how to install \*(Am or upgrade an existing \*(Am
+system to a new version.
+Check the release notes to see if the latter is possible.
+The introductory material explains basic things such as the supported hardware
+and how to build configurations.
+This material is necessary for understanding the installation instructions.
+.LP
+Next come the installation instructions for the various supported architectures.
+It is vital that you read the introductory material and the installation guide
+completely before beginning so that you have an overview of the entire process
+and do not get any surprises on the way.
+.LP
+The sections on adding new hosts and new users are largely self-contained but
+you should read the manual pages of the utilities mentioned before using
+them since they offer more detail about the various options.
+.LP
+The section on porting \*(Am is for the very brave.
+The target machine may be the subject of a port by somebody else so
+ask around before beginning.
+It can save a lot of effort.
+.LP
+There is a short chapter on
+.I "Routine Maintenance"
+and another on
+.I "Trouble-shooting"
+which identifies some common problems during installation and day to day
+runnning and how to solve them.
+.LP
+The manual pages for utility programs are before the index.
+They are intended as a reference work for system administrators and should
+be thoroughly read to gain a good overview of the available possibilities.
+.LP
+Throughout the manual there are references of the form
+.I prv (L),
+.I ack (U)
+and
+.I bullet (A).
+These refer to manual pages at the back of the various guides.
+The following table explains what each classification refers to and in which
+guide the manual page can be found.
+.TS
+center, tab(:), box;
+l | l | l .
+Letter:Type:Location
+_
+(A):Administrative Program:System Administration Guide
+(H):Include file:Programming Guide
+(L):Library routine:Programming Guide
+(T):Test Program:System Administration Guide
+(U):User Utility:User Guide
+.TE
+.LP
+There is a full index at the end of the manual providing a permuted
+cross-reference to all the material.
+It gives references to both the manual pages and the introductory material
+which should direct you to enough information to clarify any difficulties in
+understanding.

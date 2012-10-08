@@ -1,0 +1,92 @@
+.\"	@(#)printbufsvr.n	1.7	96/02/15 17:49:36
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Philip Homburg, Oct 3, 1991
+	Document: Philip Homburg, Nov 26, 1991
+	Modified: Gregory J. Sharp, Jan 1996 - table header problems
+.aE
+.mT "printbufsvr" A
+optional kernel server to maintain transfer kernel console output
+.SH
+Synopsis
+.LP
+Built into the kernel.
+.br
+Add
+.sC
+$K_SVR_PRINTBUF,
+.eC
+to the source list of the kernel
+.I Amakefile .
+.SH
+Description
+.LP
+.kW "\fIprintbuf\fP"
+.kW "\fIsyssvr\fP"
+The 
+.I syssvr
+supports the 
+.I sys_printbuf
+function by sending the complete console buffer in reply to a
+.I printbuf
+request. 
+This is useful for occasional examination of the console buffer.
+In contrast, the printbuf server returns only the additions the print
+buffer since the previous
+.I printbuf
+request and blocks the client when no data is available. 
+This way the 
+.I printbuf (A)
+utility is able to provide an illusion of direct connection to the output 
+of a kernel's console.
+.mH
+Diagnostics
+.LP
+.cW STD_NOTNOW
+is returned when an attempt is made to start more than one
+.I printbuf 
+command for a server. 
+In this case 
+.sC
+printbuf -s
+.eC
+will use the
+.I sys
+server and can be used for the second
+.I printbuf .
+.SH
+Programming Interface Summary
+.LP
+.TS
+box tab(:) center box;
+cb s s s
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lw(3.1c) | lw(2.3c) | lw(5.5c)
+lw(2.2c) | lp-2w(3.1c) | lp-2w(2.3c) | lw(5.5c) .
+Available Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_info:NONE:T{
+RPC error
+T}:T{
+Print identifying string.
+T}
+_
+sys_printbuf:SYS_RGT_READ:T{
+RPC error
+T}:T{
+Report additions to the print buffer
+T}
+_
+.TE
+.SH
+See Also
+.LP
+printbuf(A),
+syssvr(A).

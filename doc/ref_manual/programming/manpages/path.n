@@ -1,0 +1,246 @@
+.\"	@(#)path.n	1.5	96/02/15 16:53:49
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Michael N. Condict, Jan 1990 - Mar 1990
+	Document: Michael N. Condict, March 1990
+	Modified: Gregory J. Sharp, Nov 1995
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "path" L "libamoeba.a, libamunix.a"
+functions for processing path names and lists of path names
+.SH
+Synopsis
+.LP
+.sC L
+#include "module/path.h"
+
+int    path_capnorm(dircap_p, path, buf, len)
+int    path_cs_norm(dircapset_p, path, buf, len)
+char * path_first(dirlist, filename, path_buff)
+char * path_lookup(dirlist, filename, path_buff, cap_ptr)
+int    path_norm(cwd, path, buf, len)
+int    path_rnorm(cwd, path, buf, len)
+.eC
+.SH
+Description
+.LP
+.kW "\fIpath_first\fP"
+.kW "\fIpath_lookup\fP"
+.kW "\fIpath_norm\fP"
+.kW "\fIpath_rnorm\fP"
+.kW "\fIpath_capnorm\fP"
+.kW "\fIpath_cs_norm\fP"
+.kW "path names"
+.kW "path.h"
+.kW "path normalization"
+.kW "PATH environment variable"
+.kW "dot (.)"
+.kW "dot-dot (..)"
+This is a collection of functions for parsing and translating path names and
+colon-separated directory lists such as the PATH environment variable.  This
+module implements the semantics of ``.'' and ``\*<..\*>'' as path components,
+by doing syntactic evaluation of such components in the user program.
+The directory servers do not recognize the special meaning of these names.
+.sH
+path_first
+.LP
+.sC
+char *
+path_first(dirlist, filename, path_buff)
+char *dirlist;
+char *filename;
+char *path_buff;
+.eC
+.kW "\fIpath_first\fP"
+Given a colon-separated directory list, a file name and a pointer to a
+character buffer,
+.I path_first
+sets
+.I path_buf
+to the result of appending
+.I filename
+(separated by ``/'') to the first directory in the pathlist.
+However, if the first directory is an empty string or the file
+name begins with ``/'', the file name is just copied to the buffer.
+In any case, a pointer to the portion of
+.I dirlist
+after the first directory
+(and terminating ``:'') is returned, if there are remaining directories, so
+that the result can be used in loops that are to iterate over the
+directories in the list.
+If there are no remaining directories, NULL is
+returned as a terminator for such loops.
+.LP
+.I Path_first
+also returns NULL on any call, if
+.I filename
+begins with ``/'' (since there is no point to further calls).
+The user is responsible for
+ensuring that the buffer pointed to by
+.I path_buff
+is large enough.
+.sH
+path_lookup
+.LP
+.sC
+char *
+path_lookup(dirlist, filename, path_buff, cap_ptr)
+char *dirlist;
+char *filename;
+char *path_buff;
+capability *cap_ptr;
+.eC
+.kW "\fIpath_lookup\fP"
+Given a colon-separated directory list (\fIdirlist\fP), a
+.I filename ,
+a pointer to a char buffer (\fIpath_buff\fP), and a pointer to a capability
+(\fIcap_ptr\fP),
+.I path_lookup
+uses
+.I path_first
+and
+.I name_lookup
+repeatedly,
+to search for the given name in the list of directories (in left to right
+order).
+If found, the buffer is set to the full path name (the directory
+concatenated with the file name, or just the file name if it begins with
+``/''), and the capability is filled in with the capability for the file.
+.LP
+It returns the value returned by the last call to
+.I path_first .
+This can be used as the directory list in a subsequent
+.I path_lookup
+call,
+if the found entry is not deemed suitable,
+or if it is intended that all matching entries be found.
+The first char of
+.I path_buff
+is set to
+.cW '\e0'
+to indicate failure.
+A NULL return value does not indicate failure, only that
+the search went all the way to the last directory in the list.
+The caller is responsible for ensuring that the buffer pointed to by
+.I path_buff
+is large enough.
+.sH
+path_norm
+.LP
+.sC
+int
+path_norm(cwd, path, buf, len)
+char *cwd;
+char *path;
+char *buf;
+int len;
+.eC
+.kW "\fIpath_norm\fP"
+Given an absolute or relative path name (\fIpath\fP) and the name of the
+current working directory (\fIcwd\fP),
+.I path_norm
+builds, in the given character buffer (\fIbuf\fP),
+a normal form for the path name.
+This normal form has any multiple slashes mapped to one, has no trailing ``/''
+and has all occurrences of ``.'' and ``\*<..\*>'' expanded away.
+Also, if
+the path does not start with ``/'', and the current working directory is
+non-NULL, it is prefixed to the path before calculating the normal form.
+Thus the path is changed from relative to absolute, if and only if a
+non-NULL working directory is given.
+.LP
+It returns \(mi1 if a normalized path name is not obtainable, either because
+path is NULL, or cwd is needed and is NULL.
+Note:
+``/\*<..\*>'' is equivalent to ``/'', and paths ending in ``/'' are accepted.
+.sH
+path_rnorm
+.LP
+.sC
+int
+path_rnorm(cwd, path, buf, len)
+char *cwd;
+char *path;
+char *buf;
+int len;
+.eC
+.kW "\fIpath_rnorm\fP"
+Just like
+.I path_norm ,
+above, except that it only uses
+.I cwd
+to turn a relative path into an absolute path if the path contains enough
+``\*<..\*>'' components to require looking at
+.I cwd .
+Otherwise, it acts like
+.I path_norm
+with a NULL
+.I cwd
+argument.
+.sH
+path_capnorm
+.LP
+.sC
+int
+path_capnorm(dircap_p, path, buf, len)
+capability **dircap_p;
+char *path;
+char *buf;
+int len;
+.eC
+.kW "\fIpath_capnorm\fP"
+Similar to
+.I path_rnorm ,
+except that it uses a capability pointer
+instead of the name of the current working directory.
+If the capability is the same as the working directory capability,
+the path is normalized as if
+.I path_rnorm
+had been called with the absolute path name of the working
+directory as first argument.
+Otherwise, the path is normalized using a NULL working directory string,
+in which case the path must not have a leading ``\*<..\*>''.
+.LP
+The capability is specified as a pointer to a pointer, because it needs
+to be modified if a path name relative to the working directory is
+normalized to an absolute path name.
+In this case, the capability pointer
+is changed to point to the capability for the user's root directory.
+.sH
+path_cs_norm
+.LP
+.sC
+int
+path_cs_norm(dircapset_p, path, buf, len)
+capset **dircapset_p;
+char *path;
+char *buf;
+int len;
+.eC
+.kW "\fIpath_cs_norm\fP"
+Similar to
+.I path_rnorm ,
+except that it uses a pointer to a capability-set (\fIdircapset_p\fP) instead
+of the name of the current working directory.
+If any capability in the set is the same as the
+working directory capability, the path is normalized as if
+.I path_rnorm
+had been called with the absolute path name of the working directory as first
+argument.
+Otherwise, the path is normalized using a NULL working
+directory string, in which case the path must not have a leading
+``\*<..\*>''.
+.LP
+The capset is specified as a pointer to a pointer, because it needs to be
+modified if a path name relative to the working directory is normalized
+to an absolute path name.
+In this case, the capset pointer is changed to
+point to the capset for the user's root directory.
+.SH
+See Also
+.LP
+soap(L).

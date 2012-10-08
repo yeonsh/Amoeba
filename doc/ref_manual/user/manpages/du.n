@@ -1,0 +1,108 @@
+.\"	@(#)du.n	1.5	96/02/15 18:09:32
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+        Software: Kees Verstoep
+        Document: Kees Verstoep, 23/5/91 
+.aE
+.mT "du" U
+show disk usage per directory or file
+.SH
+Synopsis
+.LP
+.sC L
+du [-alnosv] [-f filesvr] [path ...]
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "disk usage"
+.kW "resource usage"
+For each directory given as argument,
+.I du
+recursively shows the number of kilobytes in use by the files.
+The file size information of individual files is only printed
+when the file is given as argument,
+or when the
+.B \-a
+option is given.
+If no arguments are provided,
+.I du
+shows the disk usage of the current directory and its subdirectories.
+.LP
+The output of
+.I du
+is columnar,
+one column for each file server (see the examples section below).
+The file servers available are looked up in directory
+.cW /profile/cap/bulletsvr .
+.mH
+Options
+.LP
+.IP \fB\-a\fP 8
+Also print the size of each individual file.
+.IP "\fB\-f \fIfcap\fR"
+Add a column for the file server with capability fcap.
+.IP \fB\-l\fP
+Restrict the search of the directory graph to the local soap server.
+.IP \fB\-n\fP
+For each directory,
+only print the total size of the files within that directory,
+i.e., do not add the file sizes from its subdirectories.
+.IP \fB\-o\fP
+Add a column accumulating size information for objects on other file servers.
+.IP \fB\-s\fP
+Do not print information about the subdirectories,
+only the grand total.
+.IP \fB\-v\fP
+Add a column displaying for each directory
+the number of files and subdirectories it contains, recursively.
+In combination with the
+.B \-n
+option,
+for each directory only its own contents are printed.
+.SH
+Examples
+.LP
+The command
+.sC
+du modules
+.eC
+might print something like
+.sC
+bullet0|bullet1|bullet2|
+     26|     26|       | modules/h
+     17|     17|       | modules/pkg
+    259|    259|       | modules/lib/m68020
+       |       |       | modules/lib/i80386
+    259|    259|       | modules/lib
+    302|    302|       | modules
+.eC
+In this example,
+bullet0 and bullet1 are replicated bullet file servers,
+hence the similarity between the first and second column.
+.LP
+The command
+.sC
+du -nv modules
+.eC
+will show the file sizes,
+number of files,
+and number of subdirectories for each directory:
+.sC
+bullet0|bullet1|bullet2|#fil|#sub|
+     26|     26|       |  11|   0| modules/h
+     17|     17|       |   4|   0| modules/pkg
+    259|    259|       |  14|   0| modules/lib/m68020
+       |       |       |   0|   0| modules/lib/i80386
+       |       |       |   0|   2| modules/lib
+       |       |       |   0|   3| modules
+.eC
+.SH
+See Also
+.LP
+bsize(U).

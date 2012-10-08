@@ -1,0 +1,291 @@
+.\"	@(#)b_kerndefs.n	1.9	96/02/15 17:01:36
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Jack Jansen, 5 Feb 89
+	Modified: Gregory J. Sharp, 29 May 1991 - a lot of water has passed!
+		  Gregory J. Sharp, 5 April 1994 - even more ...
+		  Gregory J. Sharp, Jan 1996 - polish, style, etc
+.aE
+. \" A macro to start a section on a define:
+.de zD
+.LP
+.cW \\$1
+.LP
+..
+. \" A macro to start a subsection:
+.de zS
+.IP \\$1: 15
+..
+. \" A macro to start a paragraph:
+.de zP
+.IP
+..
+.nH 3 "The Kernel Defines"
+.LP
+.kW "kernel configuration"
+This section lists most kernel configuration parameters.
+Per parameter, it tells what functionality the define
+selects or modifies, what other defines it needs to function correctly,
+for which configurations it is useful, and what other features
+depend on it.
+.LP
+.zD BS_MEM_RESERVE
+This define can be set to the amount of main memory a kernel-based \*(Bs
+will leave free for other uses.
+(Normally a \*(Bs takes all the free memory it finds.)
+For a machine that will only run
+a \*(Bs it can be set very low.
+The default assumes some user processes and is set to 3 Mbytes.
+.zS Configuration
+Any kernel with bullet server support; required.
+.zS Affects
+the \*(Bs.
+.zD BYTES_REVERSED
+This define tells the lance driver that the in-core structures used
+by the lance have their bytes reversed.
+.kW big-endian
+It might have to be set on some big-endian machines.
+.zS Configuration
+Kernels for big-endian machines with a lance network interface; required.
+.zS Affects
+the lance driver.
+.zD COMM_LOCK
+Enables the inclusion of a few routines to use test-and-set instructions
+on 68K based machines.
+.zS Configuration
+Kernels for 680x0-based machines; optional.
+.zS Affects
+as.S
+.zD FLIPGRP
+Set this flag when making a kernel with the group communication primitives.
+.zS Affects
+FLIP RPC code.
+.zD IOMAPPED
+Define this if I/O to the lance device registers is through I/O
+space, not memory mapped.
+Probably only needed for 8086 type machines,
+do not define.
+.zS Configuration
+None that I know of.
+.zD IOP
+This define enables support for the IOP driver, the low-level interface
+to the screen, keyboard and mouse used by X windows.
+Currently, 
+IOP drivers are available for a monochrome VGA/i80386/i80486
+systems, for the monochrome Sun\ 3/60 and both color and monochrome Sun\ 4
+systems.
+This define should be used
+in workstation kernels.
+.zP
+The IOP driver for this machine should also be included.
+Also, it might be necessary to include the uart
+driver even with NOTTY defined.
+.zS Configuration
+A workstation kernel for a i80x86, a Sun\ 3 or a Sun\ 4; required.
+.zS Affects
+the uart driver, maybe some other things.
+.zD LADEBUG
+Enables some (reasonably cheap) debugging output on lance errors,
+etc.
+This option should probably be defined, unless the volume of
+the debug output to the console is too high to be comfortable, on
+workstation kernels, for instance.
+.zS Configuration
+Any machine with a lance; recommended.
+.zS Affects
+lance.c
+.zD LADUMP
+Enables code to dump the status of the lance to the console.
+It should probably be defined on most machines.
+.zS Configuration
+Any machine with a lance; recommended.
+.zS Affects
+lance.c
+.zD LANCE
+Enables code to support the lance network interface driver in other
+modules.
+This option should be defined on all machines that use the
+lance network driver, machdep/dev/generic/lance.c.
+.zS Configuration
+Any machine with a lance; required.
+.zS Affects
+various files.
+.zD LAREBOOT
+It is rumored that there are older revisions of the lance that will
+sometimes turn off their transmitter without giving an interrupt.
+This option enables code that tries to detect this situation and
+repair it.
+Do not use, unless you see the symptoms: a machine that
+refuses to talk to the outside world.
+.zS Configuration
+Any machine with a lance; optional.
+.zS Affects
+lance.c
+.zD LASTAT
+Enables code to gather and dump lance statistics.
+It should probably
+be defined on most machines.
+.zS Configuration
+Any machine with a lance; recommended.
+.zS Affects
+lance.c
+.zD MAPCASES
+Enables code in the tty driver to do upper case to lower case mapping
+on upper case only terminals.
+You probably do not want this.
+.zS Configuration
+Any kernel with a tty driver; optional.
+.zS Affects
+the tty driver.
+.zD NDEBUG
+This define disables all general debugging code in the kernel, all
+assertions, the ability to print stack dumps on kernel crashes, etc.
+Since the debugging code toggled by this option is not expensive,
+it is not recommended to use this option for general use.
+.zS Configuration
+All; not recommended.
+.zS Affects
+Everything.
+.zD NODIRECTORY
+This option disables the pseudo-directory maintained by the kernel.
+It is only used by bootstrap kernels.
+Note that kernel services are
+unreachable when this option is turned on, so it is rather useless to
+include any.
+.zS Configuration
+Bootstrapping kernels; required.
+.zS Affects
+systask.c
+.zD NONET
+This option disables all networking.
+It is only used in the disk labeling
+kernel.
+.zS Configuration
+Disklabel kernels; required.
+.zS Affects
+Almost everything.
+.zD NOPROC
+This option disables support for user processes.
+It is used in special
+purpose kernels like the bootstrap kernel.
+Depending on your configuration, it might be advisable to enable it
+on your file server, to disallow user processes on it.
+If you define this option you should also not include the sources
+in servers/proc.
+.zS Configuration
+Kernels without support for user processes; required.
+.zS Affects
+Many things.
+.zD NORANDOM
+This option disables support for the random number numbers in the kernel.
+It should not be used.
+.zD NOTIOS
+This option is for compatibility only: it instructs the tty driver
+to use old-style signals instead of POSIX compatible signals.
+Do not define.
+.zS Configuration
+Any kernel with a tty driver; not recommended.
+.zS Affects
+the tty driver.
+.zD NOTTY
+This option disables support for the tty driver.
+Note that this means the high-level tty driver, it does not affect the kernel printing to
+the console.
+If this option is \fInot\fP set, the sources in
+server/tty should be included.
+Also, an uart driver for this machine
+should be incorporated in the kernel.
+.zS Configuration
+Any kernel without tty server support; required.
+.zS Affects
+the uart driver and various other things.
+.zS Dependencies
+If this option is \fInot\fP set, an uart driver should be included in
+the kernel.
+Also, the options
+.cW NO_INPUT_FROM_CONSOLE
+and
+.cW NO_OUTPUT_ON_CONSOLE
+should not be set.
+.zD NO_INPUT_FROM_CONSOLE
+This option disables handling input from the console in the uart
+driver.
+This option can be set in pool processor kernels and bootstrap kernels.
+.zS Configuration
+Any kernel that does not need keyboard input; optional.
+.zS Affects
+the uart driver and putchar code.
+.zD NO_IOCTL
+This option takes ioctl support out of the tty driver.
+Do not use.
+.zS Configuration
+Any kernel with tty server support; not recommended.
+.zS Affects
+the tty server and the uart driver.
+.zD NO_OUTPUT_ON_CONSOLE
+This option disables output on the console.
+Kernel output still goes to the console buffer
+where it can be examined using the
+.I printbuf (A)
+command.
+Actually, this option impliesd
+.cW NO_INPUT_FROM_CONSOLE ,
+and completely obviates the need for a uart driver.
+This can also be useful for preventing access to a pool processor from the
+uart.
+.zS Configuration
+Any kernel for a machine without an uart; required.
+.zS Affects
+main.c, some machine dependent files.
+.zD PROFILE
+Enables support for kernel profiling.
+It is also necessary to include the profiling server.
+(See
+.I profsvr (A).)
+.zS Configuration
+Any kernel; optional.
+.zD ROMKERNEL
+This define should be set only for bootstrap kernels.
+It has many effects all meant to make the kernel as small as possible.
+Among other things it disables virtual memory support and makes the kernel
+use only a minimal number of network buffers.
+.zS Configuration
+Bootstrap kernels; required.
+.zS Affects
+Various files.
+.zS Dependencies
+NOTTY, NOPROC, NORANDOM, and SMALL_KERNEL should be defined.
+NDEBUG should be defined as well.
+No drivers should be
+included.
+.zD RTSCTS
+Disables support for modem control signals in the tty server and
+the uart driver.
+.zS Configurations
+Any kernel with tty server support; optional.
+.zS Affects
+The tty server and the uart driver.
+.zD SMALL_KERNEL
+Use this to obtain a physically small kernel which still provides most of
+the normal \*(Am services.
+.zD STATISTICS
+Enables code to gather some transaction layer statistics, obtainable
+with the kstat command.
+Define this for normal kernels.
+.zS Configurations
+All; recommended.
+.zS Affects
+the RPC layer, maybe some other things.
+.zD VERY_SIMPLE
+This option strips most of the code out of the tty server, leaving
+only the bare necessities.
+Do not define this.
+.zS Configuration
+Any kernel with tty server support; not recommended.
+.zS Affects
+the tty server and the uart driver.

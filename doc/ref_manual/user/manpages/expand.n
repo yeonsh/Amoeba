@@ -1,0 +1,50 @@
+.\"	@(#)expand.n	1.4	96/02/15 18:12:00
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "expand" U
+convert tabs to spaces
+.SH
+Synopsis
+.LP
+.sC L
+expand [-t1,t2, ...] [file]
+.eC
+.SH
+Description
+.LP
+.kW "tab expansion"
+.I Expand
+replaces tabs in the named files with the equivalent numbers of spaces.
+If no files are listed,
+.I stdin
+is used.
+The default is a tab every 8 spaces.
+.mH
+Options
+.LP
+.IP \fB\-\fP\fIn\fP
+Tab stop positions at the
+.I n
+th character position.
+If only one tab position is given,
+the rest are multiples of it.
+.SH
+Example
+.LP
+.sC
+expand -16,32,48,64
+.eC
+Expand
+.I stdin
+with tabs every 16 columns.
+.SH
+See Also
+.LP
+unexpand(U).

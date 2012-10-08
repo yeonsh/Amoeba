@@ -1,0 +1,131 @@
+.\"	@(#)make.n	1.6	96/02/16 11:03:10
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - attempted to make it readable
+					       and factual.
+.aE
+.mT "make" U
+a program for maintaining medium-sized programs
+.SH
+Synopsis
+.LP
+.sC L
+make [-f file] [-inpqrst] ... [target]
+.eC
+.SH
+Description
+.LP
+.I Make
+is a program that is normally used for developing medium-sized programs
+consisting of multiple files.
+It keeps track of which object files depend on which source and header files.
+When called,
+it tries to do the minimum amount of recompilation necessary
+to bring the target file up to date.
+.mH
+Options
+.LP
+.IP \fB\-f\fP
+Use
+.I file
+as the
+.I makefile .
+.IP \fB\-i\fP
+Ignore status returned by commands.
+Normally
+.I make
+stops if a command that it has started returns an error status.
+.IP \fB\-n\fP
+Report, but do not execute the commands necessary to remake the target(s).
+.IP \fB\-p\fP
+Print macros and targets.
+.IP \fB\-q\fP
+Question up-to-dateness of target.
+The exit status is 0 if the target is up to date and 1 otherwise.
+.IP \fB\-r\fP
+Rule inhibit; do not use default rules.
+.IP \fB\-s\fP
+Silent mode.
+Do not print commands before executing them.
+.IP \fB\-t\fP
+Touch files (making them up to date) instead of making them.
+.LP
+The file dependencies are expected in
+.I makefile
+or
+.I Makefile ,
+unless another file is specified with
+.B \-f .
+.I Make
+has some default rules built in,
+for example,
+it knows how to make
+.I .o
+files from
+.I .c
+files.
+Here is a sample makefile.
+.sC
+d=/home/test                           # d is a macro
+program: head.o tail.o                 # program depends on these
+	cc -o program head.o tail.o    # tells how to make program
+	echo Program done.             # announce completion
+
+head.o: $d/def.h head.c                # head.o depends on these
+tail.o: $d/var.h tail.c                # tail.o depends on these
+.eC
+.LP
+A complete description of
+.I make
+would require too much space here.
+For more information, see Feldman (1979).
+Many books on
+.UX
+also discuss
+.I make .
+.mH
+Warnings
+.LP
+.I Make
+uses a file's modification time to see if it is ``out of date.''
+.kW SOAP
+As the SOAP directory server currently does not provide a very precise
+file modification time,
+problems may arise when a file is to be recompiled,
+shortly after it has been changed.
+.kW "\fIamake\fP"
+\*(Am's own configuration manager,
+.I amake (U),
+does not have this problem,
+since it records the actual capabilities of file objects.
+Before using
+.I make ,
+look at the manual page for
+.I amake
+to see if it is suitable.
+It is much more effective.
+.SH
+Examples
+.LP
+.sC
+make kernel
+.eC
+Make
+.I kernel
+up to date.
+.sC
+make -n file
+.eC
+Print the commands that needs to be executed to bring
+.I file
+up to date.
+.SH
+See Also
+.LP
+amake(U).

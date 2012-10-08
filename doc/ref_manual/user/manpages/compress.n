@@ -1,0 +1,106 @@
+.\"	@(#)compress.n	1.4	96/02/15 18:05:52
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Oct 1995, made last example clearer.
+.aE
+.mT "compress" U
+compress a file using modified Lempel-Ziv coding
+.SH
+Synopsis
+.LP
+.sC L
+compress   [-cdfv] [file] ...
+uncompress [file.Z] ...
+zcat       [file.Z] ...
+.eC
+.SH
+Description
+.LP
+.kW "\fIuncompress\fP"
+.kW "\fIzcat\fP"
+The listed files (or
+.I stdin ,
+if none are given) are compressed using the Lempel-Ziv algorithm.
+If the output is smaller than the input,
+the output is put on
+.I file.Z
+or
+.I stdout
+if no files are listed.
+If
+.I compress
+is linked to
+.I uncompress ,
+the latter is the same as giving the
+.B \-d
+flag.
+It will produce the file with the same name but without the
+.I \.Z
+suffix and delete the original compressed file.
+Similarly,
+a link to
+.I zcat
+decompresses to
+.I stdout ,
+but the original
+.I \.Z
+file is not deleted.
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+Put output on
+.I stdout
+instead of on
+.I file.Z .
+.IP \fB\-d\fP
+Decompress instead of compress.
+.IP \fB\-f\fP
+Force output even if there is no saving.
+.IP \fB\-v\fP
+Verbose mode.
+.SH
+Examples
+.LP
+.sC
+compress < infile > outfile
+.eC
+Compress
+.I infile
+and writes the result on
+.I outfile .
+.sC
+compress x y z
+.eC
+Compress the 3 files to
+.I x.Z ,
+.I y.Z
+and
+.I z.Z
+respectively.
+.sC
+compress -d file.Z
+.eC
+Decompress
+.I file.Z
+to file.
+.sC
+uncompress file.Z
+.eC
+Equivalent to the previous example.
+.sC
+zcat file.Z
+.eC
+Decompresses
+.I file.Z
+and writes the result to
+.I stdout ,
+leaving
+.I file.Z
+unchanged.

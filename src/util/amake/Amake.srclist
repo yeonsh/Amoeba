@@ -1,0 +1,104 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/07 14:45:19
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Source description of Amake
+# This distribution contains generated files
+
+H_SRC = {
+	$PWD/alloc.h,
+	$PWD/Lpars.h,
+	$PWD/buffer.h,
+	$PWD/check.h,
+	$PWD/classes.h,
+	$PWD/conversion.h,
+	$PWD/dbug.h,
+	$PWD/declare.h,
+	$PWD/dump.h,
+	$PWD/error.h,
+	$PWD/eval.h,
+	$PWD/execute.h,
+	$PWD/expr.h,
+	$PWD/getoptx.h,
+	$PWD/idf.h,
+	$PWD/input.h,
+	$PWD/lexan.h,
+	$PWD/main.h,
+	$PWD/os.h,
+	$PWD/parser.h,
+	$PWD/statefile.h,
+	$PWD/symbol2str.h,
+	$PWD/tokenname.h,
+
+	$PWD/f_info.h,
+	$PWD/global.h,
+	$PWD/systypes.h,
+	$PWD/struct.def [type = C-incl],
+	$PWD/typedefs.h,
+
+	$PWD/inp_pkg.body [type = C-incl],
+	$PWD/inp_pkg.spec [type = C-incl],
+
+	$PWD/assignment.h,
+	$PWD/builtin.h,
+	$PWD/caching.h,
+	$PWD/cluster.h,
+	$PWD/derive.h,
+	$PWD/docmd.h,
+	$PWD/generic.h,
+	$PWD/invoke.h,
+	$PWD/objects.h,
+	$PWD/scope.h,
+	$PWD/slist.h,
+	$PWD/tools.h,
+	$PWD/type.h
+};
+
+C_SRC = {
+	$PWD/Lpars.c,
+	$PWD/alloc.c,
+	$PWD/assignment.c,
+	$PWD/buffer.c,
+	$PWD/builtin.c,
+	$PWD/caching.c,
+	$PWD/check.c,
+	$PWD/cluster.c,
+	$PWD/conversion.c,
+	$PWD/dbug.c,
+	$PWD/declare.c,
+	$PWD/dump.c,
+	$PWD/error.c,
+	$PWD/eval.c,
+	$PWD/expr.c,
+	$PWD/idf.c,
+	$PWD/input.c,
+	$PWD/invoke.c,
+	$PWD/generic.c,
+	$PWD/getoptx.c,
+	$PWD/lexan.c,
+	$PWD/main.c,
+	$PWD/os.c,
+	$PWD/parser.c,
+	$PWD/scope.c,
+	$PWD/slist.c,
+	$PWD/statefile.c,
+	$PWD/symbol2str.c,
+	$PWD/tokenfile.c,
+	$PWD/tokenname.c,
+	$PWD/tools.c,
+ 	$PWD/type.c,
+
+	$PWD/classes.c,
+	$PWD/derive.c,
+	$PWD/docmd.c,
+	$PWD/execute.c,
+	$PWD/objects.c,
+
+	$PWD/next.c,
+};
+
+SOURCEFILES = $C_SRC + $H_SRC;
+

@@ -1,0 +1,112 @@
+#	
+#	@(#)Amake.srclist	1.2	96/02/27 12:44:56
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+U_CTAGS = $PWD/ctags.c;
+U_ELVREC = {
+	$PWD/elvrec.c,
+	$PWD/am_unlink.c,
+};
+U_ELVPRSV = {
+	$PWD/elvprsv.c,
+	$PWD/am_unlink.c,
+#	$PWD/prsvunix.c, # This is included by elvprsv.c
+};
+U_FMT = $PWD/fmt.c;
+U_REF = $PWD/ref.c;
+U_REFONT = $PWD/refont.c;
+
+U_ELVIS = {
+	$PWD/blk.c,
+	$PWD/cmd1.c,
+	$PWD/cmd2.c,
+	$PWD/config.h,
+	$PWD/ctype.c,
+	$PWD/ctype.h,
+	$PWD/curses.c,
+	$PWD/curses.h,
+	$PWD/cut.c,
+	$PWD/ex.c,
+	$PWD/input.c,
+	$PWD/main.c,
+	$PWD/misc.c,
+	$PWD/modify.c,
+	$PWD/move1.c,
+	$PWD/move2.c,
+	$PWD/move3.c,
+	$PWD/move4.c,
+	$PWD/move5.c,
+	$PWD/opts.c,
+	$PWD/recycle.c,
+	$PWD/redraw.c,
+	$PWD/regexp.c,
+	$PWD/regexp.h,
+	$PWD/regsub.c,
+	$PWD/system.c,
+	$PWD/tio.c,
+	$PWD/tmp.c,
+	$PWD/unix.c,
+	$PWD/vars.c,
+	$PWD/vcmd.c,
+	$PWD/vi.c,
+	$PWD/vi.h,
+	$PWD/am_unlink.c,
+};
+
+MAN_FILES = {
+	$PWD/doc/ctags.doc,
+	$PWD/doc/ctags.man,
+	$PWD/doc/elvis.doc,
+	$PWD/doc/elvis.man,
+	$PWD/doc/elvprsv.doc,
+	$PWD/doc/elvprsv.man,
+	$PWD/doc/elvrec.doc,
+	$PWD/doc/elvrec.man,
+	$PWD/doc/fmt.doc,
+	$PWD/doc/fmt.man,
+	$PWD/doc/ref.doc,
+	$PWD/doc/ref.man,
+};
+
+
+UNUSED_SRCS = {
+	$PWD/alias.c,
+	$PWD/amiga.c,
+	$PWD/amiprsv.c,
+	$PWD/amistat.h,
+	$PWD/amisysio.c,
+	$PWD/amitty.c,
+	$PWD/amiwild.c,
+	$PWD/atari.c,
+	$PWD/borland.h,
+	$PWD/osk.c,
+	$PWD/osk.h,
+	$PWD/pc.c,
+	$PWD/prsvdos.c,
+	$PWD/shell.c,
+	$PWD/sysdos.c,
+	$PWD/tinyprnt.c,
+	$PWD/tinytcap.c,
+	$PWD/vmsio.c,
+	$PWD/vmswild.c,
+	$PWD/wildcard.c,
+};
+
+UNUSED_MISC = {
+	$PWD/Elvis.lnk,
+	$PWD/Elvis.mak,
+	$PWD/Elvis.prj,
+	$PWD/INSTALL,
+	$PWD/Makefile.mix,
+	$PWD/MANIFEST,
+	$PWD/Pkgfile,
+	$PWD/README,
+	$PWD/novice.rc,
+	$PWD/profile.sh,
+	$PWD/vmsbuild.com,
+	$PWD/vmslink.opt,
+	$PWD/vmssetup.com,
+};

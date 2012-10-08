@@ -1,0 +1,114 @@
+.\"	@(#)capcache.n	1.4	96/02/15 16:48:03
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Gregory J. Sharp, 26 November 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT capcache L "libamoeba.a, libkernel.a, libamunix.a"
+capability cache management routines
+.SH
+Synopsis
+.LP
+.sC L
+#include <module/cap.h>
+
+int cc_init(n_entries)
+int cc_restrict(cap, mask, new, restrict)
+
+int cap_cmp(cap1, cap2)
+.eC
+.SH
+Description
+.LP
+.kW "capability cache"
+.kW "\fIcc_init\fP"
+.kW "\fIcc_restrict\fP"
+.kW "\fIcap_cmp\fP"
+The capability cache routines are used to manage a least recently used (LRU)
+cache of known capabilities.
+The cache is dynamically allocated by the routine
+.I cc_init
+which takes as its parameter the number of entries the cache should have.
+Entries are looked up in the cache using the routine
+.I cc_restrict .
+If an entry is not found in the cache it is added.
+The idea is that instead of repeatedly performing
+.cW STD_RESTRICT
+commands (see
+.I std (L)),
+the restricted versions of a capability are kept in the cache.
+The cache is protected from concurrent updates using mutexes (see
+.I mutex (L)).
+.LP
+The routine
+.I cap_cmp
+simply determines if two capabilities are identical.
+.sH
+cc_init
+.LP
+.sC
+int
+cc_init(n_entries)
+int n_entries;
+.eC
+.kW "\fIcc_init\fP"
+This routine allocates sufficient memory for a capability cache with
+.I n_entries
+slots and initializes the cache to empty.
+It is only possible to have one capability cache per process.
+It returns 0 if the memory allocation failed.
+It returns 1 if the cache was successfully allocated or if a cache has
+already been allocated (even if it is a different size from the one requested!).
+.sH
+cc_restrict
+.LP
+.sC
+int
+cc_restrict(cap, mask, new, restrict)
+capability *cap;
+rights_bits mask;
+capability *new;
+int (*restrict)();
+.eC
+.kW "\fIcc_restrict\fP"
+This routine attempts to look up the capability
+.I cap
+in the capability cache and returns in
+.I new
+the same capability but with the rights restricted to those set in
+.I mask .
+.LP
+If the required restricted capability is not in the cache then it is added.
+The function
+.I restrict
+is used to restrict the rights to create the new capability.
+(This is typically
+.I std_restrict
+\(em see
+.I std (L).)
+If the cache becomes full then entries are discarded from the cache on an
+LRU basis.
+.sH
+cap_cmp
+.LP
+.sC
+int
+cap_cmp(cap1, cap2)
+capability *cap1, *cap2;
+.eC
+.kW "\fIcap_cmp\fP"
+This routine compares the capabilities pointed to by
+.I cap1
+and
+.I cap2 .
+If they are identical in all respects it returns 1.
+Otherwise it returns 0.
+.SH
+See Also
+.LP
+capset(L).

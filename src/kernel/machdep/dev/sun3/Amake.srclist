@@ -1,0 +1,46 @@
+#	
+#	@(#)Amake.srclist	1.6	94/05/31 13:02:20
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+K_DEV_SUN3_BITMAP = {
+	$PWD/bitblt.c,
+	$PWD/cursor_state.c,
+	$PWD/def_font.c,
+	$PWD/icon_font.c,
+	$PWD/initfont.c,
+	$PWD/sunputchar.c,
+	$PWD/vscroll.c
+};
+K_DEV_SUN3_TIMER = {
+	$PWD/timersun.c,
+	$PWD/timersun.init
+};
+K_DEV_SUN3_UART = {
+	$PWD/uartsun.c,
+	$PWD/uartsun.init
+};
+K_DEV_SUN3_ETHER = {
+        $K_DEV_GLANCE,
+	$PWD/sun3ether.c,
+};
+K_DEV_SUN3_EADDR = $PWD/eadrsun.c;
+K_DEV_SUN3_DISKDEP = {
+	$PWD/diskdep.c
+};
+K_DEV_SUN3_SCSI = {
+	$PWD/am9516a.h,
+	$PWD/ncr5380.h,
+	$PWD/scsisun.c
+};
+K_DEV_SUN3_IOP = {
+	$PWD/iop.c,
+	$PWD/iop.init,
+};
+K_MACH = {
+	$K_DEV_SUN3_TIMER,
+	$K_DEV_SUN3_UART,
+	$PWD/sun3.c
+};

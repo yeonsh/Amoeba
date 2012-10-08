@@ -1,0 +1,261 @@
+.\"	@(#)aps.n	1.5	96/02/15 18:00:27
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, January 1990
+	Document: Guido van Rossum, February 1990
+	Modified: Michael Condict, 27 February 1990
+		  Kees Verstoep, 18 March 1991
+		  Gregory J. Sharp, Oct 1995 - minor layout problems
+.aE
+.mT "aps" U
+show process status
+.SH
+Synopsis
+.LP
+.sC L
+aps [-a] [-v] [-u username] [-l number] [-s] [directory] ...
+aps [-a] [-v] [-u username] [-l number] [-s] -m [machine] ...
+.eC
+.SH
+Description
+.LP
+.kW "process status"
+.kW "processor state"
+.kW "processor load"
+.I Aps
+has two modes:
+.I default
+mode,
+in which
+.I aps
+uses process information retrieved from session servers,
+and
+.I super
+mode,
+in which process information is retrieved from the hosts directly.
+Whether super mode is available for an arbitrary user,
+depends on the protection of the process directories.
+Super mode can be specified explicitly by the
+.B \-s
+option.
+.LP
+.I Aps
+can be invoked in two ways.
+The first form
+prints information about the processes running on each host
+found in each directory.
+If no directories are given,  the default pool-processor directories
+are used.  These processors usually contain all the processes of an
+ordinary user.
+.LP
+The second form (with
+.B \-m )
+causes the remaining arguments to be
+interpreted as machine names instead of directories.
+Information about the processes of each specified machine is printed.
+If no machine names are given, all known machines are used.
+.LP
+In either form, by default, only the processes of the current user are listed
+(but see
+.B \-a ,
+below).
+.LP
+In default mode,
+.I aps
+prints for each of the processes managed by the session server,
+its process id (see below),
+its state,
+and a command string.
+The state is either
+.cW "FREE" ,
+.cW "RUNNING" ,
+.cW "PARENT" ,
+.cW "CHILD" ,
+.cW "NEWPROC" ,
+.cW "EXECING" ,
+.cW "WAITING" ,
+.cW "CALLBACK" ,
+.cW "KILLING"
+or
+.cW "DEAD".
+When the
+.I verbose
+option is given,
+additionally the parent's process id,
+process group,
+status and owner (see below) are printed.
+.LP
+In super mode,
+output is columnar, and consists of a header containing column
+labels, followed by one line of information for each selected process.
+The displayed information includes, by default, the machine name (HOST), the
+\*(Am process table entry number (PS \(em the name of the entry under the
+.I ps
+directory of the machine), the status (ST \(em R=running, S=stopped),
+and the command that was used to invoke the process (COMMAND).
+.LP
+Note that if the HOST column shows
+.I x
+and the PS column shows
+.I n ,
+the process capability can be accessed as
+.I hostdir/\*<x\*>/ps/\*<n\*> ,
+where
+.I hostdir
+is the directory containing all the hosts of the local network
+(usually
+.I /super/hosts ).
+Among other uses, this can be supplied as an
+argument to
+.I stun (U)
+or
+.I std_info (U).
+.LP
+Note also that
+the command information is extracted from the string returned by
+a std_info call to the process' capability, and is not guaranteed to be
+correct.
+.LP
+If certain information is not available, an error indication is given in
+parentheses.
+.mH
+Options
+.LP
+.IP \fB\-a\fP 6
+Show all processes on the selected machines, not just the ones belonging to
+the current user.
+If specified, a USER column is added to the output, showing
+the user that invoked each process.
+This is obtained from the std_info transaction to the process capability or
+to the process owner capability,
+and is not guaranteed to be correct.
+.IP "\fB\-u\fP \fIusername\fP
+.br
+Show only the processes belonging to the specified user.  This option is
+ignored if
+.B \-a
+is specified.
+.IP "\fB\-l\fP \fIn\fP
+Instead of printing machine name in the first column of each process line,
+precede the listing for each
+machine by a syntactically distinguished header line showing the machine
+.kW "\fIppload\fP"
+name and the load on the machine (as printed by
+.I ppload (U)).
+.kW "up-time"
+This line shows details of available memory, CPU load and up-time.
+Pad the output for each machine with blank lines to at least \fBn\fP
+lines, to make the output of repeated calls appear at the same height.
+This is useful when the output is being repeatedly piped to a screen update
+program, e.g., by typing
+.sC
+!Gaps -al 8
+.eC
+repeatedly to
+.I vi .
+.IP \fB\-s\fP
+Forces
+.I aps
+to go into super mode.
+When the
+.B \-m
+or
+.B \-l
+option are given,
+this is done automatically.
+.IP \fB\-v\fP
+Add columns of information about the process that owns each listed process,
+obtained by doing a std_info transaction to the owner capability.
+The OWNER column is a string identifying the
+owner program (usually the session server or an
+.I ax
+server).
+If the process is using
+POSIX emulation,
+the POSIX PID is a unique identifier for the process, otherwise the column is
+blank.
+The POSIX PID can be supplied to the
+.I kill (U)
+command to signal the process.
+.LP
+If
+.B \-l
+is in effect,
+.B \-v
+also causes an extra line to be added to
+each machine header, listing the version string returned by the machine.
+.SH
+Examples
+.LP
+The command
+.sC
+aps -av
+.eC
+is executed in default mode,
+so it does not show any host information:
+.sC L
+.ps-2
+USER        PID  PPID  PGRP STATE      T OWNER              COMMAND
+sater         2     1     2 RUNNING    R session server     -ksh
+versto        2     1     2 WAITING    R session server     -ksh
+versto       20     2     2 RUNNING    R session server     xload
+versto       31     2     2 RUNNING    R session server     aps -av
+gregor       12     1    12 RUNNING    R session server     -ksh
+kaashoek     22     1    22 WAITING    R session server     -sh
+kaashoek     24    22    22 RUNNING    R session server     ksh
+.ps
+.eC
+.LP
+The command
+.sC
+aps -av -m vmesc2 vmesc4
+.eC
+shows all processes on machines
+.I vmesc2
+and
+.I vmesc4 :
+.sC L
+.ps-2
+           POSIX S
+HOST    PS   PID T USER    OWNER              COMMAND
+vmesc2   2       R condict ax server          session -a
+vmesc2   4       R mjh     ax server          session -a
+vmesc2   3    18 R mjh     session server     artserv -d
+vmesc2   5    22 R mjh     session server     artcli
+vmesc4   1       R condict ax server          run /super/cap/runsvr/
+vmesc4   3    39 R sater   session server     -sh
+vmesc4   5     2 R mjh     session server     -sh
+vmesc4   7    19 R mjh     session server     vi temp
+.ps
+.eC
+.LP
+The command
+.sC
+aps -al 1 -m zoo80 zoo81
+.eC
+shows the same processes, but without the owner information and
+using the fixed screen format:
+.sC L
+.ps-2
+----- zoo80: load 0.00, 36.4 Mips, 25.8 Mb free, up 2 hrs 40 min --------------
+  1  R chuck     session -a
+----- zoo81: load 0.03, 36.4 Mips, 18.4 Mb free, up 2 hrs 41 min --------------
+  1  R condict   xload -geometry 140x80-
+  4  R vergo     session -a
+  2  R boris     gdb grp_rf
+.ps
+.eC
+It also shows the current load, theoretical CPU power available, free
+memory available and the uptime.
+.SH
+See Also
+.LP
+kill(U),
+kstat(A),
+ppload(U),
+stun(U).

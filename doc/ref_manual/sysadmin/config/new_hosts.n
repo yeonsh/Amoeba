@@ -1,0 +1,329 @@
+.\"	@(#)new_hosts.n	1.10	96/02/15 17:02:00
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.nH 1 "Configuring \*(Am Hosts" nobp
+.nH 2 "Adding New Hosts"
+.LP
+.kW "adding hosts"
+Under \*(Am,
+users are not normally aware of which processors are running their jobs or
+even how many processors are present.
+However the system does need to know what hardware is available if it is to
+use it.
+Adding a new host to an \*(Am system is a fairly straight forward operation.
+.LP
+Install the hardware (according to the manufacturer's instructions)
+and attach it to the network.
+Then determine its network address.
+.kW Ethernet
+(\*(Am currently supports Ethernet as the network medium and so the following
+description is oriented towards that.)
+.LP
+.kW "naming hosts"
+The hard part is to think of a name by which the host is known.
+Users generally will not see these names but the system administrator will
+need some way of addressing a particular machine to load a new kernel into
+it.
+The system also needs a name (actually a capability) for a machine so
+that it can start processes on it.
+There are many guidelines for naming machines,
+the most important of which is,
+do not name it after the manufacturer of the machine.
+Choose a theme,
+such as boat types or dance names.
+Since you may have dozens of pool processors it may be a good idea to
+number them.
+For example,
+all the mc68000 processors might get the names
+.I pogo00
+to
+.I pogo99 .
+.B N.B.
+Host names must not contain the character `.'.
+Otherwise such hosts will be ignored by the
+.I run (A)
+server and the process creation mechanism.
+.LP
+The next step is to create a capability for the new host and install it
+in the directory
+.I /super/hosts .
+This is done using the command
+.kW "\fImkhost\fP"
+.I mkhost (A).
+Suppose one wished to create an entry for the host
+.I pogo00
+.kW Ethernet
+which has Ethernet address
+.cW 00:00:2c:11:ab:09 ,
+then the command
+.sC
+mkhost /super/hosts/pogo00 00:00:2c:11:ab:09
+.eC
+would achieve this.
+It is important to make sure that the capability has the right mode.
+.kW "security"
+For normal operation the mode
+.cW FF:2:4
+is recommended.
+This prevents unprivileged users from accessing disks and kernel memory
+and from destroying processes they do not own.
+To set the mode you should type the command
+.kW chm
+.sC
+chm ff:2:4 /super/hosts/pogo00
+.eC
+.kW downloading
+It should now be possible to download an \*(Am kernel into the host and
+to examine the kernel directory (using
+.I dir (U)).
+Downloading the kernel will depend on the type of hardware.
+.kW i80386
+.kW i80486
+.kW Pentium
+Intel 80386, 80486 and Pentium machines can be booted from floppy.
+.kW Sun3
+.kW Sun4
+Sun\ 3 and Sun\ 4 hosts should be booted using
+.kW "\fItftp\fP"
+.I tftp (A).
+If a system is already running it can be rebooted using
+.kW "\fIreboot\fP"
+.I reboot (A).
+Note that Sun 3 machines do not accept the
+.I reboot (A)
+command.
+.LP
+The subsequent steps taken now depend on the function of the new host.
+If it is to be a pool processor then the capability for the host needs to
+be put into one or more
+.I pool
+directories.
+For example,
+if the new hosts is called
+.I pogo00
+and is an i80386 machine then the commands
+.kW get
+.kW put
+.sC
+get /super/hosts/pogo00 | put /super/pool/i80386/pogo00
+chm ff:2:4 /super/pool/i80386/pogo00
+.eC
+will install the hosts capability in the pool.
+Currently the processor-pool directories are grouped by architecture and
+are found in
+.I /super/pool .
+By entering the capability in a pool directory, all the users who have
+.kW "pool directory"
+.kW "processor pool"
+that directory under their
+.I /profile/pool
+directory will be able to use that pool processor to run their jobs.
+Note that it is possible to have more than one pool for a particular
+architecture.
+One might contain half the mc68000 machines and another the other half.
+Furthermore,
+a pool processor may be in more than one pool.
+.LP
+.kW RARP
+.kW TFTP
+If a host is required to respond to the Reverse ARP (RARP) and/or TFTP
+protocols (for example, Sun computers) then it will need to have its Ethernet
+address and host name entered in the file
+.kW "/etc/ethers"
+.I /etc/ethers .
+.kW "/super/unixroot"
+To do this the file
+.I /super/unixroot/etc/ethers
+must be edited.
+(This is actually the same file as
+.I /etc/ethers
+but the path name
+.I /super/unixroot/etc/ethers
+gives write permission to the file and the other path name does not.)
+Continuing the previous example,
+the line
+.sC
+00:00:2c:11:ab:09 pogo00
+.eC
+should be added to the file.
+.LP
+.kW "TCP/IP"
+If the host is also required to use the TCP/IP or UDP network protocols
+(for example,
+TFTP booting or to communicate with
+.UX
+hosts or over the wide-area network) or for any reason needs to have its name
+mapped to an Internet address then it will be necessary to assign an
+.kW Internet
+Internet address to the host.
+(Do
+.B not
+just make up Internet addresses.
+Obtain a set through the appropriate channels.)
+The host name and the Internet address should be entered into the file
+.kW "/etc/hosts"
+.I /etc/hosts .
+This is done by editing
+.I /super/unixroot/etc/hosts .
+In the example,
+if we had assigned the Internet number 192.31.237.44 to
+.I pogo00 ,
+then the line
+.sC
+192.31.237.44 pogo00
+.eC
+.kW Internet
+should be added to the end of the file
+.I /super/unixroot/etc/hosts .
+.LP
+If the file is to be booted using
+.I TFTP
+then it will also be necessary to add an entry to the directory
+.I /super/admin/tftpboot
+which is the capability for the file containing the kernel to be booted
+on the host.
+The name of the file entered in the
+.kW tftpboot
+.I tftpboot
+directory is heavily dependent on the system to be booted.
+Sun uses the Internet address written as a hexadecimal number.
+(For Suns it is therefore necessary to give each machine an Internet address
+if it is to be booted using TFTP.)
+In the above example the file would be called
+.cW C01FED2C
+for a Sun 3,
+.cW C01FED2C.SUN4C
+for a Sun4c and
+.cW C01FED2C.SUN4M
+for a Sun4m machine.
+.LP
+One final complication of booting via TFTP is starting a RARP and TFTP
+server to boot the new hosts.
+It is necessary to install a special kernel (on different host from the
+.I bullet
+server) which contains the TCP/IP server.
+This kernel can be either the
+.I tcpip
+kernel or the
+.I smbulip
+kernel (short for
+.I "small bullet with TCP/IP" ).
+See
+.I installk (A)
+for how to install this kernel on the hard disk.
+Thereafter the boot server (see
+.I boot (A))
+can be used to start the RARP and TFTP servers and boot the other hosts.
+.kW Bootfile
+See below for details of where to find the
+.I Bootfile .
+An example configuration for the RARP and TFTP servers can be found in
+the default
+.I Bootfile .
+If the file server machine contains insufficient memory to run all these servers
+then the other hosts will have to be booted from
+.UX .
+.LP
+Other systems of booting may require yet other support but the above examples
+should give sufficient indication of the steps involved in adding a new host.
+It is important at this stage to boot the pool processor and workstation hosts.
+.LP
+If a new workstation is added it is important that a login process be started
+that allows users to log in.
+To do this it will be necessary to tell the boot server (see
+.kW "\fIboot\fP"
+.I boot (A))
+to start the program
+.kW "\fIlogin\fP"
+.I login (A)
+on that machine when it comes up.
+The examples in the
+.kW Bootfile
+.I Bootfile
+(found in the directory
+.I /super/admin/bootinfo )
+provided with the system should indicate how to do this.
+The basic sequence of steps is:
+.IP 1.
+Add a suitable entry to the
+.I Bootfile .
+.br
+.IP 2.
+Run
+.kW "\fIiboot\fP"
+.I iboot (A).
+Note that you should never use the
+.B \-l
+option unless installing a new disk.
+A command of the form
+.sC
+iboot -f Bootfile /super/hosts/xxx/vdisk:02
+.eC
+(where
+.I xxx
+is the name of the host with the boot server's disk partition)
+should be all that is required.
+.br
+.IP 3.
+Run the command
+.kW "\fIboot_reinit\fP"
+.sC
+boot_reinit /super/cap/bootsvr/xxx
+.eC
+This should indicate success if the
+.I Bootfile
+was valid.
+If not then do not reboot the system under any circumstance.
+Rather run
+.kW "\fIstd_status\fP"
+.sC
+std_status /super/cap/bootsvr/xxx
+.eC
+to find out the problem and then correct the
+.kW Bootfile
+.I Bootfile
+and repeat the installation process.
+.nH 2 "Deleting a Host"
+.LP
+.kW "deleting hosts"
+Deleting a host is basically the inverse operation of the installation.
+Ensure that the
+.I boot (A)
+server no longer uses the host to start a process.
+Next, bring down the kernel on the machine.
+Then delete the directory entry for that host from the
+.kW "/super/hosts"
+.I /super/hosts
+and
+.I pool
+directories.
+Delete the entry for the host from the
+.kW "/etc/hosts"
+.I /etc/hosts
+and
+.kW "/etc/ethers"
+.I /etc/ethers
+files.
+Delete any entries for the host from bootstrap directories such as
+.kW tftpboot
+.I /super/admin/tftpboot .
+.nH 2 "Replacing a Host"
+.LP
+If you replace a host with new hardware several things may change and need
+attending to.
+For example,
+.kW Ethernet
+if the new machine has a different Ethernet address, the entries in
+.I /super/hosts
+and the
+.I pool
+directories must be recreated and the file
+.I /etc/ethers
+modified to reflect the new address.
+If the Ethernet address remains unchanged but the architecture of the
+machine is different, it may be necessary to move the machine to a different
+.I pool
+directory.

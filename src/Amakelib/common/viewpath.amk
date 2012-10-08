@@ -1,0 +1,18 @@
+#	
+#	@(#)viewpath.amk	1.2	94/04/06 10:35:28
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%import PARALLEL_TREE;
+
+%if (defined(SRC_ROOT) %and ($PARALLEL_TREE <> ''), {
+
+%derive f [dir = vpath( lcomp($f),
+                        { $PARALLEL_TREE & strip(parent($f), $SRC_ROOT),
+			  parent($f)
+			} ) ]
+%when %true;
+
+});

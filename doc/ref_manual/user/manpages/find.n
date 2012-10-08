@@ -1,0 +1,493 @@
+.\"	@(#)find.n	1.6	96/02/16 10:58:17
+.aU
+.\" Copyright (c) 1990 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" the Institute of Electrical and Electronics Engineers, Inc.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)find.1	6.29 (Berkeley) 7/29/91
+.\"
+	Modified: Gregory J. Sharp, Dec 1993 -	converted to Amoeba manpage
+						format and added Amoeba
+						specific notes/corrections.
+.aE
+.mT "find" U
+walk a file hierarchy
+.SH
+Synopsis
+.LP
+.sC L
+find [-dsXx] [-f file] [file ...] expression
+.eC
+.SH
+Description
+.LP
+.I Find
+recursively descends the directory tree for each
+.I file
+listed, evaluating an
+.I expression
+(composed of the ``primaries'' and ``operands'' listed below) in terms
+of each file in the tree.
+This program was ported from BSD and contains many options that are of
+no use under \*(Am.
+.\".LP
+.\"If
+.\".I file
+.\"is a symbolic link referencing an existing file, the directory tree
+.\"referenced by the link is descended instead of the link itself.
+.mH
+Options
+.LP
+The options are as follows:
+.LP
+.IP "\fB\-d\fP" 1c
+The
+.B \-d
+option causes
+.I find
+to perform a depth\-first traversal, i.e., directories
+are visited in post\-order and all entries in a directory will be acted
+on before the directory itself.
+By default,
+.I find
+visits directories in pre\-order, i.e., before their contents.
+Note, the default is
+.I not
+a breadth\-first traversal.
+.IP "\fB\-f\fP"
+The
+.B \-f
+option specifies a file hierarchy for
+.I find
+to traverse.
+File hierarchies may also be specified as the operands immediately
+following the options.
+.IP "\fB\-s\fP"
+.\"The
+.\".B \-s
+.\"option causes the file information and file type
+.\"returned for each symbolic link to be those of the file referenced by the
+.\"link, not the link itself.
+.\"If the referenced file does not exist, the file information and type will
+.\"be for the link itself.
+.\".IP
+The
+.B \-s
+option is redundant under \*(Am.
+.IP "\fB\-X\fP"
+The
+.B \-X
+option is a modification to permit
+.I find
+to be safely used in conjunction with
+.I xargs (U).
+If a file name contains any of the delimiting characters used by
+.I xargs ,
+a diagnostic message is displayed on standard error, and the file
+is skipped.
+The delimiting characters include single (`` ' '') and double (`` " '')
+quotes, backslash (``\e''), space, tab and newline characters.
+.IP "\fB\-x\fP"
+The
+.B \-x
+option is redundant under \*(Am.
+.\".IP
+.\"The
+.\".B \-x
+.\"option prevents
+.\".I find
+.\"from descending into directories that have a device number different
+.\"from that of the file from which the descent began.
+.mH
+Primaries
+.LP
+All primaries which take a numeric argument allow the number to be
+preceded by a plus sign (``+'') or a minus sign (``\-'').
+A preceding plus sign means ``more than n'', a preceding minus sign means
+``less than n'' and neither means ``exactly n'' .
+.LP
+Note that \*(Am only maintains a modification date with files so
+.B \-atime
+and
+.B \-ctime
+are equivalent to
+.B \-mtime .
+.IP "\fB\-atime\fP \fIn\fP" 2c
+True if the difference between the file last access time and the time
+.I find
+was started, rounded up to the next full 24\-hour period, is
+.I n
+24\-hour periods.
+.IP "\fB\-ctime\fP \fIn\fP"
+True if the difference between the time of last change of file status
+information and the time
+.I find
+was started, rounded up to the next full 24\-hour period, is
+.I n
+24\-hour periods.
+.IP "\fB\-exec\fP \fIutility\fP [\fIargument ...\fP]\fI;\fP"
+.br
+True if the program named
+.I utility
+returns a zero value as its exit status.
+Optional arguments may be passed to the utility.
+The expression must be terminated by a semicolon (``;'').
+If the string ``{}'' appears anywhere in the utility name or the
+arguments it is replaced by the path name of the current file.
+.I Utility
+will be executed from the directory from which
+.I find
+was executed.
+.IP "\fB\-fstype\fP \fItype\fP"
+.br
+True if the file is contained in a file system of type
+.I type .
+Currently supported types are ``local'', ``mfs'', ``nfs'', ``msdos'', ``isofs'',
+``fdesc'', ``kernfs'', ``rdonly'' and ``ufs''.
+The types ``local'' and ``rdonly'' are not specific file system types.
+The former matches any file system physically mounted on the system where
+the
+.I find
+is being executed and the latter matches any file system which is
+mounted read-only.
+.br
+\*(Am currently only supports one file system type so this primary is redundant.
+.IP "\fB\-group\fP \fIgname\fP"
+.br
+True if the file belongs to the group
+.I gname  .
+If
+.I gname
+is numeric and there is no such group name, then
+.I gname
+is treated as a group id.
+.br
+\*(Am currently only supports a single group so this primary is redundant.
+.IP "\fB\-inum\fP \fIn\fP"
+True if the file has inode number
+.I n .
+.IP "\fB\-links\fP \fIn\fP"
+True if the file has
+.I n
+links.
+.br
+\*(Am does not keep link counts.
+However, it does provide links.
+.IP \fB\-ls\fP
+This primary always evaluates to true.
+The following information for the current file is written to standard output:
+its inode number, size in 512\-byte blocks, file permissions, number of hard
+links, owner, group, size in bytes, last modification time, and path name.
+If the file is a block or character special file, the major and minor numbers
+will be displayed instead of the size in bytes.
+If the file is a symbolic link, the path name of the linked\-to file will be
+displayed preceded by ``\->''.
+The format is identical to that produced by ``ls \-dgils''.
+.IP "\fB\-mtime\fP \fIn\fP"
+True if the difference between the file last modification time and the time
+.I find
+was started, rounded up to the next full 24\-hour period, is
+.I n
+24\-hour periods.
+.IP "\fB\-ok\fP \fIutility\fP [\fIargument ...\fP]\fI;\fP"
+.br
+The
+.B \-ok
+primary is identical to the
+.B \-exec
+primary with the exception that
+.I find
+requests user affirmation for the execution of the utility by printing
+a message to the terminal and reading a response.
+If the response is other than ``y'' the command is not executed and the
+value of the
+.I \&ok
+expression is false.
+.IP "\fB\-name\fP \fIpattern\fP"
+.br
+True if the last component of the path name being examined matches
+.I pattern  .
+Special shell pattern matching characters (``['', ``]'', ``*'', and ``?'')
+may be used as part of
+.I pattern  .
+These characters may be matched explicitly by escaping them with a
+backslash (``\e'').
+.IP "\fB\-newer\fP \fIfile\fP"
+.br
+True if the current file has a more recent last modification time than
+.I file  .
+.IP "\fB\-nouser\fP"
+True if the file belongs to an unknown user.
+\*(Am files are ``ownerless'' in the POSIX sense and so this primary always
+evaluates to true.
+.IP "\fB\-nogroup\fP"
+True if the file belongs to an unknown group.
+\*(Am files are ``groupless'' in the POSIX sense and so this primary always
+evaluates to true.
+.IP "\fB\-path\fP \fIpattern\fP"
+.br
+True if the path name being examined matches
+.I pattern  .
+Special shell pattern matching characters (``['', ``]'', ``*'', and ``?'')
+may be used as part of
+.I pattern  .
+These characters may be matched explicitly by escaping them with a
+backslash (``\e'').
+Slashes (``/'') are treated as normal characters and do not have to be
+matched explicitly.
+.IP "\fB\-perm\fP [\fI\-mode\fP]"
+.br
+The
+.I mode
+may be either symbolic (see
+.I chmod (U))
+or an octal number.
+If the mode is symbolic, a starting value of zero is assumed and the
+mode sets or clears permissions without regard to the process' file mode
+creation mask.
+If the mode is octal, only bits 07777
+(\*<S_ISUID | S_ISGID | S_ISTXT | S_IRWXU | S_IRWXG | S_IRWXO\*>)
+of the file's mode bits participate in the comparison.
+If the mode is preceded by a dash (``\-''), this primary evaluates to true
+if at least all of the bits in the mode are set in the file's mode bits.
+If the mode is not preceded by a dash, this primary evaluates to true if
+the bits in the mode exactly match the file's mode bits.
+Note, the first character of a symbolic mode may not be a dash (``\-'').
+.IP "\fB\-print\fP"
+This primary always evaluates to true.
+It prints the path name of the current file to standard output.
+The expression is appended to the user specified expression if neither
+.B \-exec ,
+.B \-ls
+or
+.B \-ok
+is specified.
+.IP "\fB\-prune\fP"
+This primary always evaluates to true.
+It causes
+.I find
+to not descend into the current file.
+Note, the
+.B \-prune
+primary has no effect if the
+.B \-d
+option was specified.
+.IP "\fB\-size\fP \fIn\fP[\fIc\fP]"
+True if the file's size, rounded up, in 512\-byte blocks is
+.I n  .
+If
+.I n
+is followed by a ``c'', then the primary is true if the
+file's size is
+.I n
+bytes.
+.IP "\fB\-type\fP \fIt\fP"
+True if the file is of the specified type.
+Possible file types are as follows:
+.RS
+.IP b
+block special
+.IP c
+character special
+.IP d
+directory
+.IP f
+regular file
+.IP l
+symbolic link
+.IP p
+FIFO
+.IP s
+socket
+.RE
+.IP
+Note that \*(Am does not support sockets or symbolic links.
+Nor does it directly support concepts like block special and character
+special devices.
+However the POSIX emulation will report servers and other, for POSIX
+unrecognizable objects, as block or character special devices.
+.IP "\fB\-user\fP \fIuname\fP"
+.br
+True if the file belongs to the user
+.I uname  .
+If
+.I uname
+is numeric and there is no such user name, then
+.I uname
+is treated as a user id.
+.br
+Since \*(Am does not support POSIX style file ownership, all files belong
+to the user
+.I anybody .
+Therefore this option is redundant.
+.mH
+Operators
+.LP
+The primaries may be combined using the following operators.
+The operators are listed in order of decreasing precedence.
+.IP "\&(\fIexpression\fP\&)" 2.5c
+This evaluates to true if the parenthesized expression evaluates to
+true.
+.IP "\&! \fIexpression\fP"
+This is the unary
+.cW NOT
+operator.
+It evaluates to true if the expression is false.
+.IP "\fIexpression\fP \fB\-and\fP \fIexpression\fP"
+.IP "\fIexpression expression\fP"
+.br
+The
+.B \-and
+operator is the logical
+.cW AND
+operator.
+As it is implied by the juxtaposition of two expressions; it does not
+have to be specified.
+The expression evaluates to true if both expressions are true.
+The second expression is not evaluated if the first expression is false.
+.IP "\fIexpression\fP \fB\-or\fP \fIexpression\fP"
+.br
+The
+.B \-or
+operator is the logical
+.cW OR
+operator.
+The expression evaluates to true if either the first or the second expression
+is true.
+The second expression is not evaluated if the first expression is true.
+.LP
+All operands and primaries must be separate arguments to
+.I find  .
+Primaries which themselves take arguments expect each argument
+to be a separate argument to
+.I find  .
+.mH
+Warnings
+.LP
+The special characters used by
+.I find
+are also special characters to many shell programs.
+In particular, the characters ``*'', ``['', ``]'', ``?'', ``('', ``)'',
+``!'', ``\e'' and ``;'' may have to be escaped from the shell.
+.LP
+As there is no delimiter separating options and file names or file
+names and the
+.I expression ,
+it is difficult to specify files named ``-xdev'' or ``!''.
+These problems are handled by the
+.B \-f
+option and the
+.I getopt
+``--'' construct.
+.LP
+.I Find
+does its best to avoid cycles in the directory graph but is not foolproof.
+.mH
+POSIX Conformance
+.LP
+The
+.I find
+utility syntax is a superset of the syntax specified by the
+POSIX 1003.2 standard.
+.LP
+The
+.B \-X
+option and the
+.B \-inum
+and
+.B \-ls
+primaries are extensions to POSIX 1003.2 .
+.LP
+Historically, the
+.B \-d,
+.B \-s
+and
+.B \-x
+options were implemented using the primaries ``\-depth'', ``\-follow'',
+and ``\-xdev''.
+These primaries always evaluated to true.
+As they were really global variables that took effect before the traversal
+began, some legal expressions could have unexpected results.
+An example is the expression ``\-print \-o \-depth''.
+As
+.B \-print
+always evaluates to true, the standard order of evaluation
+implies that
+.B \-depth
+would never be evaluated.
+This is not the case.
+.LP
+The operator
+.B \-or
+was implemented as
+.B \-o ,
+and the operator
+.B \-and
+was implemented as
+.B \-a .
+.LP
+Historic implementations of the
+.B \-exec
+and
+.B \-ok
+primaries did not replace the string ``{}'' in the utility name or the
+utility arguments if it had preceding or following non-whitespace characters.
+This version replaces it no matter where in the utility name or arguments
+it appears.
+.SH
+Examples
+.LP
+The following examples are shown as given to the shell:
+.sC
+find / \e! -name \*q*.c\*q -print
+.eC
+Print out a list of all the files whose names do not end in ``.c''.
+.sC
+find / -newer ttt -user wnj -print
+.eC
+Print out a list of all the files owned by user ``wnj'' that are newer
+than the file ``ttt''.
+.sC
+find / \e! \e( -newer ttt -user wnj \e) -print
+.eC
+Print out a list of all the files which are not both newer than ``ttt''
+and owned by ``wnj''.
+.sC
+find / \e( -newer ttt -or -user wnj \e) -print
+.eC
+Print out a list of all the files that are either owned by ``wnj'' or
+that are newer than ``ttt''.
+.SH
+See Also
+.LP
+starch(U).

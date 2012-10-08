@@ -1,0 +1,16 @@
+/*	@(#)mpx.init	1.4	94/04/06 10:07:01 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+MMU initinterrupts
+initinterrupts INTERRUPTS
+MMU init_proc_list
+CONSOLE init_thread_list
+init_thread_list init_first_thread
+init_proc_list init_first_thread
+init_first_thread init_mpx_sweep
+init_mpx_sweep THREADS
+init_first_thread MUTEX

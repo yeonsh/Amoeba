@@ -1,0 +1,66 @@
+#	
+#	@(#)Amakefile	1.8	96/02/16 15:43:35
+#
+# Copyright 1996 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+DOC_ROOT = <SROOT>;
+
+# The amakefile for the reference manuals
+
+%include $DOC_ROOT/ref_manual/release/Amake.srclist;
+%include $DOC_ROOT/ref_manual/user/Amake.srclist;
+%include $DOC_ROOT/ref_manual/programming/Amake.srclist;
+%include $DOC_ROOT/ref_manual/sysadmin/Amake.srclist;
+
+MACROS = $DOC_ROOT/ref_manual/am_macros[troff-source, macros];
+
+PRINTBIB = $DOC_ROOT/ref_manual/printbib;
+BIB = bib.n;
+PSFIGFLAGS = -D$DOC_ROOT/ref_manual;
+MKINDEX = $DOC_ROOT/ref_manual/mkindex;
+FAKEINDEX = $DOC_ROOT/ref_manual/fakeindex[fkindx = %true];
+
+%include $DOC_ROOT/ref_manual/troff.amk;
+
+%cluster
+{
+    %targets $BIB;
+    %sources $D_PUB_REF;
+    %do      do-printbib($PRINTBIB, $D_PUB_REF, $BIB);
+};
+
+
+%generic tcluster(targ, src)
+{
+    %default $targ;
+    %cluster
+    {
+	%targets $targ[type = troff-output];
+	%sources $src;
+    };
+};
+
+%derive f[cover = %false] %when %true;
+
+%declare $D_SYSADMIN_COVER[cover = %true];
+%declare $D_RELEASE_COVER[cover = %true];
+%declare $D_PROGRAMMING_COVER[cover = %true];
+%declare $D_USER_COVER[cover = %true];
+
+%declare $D_RELEASE_NOTES[troff-source];
+%declare $D_SYSADMIN[troff-source];
+%declare $D_USER[troff-source];
+%declare $D_PROGRAMMING[troff-source];
+
+%declare $D_SYSADMIN_SEEALSO[see-also = %true];
+%declare $D_PROGRAMMING_SEEALSO[see-also = %true];
+%declare $D_USER_SEEALSO[see-also = %true];
+
+%instance tcluster(rel.dit, { $MACROS, $D_RELEASE_NOTES });
+%instance tcluster(sys.dit, { $MACROS, $D_SYSADMIN, $FAKEINDEX,
+						$D_SYSADMIN_SEEALSO });
+%instance tcluster(usr.dit, { $MACROS, $D_USER, $FAKEINDEX, $D_USER_SEEALSO });
+%instance tcluster(pro.dit, { $MACROS, $D_PROGRAMMING, $FAKEINDEX,
+						$D_PROGRAMMING_SEEALSO });

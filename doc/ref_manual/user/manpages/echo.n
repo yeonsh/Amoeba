@@ -1,0 +1,40 @@
+.\"	@(#)echo.n	1.4	96/02/15 18:09:37
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "echo" U
+print the arguments
+.SH
+Synopsis
+.LP
+.sC L
+echo [-n] argument ...
+.eC
+.SH
+Description
+.LP
+Echo writes its arguments to standard output.
+They are separated by blanks and,
+unless the
+.B \-n
+option is present,
+terminated with a line feed,
+This command is used mostly in shell scripts.
+It is available as a built-in command in most shells.
+.SH
+Examples
+.LP
+.sC
+echo Start Phase 1
+.eC
+``Start Phase 1'' is printed.
+.sC
+echo -n Hello
+.eC
+``Hello'' is printed without a line feed.

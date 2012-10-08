@@ -1,0 +1,48 @@
+#	
+#	@(#)def.amk	1.3	94/04/06 10:32:40
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# tool that generates a C header file from one "def" file
+# and a list of "param" description files.
+#
+
+%if (%not defined(GENDEF), {
+	GENDEF = $PWD/gen-def;
+});
+
+%if (%not defined(GENDEF_FLAGS), {
+	GENDEF_FLAGS = $DEFINES;
+});
+
+%include $PWD/cpplib.amk;
+
+%instance deftypesuffix(def-src, '%.def');
+%instance deftypesuffix(param-src, '%.param');
+
+# The files generated from a def/param description are needed in lint runs
+%derive f[generates-C-src] %when $f ? type == def-src
+			   %or   $f ? type == param-src;
+
+%if (defined(SOURCEFILES), {
+	PARAM_SRC = select($SOURCEFILES, type, param-src);
+	SOURCEFILES = $SOURCEFILES \ $PARAM_SRC;
+}, {
+	PARAM_SRC = {};
+});
+
+%tool gendef (
+    def_file:  %in 	 [type = def-src];
+    def_out:   %out      [type = C-incl, compare] => match($def_file);
+    par_files: %in %list [type = param-src]  => $PARAM_SRC;
+    program:   %in       [type = command]    => $GENDEF;
+    flags:     %string %list                 => $GENDEF_FLAGS;
+)
+{
+    exec($program, args => '-C' + $CPPLIB + '-o' + $def_out +
+			   $flags + $def_file + $par_files);
+};
+

@@ -1,0 +1,29 @@
+#	
+#	@(#)Amakefile	1.5	94/04/05 17:14:35
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/admin/bootblocks/ibm_at/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/ack/h,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/kernel/machdep/dev/ibm_at,
+	-I$SRC_ROOT/h/machdep/dev,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/admin/bootblocks/ibm_at,
+};
+
+%include $CONF_ROOT/toolset/unix.bin;
+
+%instance gcluster(isamkprom, $U_IBMAT_ISAMKPROM, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(isamkimage, $U_IBMAT_ISAMKIMAGE, $LIB_AMUNIX, $LINT_AMUNIX);
+%instance gcluster(installboot.ibm_at, $U_IBMAT_INSTALLBOOT,
+				       $LIB_AMUNIX, $LINT_AMUNIX);

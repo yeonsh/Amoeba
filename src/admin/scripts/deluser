@@ -1,0 +1,56 @@
+#!/bin/sh
+#	
+#	@(#)deluser	1.4	96/02/27 10:19:53
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+#	Remove the login of the specified user.
+#	You need the super capability to run this.
+PROG=`basename $0`
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: $PROG username"
+	exit 1
+fi
+SLASHDIR=/super/users/$1
+GROUPDIR="/super/group/*/$1"
+ME=`c2a /`
+TARGET=`c2a $SLASHDIR 2>&1`
+if [ "X$ME" = "X$TARGET" ]
+then
+    echo "$PROG: you can't delete yourself!!"
+    exit 2
+fi
+
+echo "Deleting account of user $1"
+if dir -d $SLASHDIR > /dev/null 2>&1
+then
+    del -d $SLASHDIR
+    del -d $GROUPDIR
+else
+    echo "$PROG: user $1 not found"
+    exit 1
+fi
+
+OMDIR=`std_info /super/cap/omsvr 2>&1`
+case $OMDIR in
+/*) ;;
+ *)
+    echo "$PROG: Warning: You have not installed the object manager."
+    echo "$PROG: You should do so or you will run out of disk space."
+    echo "$PROG: See om(A) for details."
+    ;;
+esac
+
+if std_status /super/cap/omsvr/om1 >/dev/null 2>&1
+then
+    :
+else
+    echo "$PROG: Warning: There is no object manager running"
+fi
+
+exit 0

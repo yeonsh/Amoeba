@@ -1,0 +1,159 @@
+.\"	@(#)stun.n	1.6	96/02/16 11:09:02
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Guido van Rossum, 1989
+	Document: Guido van Rossum, February 1990
+	Modified: Gregory J. Sharp, March 1993 - a little reality and clarity
+						 is in order.
+		  Gregory J. Sharp, Nov 1995, layout
+.aE
+.mT "stun" U
+stun (paralyze, possibly kill) a process
+.SH
+Synopsis
+.LP
+.sC L
+stun [-d dumpfile] [-m host] [-s stun-code] [-p] [-c]
+     [-v] process ...
+.eC
+.SH
+Description
+.LP
+.kW "stun a process"
+.kW "kill a process"
+.kW "stun code"
+.kW "process capability"
+.kW "process owner"
+.kW "stun request"
+.kW "session server"
+.kW "SIGQUIT"
+.kW "traceback"
+.kW "\fIpdump\fP"
+This program sends a ``stun'' request to the specified processes.
+The effect of a stun is described in detail in
+.I signals (L).
+In short,
+the normal result of a stun is that the process server in the kernel where the
+process is running stops the process, generates a process descriptor for the
+current state of the process and sends it to the owner of the process.
+If there is no owner or if the owner does not care, the process is destroyed.
+Usually the purpose of a stun is to destroy a process although it is possible
+to just take a snapshot of the process state using the
+.B \-c
+option (described below) and then resume the process.
+.LP
+Processes are named by their capability.
+The capabilities for a user's processes are normally stored in the directory
+.I /dev/proc
+with the POSIX process ID as name.
+For example,
+.I /dev/proc/3 .
+The name of the process to stun can be determined using
+.I aps (U)
+or the command
+.cW "\s-1dir -l /dev/proc\s0" .
+Note that the process
+.I /dev/proc/1
+is the session server.
+Stunning it will terminate the current session.
+.LP
+The capability for a process is also stored in the
+.I ps
+directory in the kernel on the host where the process is running.
+For example,
+.I /profile/hosts/venus/ps/1 .
+Under normal circumstances this capability for the process has insufficient
+rights to stun it.
+Those with the
+.I /super
+capability can use a full path name or the
+.B \-m
+option to stun a process that belongs to someone else.
+.mH
+Options
+.LP
+.IP "\fB\-d\fP dumpfile"
+.br
+Specifies that the core file should have the name
+.I dumpfile .
+The default it that it is put in
+.I /dev/dead/$$ ,
+where $$ is the process id of the process stunned.
+.IP "\fB\-m\fP host"
+.br
+Causes the
+.I process
+argument(s) to be interpreted as process identifiers in the directory
+.I /super/hosts/\*<host\*>/ps .
+.IP "\fB\-s\fP stun-code"
+.br
+Set the stun code.
+Some owners look at the stun code sent along with the stun request.
+For example,
+the session server reports the stun code to a process' parent as the
+signal that killed it.
+The default is 3,
+or
+.cW SIGQUIT .
+.IP \fB\-c\fP
+Print a traceback and then continue the process.
+.I Stun
+temporarily takes over ownership of the process, prints a traceback using
+.I pdump (U),
+and lets the process continue;
+the original owner is restored but never notified.
+Note that this option will not work on the session server process but
+will kill it.
+.IP \fB\-p\fP
+Print a traceback:  stun temporarily takes over ownership of the
+process, prints a traceback using
+.I pdump (U),
+and then passes the checkpoint on to the original owner.
+Note that this option will not work on the session server process but
+will kill it.
+.IP \fB\-v\fP
+Verbose: print comments about what 
+.I stun
+is doing.
+.mH
+Warning
+.LP
+The use of the
+.B \-c
+option is not completely transparent to the process
+being stunned;
+.I trans ,
+.I getreq
+and
+.I mu_trylock
+calls may fail causing it to report an error and die.
+.SH
+Examples
+.LP
+To kill process number 4:
+.sC
+stun /dev/proc/4
+.eC
+To stun a process, see a checkpoint, and see what stun is doing:
+.sC
+stun -v -p /dev/proc/4
+.eC
+For someone with the
+.I /super
+capability to kill process number 1 on the host
+.I venus
+with the signal \-1 (a very sure kill):
+.sC
+stun -s -1 -m venus 1
+.eC
+.SH
+See Also
+.LP
+aps(U),
+kill(U),
+pdump(U).

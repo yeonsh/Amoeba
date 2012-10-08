@@ -1,0 +1,56 @@
+#	
+#	@(#)Amake.srclist	1.4	96/02/27 11:28:42
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_SYSAM_SYSCALL = {
+	$PWD/await_intr.s,
+	$PWD/cleanup.s,
+	$PWD/en_preempt.s,
+	$PWD/exitprocess.s,
+	$PWD/exitthread.s,
+	$PWD/getinfo.s,
+	$PWD/getpriority.s,
+	$PWD/getreq.s,
+	$PWD/grp_create.s,
+	$PWD/grp_forward.s,
+	$PWD/grp_info.s,
+	$PWD/grp_join.s,
+	$PWD/grp_leave.s,
+	$PWD/grp_receive.s,
+	$PWD/grp_reset.s,
+	$PWD/grp_send.s,
+	$PWD/grp_set.s,
+	$PWD/loadstore.s,
+	$PWD/_mu_trylock.s,
+	$PWD/_mu_unlock.s,
+	$PWD/../generic/mutex.c,
+	$PWD/putrep.s,
+	$PWD/rpc_getreq.s,
+	$PWD/rpc_putrep.s,
+	$PWD/rpc_trans.s,
+	$PWD/rawflip.s,
+	$PWD/seg_grow.s,
+	$PWD/seg_map.s,
+	$PWD/seg_unmap.s,
+	$PWD/setpriority.s,
+	$PWD/sig_raise.s,
+	$PWD/sys_getlocal.s,
+	$PWD/sys_milli.s,
+	$PWD/sys_nthread.s,
+	$PWD/sys_null.s,
+	$PWD/sys_profil.s,
+	$PWD/sys_setvec.s,
+	$PWD/sys_sigret.s,
+	$PWD/threadswitch.s,
+	$PWD/timeout.s,
+	$PWD/trans.s,
+};
+
+# sun4m user timer support:
+L_SYSAM_TIMER = {
+	$PWD/sun4m_timer.c,
+	$PWD/int64.s,
+};

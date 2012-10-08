@@ -1,0 +1,88 @@
+#	
+#	@(#)acktools.amk	1.2	94/04/06 10:31:17
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Ack C-code generating utilities
+
+%if (%not defined(ACK_TOOL_DIR), {
+	ACK_TOOL_DIR = $PWD;
+});
+
+#   m a k e t o k f i l e   &  - c a s e
+
+MAKE_TOKFILE = $ACK_TOOL_DIR/make.tokfile;
+MAKE_TOKCASE = $ACK_TOOL_DIR/make.tokcase;
+
+%tool gen_tokens (
+    csrc:    %in   [type = C-src, gen_tokens, persistent];
+    tokfile: %out  [type = LLgen-src]	=> get($csrc, LL-dest);
+    symbols: %out  [type = C-src]	=> get($csrc, cc-dest);
+    mktok:   %in   [type = command]     => $MAKE_TOKFILE;
+    mkcase:  %in   [type = command]     => $MAKE_TOKCASE;
+)
+{
+    exec($mktok,  stdin => $csrc, stdout => $tokfile);
+    exec($mkcase, stdin => $csrc, stdout => $symbols);
+    echo({$tokfile, 'and', $symbols, 'created'});
+};
+
+#    m a k e a l l o c d   &   m a k e n e x t  (should be combined)
+
+%instance deftypesuffix(hh-src, '%.H');
+%instance deftypesuffix(cc-src, '%.C');
+
+%derive f[generates-C-src] %when $f ? type == hh-src %or $f ? type == cc-src;
+
+MAKE_ALLOCD = $ACK_TOOL_DIR/make.allocd;
+MAKE_NEXT   = $ACK_TOOL_DIR/make.next;
+
+%tool hh_to_h (
+    hhsrc: %in  [type = hh-src, persistent];
+    incl:  %out	[type = C-incl]    	    => match($hhsrc);
+    prog:  %in  [type = command] 	    => $MAKE_ALLOCD;
+)
+{
+    exec($prog, stdin => $hhsrc, stdout => $incl);
+    echo({$incl, 'created'});
+};
+
+%tool cc_to_c (
+    ccsrc: %in  [type = cc-src, persistent];
+    csrc:  %out	[type = C-src]	    	    => match($ccsrc);
+    prog:  %in  [type = command] 	    => $MAKE_ALLOCD;
+)
+{
+    exec($prog, stdin => $ccsrc, stdout => $csrc);
+    echo({$csrc, 'created'});
+};
+
+%tool make_next ( # with this tool, the .C's and .H's are really `eaten'
+    ccsrc: %in %list [type = cc-src]	     => {};
+    hhsrc: %in %list [type = hh-src];
+    next:  %out      [type = C-src, compare] => next.c;
+    prog:  %in	     [type = command]        => $MAKE_NEXT;
+)
+{
+    exec($prog, args => $ccsrc + $hhsrc, stdout => $next);
+    echo({$next, 'created'});
+};
+
+#  	g e n _ p a r a m s
+
+MAKE_HFILES = $ACK_TOOL_DIR/make.hfiles;
+%derive f[generates-C-src] %when $f ? parameters == %true;
+
+%tool gen_params (
+    paramsrc:	%in	   [parameters];
+    headers:	%out %list [type = C-incl, compare] =>
+		%if ($paramsrc ? c-incls <> %unknown, $paramsrc ? c-incls, {});
+    prog:	%in	   [type = command]	    => $MAKE_HFILES;
+)
+{
+    exec($prog, args => $paramsrc);
+    echo({'headerfiles created'});
+};
+

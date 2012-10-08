@@ -1,0 +1,162 @@
+.\"	@(#)gb_mkfs.n	1.1	96/02/15 17:21:12
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: E.G. Keizer
+	Document: E.G. Keizer, 95/10/26
+.aE
+.EQ
+delim @@
+.EN
+.mT "gb_mkfs" A
+make a Bullet file system
+.SH
+Synopsis
+.LP
+.sC L
+gb_mkfs [-f] [-b @log sub 2@(blocksize)]
+        [-1 [-i num_inodes] [-s] [-S] [-r num_replicas] [-m max_members]] diskcap
+.eC
+.SH
+Description
+.LP
+.kW "Bullet Server"
+.kW "Group Bullet Server"
+.kW "Bullet file system"
+.kW "Group Bullet file system"
+.I Gb_mkfs
+initializes a Group Bullet file system on the virtual disk specified by
+.I diskcap .
+If there is a Bullet file system already present on the partition and the
+.B \-f
+option was not specified then it will print a warning and stop.
+Otherwise,
+it determines the size of the disk by asking the disk server.
+There are two types of file system
+.I gb_mkfs
+can create, an initial file system and an additional file system.
+The initial file system is intended for the first running member
+of a group bullet server and contains information like the
+group bullet server super capability and the port
+for the files created and the number of inodes.
+The additional file system only contains the size of the disk.
+Before a group bullet member can be fully active, it must get the file
+system information from a member that is already fully active.
+See the
+.I gb_attach
+command.
+For an initial file system it calculates the number of blocks
+it will need for inodes,
+but rounds up the number of inodes to fill the last inode block completely.
+It then writes empty inodes to the disk,
+beginning at block 1.
+The last action for initial file systems and the only action for additional file
+systems is to write the superblock on block 0 of the disk.
+.LP
+.I Gb_info
+and
+.I std_params
+can be used to access information in the superblock.
+.I 
+.mH
+Options
+.LP
+.IP "\fB\-b\fP @log sub 2@(blocksize)" 17
+It is possible to specify the size of the disk block that the \*(Bs will
+use.
+To enforce that it is a power of 2, the @log sub 2@ of the block size is given.
+The block size must be greater than or equal to the size of the physical disk
+block of the underlying device driver.
+That is typically 512 bytes,
+which is equivalent to
+.B \-b 9.
+There is an implementation defined maximum which can be discovered by giving an
+illegal value for the block size (such as 0).
+The block size must be the same for all members of a group bullet server.
+.IP \fB\-f\fP
+This forces of an existing Bullet file system that is
+already on the virtual disk to be overwritten.
+.mH
+Options for initial file systems
+.IP \fB\-1\fP
+Create an initial file system.
+The default is to create an additional file system.
+.IP "\fB\-r\fP num_replicas"
+The number of replicas field in the superblock is initialized to this value.
+The default is 1.
+.IP "\fB\-m\fP max_members"
+The maximum numbers of members in the new group.
+Must be a number between 1 and 8.
+.IP \fB\-S\fP
+Set the superblock flag indicating that the group bullet server should copy
+all replicas to disk, before replying to the user's request.
+.IP \fB\-s\fP
+use the same port for the Group Bullet super capability and
+the file created on the Group Bullet Server.
+If this option is not specified
+.I gb_mkfs
+generates differing port numbers.
+.IP "\fB\-i\fP num_inodes"
+It is possible to force a particular number of inodes for a file system.
+The default is the number of physical blocks in the file system divided by
+the constant
+.cW AVERAGE_FILE_SIZE .
+(which is a tuning parameter of the \*(Bs defined in the file
+.I bullet.h
+and is set to 16K bytes in the original distribution.)
+Note that the number of inodes specified in this option will be rounded up to
+fill the last disk block allocated for inodes.
+.mH
+Diagnostics
+.LP
+These should be self explanatory.
+Errors from
+.I mkfs
+itself (rather than the calling program) are of the form:
+.LP
+.ti 1.25c
+.I "error message"
+mkfs: b_mkfs failed:
+.I "error status"
+.LP
+where the
+.I "error status"
+message reflects the actual error code returned.
+.mH
+Warnings
+.LP
+.I Gb_mkfs
+makes no effort to protect you from destroying a non-Bullet file system.
+The
+.B \-f
+flag only checks to see if the disk already has a Bullet file system on it.
+.SH
+Example
+.LP
+.sC
+gb_mkfs -1 -b 10 /super/hosts/torro/vdisk:01
+.eC
+will print
+.sC
+Initializing new file service
+Maximum number of storage servers = 8
+Default replication count = 1
+Number of inodes = 119488
+No. blocks for inodes = 1867
+Blocksize = 1024 bytes
+Sizeof disk = 585329 blocks
+.eC
+and then proceed to write 1867 blocks of empty inodes to the disk,
+followed by the superblock.
+.SH
+See Also
+.LP
+gbullet(A),
+gb_info(A),
+gb_killfs(A).
+.EQ
+delim off
+.EN

@@ -1,0 +1,115 @@
+.\"	@(#)makeconf.n	1.3	96/02/15 17:48:09
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, Oct 1993
+	Modified: Gregory J. Sharp, Jan 1996
+.aE
+.mT "makeconf" A "UNIX ONLY"
+construct a new \*(Am configuration
+.SH
+Synopsis
+.LP
+.sC L
+makeconf [-a|-u] confdir arch toolset mach1 [mach2 ...]
+.eC
+.SH
+Description
+.LP
+.kW "configuration"
+.I Makeconf
+can be used to generate a complete \*(Am configuration for the architecture
+and machine types specified using the specified compiler tools.
+If no options are given it will make both the
+.UX
+and native \*(Am binaries and kernels plus the printable version of
+the documentation.
+Note that the X binaries and MMDF binaries  for \*(Am are also made.
+The former consumes a significant amount of disk space.
+The FLIP driver for
+.UX
+is not made.
+This must be done separately.
+.LP
+If the
+.I confdir
+argument is not an absolute path name then the output of
+.I amdir (U)
+will be prepended to it.
+Otherwise it is used as is.
+The
+.UX
+configuration will be made in the sub-directory
+.I unix
+of the
+.I confdir
+and the \*(Am configuration will be made in the sub-directory
+.I amoeba .
+The commands
+.I amoebatree ,
+.I doctree ,
+.I kerneltree
+and 
+.I unixtree
+are used to construct the configuration trees.
+The source code and Amakefile templates are always taken from
+.I \(gaamdir\(ga/src
+and
+.I \(gaamdir\(ga/templates
+respectively.
+The command
+.I build (A)
+is used to compile everything.
+.LP
+NOTE WELL:
+.I Makeconf
+does not update an extant configuration.
+If a configuration is found for the given architecture and toolset at the
+place specified by
+.I confdir
+it will be removed before the new configuration is made.
+.mH
+Options
+.LP
+.IP \fB\-a\fP
+This option cause only the \*(Am binaries, kernels and documentation to
+be made.
+The
+.UX
+binaries are not made.
+.IP \fB\-u\fP
+This option cause only the
+.UX
+binaries and documentation to be made.
+The \*(Am binaries are not made.
+.SH
+Example
+.LP
+.sC
+makeconf conf sparc sunpro sun4m sun4c
+.eC
+will make the
+.UX
+and \*(Am configurations in the directories
+.I \(gaamdir\(ga/conf/unix/sparc.sunpro
+and
+.I \(gaamdir\(ga/conf/amoeba/sparc.sunpro
+respectively and build the documentation in
+.I \(gaamdir\(ga/conf/doc/ref_manual .
+The sources and templates used for the build will be taken from
+.I \(gaamdir\(ga/src
+and
+.I \(gaamdir\(ga/templates
+respectively.
+.SH
+See Also
+.LP
+amdir(U),
+amoebatree(A),
+build(A),
+doctree(A),
+kerneltree(A).

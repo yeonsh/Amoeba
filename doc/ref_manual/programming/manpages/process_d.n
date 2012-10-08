@@ -1,0 +1,570 @@
+.\"	@(#)process_d.n	1.6	96/02/15 16:54:20
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, Guido van Rossum, Greg Sharp, 1988-1990
+	Document: Guido van Rossum, February-March 1990
+	Modified: Gregory J. Sharp, Feb 1996
+.aE
+.mT "process_d" L "libamunix.a, libamoeba.a, libkernel.a"
+process descriptor, segment descriptor, thread descriptor
+.SH
+Synopsis
+.LP
+.sC L
+#include "amoeba.h"
+#include "module/proc.h"
+#include "fault.h" /* From src/h/machdep/arch/<architecture> */
+
+#define ARCHSIZE        ...
+
+typedef struct {...}    process_d;
+typedef struct {...}    segment_d;
+typedef struct {...}    thread_d;
+typedef struct {...}    thread_idle;
+
+#define TDX_IDLE        ...
+#define TDX_KSTATE      ...
+#define TDX_USTATE      ...
+
+#define PD_SD(p)        ...
+#define PD_TD(p)        ...
+#define TD_NEXT(t)      ...
+
+int pd_size(pd)
+char *pd_arch(pd)
+
+char *buf_put_pd(buf, bufend, pd)
+char *buf_get_pd(buf, bufend, pd)
+process_d *pdmalloc(buf, bufend)
+.eC
+.SH
+Description
+.LP
+.kW "process descriptor"
+.kW "segment descriptor"
+.kW "thread descriptor"
+.kW "fault.h"
+.kW "ARCHSIZE"
+.kW "process_d"
+.kW "segment_d"
+.kW "thread_d"
+.kW "TDX_IDLE"
+.kW "TDX_KSTATE"
+.kW "TDX_USTATE"
+.kW "PD_SD"
+.kW "PD_TD"
+.kW "TD_NEXT"
+.kW "\fIpd_size\fP"
+.kW "\fIpd_arch\fP"
+.kW "\fIbuf_put_pd\fP"
+.kW "\fIbuf_get_pd\fP"
+.kW "\fIpdmalloc\fP"
+.kW "architecture identifier"
+.kW "executable file"
+.kW "checkpoint"
+.kW "stack segment"
+.kW "text segment"
+.kW "data segment"
+.kW "page size"
+.kW "process migration"
+.kW "initial program counter"
+.kW "initial stack pointer"
+.kW "struct thread_kstate"
+.kW "struct thread_ustate"
+.kW "struct thread_idle"
+.kW "segment mapping"
+The description of the process interface is split in several parts.
+The process descriptor data structure and its basic access methods are
+described here.
+The low-level kernel process server interface is described in
+.I process (L).
+The high-level process execution interface is described in
+.I exec_file (L).
+See also
+.I pd_read (L).
+.LP
+A
+.I "process descriptor"
+is the  basic data structure used by the kernel and utilities that
+manipulate processes.
+A process descriptor contains some fixed parts and two tables of
+variable length: the segment descriptor list and the thread
+descriptor list.
+.KS
+.mH
+Process Descriptors
+.LP
+.sC
+#define ARCHSIZE        8
+
+typedef struct {
+        char            pd_magic[ARCHSIZE];
+        capability      pd_self;
+        capability      pd_owner;
+        uint16          pd_nseg;
+        uint16          pd_nthread;
+} process_d;
+.eC
+.KE
+The
+.I process_d
+data structure defines only the fixed parts of a process descriptor.
+Its members are:
+.IP pd_magic 11
+Specifies the
+.I "architecture identifier"
+describing the type of processor on which the process runs or may run.
+The string is at most
+.cW ARCHSIZE\-1
+bytes long and NULL-padded to
+.cW ARCHSIZE
+bytes, so it is always NULL-terminated.
+.IP pd_self
+Ignored in executable files and by
+.I pro_exec
+(see
+.I process (L));
+in a checkpoint, specifies the process capability of the process
+whose checkpoint it is.
+This is included to simplify applications that own many processes.
+.IP pd_owner
+Specifies the owner capability.
+A NULL-port means the process has no owner.
+.IP pd_nseg
+Specifies the number of segment descriptors included
+in the process descriptor.
+Must be at least one.
+.IP pd_nthread
+Specifies the number of thread descriptors included
+in the process descriptor.
+Must be at least one.
+.mH
+Segment Descriptors
+.LP
+.sC
+typedef struct {
+        capability      sd_cap;
+        long            sd_offset;
+        long            sd_addr;
+        long            sd_len;
+        long            sd_type;
+} segment_d;
+.eC
+The segment list of a process descriptor is an array of
+.I "segment descriptors" .
+Each array entry is a structure of type
+.I segment_d .
+To access the segment descriptors, the macro
+.cW PD_SD
+must be used.
+If
+.I p
+is a pointer to a process descriptor, then
+.cW PD_SD(p)
+is a pointer to its first segment descriptor, and for
+.cW "0 <= i < p->pd_nseg" ,
+the expression
+.cW PD_SD(p)[i]
+is its
+.I i -th
+segment descriptor (not a pointer).
+.LP
+In executable files and for
+.I pro_exec ,
+a segment descriptor describes a segment that must be created to
+form part of the address space of the new process.
+In a checkpoint, a segment descriptor describes an actually
+existing segment.
+Depending upon flags in
+.I sd_type ,
+some segment descriptors do not describe a segment,
+and must be ignored.
+This is used to include the symbol table in the segment list,
+and for deleted segments in checkpoints.
+.LP
+The members of a segment descriptor are:
+.IP sd_cap \w'sd_offset\0'u
+In executable files and for
+.I pro_exec ,
+this specifies the capability
+of the file to be used to (partially) initialize the segment.
+In a checkpoint, it specifies the capability of the actual memory segment;
+memory segments may be read using
+.I b_read
+(see
+.I bullet (L))
+and written using
+.I ps_segwrite
+(see
+.I segment (L)).
+If the capability is NULL,
+.I pro_exec
+will initialize the segment to zero.
+A NULL-capability in an executable file is interpreted different
+depending upon
+.I sd_offset
+and flags in
+.I sd_type :
+it may refer to a portion of the same executable file,
+require zero fill (e.g., bss),
+or be a placeholder for the stack segment.
+.IP sd_offset
+In executable files and for
+.I pro_exec ,
+this specifies the offset where the initializing data starts in the file
+specified by
+.I sd_cap .
+In executable files, the combination of a NULL
+.I sd_cap
+and a nonzero
+.I sd_offset
+implies that the initializing data for the segment resides in
+the executable file itself.
+This is normally the case for text and data segments;
+before handing the process descriptor to
+.I pro_exec ,
+the file's capability must be stored in
+.I sd_cap .
+.IP sd_len
+Specifies the length (in bytes) of the segment.
+The kernel may silently round this up to the next page or
+``click'' boundary.*
+.FS
+* So, since segments may not overlap,
+a loader must know an upper bound for the click size of the target kernel,
+or it may assign overlapping address ranges to segments.
+In practice, since we have to work with existing loaders,
+this places an upper bound on the click size.
+.FE
+Zero-length segments are not supported;
+a zero length for the stack segment in an executable file
+indicates that a default stack size must be substituted by
+.I exec_file (L).
+.IP sd_type
+Specifies various flags used when mapping the segment
+into an address space.
+The bits in this longword are divided in groups of flags;
+for each group there is a macro that defines which bits are part
+of the group, and macros specifying the individual bits
+or possible values for the group as a whole.
+Typical usage is as follows, taking the growth direction as an example:
+.kW "MAP_GROWMASK"
+.kW "MAP_GROWUP"
+.kW "MAP_GROWNOT"
+.kW "MAP_GROWDOWN"
+.kW "MAP_TYPEMASK"
+.kW "MAP_TYPETEXT"
+.kW "MAP_TYPEDATA"
+.kW "MAP_PROTMASK"
+.kW "MAP_READONLY"
+.kW "MAP_READWRITE"
+.kW "MAP_SPECIAL"
+.kW "MAP_INPLACE"
+.kW "MAP_AND_DESTROY"
+.kW "MAP_BINARY"
+.kW "MAP_SYSTEM"
+.kW "MAP_SYMTAB"
+.sC
+if ((s->sd_type & MAP_GROWMASK) == MAP_GROWDOWN) {
+    /* segment grows down */
+}
+.eC
+The following bit fields are assigned:
+.RS
+.IP MAP_GROWMASK
+.br
+Specifies the growth direction.
+Possible field values are
+.cW MAP_GROWNOT
+for a fixed-size segment (e.g., the text and data segments),
+.cW MAP_GROWUP
+for a segment which may grow up (e.g., the bss or heap segment), and
+.cW MAP_GROWDOWN
+for a segment which may grow down (e.g., the stack segment).
+.IP MAP_TYPEMASK
+.br
+Specifies text or data type.
+Possible field values are
+.cW MAP_TYPETEXT
+for a text segment, and
+.cW MAP_TYPEDATA
+for a data (or bss, or stack) segment.
+.IP MAP_PROTMASK
+.br
+Specifies protection.
+Possible field values are
+.cW MAP_READONLY
+for a read-only segment, and
+.cW MAP_READWRITE
+for a readable and writable segment.
+.IP MAP_SPECIAL
+.br
+Specifies special hacks.
+Possible field values are
+.cW MAP_INPLACE ,
+which is used to map segments that have a special meaning to the
+hardware, such as frame buffers for bit-mapped displays,
+and
+.cW MAP_AND_DESTROY ,
+which requests that the original segment be destroyed (through
+.I std_destroy )
+after it is copied into the new segment.
+.IP MAP_BINARY
+.br
+Specifies flags used only in executable files.
+Possible field values are
+.cW MAP_SYSTEM ,
+which is used to indicate the stack segment
+(which must be initialized with arguments and environments), and
+.cW MAP_SYMTAB ,
+which is used to indicate the symbol table (not to be mapped at all).
+.RE
+.mH
+Thread Descriptors
+.LP
+.sC
+typedef struct {
+        long            td_state;
+        long            td_len;
+        long            td_extra;
+} thread_d;
+
+typedef struct {
+        long            tdi_pc;
+        long            tdi_sp;
+} thread_idle;
+.eC
+A thread descriptor is a variable-length object.
+Most of a thread descriptor is system-dependent or
+architecture-dependent.
+The simplest form, sufficient to create a new thread,
+only specifies an initial program counter and stack pointer.
+Thread descriptors describing threads that have been running contain
+more information, such as the full register set and some kernel state.
+Such thread descriptors may be passed to
+.I pro_exec ;
+this can be used to migrate running processes.
+.LP
+The first thread descriptor is accessed through the
+.cW PD_TD
+macro: if
+.I p
+is a pointer to a process descriptor, then the expression
+.cW PD_TD(p)
+points to its first thread descriptor.
+If
+.I t
+is a pointer to a thread descriptor, then
+the expression
+.cW TD_NEXT(t)
+is a pointer to the next thread descriptor; if
+.I t
+is the last thread descriptor,
+.cW TD_NEXT(t)
+points to the first byte after the list of thread descriptors.
+.LP
+The
+.I thread_d
+structure only describes the first few bytes.
+Its members are:
+.IP td_state 9
+Contains kernel internal state flags for the thread.
+Set this to zero for a new process.
+.IP td_len
+Specifies the total length of this thread descriptor, in bytes,
+including the
+.I thread_d
+structure.
+For a new process, this should be set to
+.sC C
+sizeof(struct thread_d) + sizeof(struct thread_idle)
+.eC
+.IP td_extra
+A bit vector specifying which other, system-dependent structures follow.
+The order in which multiple structures occur is the same as the order in
+the following list.
+Some interesting bits are:
+.RS
+.IP TDX_IDLE 12m
+A
+.I "struct thread_idle"
+follows.
+Its members are
+.I tdi_pc ,
+specifying the initial program counter, and
+.I tdi_sp ,
+specifying the initial stack pointer.
+This is the only bit that should be set for a new process.
+.IP TDX_KSTATE
+A
+.I "struct thread_kstate"
+follows.
+Its contents are system-dependent.
+.IP TDX_USTATE
+A
+.I "struct thread_ustate"
+follows.
+Its contents are architecture-dependent.
+.RE
+.mH
+Access Functions
+.sH
+pd_size
+.LP
+.sC
+int
+pd_size(pd)
+process_d *pd;
+.eC
+.kW "\fIpd_size\fP"
+Computes the size of a process descriptor in bytes.
+This may be useful to allocate a buffer of sufficient size to copy a
+process descriptor into.
+The size depends on the number of segment descriptors and the number and
+size of thread descriptors.
+.sH
+pd_arch
+.LP
+.sC
+char *
+pd_arch(pd)
+process_d *pd;
+.eC
+.kW "\fIpd_arch\fP"
+Returns the architecture string of a process descriptor.
+This is a pointer to the
+.I pd_magic
+member; the function is provided only for backward compatibility.
+.mH
+Packing and Unpacking Process Descriptors
+.LP
+When a process descriptor is written to a file or sent over the network,
+it must be converted to a standard byte order, and vice versa.
+The following three functions are used for this purpose.
+Note that other functions in the library with process descriptor
+arguments always expect or return the argument in the machine's native
+byte order, except where explicitly specified otherwise.
+.sH
+buf_put_pd
+.LP
+.sC
+char *
+buf_put_pd(buf, bufend, pd)
+char *buf;
+char *bufend;
+process_d *pd;
+.eC
+.kW "\fIbuf_put_pd\fP"
+Converts the process descriptor pointed at by
+.I pd
+to standard byte order, copying it into the buffer starting at
+.I buf
+and ending at
+.I bufend .
+The entire process descriptor is converted, not just its
+.I process_d
+part, with the exception that architecture-dependent parts of thread
+descriptors are copied as byte sequences without interpretation.
+It returns a pointer (pointing into the buffer) to the first byte after
+the converted process descriptor, or NULL if the conversion failed.
+Failure can be caused by insufficient space in the buffer or an
+ill-formatted process descriptor.
+.sH
+buf_get_pd
+.LP
+.sC
+char *
+buf_get_pd(buf, bufend, pd)
+char *buf;
+char *bufend;
+process_d *pd;
+.eC
+.kW "\fIbuf_get_pd\fP"
+Converts the buffer starting at
+.I buf
+and ending at
+.I bufend
+from standard byte order, copying it into the process descriptor pointed
+at by
+.I pd
+(which is normally allocated by
+.kW "\fIpdmalloc\fP"
+.I pdmalloc
+below).
+It returns a pointer (pointing into the buffer) to the first byte after
+the consumed input, or NULL if the conversion failed.
+Failure can be caused by insufficient or ill-formatted data in the buffer.
+.sH
+pdmalloc
+.LP
+.sC
+process_d *
+pdmalloc(buf, bufend)
+char *buf;
+char *bufend;
+.eC
+.kW "\fIpdmalloc\fP"
+Returns a pointer to storage allocated with
+.I malloc (L),
+cast to
+.I "(process_d *)" .
+It inspects the data in the buffer (which should be a process
+descriptor in standard byte order as created by
+.I buf_put_pd )
+to estimate an upper bound for the number of bytes to allocate.
+It returns NULL if the buffer contains ill-formatted data or if not
+enough memory was available.
+The caller should free the allocated storage after using it, using
+.I free
+(see
+.I malloc (L)).
+.mH
+Warnings
+.LP
+The structures defined here may be changed or extended later.
+Only the name and meaning of the members described here should be
+trusted; their exact type and relative position in the structure are
+subject to change.
+This implies that it is not portable to use initializers or to take the
+address of a member.
+Initializing a structure to zero and then filling in documented members
+will be portable.
+.SH
+Examples
+.LP
+To walk through the list of segment descriptors of a process descriptor
+.I p :
+.sC
+segment_d *s;
+int i;
+for (i = 0; i < p->pd_nseg; ++i) {
+    s = &PD_SD(p)[i];
+    /* Here s points to segment descriptor number i */
+}
+.eC
+.LP
+To walk through the list of thread descriptors of a process descriptor
+.I p :
+.sC
+thread_d *t;
+int i;
+t = PD_TD(p);
+for (i = 0; i < p->pd_nthread; ++i) {
+    /* Here t points to thread descriptor number i */
+    t = TD_NEXT(t);
+}
+.eC
+.SH
+See Also
+.LP
+bullet(L),
+exec_file(L),
+malloc(L),
+pd_read(L),
+process(L),
+segment(L).

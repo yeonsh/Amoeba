@@ -1,0 +1,9 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 17:34:30
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+T_FLOATP = $PWD/floatp.c;
+T_CTEST = $PWD/ctest.c;

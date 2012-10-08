@@ -1,0 +1,228 @@
+.\"	@(#)scheduling.n	1.3	96/02/15 16:55:33
+.\"
+.\" Copyright 1996 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen, pre-1989
+	Modified: Gregory J. Sharp, March 1993 - added preemptive scheduling
+	Document: Peter Bosch, Guido van Rossum, March 1990
+	Modified: Gregory J. Sharp, March 1993 - added preemptive scheduling
+		  Gregory J. Sharp, Feb 1996
+.aE
+.mT "thread_scheduling" L "libamoeba.a"
+routines to control scheduling between threads
+.SH
+Synopsis
+.LP
+.sC L
+#include "thread.h"
+
+void threadswitch()
+void thread_enable_preemption()
+void thread_get_max_priority(max)
+void thread_set_priority(new, old)
+.eC
+.SH
+Description
+.LP
+.kW "\fIthreadswitch\fP"
+.kW "\fIthread_enable_preemption\fP"
+.kW "\fIthread_get_max_priority\fP"
+.kW "\fIthread_set_priority\fP"
+.kW "scheduling"
+.kW "preemptive scheduling"
+.kW "runnable thread"
+.kW "round-robin"
+.kW "time-slice"
+These routines can be used to alter the scheduling algorithm used
+for selecting threads within a process.
+They do not alter the scheduling algorithm between processes.
+Nor can they alter the scheduling algorithm between kernel threads.
+The threads in the kernel always have a higher priority than those of
+user processes.
+All user processes have equal priority and are scheduled round-robin with
+time-slicing.
+.LP
+The default scheduling between threads within a process is non-preemptive.
+Threads run until they block or terminate.
+Threads block when they make a blocking system call.
+For example, an RPC (see
+.I rpc (L)),
+a
+.I grp (L)
+function or a
+.I mu_lock
+(see
+.I mutex (L)).
+Since most library routines, e.g.,
+.I sema_up,
+.I sema_down ,
+.I printf
+and
+.I open ,
+do an RPC or use mutexes to protect shared variables, it is highly likely
+that a library call will block.
+When non-preemptive scheduling between threads is used it is sometimes necessary
+for a process to voluntarily give up control so that another thread can run.
+That functionality is provided by
+.I threadswitch .
+.LP
+However, it is possible to enable preemptive scheduling between threads
+and to assign different priorities to threads.
+In this case the highest priority thread that is runnable will be scheduled
+when the process is selected to run.
+The lowest priority for a thread is 0.
+The highest is that returned by
+.I thread_get_max_priority .
+Time-slicing takes place between threads.
+The effect of priorities is confined to within the process.
+It is not the case that the highest priority thread from all processes is
+selected.
+.mH
+Functions
+.LP
+.sH
+threadswitch
+.LP
+.sC
+void
+threadswitch()
+.eC
+.kW "\fIthreadswitch\fP"
+.I Threadswitch
+causes the current thread to stop running and the scheduler to be called.
+If preemptive scheduling is disabled (the default case) then
+if there is another runnable thread in the same process it will be the next
+thread to run in that process.
+Note, however, that it may not be run immediately.
+Under certain circumstances a thread in another process may be run first.
+When no other thread is runnable, the calling thread is immediately restarted.
+.LP
+If preemptive scheduling is activated then it gives up control to the next
+thread of the same priority.
+The next thread will run if there is no runnable thread with higher priority.
+Once again, it is possible that a thread from another process may be run first.
+.sH
+thread_get_max_priority
+.LP
+.sC
+void
+thread_get_max_priority(max)
+long * max;
+.eC
+.kW "\fIthread_get_max_priority\fP"
+.I Thread_get_max_priority
+returns in
+.I *max
+the maximum legal priority which can be assigned to a thread.
+This call may be done at any time, regardless of whether preemptive
+scheduling is enabled or not.
+.kW "preemptive scheduling"
+.sH
+thread_set_priority
+.LP
+.sC
+void
+thread_set_priority(new, old)
+long new;
+long * old;
+.eC
+.kW "\fIthread_set_priority\fP"
+.I Thread_set_priority
+sets the priority of the current thread to
+.I new
+and calls the scheduler.
+It returns in
+.I *old
+the previous priority of the thread.
+The value of
+.I new
+must be in the range 0 to the maximum priority (as returned by
+.I thread_get_max_priority ).
+It is a programming error to attempt to set a thread's priority if
+preemptive scheduling is not enabled or to set it to a value outside
+the range of legal values.
+.sH
+thread_enable_preemption
+.LP
+.sC
+void
+thread_enable_preemption()
+.eC
+.kW "\fIthread_enable_preemption\fP"
+.I Thread_enable_preemption
+enables preemptive priority scheduling between threads for the current process.
+Once preemptive scheduling has been enabled it cannot be disabled.
+Note that all threads present in a process will have priority 0 immediately
+after this function is called.
+.LP
+For programs with threads of different priorities it is a good idea to enable
+preemption before the other threads are created.
+In this way,
+.I main()
+can alter its priority from its default of 0 to a level higher than the
+intended priorities of the child threads.
+Initially, each new child thread will have the same priority as
+.I main()
+but must set its priority to the correct (lower) level before doing anything
+else.
+This should lead to
+.I main()
+being resumed immediately if a child thread happens to run.
+Thus
+.I main()
+can complete initialization of threads before any of the child threads begins
+work.
+Then it can set its priority to the correct level for the program to perform
+its function.
+This is much simpler than using mutexes to enforce the completion of
+initialization before a program starts its work.
+.mH
+Warning
+.LP
+If a process that has enabled preemptive scheduling forks (using the Ajax
+emulation) then the child process will be scheduled preemptively but the
+threads will not inherit the priorities of the parent.
+They will all have priority zero.
+.SH
+Example
+.LP
+The following demonstrates how to enable preemptive scheduling and to
+assign priorities to threads.
+.sC L
+#include "amoeba.h"
+#include "thread.h"
+
+void
+mate(p, sz)
+char * p;
+int sz;
+{
+    long old;
+
+    thread_set_priority((long) 1, &old);
+    ...
+}
+
+main()
+{
+    long old;
+    long max;
+
+    thread_enable_preemption();
+    thread_get_max_priority(&max);
+    thread_set_priority(max, &old); /* set priority to max */
+    if (thread_newthread(mate, 4096, (char *) 0, 0) == 0) {
+	printf("thread_newthread failed\n");
+	exit(1);
+    }
+    ...
+}
+.eC
+.SH
+See Also
+.LP
+thread(L).

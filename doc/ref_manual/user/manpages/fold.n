@@ -1,0 +1,47 @@
+.\"	@(#)fold.n	1.4	96/02/16 10:58:37
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "fold" U
+fold long lines
+.SH
+Synopsis
+.LP
+.sC L
+fold [-n] [file] ...
+.eC
+.SH
+Description
+.LP
+.I Fold
+copies its input from the named file (or
+.I stdin ,
+if none is specified) to standard output.
+However, lines longer than the given maximum length (default 80)
+are broken into multiple lines of the maximum length
+by inserting new line characters.
+.mH
+Options
+.LP
+.IP \fB\-n\fP
+.I n
+is a decimal integer specifying how long the output lines should be.
+.SH
+Examples
+.LP
+.sC
+fold -60
+.eC
+Fold
+.I stdin
+to 60 characters.
+.sC
+fold -1 file
+.eC
+Fold file to 80 characters.

@@ -1,0 +1,45 @@
+.\"	@(#)X.n	1.7	96/02/15 17:58:53
+.\"
+.\" Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: X11R4 port: Jack Jansen
+		  X11R5 port: Leendert van Doorn, Kees Verstoep
+		  X11R6 port: Kees Verstoep
+	Document: Gregory Sharp, 08/02/90
+	Modified: Gregory Sharp, 08/02/93 - to reflect the fact that all of
+					    X11R5 runs, whereas only selected
+					    parts of X11R4 worked.
+.aE
+.mT "X" U
+the set of X utilities that are known to work under \*(Am
+.SH
+Synopsis
+.LP
+.sC L
+The list of X utilities that work under \*(Am
+.eC
+.SH
+Description
+.LP
+.kW "X windows"
+.kW "X utilities"
+.kW "twm"
+.kW "xterm"
+The various programs delivered with the X windows system should all work
+under \*(Am.
+In particular the X servers and the client programs
+.I twm
+and
+.I xterm
+all work.
+To use the X utilities add
+.I /profile/module/x11/bin
+to your
+.cW PATH
+environment variable.
+.LP
+If X windows has not been installed, consult your local system administrator.

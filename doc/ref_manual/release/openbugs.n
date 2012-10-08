@@ -1,0 +1,936 @@
+.\"	@(#)openbugs.n	1.13	96/03/15 14:47:45
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #10 ------------
+
+Date:        Thu Apr  5 14:24:30 MET DST 1990
+Reporter:    siebren (Siebren van der Zee,M346,020-5964098)
+Category:    Enhancement
+Module:      /bin/sh
+Severity:    Minor
+Summary:     $? incorrect when child process interrupted
+Handler:     condict
+Status:      Open
+
+Description:
+
+Repeat-by:
+
+$ cat	# This will block. Hit ^C to send it SIGINT and
+	# your prompt comes back
+$ echo $?
+-1
+$
+
+This is not what happens on the unix machines I could check.
+They set $? to 130. (Ultrix 2.?, 4.3 BSD, SunOs).
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #37 ------------
+
+Date:        Fri Jun 15 09:22:00 MET DST 1990
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Bug
+Module:      sun3 kernel
+Severity:    Minor
+Summary:     The sun3 does not reboot properly when booted from disk
+Handler:     gregor
+Status:      Open
+
+Repeat By:
+
+Boot Amoeba from disk on a sun3 and then type <home>-r
+
+Description:
+
+When Amoeba is booted from disk on a sun3 the <home>-r command
+to return to the monitor sometimes generates error messages from
+the monitor.  This is because the page tables that the monitor
+expects to get back have been stomped on by Amoeba.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #38 ------------
+
+Date:        Fri Jun 15 09:25:22 MET DST 1990
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Enhancement
+Module:      /bin/sh
+Severity:    Important
+Summary:     there is no unset command in sh
+Handler:     condict
+Status:      Open
+
+Description:
+
+The shell does not have an unset command.  This is irritating when
+one needs to get rid of a shell string environment variable.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #70 ------------
+
+Date:        Wed Aug  8 11:37:29 MET DST 1990
+Reporter:    jack (& Jansen,M346,4098,160335)
+Category:    Enhancement
+Module:      kernel
+Severity:    Minor
+Summary:     User program output should sometimes show in printbuf
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+	Currently, output from user programs (i.e. anything written
+	to <machine>/tty:00) does not show up in the printbuf. Usually,
+	this is what you want, but there are exceptions. For instance,
+	to examine the output the bootserver and the soapserver print
+	on their respective console I have to physically walk over to
+	the console. Needless to say, this is totally unacceptable:-).
+
+	I suggest adding a device 'console:00' (or just console) which
+	acts exactly like tty:00, but also stores the output in the
+	printbuf. This could then be used by the bootserver and friends,
+	while allo or the shell still uses tty:00.
+
+	We could implement the console device in the tty driver, by
+	either using a bit in the rights field (right to write to the
+	printbuffer) or a bit in the object number.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #93 ------------
+
+Date:        Fri Oct 12 12:43:56 MET 1990
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Quality/Performance
+Module:      goodport
+Severity:    Minor
+Summary:     gp_trans returns RPC_BADPORT
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+The macro gp_trans in goodport.h returns RPC_BADPORT if it detects that
+you are attempting to access a port that it knows is dead.  There should
+be a separate error status that correctly reflects this error.  BADPORT
+is reserved for when you call trans,getreq or putrep with a null port.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #105 ------------
+
+Date:        Wed Oct 24 09:55:16 MET 1990
+Reporter:    sater@cs.vu.nl (Hans van Staveren,kamer S414,telef. 5486219)
+Category:    Quality/Performance
+Module:      timer on Force30
+Severity:    Minor
+Summary:     timer on force30 is inaccurate
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+The timer of the Force30 board doesn't run exactly at 10 Hz.
+Tweekings have already been made to the timer code, but somebody should
+look at it some time.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #125 ------------
+
+Date:        Wed Nov 14 18:02:41 MET 1990
+Reporter:    sater@cs.vu.nl (Hans van Staveren,kamer S414,telef. 5486219)
+Category:    Bug
+Module:      machdep/dev/force30/uart68562.c
+Severity:    Important
+Summary:     interrupts at wrong vector
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+By inspection.
+
+Description:
+
+The driver uses one of those fancy info structures to read what its vector
+should be. It even tells the hardware. Then it merrily continues doing a
+setvec to vector 244. It looks like the original author of the code had good
+intentions but could not make them work.
+
+Either the driver should be fixed properly, or the suggestion that the vector
+is programmable should be taken out.
+
+Just a job for the same guy that has to figure out why the clock interrupts
+at the wrong rate.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #126 ------------
+
+Date:        Thu Nov 15 14:07:48 MET 1990
+Reporter:    sater@cs.vu.nl (Hans van Staveren,kamer S414,telef. 5486219)
+Category:    Quality/Performance
+Module:      force30 kernels
+Severity:    Important
+Summary:     Force30 kernels do not use memory busrt fill
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+The Force30 hardware manual suggests that the memory burst fill feature
+of the MC68030 will work on the board. Our kernel doesn't use it.
+I know why, it didn't seem to work. Someone should look at this once.
+You are supposed to get a reasonable speedup from this.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #146 ------------
+
+Date:        Fri Feb  8 17:30:39 MET 1991
+Reporter:    jack@cwi.nl (Jack Jansen, 592 4098)
+Category:    Enhancement
+Module:      STD_ module
+Severity:    Minor
+Summary:     a STD_VERSION command would be very useful...
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+	Something for the far future: I think a STD_VERSION transaction
+	would be very useful. A server would reply to this with a standard
+	version message like
+	   foo created March 19, 1990 in /usr/amoeba/.... by jack@schelvis
+	I've just again run into a problem with an outdated server....
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #149 ------------
+
+Date:        Thu Mar  7 17:40:35 MET 1991
+Reporter:    beugel@cs.vu.nl (B.J. Beugel, VU Amsterdam.)
+Category:    Bug
+Module:      sig_raise()
+Severity:    Important
+Summary:     Raising signal 0 kills the entire process.
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Call "sig_raise(0)" in some thread and the entire process exits. 
+
+
+Description:
+
+The 'sig_raise()' system call has no return value so errors are not reported.
+According to the manual 'sig_raise()' should only be called with signals
+greater than 1. However raising negative signals (exceptions) with
+'sig_raise()' works fine and so does raising signal 1 (SIG_TRANS).
+Unfortunately, raising signal 0 with 'sig_raise()' kills the process.
+Maybe 'sig_raise()' should report an error condition and check for
+"illegal" signals. Just abortiong the process is a bit crude.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #156 ------------
+
+Date:        Fri Apr 12 13:35:31 MDT 1991
+Reporter:    jack@cwi.nl (Jack Jansen, 592 4098)
+Category:    Enhancement
+Module:      map_segment
+Severity:    Minor
+Summary:     map_segment doesn't offer full functionality
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+	It has just been brought to my attention that map_segment
+	doesn't offer the full functionality of mapping a segment
+	on program execution: it is not possible to specify the
+	offset in the file from which the segment should be initialized.
+
+	Needless to say, now somebody wants that functionality.
+
+	There is a very minor backward compatible change that would
+	allow this:
+	- Change the systemcall map_segment to map_segoff with the
+	  extra offset parameter.
+	- Add a map_segment wrapper to the library that calls
+	  map_segoff.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #167 ------------
+
+Date:        Wed May 22 11:43:40 MET DST 1991
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Quality/Performance
+Module:      Xsvr
+Severity:    Important
+Summary:     no security for the server capability
+Handler:     <to be assigned>
+Status:      Open
+
+Description:
+
+When the X server starts up it attempts to write its capability in
+/profile/cap/x11svr.  If this is the central directory of /super/cap
+then it must be writable for everyone or the X server won't run.
+However if this directory is world writable then anyone can tamper
+with my X server capability and thus interfere with my workstation.
+
+Several solutions are possible:
+1. Everyone has there own profile/cap/x11svr directory where only
+   they can write
+2. The X server can only be started by the boot server which can
+   have sufficient permission to write in /super/cap/x11svr.
+No doubt there are more solutions.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #168 ------------
+
+Date:        Fri May 31 11:29:18 MET DST 1991
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Bug
+Module:      ksh & sh
+Severity:    Minor
+Summary:     generates syntax errors when it shouldn't
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+for i in 1 2 3 4 5 ; do /super/users/sater/home/dhrystone & ; done
+
+(note that a separate line for each part of the loop DOES work.)
+Things that don't work in the ksh but do work in sh.
+
+ cat /etc/hosts | wc &
+ (cat /etc/hosts | wc ) &
+
+
+Description:
+
+The above command generates the message "syntax error" from the ksh and sh.
+This command line works fine under unix.  I think they still give the wrong
+operator precedence to &.  Subshells with pipes don't seem to work at all
+under ksh.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #170 ------------
+
+Date:        Wed Jun 12 10:23:46 MET DST 1991
+Reporter:    versto@cs.vu.nl (5485302)
+Category:    Bug
+Module:      ail
+Severity:    Important
+Summary:     multiple arrays in one operation results in wrong server code
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Consider the following piece of ail code:
+-----------
+class test_class [13..13] {
+        test_op(*,
+                in char  buf1[len1: 20],
+                in int   len1,
+                in char  buf2[len2: 20],
+                in int   len2
+        );
+};
+
+generate test_class { server; };
+------------
+
+Description:
+
+The server mainloop code generated for the operation test_op() is as follows:
+---------------
+            int len1; /* in redeclared (h_extra) */
+            int len2; /* in redeclared (h_size) */
+            /* in buf1 not declared */
+            char buf2[20]; /* in */
+            len1 = (short) _hdr.h_extra;
+            len2 = (short) _hdr.h_size;
+            _adv = _buf;
+            if (_hdr.h_size>20) {
+                _hdr.h_command = AIL_SVR_IN_BAD;
+                goto _fout; /* Marshaling error */
+            }
+            (void) memcpy(buf2, _adv, _hdr.h_size); _adv += _hdr.h_size;
+            _hdr.h_command = impl_test_op(&_hdr, _buf, len1, buf2, len2);
+----------------
+
+I.e. buf2 is copied from the transaction buffer as if it were
+right at the beginning of it.
+Before copying takes place, the pointer "_adv" should be set to _buf+len1
+instead of _buf.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #171 ------------
+
+Date:        Mon Jun 24 16:12:52 MDT 1991
+Reporter:    jack@cwi.nl (Jack Jansen, 592 4098)
+Category:    Bug
+Module:      /bin/sh and/or ajax exec
+Severity:    Important
+Summary:     the shell can hang when machines crash
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+     Execute a program on a machine that is down. For instance, have one
+     machine of type X in the pool (run server handled), crash it, and
+     execute a binary of that type before the run server notices the crash.
+
+     Type control-C while the shell hangs in the exec. The shell will
+     return with an 'I/O error' error. The next exec will hang forever.
+
+Description:
+
+     The shell will longjump out of the exec() (or ajax_newproc, or
+     whatever), but the routine that was trying to do the exec still
+     holds a mutex. The next exec() will hang forever. The mutex in
+     question is ajax_forkmu (I think), in libajax/startproc.c.
+
+     Note that this description might be wildly incorrect.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #174 ------------
+
+Date:        Wed Jun 26 22:15:57 MET DST 1991
+Reporter:    beugel@cs.vu.nl (B.J. Beugel, VU Amsterdam)
+Category:    Bug
+Module:      Korn shell
+Severity:    Important
+Summary:     The 'trap' command doesn't always trap as it should.
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Make two shell scripts. Name the first one "foo". It goes:
+
+echo ''
+echo This is \"foo\".
+
+trap 'echo \"foo\" interrupted' 2 15
+
+bar
+
+echo \"foo\" done.
+echo ''
+
+
+Name the second script "bar". It should have the lines:
+
+echo ''
+echo This is \"bar\".
+
+trap 'echo \"bar\" interrupted' 2 15
+
+sleep 100
+
+echo \"bar\" done.
+echo ''
+
+
+Execute "foo" in three different ways:
+
+1. Type "foo" at the prompt for the Korn shell. A little while after the
+   message "This is "bar"" has appeared, hit Ctrl-C to generate a signal.
+
+2. Type "ksh foo" at the shell prompt and hit Ctrl-C as mentioned at 1.
+
+3. Type ". foo" at the shell prompt and hit Ctrl-C as mentioned at 1.
+
+
+With 1, "bar" catches the signal correctly but as soon as "bar" is done,
+"foo" is killed and doesn't get to finish its last few lines.
+With 2, "bar" doesn't catch the signal and is consequently killed. I can't
+finish its remaining lines. "foo", however does catch the signal and
+gets to execute its last 'echo' commands.
+The third alternative gives the same results as with 2.
+
+
+Description:
+
+If the execution of "bar" in "foo" is changed to ". bar" (instead of "bar")
+the behaviour is again different. With 1, neither "foo" nor "bar" catch
+the signal. With 2, "bar" catches the signal, "foo" doesn't but still
+gets to finish its remaining lines. With 3 it's the same as with 2.
+Change the execution of "bar" to "ksh bar" and the behaviour changes once
+again. Respectively, "bar" catches the signal and "foo" is killed,
+both "bar" and "foo" catch the signal and finish al the way and the same 
+thing happens with the third alternative.
+In Unix both "foo" and "bar" catch the signals and finish the rest of their
+scripts, no matter how "foo" is executed.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #183 ------------
+
+Date:        Tue Aug  6 15:30:27 MET DST 1991
+Reporter:    raymond@cs.vu.nl (Raymond Michiels, 020-5483500)
+Category:    Bug
+Module:      stdio
+Severity:    Minor
+Summary:     printf isn't line buffered
+Handler:     versto
+Status:      Open
+
+Repeat By:
+
+create two threads and let each one of them do a printf().
+
+Description:
+
+The output looks like:
+
+	nseg = 12
+	type = 33554704
+	nsskeigp p=e d7.
+
+	ttyyppee  ==  3333555545720342
+
+	sskaivpipnegd .t
+	ot y0p.e0 .=0 13.3.5.5
+
+instead of something like:
+
+	nseg = 12
+	type = 33554704
+	nseg = 7.
+	skipped.
+
+	type = 33554704
+	type = 33555232
+
+	skipped.
+	saving to 0.0.01...
+
+	type = 3355
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #189 ------------
+
+Date:        Tue Dec 10 15:05:56 MET 1991
+Reporter:    sater@cs.vu.nl (Hans van Staveren,kamer S414,telef. 6219)
+Category:    Bug
+Module:      yap (and possibly others)
+Severity:    Important
+Summary:     generates infinite stream of broadcasts
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Start up yap under Amoeba, with output to a Unix window.
+Kill the Unix window. Watch the broadcasts fly.
+
+Description:
+
+Yap assumes that when a read fails it could be a temporary condition.
+Comments in the source say something about interrupts, ^Z.
+It just tries again. Under Unix this does not harm since it will be
+killed by a SIGHUP anyhow, but under Amoeba it generates a stream
+of broadcast locates to find the nonexisting server. 
+
+Either SIGHUP should be implemented or yap should be changed.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #195 ------------
+
+Date:        Tue Mar 31 16:43:28 MET DST 1992
+Reporter:    philip@cs.vu.nl (Philip Homburg,kamer R446,telef. 3546)
+Category:    Bug
+Module:      session server
+Severity:    Crucial before next release
+Summary:     crashme hangs session server.
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+crashme-1.8 1000 1 1000 0:5:0 100
+
+Description:
+
+None of the functions related to the session server work.
+Here is the part of ``kstat -c nano'' that contains the session server:
+40:57:B6:F9:C1:C0:B:0 (pid 1) : 10 thread
+27(0): tid 294 getreq ( ) timer: -1 retrial 10 loctime 5200 scnt 0 rcnt 29768
+    ctid 295 cident 1 cadr: 40:57:B6:F9:C1:C0:B:0 rtime 6
+    port: pub ?i????
+24(1): tid 504 getrep ( doop ) timer: 6500 retrial 10 loctime 5000 scnt 0 rcnt 0
+    ctid 59216 cident 0 cadr: CE:8D:7:2A:F8:68:EB:0 rtime 6
+    port: pub ?A????
+    cache: ??G?*? sid 1 saddr: 9A:93:67:F5:B2:E5:C9:0 rtime 100
+23(2): tid 429 idle ( doop ) timer: -1 retrial 10 loctime 5200 scnt 16 rcnt 0
+    ctid 2280 cident 4 cadr: 21:61:AE:D2:65:C3:3F:0 rtime 100
+    port: pub ?A????
+25(3): tid 0 idle ( doop sigtrans ) timer: -1 retrial 10 loctime 5200 scnt 16 rcnt 16
+    ctid 19 cident 0 cadr: 35:AF:84:CD:C0:82:3:0 rtime 100
+    port: pub ?A????
+26(4): tid 0 getreq ( ) timer: -1 retrial -1 loctime 5200 scnt 0 rcnt 6000
+    ctid 0 cident 0 cadr: 0:0:0:0:0:0:0:0 rtime 0
+    port: pub ?A????
+28(5): tid 441 idle ( ) timer: -1 retrial 10 loctime 5200 scnt 0 rcnt 36
+29(6): tid 0 getreq ( ) timer: -1 retrial 0 loctime 5200 scnt 0 rcnt 0
+    ctid 0 cident 0 cadr: 0:0:0:0:0:0:0:0 rtime 0
+    port: pub h:????
+30(7): tid 0 getreq ( ) timer: -1 retrial 0 loctime 5200 scnt 0 rcnt 0
+    ctid 0 cident 0 cadr: 0:0:0:0:0:0:0:0 rtime 0
+    port: pub h:????
+31(8): tid 0 getreq ( ) timer: -1 retrial 0 loctime 5200 scnt 0 rcnt 29768
+    ctid 0 cident 0 cadr: 0:0:0:0:0:0:0:0 rtime 0
+    port: pub ?i????
+32(9): tid 332 getreq ( ) timer: -1 retrial 10 loctime 5200 scnt 0 rcnt 6000
+    ctid 2145 cident 2 cadr: 21:61:AE:D2:65:C3:3F:0 rtime 100
+    port: pub ?A????
+
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #198 ------------
+
+Date:        Mon May 18 11:41:26 MET DST 1992
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Bug
+Module:      group communication
+Severity:    Important
+Summary:     known problems
+Handler:     kaashoek
+Status:      Open
+
+Description:
+
+The group communication is still young. There are some known bugs which should
+be taken into account:
+
+1.  The timers in the group code are not dynamically tuned.  This does not
+    usually lead to difficulties.
+
+2.  Recovery needs more extensive testing.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #203 ------------
+
+Date:        Thu Nov  4 08:47:59 MET 1993
+Reporter:    dholmes@ee.uts.edu.au (David Holmes)
+Category:    Bug
+Module:      ttn
+Severity:    Minor
+Summary:     ttn filches output
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+There seems to be a strange glitch when you logout of a ttn session.
+The next command entered at the amoeba% prompt gets a character
+stolen from it. eg. dir -> dr: not found
+			  1234 -> 234: not found
+
+
+Description:
+
+See above.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #205 ------------
+
+Date:        Mon Dec 20 11:30:12 MET 1993
+Reporter:    gregor@cs.vu.nl (Greg Sharp,kamer S414,telef. 6219)
+Category:    Bug
+Module:      /bin/sh
+Severity:    Important
+Summary:     commands in grave accents may not be parsed correctly
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+D=xyz
+X=`echo ${D} | sed "s/\(.*\)\(\${D}\)/\1./"`
+echo $X
+
+should print . but prints the value of D
+
+Description:
+
+When you have grave accents the shell should parse the input twice and
+thus do the substitution of $D later.  However we had to fiddle with
+the shell to get commands in grave accents to execute and it probably
+means we only parse the command once.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #206 ------------
+
+Date:        Tue Dec 21 17:26:17 MET 1993
+Reporter:    gregor@cs.vu.nl (Greg Sharp,kamer S414,telef. 6219)
+Category:    Bug
+Module:      tty server
+Severity:    Important
+Summary:     VMIN and VTIME don't work
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Set VMIN and VTIME to zero using tios_setattr.  Then read from the
+tty.
+
+Description:
+
+You should get a non-blocking read but in fact it blocks.  The VMIN and
+VTIME stuff isn't properly implemented.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #209 ------------
+
+Date:        Wed Mar  9 11:27:16 MET 1994
+Reporter:    gregor@cs.vu.nl (Greg Sharp,kamer S414,telef. 6219)
+Category:    Bug
+Module:      AIL
+Severity:    Important
+Summary:     AIL ails
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Create a stub with as argument an array of 10000 longs.
+
+Description:
+
+The above produces a 40 kB array which cannot fit in a trans() buffer
+but AIL tries it anyway.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #210 ------------
+
+Date:        Wed Mar  9 11:30:16 MET 1994
+Reporter:    gregor@cs.vu.nl (Greg Sharp,kamer S414,telef. 6219)
+Category:    Bug
+Module:      AIL
+Severity:    Important
+Summary:     AIL can't handle floating-point
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Write a stub description with a floating-point argument.
+
+Description:
+
+AIL cannot manipulate floating-point objects.  It should perhaps support
+IEEE FP in a machine independent way.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #211 ------------
+
+Date:        Fri Oct  6 16:13:28 MET 1995
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Bug
+Module:      AIL
+Severity:    Minor
+Summary:     AIL filename truncation is inconsistent
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Get AIL to generate an include filename longer than 14 characters,
+plus C code which includes the generated include file.  Then run AIL
+with the -f13 option to truncate filenames to 13 characters.
+
+Description:
+
+AIL will correctly produce an include file whose name is 13 characters long.
+However, the #include in the generated C source will use the untruncated
+name and thus not find the include file.
+.ps
+.R
+.fi
+.sp 2v
+.nf
+.ne 11
+.cW
+.ps-2
+------------------  Amoeba Modification Request #212 ------------
+
+Date:        Fri Mar 15 14:15:45 MET 1996
+Reporter:    gregor@cs.vu.nl (Greg Sharp)
+Category:    Bug
+Module:      386 Kernel
+Severity:    Important
+Summary:     The 386 kernel made with the GNU compiler is buggy
+Handler:     <to be assigned>
+Status:      Open
+
+Repeat By:
+
+Compile the Amoeba i80x86 kernel with the GNU compiler.
+
+Description:
+
+The Amoeba i80x86 kernel when compiled with the GNU compiler seems
+to make errors in memory mapping.  The GNU compiler may be "over-
+optimising" some part of the kernel.
+
+The workaround is to compile the kernel with the ACK compiler.
+.ps
+.R
+.fi
+.sp 2v

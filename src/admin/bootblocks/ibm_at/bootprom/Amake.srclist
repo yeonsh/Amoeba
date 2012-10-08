@@ -1,0 +1,35 @@
+#	
+#	@(#)Amake.srclist	1.2	94/04/06 11:31:08
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+R_BOOTROM_START = $PWD/start.S;
+
+R_BOOTROM = {
+	$PWD/assert.h,
+	$PWD/param.h,
+	$PWD/types.h,
+	$PWD/inet.h,
+	$PWD/arp.h,
+	$PWD/tftp.h,
+	$PWD/ether.h,
+	$PWD/packet.h,
+	$PWD/main.c,
+	$PWD/arp.c,
+	$PWD/tftp.c,
+	$PWD/packet.c,
+	$PWD/printf.c,
+	$PWD/aalloc.c,
+};
+
+R_DRIVER_NE2100 = {
+	$PWD/lance.h,
+	$PWD/ne2100.c,
+};
+
+R_DRIVER_WD80X3 = {
+	$PWD/dp8390.h,
+	$PWD/wd80x3.c,
+};

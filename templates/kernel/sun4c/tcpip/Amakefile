@@ -1,0 +1,86 @@
+#	
+#	@(#)Amakefile	1.5	96/02/16 15:52:36
+#
+# Copyright 1995 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = sparc;
+MACH = sun4c;
+MMU = sun4c;
+
+%include $SRC_ROOT/kernel/Amake.srclist;
+%include $SRC_ROOT/h/Amake.srclist;
+%include $SRC_ROOT/h/machdep/arch/$ARCH/Amake.srclist;
+%include $SRC_ROOT/h/machdep/mmu/$MMU/Amake.srclist;
+%include $SRC_ROOT/h/machdep/dev/Amake.srclist;
+
+INCLUDES = {
+	-I.,
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/sys,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+	-I$SRC_ROOT/h/machdep/mmu/$MMU,
+	-I$SRC_ROOT/h/machdep/dev,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/kernel/machdep/dev/generic,
+	-I$SRC_ROOT/kernel/machdep/dev/$MACH,
+};
+
+DEFINES = {
+	-DFLIPGRP,
+	-DSTATISTICS,
+};
+
+SOURCEFILES = {
+	$K_HEAD,
+	offset.h,
+	map.h,
+	$K_SYS[flags='-DNPROC=16'],
+	$K_ARCH,
+	$K_MMU,
+	$K_MACH,
+	$K_PACKET,
+	$K_NETWORK_ETHER,
+	$K_FLIP_CONF,
+	$K_FLIP_SYS,
+	$K_FLIP_NETWORK_ETHER,
+	$K_FLIP_RPC,
+	$K_FLIP_GRP,
+	$K_FLIP_RAW,
+
+	$K_DEV_SUN4C_ETHER,
+
+	$K_SVR_DIRECT,
+	$K_SVR_SYS,
+	$K_SVR_PROCESS,
+	$K_SVR_TTY,
+	$K_SVR_TOD,
+
+# tcpip specific
+	conf_gw.c[flags="-I$SRC_ROOT/kernel/server/ip/kernel_dep" +
+			"-I$SRC_ROOT/kernel/server/ip/amoeba_dep" +
+			"-I$SRC_ROOT/kernel/server/ip"],
+	$K_SVR_TCPIP[flags="-I$SRC_ROOT/kernel/server/ip/kernel_dep" +
+			"-I$SRC_ROOT/kernel/server/ip/amoeba_dep" +
+			"-I$SRC_ROOT/kernel/server/ip" + '-DAM_KERNEL' +
+			'-D_POSIX_SOURCE' + '-DALIGN_HEADERS' ],
+
+	$H_SYS_FILES,
+	$H_ARCH_FILES,
+	$H_MMU_FILES,
+	$H_DEV_FILES
+};
+
+LDADDR = 'E0004000';
+CTAGSFLAGS = -t;
+
+%include $CONF_ROOT/toolset/amoeba.kernel;
+
+%cluster {
+	%targets offset.h[type = AS-offset];
+	%sources $K_DEV_SUN4C_OFFSET;
+};

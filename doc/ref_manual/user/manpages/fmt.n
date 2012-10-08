@@ -1,0 +1,50 @@
+.\"	@(#)fmt.n	1.1	94/02/09 11:33:46
+.aU
+	Software: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Document: Steve Kirkendall, kirkenda@cs.pdx.edu
+	Modified: Gregory J. Sharp, Feb 1994, converted to Amoeba format
+.aE
+.mT "fmt" U
+adjust line-length for paragraphs of text
+.SH
+Synopsis
+.LP
+.sC L
+fmt [-width] [files]...
+.eC
+.SH
+Description
+.LP
+.I Fmt
+is a simple text formatter.
+It inserts or deletes newlines, as necessary, to make all lines in a
+paragraph be approximately the same width.
+It preserves indentation and word spacing.
+.LP
+The default line width is 72 characters.
+This can be overridden with the
+.B \-width
+flag.
+If no files are named on the command line,
+.I fmt
+will read from
+.I stdin .
+.SH
+Example
+.LP
+It is typically used from within
+.I vi
+to adjust the line breaks in a single paragraph.
+To do this, move the cursor to the top of the paragraph,
+type
+.sC
+!}fmt
+.eC
+and press the return key.
+.LP
+From the command line it can be called to format the file
+.I foo
+to contain no lines longer than 75 characters with the command:
+.sC
+fmt -75 foo
+.eC

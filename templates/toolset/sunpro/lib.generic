@@ -1,0 +1,41 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)lib.generic	1.1	96/02/16 15:56:42
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+LINTLIBNAME = llib-l$LIBNAME.ln;
+
+# See if lint is available in $PATH.
+# If it's not, don't try to build a lint cluster by default.
+%import PATH;
+%if (vpath($LINT, $PATH) == '.', {
+	%default lib$LIBNAME.a;
+}, {
+	%default lib$LIBNAME.a, $LINTLIBNAME;
+});
+
+%cluster
+{
+	%targets lib$LIBNAME.a[type = archive];
+	%sources $SOURCEFILES;
+};
+
+%cluster
+{
+	%targets $LINTLIBNAME[type = lint-library];
+	%sources select($SOURCEFILES, lint-source, %true);
+	%use	 stub-generator();
+};
+
+%cluster
+{
+        %targets tags[type = ctags-output];
+        %sources select($SOURCEFILES, lint-source, %true);
+};
+
+%cluster files
+{
+        %do exec(mkfiles, args => $SOURCEFILES, stdout => files);
+};

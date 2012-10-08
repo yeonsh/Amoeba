@@ -1,0 +1,11 @@
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+#	
+#	@(#)amoeba.lib	1.1	96/02/16 15:56:25
+#
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+%include $PWD/amoeba.cmds;
+#	We have a special assembler for the library routines.
+%include $PWD/amoeba.lib_ass;
+%include $PWD/lib.generic;

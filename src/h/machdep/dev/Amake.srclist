@@ -1,0 +1,39 @@
+#	
+#	@(#)Amake.srclist	1.6	94/05/31 13:03:40
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+H_DEV_FILES = {
+	$PWD/bblock.h,
+	$PWD/etherformat.h,
+	$PWD/etherproto.h,
+	$PWD/ethif.h,
+	$PWD/gdpinfo.h,
+	$PWD/glainfo.h,
+	$PWD/gsminfo.h,
+	$PWD/ics386.h,
+	$PWD/ics486.h,
+	$PWD/ics_header.h,
+	$PWD/lainfo.h,
+	$PWD/openprom.h,
+	$PWD/pclabel.h,
+	$PWD/pit68230info.h,
+	$PWD/promid_sun4.h,
+	$PWD/ramdisk.h,
+	$PWD/scc2698.h,
+	$PWD/scc2698info.h,
+	$PWD/scsi.h,
+	$PWD/scsi_dmaprot.h,
+	$PWD/scsi_sun3.h,
+	$PWD/scsi_sun4.h,
+	$PWD/smif.h,
+	$PWD/sunlabel.h,
+	$PWD/timerdev.h,
+	$PWD/ua68562info.h,
+	$PWD/uart2681.h,
+	$PWD/uart8530.h,
+	$PWD/uart8530info.h,
+	$PWD/ultpart.h
+};

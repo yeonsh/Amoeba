@@ -1,0 +1,98 @@
+#!/bin/sh
+#	
+#	@(#)ainstall	1.5	94/04/07 14:08:41
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# ainstall.sh: convert ack or unix binary to amoeba binary
+# and install it on the bullet server
+
+# remove '.' from path, because may be installing things like 'tob',
+# and we don't want to try running an Amoeba binary on Unix.
+PATH=`/bin/echo /bin:$PATH:/bin | /bin/sed 's/::/:/g' | /bin/sed 's/:.:/:/g' `
+
+prog=$0
+
+# accumulate options to be passed to acv/tob
+opts=""
+filesvr=""
+while [ $# -gt 0 ]
+do
+	case "$1" in
+	-f)	  filesvr="$2";		shift;;
+	-f*)	  filesvr=`expr $1 : '-f\(.*\)'`;;
+	-[sbT])	  opts="$opts $1 $2";	shift;;
+	-[sbT]*)  opts="$opts $1";;
+	*)	  break;;
+	esac
+	shift
+done
+
+# the only arguments left should be unixpath and (optionally) amoebapath
+if [ $# = 1 ]
+then
+	unixpath=$1
+	amoebapath=$unixpath
+elif [ $# = 2 ]
+then
+	unixpath=$1
+	amoebapath=$2
+else
+	echo "usage: $prog [-s stacksize] [-b extra-bss] [-T startaddress]" >&2
+	echo "                   [-f filesvr] unixpath [amoebapath]" >&2
+	exit 1
+fi
+
+if [ ! -f "$unixpath" ]
+then
+	echo "$prog: file $unixpath not found" >&2
+	exit 1
+fi
+
+ambinary=""
+temp=""
+ret=1	# set to 0 on succesful installation
+
+# See if the binary needs conversion
+if am_pd $unixpath
+then
+	# already an Amoeba binary
+	ambinary="$unixpath"
+else
+	temp=/tmp/acv.$$
+	if acv $opts "$unixpath" "$temp"
+	then
+		ambinary=$temp
+	else
+		echo "$prog: conversion to amoeba binary failed" >&2
+	fi
+fi
+
+
+# if ambinary is now set, install it
+if [ "X$ambinary" != X ]
+then
+	# if amoebapath is an existing file, delete it first
+	ax /bin/test -f "$amoebapath" >/dev/null 2>&1
+	if [ $? = 0 ]
+	then 
+		del -d "$amoebapath"	# note: don't del -f
+	fi
+
+	# install on bullet server
+	if tob "$ambinary" "$amoebapath" $filesvr
+	then
+		ret=0
+	else
+		echo "$prog: cannot store amoeba binary on bullet server" >&2
+	fi
+fi
+
+# clean up and exit
+if [ "X$temp" != X ]
+then
+	rm -f $temp
+fi
+exit $ret

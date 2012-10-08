@@ -1,0 +1,11 @@
+#!/bin/sh
+#	
+#	@(#)quote	1.2	94/04/07 15:59:16
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# quote: print arguments with surrounding '"'s.
+# it is only used to fix a non-portable cpp construction in the X11 tree.
+echo \"$*\"

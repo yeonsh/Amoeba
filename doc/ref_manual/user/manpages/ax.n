@@ -1,0 +1,345 @@
+.\"	@(#)ax.n	1.7	96/02/15 18:00:40
+.\"
+.\" Copyright 1995 Vrije Universiteit and Stichting Mathematisch Centrum,
+.\" The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Jack Jansen (file server), 1988
+	Software: Guido van Rossum, 1988-1989
+	Document: Guido van Rossum, Feb 1990
+	Modified: Gregory J. Sharp, Nov 1993 -	new session svr and general
+						tidy up.
+		  Gregory J. Sharp, Oct 1995 -	standards conformance
+.aE
+.mT "ax" U \" utility
+execute program using specified environment and host
+.SH
+Synopsis
+.LP
+.sC L
+ax [options] program [argument] ...
+.eC
+.SH
+Description
+.LP
+.kW "process execution"
+.kW "executable file"
+.kW "signals"
+.kW "session server"
+.kW "process capability"
+.kW "process owner"
+.kW "stack size"
+.kW "process server"
+.kW "host"
+.kW "processor pool"
+.kW "processor selection"
+.kW "capability environment"
+.kW "string environment"
+.kW "program arguments"
+.I Ax
+is used to start a new \*(Am process from \*(Am or from
+.UX .
+The file containing the executable image to be started must be installed
+on an \*(Am file server.
+(An executable file can be installed from
+.UX
+using
+.I ainstall (U).)
+.LP
+From
+.UX ,
+.I ax
+is the main way to start a process running under \*(Am.
+When invoked,
+.I ax
+starts the process and then acts as an I/O server to handle standard input and
+output from the process.
+Two copies of the I/O server are forked, to allow simultaneous input and output.
+In this state, interrupt and quit signals are propagated to the process
+(causing its termination) or to the
+.I session (U)
+server (which should pass it on to the appropriate process group).
+Note that if the
+.I ax
+job dies the \*(Am process will not be able to communicate with the
+outside world.
+.LP
+Normally a shell is used to start jobs under \*(Am.
+When
+.I ax
+is invoked under \*(Am it is either to choose a specific processor on
+which to run a job or to specify a special environment.
+The new process inherits the
+.cW TTY ,
+.kW "TTY environment variable"
+.cW STDIN ,
+.cW STDOUT
+and
+.cW STDERR
+.kW "STDIN environment variable"
+.kW "STDOUT environment variable"
+.kW "STDERR environment variable"
+capabilities from
+.I ax
+(or they are redefined to some other I/O server),
+so
+.I ax
+does not need to provide an I/O server.
+Therefore
+.I ax
+exits shortly after startup, after first arranging that the new process
+thinks its owner is the owner of the
+.I ax
+process, and that the
+owner of
+.I ax
+thinks the new process is its child.
+This causes the shell to wait for the process started by
+.I ax,
+instead of terminating its wait when
+.I ax
+exits.
+.LP
+Under \*(Am, any process started by
+.I ax
+will be registered with the user's session server and its capability will
+appear in
+.I /dev/proc .
+Processes started by
+.I ax
+under
+.UX
+will be registered with the user's session server (if one is running) if
+the process makes use of the session server.
+.\".LP
+.\"If you have an \*(Am directory called
+.\".I /process ,
+.\".I ax
+.\"stores the capability for the running process there,
+.\"and prints the name under which it is stored.
+.\"This capability is removed when
+.\".I ax
+.\"notes that the process is terminated.
+.\"The name is the last component of the executable, with an optional
+.\"number suffix to avoid name conflicts.
+.\"It may occasionally be necessary to remove invalid capabilities from
+.\"this directory;
+.\"if more than 10 capabilities for the same program exist
+.\"with different suffixes, new capabilities are not stored.
+.mH
+Options
+.LP
+.IP \fB\-c\fP
+Write the capability for the running process to standard output.
+In this case, all further output (e.g., the process' standard output)
+is redirected to the standard error output of
+.I ax .
+.IP "\fB\-o\fP \fIowner\fP
+.br
+Sets the capability for the process owner.
+The owner receives a checkpoint transaction when the process exits,
+is stunned or causes an exception.
+.kW traceback
+By default,
+.I ax
+itself acts as owner, printing a traceback and terminating the process if it
+gets an exception or fatal signal.
+The traceback is printed using
+.I pdump (U).
+.kW "\fIpdump\fP"
+.IP "\fB\-s\fP \fIstacksize\fP
+.br
+Sets the stack size in kilobytes.
+The default is is architecture dependent.
+.IP "\fB\-m\fP \fIhost\fP
+.br
+Sets the host on which the process is executed.
+This may either be a host name or a full path name giving a host
+capability, as accepted by
+.I host_lookup (L).
+By default a suitable pool processor is chosen by
+.I exec_findhost (L).
+.IP "\fB\-p\fP \fIprocsvr\fP
+.br
+Sets the capability of the process server.
+This is really a different way of overriding the host on which the
+process is executed.
+It is more precise because any capability can be specified, not just a host
+name.
+.IP "\fB\-C\fP \fIname\fP=\fIcapability\fP
+.br
+Adds
+.I name
+to the capability environment (accessible through
+.I getcap (L))
+and assigns it the value specified.
+By default the capability environment contains the following items:
+.cW STDIN ,
+.cW STDOUT ,
+.cW STDERR :
+capabilities for the process' standard input,
+.kW "STDIN environment variable"
+.kW "STDOUT environment variable"
+.kW "STDERR environment variable"
+output and diagnostic output streams (implemented by
+.I ax
+acting as an I/O server).
+.cW ROOT ,
+.cW WORK :
+.kW "ROOT environment variable"
+.kW "WORK environment variable"
+capabilities for the process' home and work directory.
+They are set to the home and working directory of the user executing
+.I ax .
+.cW _SESSION :
+.kW "_SESSION environment variable"
+capability for the session server, taken from
+.I /dev/session ,
+if it exists.
+The
+.B \-C
+option can be used to override these standard items as well as
+to add new items.
+.IP "\fB\-D\fP \fIcorefile\fP"
+.br
+Sets the name of the file where
+.I ax
+dumps the process descriptor if the process dies due to an exception.
+This option does not work when
+.I ax
+runs under the session server,
+because in that case the
+.I session
+server takes over the ownership of the process.
+.IP "\fB\-E\fP 0"
+.br
+Initialize the environment to empty.
+If this option is not given, the environment that
+.I ax
+inherits is passed on to the executed program.
+In all cases, two items are forced to standard values:
+.cW HOME
+.kW "HOME environment variable"
+is set to / and
+.cW SHELL
+.kW "SHELL environment variable"
+is set to
+.I /bin/sh .
+These, too, can be overridden using the
+.B \-E
+.I name=string
+form below.
+.IP "\fB\-E\fP \fIname\fP=\fIstring\fP
+.br
+Adds
+.I name
+to the string environment, overriding any definition of the
+same name inherited from the shell or set by default.
+.IP \fB\-1\fP
+Start only a single I/O server.
+This is slightly more efficient if the process produces very little
+output, but can cause delays if it produces a lot, and makes it
+impossible to perform output while also waiting for input
+(e.g., in a different thread).
+By default, two I/O servers are started.
+.IP \fB\-n\fP
+Do not start any I/O servers.
+.I Ax
+will exit as soon as the process is started.
+This is useful to start long-running servers with output redirected to
+a logfile using the
+.B \-C
+option to redefine
+.cW STDOUT .
+.kW "STDOUT environment variable"
+.IP "\fB\-x\fP \fIpathname\fP
+.br
+Specifies the \*(Am path name for the program.
+By default the program name is used.
+If a hyphen (``\-'') is specified, a capability is read from standard
+input.
+See the example below.
+.IP \fIprogram\fP
+.br
+Specifies the name of the program (passed in argv[0]).
+Unless the
+.B \-x
+option is used, this is also the \*(Am path name of the
+executable file.
+.IP "[\fIargument\fP] ...
+.br
+Optional program arguments (accessible through the normal
+.I argc/argv
+mechanism).
+.mH
+Environment Variables
+.LP
+.IP \*<BULLET\*>
+.br
+.kW "BULLET environment variable"
+This string environment variable can be set to override the name
+of the file server used to create the stack segment for the process
+(which also contains the environments and arguments).
+.IP \*<CAPABILITY\*>
+.br
+.kW "CAPABILITY environment variable"
+This environment variable is not special for
+.I ax
+but for
+.UX .
+The string environment variable can be set to point to a
+.UX
+file containing the capability for the host on which to run a process.
+It effectively defines a new root capability instead of the capability
+in the
+.I .capability
+file.
+This can be very useful if for some reason the directory server is
+unavailable.
+.SH
+Examples
+.LP
+To run the binary in
+.I /home/hello
+on the host
+.I bcd :
+.sC
+ax -m bcd /home/hello
+.eC
+Sometimes under
+.UX
+it is necessary to start programs while there is no directory server
+available
+(for example, if the
+.I boot (A)
+server fails to start for some reason.)
+To do this two
+.UX
+files are need.
+The first
+(called
+.I a.out.cap
+in our example \- see
+.I ainstall (U)
+for how to make this file)
+contains the capability of the executable.
+The second contains the capability for the host on which to run the program.
+.sC
+CAPABILITY=/usr/amoeba/adm/hosts/mark
+BULLET=/bullet
+export CAPABILITY BULLET
+ax -m / -x - hello < a.out.cap
+.eC
+.SH
+See Also
+.LP
+ainstall(U),
+exec_file(L),
+exec_findhost(L),
+getcap(L),
+getenv(L),
+host_lookup(L),
+session(U),
+pdump(U).

@@ -1,0 +1,128 @@
+#!/bin/sh
+#	
+#	@(#)doctree	1.7	96/02/27 10:19:59
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#	Make documentation configuration directories, enquire when not
+#	sure what to make.
+#
+#	In a truly perfect world this could ask for a text formatter and
+#	target printer (postscript,line, etc) as parameters but alas...
+#
+# Author: Greg Sharp
+#
+CFROOT=Amake
+CFNAME=Amakefile
+PROG=`basename $0`
+USAGE="Usage: $PROG [-v] config-root doc-root template-root"
+ECHO=:
+#
+# Assuming that makesubtree is in the same directory as this script, use $0 to
+# generate a makesubtree command.
+#
+MYDIRNAME=`expr $0 : '\(.*\)/.*'`
+if [ X$MYDIRNAME != X ]
+then
+	MYDIRNAME="$MYDIRNAME/"
+fi
+case $MYDIRNAME in
+/*)	;;
+*)	MYDIRNAME=`pwd`/$MYDIRNAME ;;
+esac
+MAKESUBTREE=${MYDIRNAME}makesubtree
+#
+# Work out which system we're on - if amoeba then we need a different chmod
+#
+if [ -d /profile/group ]
+then
+	CHMOD="chm ff:f:2"
+else
+	CHMOD="chmod ug+w"
+fi
+#
+# Set umask.
+. ${MYDIRNAME}localumask
+
+while [ $# -gt 0 ]
+do
+	case "$1" in
+	-v)     ECHO=echo
+		;;
+	*)      break
+		;;
+	esac
+	shift
+done
+if [ $# -ne 3 ]
+then
+	echo $USAGE
+	exit 1
+fi
+#
+tree_root=`amdir`
+case $1 in
+/*)	CONF_ROOT=$1 ;;
+*)	CONF_ROOT=$tree_root/$1 ;;
+esac
+
+case $2 in
+/*)	DOC_ROOT=$2 ;;
+*)	DOC_ROOT=$tree_root/$2 ;;
+esac
+
+case $3 in
+/*)	TEMPLATE_ROOT=$3 ;;
+*)	TEMPLATE_ROOT=$tree_root/$3 ;;
+esac
+
+# The following two are necessary for make subtree but have no effect
+ARCH=dummy
+TOOLSET=troff
+#
+if echo 'a\c' | grep 'c' > /dev/null
+then
+	E_PRE='-n'	# We have BSD-like echo command.
+	E_SUF=''
+else
+	E_PRE=''	# We have System V-like echo command.
+	E_SUF='\c'
+fi
+#
+# Generate config directories for the documentation
+#
+DOC_CONF=$CONF_ROOT
+for dir in $DOC_CONF
+do
+	if [ ! -d $dir ]
+	then
+		$ECHO creating directory: $dir
+		mkdir $dir
+	else
+		$ECHO $dir: already exists
+	fi
+done
+#
+$ECHO "Creating doc directories and Amakefiles."
+cd $TEMPLATE_ROOT/doc
+for dir in *
+do
+	if [ $dir != RCS -a $dir != SCCS -a -d $dir ]
+	then
+		if [ ! -d $DOC_CONF/$dir ]
+		then
+			$ECHO creating directory: $DOC_CONF/$dir
+			mkdir $DOC_CONF/$dir
+		else
+			$ECHO $DOC_CONF/$dir: already exists
+		fi
+		(
+		 cd $dir
+		 ECHO=$ECHO CHMOD=$CHMOD UEXIT=42 E_PRE=$E_PRE E_SUF=$E_SUF \
+		    $MAKESUBTREE . $DOC_CONF/$dir $CONF_ROOT $DOC_ROOT $ARCH $TOOLSET
+		)
+	fi
+done
+exit 0

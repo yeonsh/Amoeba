@@ -1,0 +1,11 @@
+#!/bin/sh
+#	
+#	@(#)awkscript	1.2	94/04/06 10:37:10
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+awk ' /_.*:/ { name = substr( $1, 2, length( $1 ) - 2 ) }
+      /.word/ { print "#define " name " " $2 }
+      /.long/ { print "#define " name " " $2 } ' $1

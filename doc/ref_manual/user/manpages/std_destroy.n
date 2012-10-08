@@ -1,0 +1,72 @@
+.\"	@(#)std_destroy.n	1.4	96/02/16 11:08:22
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 16/02/90
+	Modified: Gregory J. Sharp, Nov 1995 - style conformance
+.aE
+.mT "std_destroy" U
+destroy an object
+.SH
+Synopsis
+.LP
+.sC L
+std_destroy objectcap ...
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "destroy object"
+.I Std_destroy
+executes an
+.cW STD_DESTROY
+command for each object in its argument list.
+If the destroy operation succeeds it also deletes the directory entry for
+the object.
+Only servers for abstract objects accept this command.
+(Servers for physical objects, such as a disk, would need special assistance
+to implement it.)
+Most servers require a special right to be set in the capability to execute
+this command.
+.LP
+The exit status of the command is the number of errors encountered.
+.mH
+Diagnostics
+.LP
+Three types of error are possible:
+.IP 1.
+Errors while looking up the capability of the object in the directory server.
+.IP 2.
+Errors during the actual destroy operation itself
+(such as insufficient permission).
+.IP 3.
+Errors while attempting to delete the capability for the object from the
+directory server.
+.LP
+The error messages for the three different types are clear and include
+the explanation of the error status.
+.SH
+Example
+.LP
+.sC
+std_destroy /home/myfile /home/bin
+.eC
+will destroy the two objects
+.I /home/myfile
+and
+.I /home/bin
+and delete their capabilities from the directory server.
+.SH
+See Also
+.LP
+rm(U),
+del(U),
+std_copy(U),
+std_info(U),
+std_restrict(U),
+std_touch(U).

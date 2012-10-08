@@ -1,0 +1,92 @@
+.\"	@(#)Tpipe.n	1.3	94/04/05 15:27:56
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Berend Jan Beugel, June 11, 1991.
+	Document: Berend Jan Beugel, July 25, 1991.
+.aE
+.kW "test program"
+.kW "pipe"
+.mT "Tpipe" T
+test POSIX-style pipes
+.SH
+Synopsis
+.LP
+.sC L
+Tpipe [-vgb] [-s bsize] [-n bcount]
+.eC
+.SH
+Description
+.LP
+.I Tpipe
+tests POSIX-style pipes on \*(Am.
+A pipe is created between two processes and then blocks of random data are
+written to one side of the pipe and read from the other.
+The test also verifies the error codes that should be returned when
+invalid operations are performed on a pipe, such as writing onto a pipe
+whose reading side is closed.
+Normally, only test cases that failed are reported.
+.mH
+Options
+.LP
+.IP "\fB\-v\fP" 11
+verbose: report the test's progress including successful test cases.
+.IP "\fB\-g\fP"
+good cases only: perform valid operations only.
+.IP "\fB\-b\fP"
+bad cases only: perform invalid operations only.
+.IP "\fB\-s\fP\ bsize"
+transfer blocks of size
+.I bsize
+instead of the default size (4K).
+.IP "\fB\-n\fP\ bcount"
+transfer
+.I bcount
+blocks instead of the default number of blocks (8).
+.mH
+Diagnostics
+.LP
+Diagnostic messages from the process that reads from the pipe are
+displayed on
+.I stdout
+unless the program runs in the background.
+Messages from a background
+process and the process writing onto a pipe are redirected to the file
+.I proX.log ,
+where
+.I X
+is the process id of the corresponding process.
+.LP
+Failed test cases are reported by printing the file name and line number
+of the source file
+where the message was generated, the main test routine where the failure
+was discovered, the function that caused the failure, an extra
+code for easier reference in the source file and a phrase that describes
+the failure.
+A header mentions the name of the test and a trailer tells how many failures
+were reported altogether.
+.LP
+In verbose mode the name of the current test routine and
+functions that were executed successfully are also reported.
+On exit the program returns the total number of failures.
+.mH
+Warnings
+.LP
+Test cases that fail may influence the results of subsequent cases
+because it may not be possible to recover completely from the failure.
+.SH
+Example
+.LP
+Test a pipe with 20 blocks of 100000 bytes and
+invalid operations and display a trace of the test's progress:
+.sC
+Tpipe -v -s 100000 -n 20
+.eC
+.SH
+See Also
+.LP
+posix(L),
+Tsuite(T).

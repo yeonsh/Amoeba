@@ -1,0 +1,14 @@
+/*	@(#)kgdb.init	1.2	94/04/06 08:55:43 */
+/*
+ * Copyright 1994 Vrije Universiteit, The Netherlands.
+ * For full copyright and restrictions on use see the file COPYRIGHT in the
+ * top level of the Amoeba distribution.
+ */
+
+/*
+ * kgdb.init
+ *
+ * Call kgdb_init first so that we can start using the
+ * debugger during the initilization stage.
+ */
+kgdb_init TRAPS

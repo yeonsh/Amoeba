@@ -1,0 +1,85 @@
+.\"	@(#)maintain.n	1.6	96/02/15 17:00:39
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Routine Maintenance"
+.nH 1 "Backup"
+.LP
+.kW backup
+There are several ways to do backup under \*(Am.
+The program
+.I starch (U)
+is probably the best program to use since it understands the \*(Am
+directory system much better than programs like
+.kW starch
+.kW tar
+.I tar (U).
+.I Starch
+can dump to tape, floppy or disk, and can even send its output over a
+network to some other operating system (with the \*(Am network protocol
+built into it) so that it can be dumped to a tape or disk on the remote
+operating system.
+.nH 1 "Garbage Collection" nobp
+.LP
+.kW aging
+.kW "garbage collection"
+In \*(Am the directory server and the file server are separate.
+It is therefore possible to create files without ever storing the
+capability in the directory server.
+This is also true for other types of objects (including directories).
+It may also be the case that a program creates a (possibly large) temporary
+file but then crashes or is stopped before it can register
+the capability in the directory server.
+In this case there will be a file which no one can access or destroy taking up
+valuable disk space.
+To free the resources consumed by objects which are no longer accessible a
+.I "garbage collection"
+mechanism is used.
+It works by periodically marking all objects still reachable from the
+directory graph and then letting the server destroy any objects which
+were not marked.
+Under \*(Am, each relevant server keeps a
+.I time-to-live
+field for each object it manages.
+When the object is accessed (or
+.I touched
+in \*(Am terms) the field is reset to the maximum value.
+The periodic marking or
+.I touching
+is then followed by a command to all relevant servers to
+.I age
+each of their objects by decrementing the
+.I time-to-live
+field by 1.
+If it reaches zero the object is destroyed.
+.LP
+The current system for performing garbage collection is implemented by
+.I om (A).
+It traverses the entire accessible directory graph and touches all objects
+for servers registered for garbage collection.
+It then sends the
+.cW STD_AGE
+command to each registered server.
+All objects not touched within the aging period of the server will be
+destroyed.
+The servers currently managed this way are the \*(Ss
+(see
+.I soap (A))
+and the \*(Bs (see
+.I bullet (A)).
+It is very important to run
+.I om
+in server mode to prevent the disk filling up with garbage and to ensure
+that disused directory slots are freed.
+Garbage can fill up disks quite quickly.
+In general, \*(Am does not actually destroy objects when using commands such as
+.I rm (U)
+but merely deletes the directory entry.
+This is in case someone else holds the capability for the object (for example
+a link).
+It is expected that the garbage collection mechanism will deal with any
+objects which are no longer accessible.
+.\".nH 1 "WAN Connections" nobp
+.\".LP

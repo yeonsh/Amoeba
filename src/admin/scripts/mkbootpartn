@@ -1,0 +1,237 @@
+#!/bin/sh
+#	
+#	@(#)mkbootpartn	1.7	94/04/06 11:55:39
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+#
+# mkbootpartn [-o offset] arch mach toolset vdisk kernel ...
+#
+
+#
+# Default Soap mask
+#
+SPMASK=0xFF:0x02:0x04; export SPMASK
+
+# Variables that may be overrided by options:
+VERBOSE=true
+CONF_ROOT=`amdir`/conf/amoeba
+# By default, assume we should start writing at offset 0 of the partition
+offset=0
+floppy=false
+FLOPPYBOOT=""
+
+#
+# Option parsing
+#
+PROGRAM=`basename $0`
+while [ $# -gt 0 ]
+do
+    case "$1" in
+    -v)	# "-v" switch verbose option
+  	VERBOSE=false
+	;;
+    -o) # "-o offset" start writing at block offset
+	# Currently this is done automatically for i80386 floppy partitions
+	offset=$2
+	shift
+	;;
+    -C) # "-C conf" new confdir
+	if [ $# -lt 2 ]; then
+	    echo "Amoeba Configuration Root argument expected" 1>&2
+	    exit 1
+	fi
+	CONF_ROOT=$2
+	shift
+	;;
+    -f) # "-f floppyboot" specify alternative floppy bootstrap
+	if [ $# -lt 2 ]; then
+	    echo "Floppy Boot argument expected" 1>&2
+	    exit 1
+	fi
+	FLOPPYBOOT=$2
+	shift
+	;;
+    '-?')
+	set foo	# cause usage message below
+	;;
+    -*)	echo "$PROGRAM: Illegal option \"$1\"" 1>&2
+	set foo	# cause usage message below
+	;;
+    *)  break
+	;;
+    esac
+    shift
+done
+
+#
+# Argument parsing
+#
+if [ $# -gt 4 ]; then
+    ARCHITECTURE=$1; shift
+    MACHTYPE=$1; shift
+    TOOLSET=$1; shift
+    VDISK=$1; shift
+    KERNELS="$*";
+else
+    echo "Usage:" 1>&2
+    echo "$PROGRAM [-v] [-o offset] [-f floppybootstrap] [-C confdir] arch machtype toolset vdisk kernel ..." 1>&2
+    echo 1>&2
+    echo "kernel can be a kernel name from the conf tree (e.g., bullet)," 1>&2
+    echo "or of the form pathname[:kernelname]" 1>&2
+    exit 1
+fi
+
+CONFIG=$CONF_ROOT/$ARCHITECTURE.$TOOLSET
+
+#
+# Argument sanity checks
+#
+case "`std_info $VDISK`" in
+    @*)	;;
+    *)	echo "$PROGRAM: $VDISK is not a vdisk" 1>&2
+	exit 1
+	;;
+esac
+
+if [ $ARCHITECTURE = i80386 ]
+then
+    vdiskname=`basename $VDISK`
+
+    # Boot floppies are special ..
+    case "$vdiskname" in
+    floppy*)
+	# On a i80386 floppy disk, the first 17 sectors are
+	# reserved for the bootstrap loader, the kernel
+	# directory and kernels are stored immediatly after it.
+
+	offset=18
+	floppy=true
+
+	# pick default floppy bootstrap from conf tree if not specified
+	if [ "X$FLOPPYBOOT" = X ]; then
+	    FLOPPYBOOT="$CONFIG/admin/bootblocks/ibm_at/isa.flboot"
+	fi
+
+	if [ ! -f "$FLOPPYBOOT" ]; then
+	    echo "Cannot find floppy bootstrap $FLOPPYBOOT" 1>&2
+	    exit 1
+	fi
+
+	echo start writing at offset $offset of floppy vdisk $vdiskname
+	;;
+
+    *)  echo start writing at offset $offset of vdisk $vdiskname
+	;;
+    esac
+fi
+
+#
+# Create a prototype kernel directory for the kernels given as argument
+#
+curoff=1	# start right after the block containing the kernel dir
+extra=32	# reserve some space for future kernel growth
+kdirfile=/tmp/kd.$$
+trap "rm -f $kdirfile" 0
+KERNELPATHS=""
+count=0
+
+if $VERBOSE; then echo Setting up kernel directory; fi
+for kernel in $KERNELS
+do
+    case $kernel in
+    */*:*)  # a pathname with a kernel name after the colon
+	    kernelpath=`expr "$kernel" : '\(.*\):.*'`
+	    name=`expr "$kernel" : '.*:\(.*\)'`
+	    ;;
+    */*)    # a pathname without a separate kernel name
+	    kernelpath=$kernel
+	    name="kernel.$count"
+	    echo "Warning: no name specified for $kernelpath; calling it $name"
+	    count=`expr $count + 1`
+	    ;;	    
+    *)	    # a kernel that should be picked from a conf tree
+	    kernelpath=$CONFIG/kernel/$MACHTYPE/$kernel/kernel
+	    name=$kernel
+	    ;;
+    esac
+    if [ ! -f $kernelpath ]; then
+    	echo "$PROGRAM: kernel $kernelpath does not exist" 1>&2
+	exit 1
+    fi
+    KERNELPATHS="$KERNELPATHS $kernelpath"
+
+    # note: we cannot use du, because the block size is system dependent
+    size=`wc -c $kernelpath | sed 's/\([0-9][0-9]*\).*/\1/' `
+    blocks=`expr $size / 512`
+
+    # round up to the next highest multiple of 10
+    reserve=`expr 10 \* \( \( $blocks + $extra + 10 \) / 10 \)`
+    if [ $curoff = 1 ]; then
+	# the first kernel gets one block less
+	reserve=`expr $reserve - 1`
+    fi
+
+    echo "$curoff	$reserve	$name" >>$kdirfile
+
+    curoff=`expr $curoff + $reserve`
+done
+
+#
+# Now check if curoff is still smaller than the number of blocks available
+#
+avail=`std_info $VDISK | sed 's/@[ 	]*\([0-9][0-9]*\).*/\1/' `
+avail=`expr 2 \* $avail - $offset`
+if [ $curoff -ge $avail ]; then
+    echo "Kernels need more blocks ($curoff) than available ($avail)" 1>&2
+    exit 1
+fi
+
+#
+# Install bootstrap loader
+#
+if $floppy
+then
+    if $VERBOSE; then echo Installing floppy bootstrap loader; fi
+
+    installboot.ibm_at -f "$FLOPPYBOOT" $VDISK || {
+	echo "$PROGRAM: Cannot install floppy bootstrap loader" 1>&2
+	exit 1
+    }
+fi
+
+#
+# Install the kernel directory on disk
+#
+if $VERBOSE; then
+    echo Installing kernel directory file:
+    cat $kdirfile
+fi
+
+(mkkdir < $kdirfile | dwrite -s $offset -n 1 $VDISK) || {
+    echo "$PROGRAM: Cannot make kernel directory" 1>&2
+    exit 1
+}
+
+#
+# Store each kernel, specified in the kernel directory, on disk
+#
+set $KERNELPATHS
+
+while read base size name; do
+    start=`expr $base + $offset`
+    if $VERBOSE; then
+	echo Installing kernel $name at offset $start
+    fi
+
+    kernel=$1
+    shift
+
+    # installing the kernel is toolset/architecture dependent:
+    installk -d $start $TOOLSET $ARCHITECTURE $kernel $VDISK
+
+done < $kdirfile
+
+exit 0

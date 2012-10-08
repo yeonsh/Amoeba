@@ -1,0 +1,136 @@
+.\"	@(#)random.n	1.5	96/02/15 17:50:55
+.\"
+.\" Copyright 1996 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren
+	Document: Gregory J. Sharp, July 1990
+	Modified: Gregory J. Sharp, Jan 1996 - table headers
+.aE
+.mT "random" A
+the random number server
+.SH
+Synopsis
+.LP
+Currently built into the kernel
+.SH
+Description
+.LP
+.kW "random number server"
+This server provides \*(Am programs with random numbers.
+No rights are required to use this server.
+Random numbers are the privilege of all.
+There is only one command and that returns a random number of the size
+specified.
+.SH
+Programming Interface Summary
+.LP
+The programming interface consists of the single command particular to the
+server (whose name begins with
+.I rnd_ )
+and the standard server commands (whose names begin with
+.I std_ ).
+A summary of the supported commands is presented in the following two tables.
+For a complete description of the interface routines see
+.I rnd (L)
+and
+.I std (L).
+Not all the standard commands are supported since they are not all pertinent.
+.I Std_copy
+and
+.I std_destroy
+are not implemented.
+.I std_age ,
+.I std_restrict
+and
+.I std_touch
+are implemented but simply return
+.cW STD_OK
+and do nothing further.
+They do no error checking.
+.TS
+box tab(:) center box;
+cb s s s
+lw(3.1c) | lw(1.7c) | lw(1.8c) | lw(6c)
+lw(3.1c) | lw(1.7c) | lw(1.8c) | lw(6c)
+lw(3.1c) | lp-2w(1.7c) | lp-2w(1.8c) | lw(6c) .
+Standard Functions
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+std_age:NONE:T{
+RPC error
+T}:T{
+Does Nothing
+T}
+_
+std_info:NONE:T{
+RPC error
+T}:T{
+Returns the string ``Random Number Server''
+T}
+_
+std_restrict:NONE:T{
+RPC error
+T}:T{
+Does nothing to the capability
+T}
+_
+std_touch:NONE:T{
+RPC error
+T}:T{
+Does Nothing
+T}
+_
+.TE
+.TS
+box tab(:) center box;
+cb s s s
+lw(3.1c) | lw(1.7c) | lw(1.8c) | lw(6c)
+lw(3.1c) | lw(1.7c) | lw(1.8c) | lw(6c)
+lw(3.1c) | lp-2w(1.7c) | lp-2w(1.8c) | lw(6c) .
+RND Function
+_
+Function:Required:Error:Summary
+Name:Rights:Conditions:
+=
+rnd_getrandom:NONE:T{
+RPC error
+T}:T{
+Returns a random number
+of the requested size
+T}
+_
+.TE
+.SH
+Administration
+.LP
+There is only one administrative task relating to the random server.
+That is installing the capability of one of the random servers as
+the default random server.
+The place for installing the default server capability is described in
+.I ampolicy.h
+by the variable
+.cW DEF_RNDSVR
+and is typically
+.I /profile/cap/randomsvr/default .
+However the place to install it is via the path
+.I /super/cap/randomsvr/default
+which is the public directory.
+(The
+.I /profile
+directory may vary from user to user but typically points to the public
+version.)
+It is normal practice to allow the boot server (see
+.I boot (A))
+to maintain the default capability.
+.SH
+See Also
+.LP
+boot(A),
+random(L),
+std(L),
+std_info(U).

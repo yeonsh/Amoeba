@@ -1,0 +1,91 @@
+.\"	@(#)dd.n	1.4	94/04/05 15:56:06
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "dd" U
+disk dumper
+.SH
+Synopsis
+.LP
+.sC L
+dd [option=value] ...
+.eC
+.SH
+Description
+.LP
+This command is intended for copying partial files.
+The block size,
+skip count,
+and number of blocks to copy can be specified.
+The options can be used to specify other sizes than the default ones.
+Where sizes are expected,
+they are in bytes.
+However, the letters
+.B w ,
+.B b
+or
+.B k
+may be appended to the number to indicate words (2 bytes),
+blocks (512 bytes),
+or K (1024 bytes),
+respectively.
+When
+.I dd
+is finished,
+it reports the number of full and partial blocks read and written.
+.mH
+Options
+.LP
+.IP "\fBif\fP=\fIfile\fP" 12
+Input file (default is
+.I stdin) .
+.IP "\fBof\fP=\fIfile\fP"
+Output file (default is standard output).
+.IP "\fBibs\fP=\fIn\fP"
+Input block size (default 512 bytes).
+.IP "\fBobs\fP=\fIn\fP"
+Output block size (default is 512 bytes).
+.IP "\fBbs\fP=\fIn\fP"
+Block size;  sets ibs and obs (default is 512 bytes).
+.IP "\fBskip\fP=\fIn\fP"
+Skip \fIn\fP input blocks before reading.
+.IP "\fBseek\fP=\fIn\fP"
+Skip \fIn\fP output blocks before writing.
+.IP "\fBcount\fP=\fIn\fP"
+Copy only n input blocks.
+.IP "\fBconv\fP=lcase"
+Convert upper case letters to lower case.
+.IP "\fBconv\fP=ucase"
+Convert lower case letters to upper case.
+.IP "\fBconv\fP=swab"
+Swap every pair of bytes.
+.IP "\fBconv\fP=noerror"
+Ignore errors and just keep going.
+.IP "\fBconv\fP=sync"
+Pad every input record to ibs.
+.IP "\fBconv\fP=\fIarg,arg\fP[,...]"
+.br
+Several of the above conversions can be used simultaneously, simply by
+comma-separating them.
+.SH
+Examples
+.LP
+.sC
+dd if=x of=y bs=1w skip=4
+.eC
+Copy x to y, skipping 4 words.
+.sC
+dd if=x of=y count=3
+.eC
+Copy three 512-byte blocks.
+.SH
+See Also
+.LP
+dread(A),
+dwrite(A).

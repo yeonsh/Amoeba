@@ -1,0 +1,218 @@
+.\"	@(#)cronsubmit.n	1.4	96/02/15 18:06:58
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Maarten Huisjes, August 1990
+	Document: Maarten Huisjes, August 1990
+	Modified: Gregory J. Sharp, Oct 1995
+.aE
+.mT "cronsubmit" U
+submit a crontab file to the SAK server
+.SH
+Synopsis
+.LP
+.sC L
+cronsubmit [options]
+.eC
+.SH
+Description
+.LP
+.kW "\fIsak\fP"
+.kW "cron"
+.kW "crontab"
+.kW "\fIat\fP"
+.I Cronsubmit
+reads the file
+.I crontab
+in the sak directory (default 
+.I /home/sak )
+and submits it to the
+.I sak (A)
+server.
+A
+.I crontab
+file lists commands that are to be executed at
+specified times, dates or intervals.
+.LP
+Before submitting the jobs to the
+.I sak
+server, all existing
+.I crontab
+jobs in the sak directory will be deleted.
+(However see note for the
+.B \-f
+option.)
+For each job, the capability returned by the
+.I sak
+server will be stored in the file
+.I crontab<nr> .job,
+where
+.I <nr>
+is the line number of the job in the crontab file.
+This name is also passed to the
+.I sak
+server and is used in status reports and
+.cW STD_INFO
+requests.
+.LP
+All commands will be executed using
+.I "/bin/sh \-c" .
+Since the
+.I sak
+server can only execute transactions, the command is
+packed into a transaction that will result in the following command
+.sC
+/profile/util/session -a \fI/bin/sh\fP -c \fIcommand\fP
+.eC
+.LP
+.I Cronsubmit
+supplies a default capability and string environment.
+.LP
+The default capability environment is:
+.RS
+.IP "ROOT" 8
+is copied from the current
+.kW "ROOT environment variable"
+.cW ROOT
+capability environment variable.
+.IP "WORK"
+.kW "WORK environment variable"
+is set to the
+.cW ROOT
+capability environment variable.
+.RE
+.LP
+The default string environment is:
+.RS
+.IP "PATH" 8
+.I "/bin:/profile/util"
+.IP "_WORK"
+.I "/"
+.IP "HOME"
+.kW "HOME environment variable"
+.I "/home"
+.IP "SHELL"
+.kW "SHELL environment variable"
+.I "/bin/sh"
+.RE
+.LP
+Any changes to the string or capability environment can be made using the
+.B \-E
+and
+.B \-C
+options.
+.LP
+If no redirection is done all output is lost.
+.mH
+Options
+.LP
+.IP "\fB\-Cname=\fPcap" 15
+Set the capability environment variable
+.I name
+to the value
+.I cap .
+.IP "\fB\-E\fP 0"
+Execute the command with an empty string environment.
+.IP "\fB\-Ename=\fP\fIstr\fP"
+Set the string environment variable
+.I name
+to the value
+.I str .
+.IP "\fB\-d\fP \fIdir\fP"
+Use
+.I dir
+as sak directory (default
+.I /home/sak ).
+.IP "\fB\-f\fP \fIfilename\fP"
+Set the crontab file to
+.I filename
+(default filename is
+.I crontab ).
+Note that when starting,
+only the existing cron jobs for the specified
+.I filename
+are deleted.
+Those for other file names are not deleted.
+.mH
+Files
+.LP
+.IP "\fI/home/sak\fP" 25
+default sak directory.
+.IP "\fIcrontab\fP"
+default crontab file.
+.IP "crontab<nr>\fI.job\fP"
+submitted cron job file.
+.IP "\fI/home/sak/sak_status\fP"
+.I sak
+status file.
+.IP "\fI/profile/cap/saksvr/default\fP"
+default
+.I sak
+server.
+.mH
+.SH
+File Formats
+.LP
+Each line in the crontab file specifies one job and consists of six fields
+separated by tabs or spaces.
+Note that the
+.I command
+may contain further spaces without causing any confusion for
+.I cronsubmit .
+Each line has the form:
+.sC L
+minutes hours   day-of-month    month   day-of-week    command
+.eC
+The respective fields have the following domains:
+.IP \fIminutes\fR 15
+0 - 59.
+.IP \fIhours\fR
+0 - 23.
+.IP \fIday-of-month\fR
+1 - 31.
+.IP \fImonth\fR
+1 - 12.
+.IP \fIday-of-week\fR
+0 - 6 (Sunday is day 0).
+.IP \fIcommand\fR
+command to be run.
+.LP
+In addition any of the first five fields can be,
+.IP "1)"
+A list of values separated by commas.
+.IP "2)"
+A range specified as two numbers separated by a hyphen.
+.IP "3)"
+An asterisk (*), meaning all possible values of the field
+.LP
+Specification of days can be made two ways (day-of-month/month and
+day-of-week).
+If both are specified as a list of values, only one
+has to match for the command to be run.
+For example,
+.sC
+0 0 1 * 0 command
+.eC
+.LP
+would run
+.I command
+on the first of every month as well as on every Sunday.
+To specify days by only one value the other must be set to *.
+For example,
+.sC
+0 0 1 * * command
+.eC
+.LP
+would run
+.I command
+only on the first of every month.
+.SH
+See Also
+.LP
+at(U),
+sak(A),
+session(U),
+sh(U).

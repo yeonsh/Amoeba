@@ -1,0 +1,78 @@
+#!/bin/sh
+#	
+#	@(#)aminstallit	1.2	94/04/07 14:00:03
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+
+PROG=`basename $0`
+
+# Process options
+ARCH=""
+while [ $# -gt 0 ]
+do
+        case "$1" in
+        -m)     ARCH=$2
+                shift
+                ;;
+        *)      break
+                ;;
+        esac
+        shift
+done
+
+if [ $# -ne 2 ]
+then
+	echo "Usage: $PROG amoeba-binary destpath" >&2
+	exit 1
+fi
+srcpath=$1
+destpath=$2
+
+# ARCH must have been set by a -m option
+if [ "X$ARCH" = X ]
+then
+	echo "$PROG: no -m ARCH option provided" >&2
+	exit 1
+fi
+
+# Define a few commands we use:
+AX=ax
+DEL=del
+RM="$DEL -f"
+TDIR_EXISTS="$AX /bin/test -d"
+TFILE_EXISTS="$AX /bin/test -f"
+IS_AM_PD=am_pd
+AINSTALL=${AINSTALL-ainstall}
+
+INSTALLIT=undef
+if $IS_AM_PD $srcpath $ARCH
+then    INSTALLIT=tob
+else    if [ -x $srcpath ]
+	then    INSTALLIT="$AINSTALL"
+	else	echo "$PROG: don't know how to install $srcpath" >&2
+		exit 1
+	fi
+fi
+
+SPMASK=0xff:2:2
+export SPMASK
+
+if $TDIR_EXISTS $destpath 2>/dev/null
+then    echo directory $destpath already exists
+else
+	if $TFILE_EXISTS $destpath
+	then	$RM $destpath 2>/dev/null
+	fi
+	if mkd $destpath
+	then    echo created directory $destpath
+	else    echo cannot create dir $destpath
+		exit 1
+	fi
+fi
+
+$RM $destpath/pd.$ARCH 2>/dev/null
+echo installing $destpath/pd.$ARCH
+$INSTALLIT $srcpath $destpath/pd.$ARCH

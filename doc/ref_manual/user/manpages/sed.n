@@ -1,0 +1,106 @@
+.\"	@(#)sed.n	1.5	96/02/16 11:07:17
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: Originally from Minix manpage
+	Modified: Gregory J. Sharp, Jan 1992
+				- tell about the wonderful options
+		  Gregory J. Sharp, Nov 1995 - and now in English :-(
+.aE
+.mT "sed" U
+stream editor
+.SH
+Synopsis
+.LP
+.cW
+sed [-n] [-g] [-e edit_script] [-f script_file] [edit_script] [file]
+.SH
+Description
+.LP
+.kW "stream editor"
+.kW "editor"
+.I Sed
+is a stream editor.
+It takes an edit script either as an argument or one or more
+.B \-e
+options (see below) or the
+.I script_file
+of the
+.B \-f option
+and executes it on the
+.I file
+specified.
+If none is specified it reads from
+.I stdin .
+Output is produced on
+.I stdout .
+The input file is not changed by
+.I sed .
+With some minor exceptions,
+.I sed
+scripts in \*(Am are like those of
+.UX .
+.mH
+Options
+.LP
+.IP "\fB\-e\fP script
+.br
+Execute the specified edit script.
+More than one
+.B \-e
+option may be given on the command line.
+These will be executed on the input in the order that they are given on
+the command line.
+It is a good idea to put the
+.I script
+between single quotes on the command line to avoid the shell interpreting
+any character sequences before handing them to
+.I sed .
+.IP "\fB\-f\fP script_file
+.br
+The following argument is a file containing the edit script.
+.IP "\fB\-g\fP
+Set the global flag on for all
+.B s
+commands.
+.IP "\fB\-n\fP
+Suppress all output not explicitly requested by
+.B p
+or
+.B w
+commands.
+.SH
+Examples
+.LP
+.sC
+sed -f script file
+.eC
+Run the sed script in the file
+.I script
+on the contents of
+.I file .
+The result is printed on
+.I stdout .
+Remember that the input
+.I file
+is not modified by
+.I sed .
+.sC
+sed '/pig/s//hog/g' < foo
+.eC
+Replace
+.I pig
+by
+.I hog
+in the file
+.I foo
+and print the result on
+.I stdout.
+.sC
+sed -e '/pig/s//hog/g' foo
+.eC
+This is functionally identical to the previous example.

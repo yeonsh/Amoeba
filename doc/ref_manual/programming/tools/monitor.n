@@ -1,0 +1,84 @@
+.\"	@(#)monitor.n	1.4	94/04/05 15:14:20
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Hans van Staveren
+		  Robbert van Renesse
+	Document: Gregory J. Sharp, 27 November 1990
+.aE
+.nH 2 "Monitoring"
+.LP
+.kW monitor
+.kW events
+It is possible to monitor various ``events'' in a server program.
+This includes \*(Am kernels since they have internal servers.
+This is currently only supported in the C programming language.
+There is a special include file,
+called
+.I monitor.h ,
+which implements the mechanism for storing
+and retrieving the monitor information.
+A special macro can be placed in the code which acts as an ``event marker''.
+The macro keeps a count of the number of times it has been executed.
+The statistics kept by the monitoring can be collected using the command
+.I monitor (U).
+This command allows the possibility of keeping a circular buffer of events
+in the order in which they occur in addition to the count of the number of
+times an event has occurred.
+This option tends to use a lot of memory and shouldn't be left on too long
+in important servers.
+.LP
+.kW MON_EVENT
+The macro that implements event marking is called
+.cW MON_EVENT .
+The syntax of the call is:
+.sC
+MON_EVENT("description of an event")
+.eC
+.LP
+Execution of this call generates a primitive event.
+A string describing the event is passed as an argument.
+A variable denoting the number of times this
+specific event has occurred is incremented.
+Memory within the server is used to buffer the event information.
+.LP
+.kW RPC
+The three RPC calls are automatically monitored.
+There are events for each call to
+.kW "\fItrans\fP"
+.I trans ,
+.kW "\fIgetreq\fP"
+.I getreq
+and
+.kW "\fIputrep\fP"
+.I putrep .
+In addition special events are kept for any RPC errors.
+.LP
+The server does not need to implement a special command to allow clients to
+request the monitoring statistics.
+The include file redefines
+.I getreq
+call to implement the monitor command without the server seeing it.
+.LP
+At start up time the monitoring system allocates memory to store the event
+information using
+.I malloc (L).
+Some times this is impossible or undesirable since it may modify the behavior
+of the system being monitored in unacceptable ways.
+It is possible to pass the monitoring an event buffer using the
+.kW MON_SETBUF
+.cW MON_SETBUF
+macro.
+The syntax of the call is as follows.
+.sC
+MON_SETBUF(buffer, size)
+.eC
+A pointer to the private buffer and its size should be passed as arguments.
+.LP
+Note that it is not a good idea to add
+.cW MON_EVENT
+calls to timing critical code.
+Although inexpensive there is some overhead involved.

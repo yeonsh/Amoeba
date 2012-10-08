@@ -1,0 +1,63 @@
+.\"	@(#)remote.n	1.5	94/04/05 15:43:13
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.cH "Accessing Non-Amoeba Systems"
+.nH 1 "Remote Login"
+.LP
+It is possible to access non-\*(Am systems from \*(Am.
+For example,
+it is possible to execute programs on
+.UX
+systems reachable from the \*(Am network.
+\*(Am provides a special server,
+.kW "TCP/IP"
+called the TCP/IP server,
+which can be used to send messages to any hosts that can communicate using the
+TCP/IP network protocol.
+.kW "\fIttn\fP"
+A special program,
+.I ttn (U)
+(a telnet implementation) provides a way of logging in to remote machines.
+.LP
+.kW Internet
+\*(Am's ability to use the TCP/IP network protocol also gives it the possibility
+of talking over wide-area networks,
+such as the Internet,
+and to communicate with other systems, including remote \*(Am LANs.
+This means it is possible to send electronic mail or use FTP.
+.kW "MMDF II"
+The electronic mail system MMDF has been ported to \*(Am which
+allows \*(Am to send and receive electronic mail to or from any site on the
+Internet.
+.nH 1 "File Transfer" nobp
+.LP
+It is possible to transfer files quickly between \*(Am and
+remote systems without using the
+.I rcp
+command or some equivalent on the remote host.
+The commands to do this are called
+.kW "\fItob\fP"
+.kW "\fIfromb\fP"
+.kW "remote file transfer"
+.I tob (U)
+and
+.I fromb (U) .
+Both these programs run on the remote host and require that the remote
+system have the \*(Am network driver built in.
+At present drivers are provided for various versions of
+.UX .
+.I Tob
+stands for
+.I "to the bullet server"
+and can send a file from a remote machine
+to the \*(Am \*(Bs.
+Similarly
+.I fromb
+reads a file from the \*(Am \*(Bs and writes it on
+.I stdout
+on the remote machine.
+See the manual pages for these two commands for more details about how to
+use these facilities.

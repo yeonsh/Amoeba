@@ -1,0 +1,73 @@
+.\"	@(#)editors.n	1.7	96/02/15 17:57:57
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Document: Gregory J Sharp
+.aE
+.cH "Editors and Text Processing"
+.LP
+There are several editors available under \*(Am.
+.kW "editor"
+.kW "text editor"
+In particular there is the
+.kW "\fIvi\fP"
+.I vi
+clone
+.kW "\fIelvis\fP"
+.I elvis .
+This editor actually provides more functionality than
+.kW "\fIex\fP"
+.I vi/ex
+and the user-interface is subtly different, but the differences should not
+affect many people.
+.kW "\fIed\fP"
+There is also an
+.I ed (U)
+clone available in the third-party software collection.
+.LP
+The screen editor
+.kW "\fIjove\fP"
+.I jove (U)
+is provided.
+.kW Emacs
+It is patterned after
+.I Emacs ,
+but is simpler.
+The program
+.I teachjove (U)
+is available for those wishing to learn how to use
+.I jove (U).
+.LP
+A version of the stream editor sed (see
+.kW "\fIsed\fP"
+.I sed (U))
+and
+.kW "\fIawk\fP"
+.kW "\fIbawk\fP"
+awk (see
+.I bawk (U))
+have also been provided.
+The GNU version of awk is available in the third-party software and is
+superior to bawk.
+It is recommended that this be installed.
+See the
+.I Tools
+section of the
+.I "Programming Guide"
+and the manual pages in this volume for further information.
+.SH "Text Processing"
+.LP
+.kW \*(Tx
+\*(Am currently supports only one text formatter,
+namely \*(Tx.
+This is provided free with \*(Am along with some slight modifications to
+make it run under \*(Am.
+It requires a large amount of memory to function well.
+The small \*(Tx version requires about 4 or 5 Mbytes of memory to run,
+depending on the size of the input.
+The full \*(Tx requires at least 8 Mbytes for moderately sized jobs.
+For full details on how to use it read the documentation provided with
+the \*(Tx distribution.

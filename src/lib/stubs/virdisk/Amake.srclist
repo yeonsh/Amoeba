@@ -1,0 +1,15 @@
+#	
+#	@(#)Amake.srclist	1.4	94/04/07 11:15:06
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+L_STUBS_VIRDISK = {
+	$PWD/disk_ctl.c,
+	$PWD/disk_geom.c,
+	$PWD/disk_info.c,
+	$PWD/disk_read.c,
+	$PWD/disk_size.c,
+	$PWD/disk_write.c
+};

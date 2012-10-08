@@ -1,0 +1,70 @@
+.\"	@(#)uud.n	1.4	96/02/16 11:10:20
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995
+.aE
+.mT "uud" U
+decode a binary file encoded with uue
+.SH
+Synopsis
+.LP
+.sC L
+uud [-d] [-n] [-s srcdir/] [-t dstdir/] file
+.eC
+.SH
+Description
+.LP
+.kW uudecode
+.kW "\fIuue\fP"
+.I Uud
+decodes a file encoded with
+.I uue (U)
+or
+.I uuencode .
+The decoded file is given the name that the original file had.
+The name information is part of the encoded file.
+Mail headers and other junk before the encoded file are skipped.
+If
+.I file
+is ``-'' then
+.I stdin
+is used.
+.mH
+Options
+.LP
+.IP \fB\-d\fP
+Print debug information.
+.IP \fB\-n\fP
+Do not verify checksums.
+.IP "\fB\-s\fP \fIsrcdir/\fP"
+.br
+.I Srcdir/
+is the name of directory where the
+.I .uue
+file is.
+.IP "\fB\-t\fP \fIdstdir/\fP"
+.br
+.I Dstdir/
+is the name of directory where the output goes.
+.SH
+Examples
+.LP
+.sC
+uud file.uue
+.eC
+Re-create the original file.
+.sC
+uud - < file.uue
+.eC
+The ``\-'' means use
+.I stdin .
+.SH
+See Also
+.LP
+uue(U).

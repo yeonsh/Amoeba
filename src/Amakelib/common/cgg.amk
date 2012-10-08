@@ -1,0 +1,41 @@
+#	
+#	@(#)cgg.amk	1.2	94/04/06 10:32:17
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# cgg (code generator generator) is needed to create the ACK code generators
+
+%if (%not defined(CPP), {
+        CPP = /lib/cpp;
+});
+
+%if (%not defined(CGG), {
+	CGG = ncgg;
+});
+
+%if (%not defined(TABLEFLAGS), {
+	TABLEFLAGS = {};
+});
+
+%if (%not defined(CGGFLAGS), {
+	CGGFLAGS = {};
+});
+
+%tool cgg (
+        src:     %in        [type = cg-table];
+        dest:    %out       [type = C-src]           => tables.c;
+        hdest:   %out %list [type = C-incl, compare] => tables.H + tables.h;
+        prog:    %in        [type = command]         => $CGG;
+        cggopts: %string %list                       => $CGGFLAGS;
+        cppopts: %string %list                       => $TABLEFLAGS;
+        temp:    %tmp                                => table.tmp;
+)
+{
+        exec($CPP, args => $cppopts, stdin => $src, stdout => $temp);
+        exec($CGG, args => $cggopts + $temp);
+        exec(cp,   args => tables.H + tables.h);
+        exec(rm,   args => $temp);
+};
+

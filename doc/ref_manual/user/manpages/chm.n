@@ -1,0 +1,74 @@
+.\"	@(#)chm.n	1.5	96/02/15 18:05:31
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Robbert van Renesse
+	Document: Michael Condict, 29/03/90
+	Modified: Gregory J. Sharp, Oct 1995
+.aE
+.mT "chm" U
+change the rights masks in a directory entry
+.SH
+Synopsis
+.LP
+.sC L
+chm mask pathname ...
+.eC
+.SH
+Description
+.LP
+.kW "SOAP"
+.kW "protection"
+.kW "security"
+.kW "change mode"
+.kW "rights"
+.kW "rights mask"
+.I Chm
+uses
+.I sp_chmod (L)
+to change the rights masks to
+.I mask
+in the directory entry specified by
+.I pathname .
+More than one pathname may be given.
+The
+.I mask
+argument should be specified as a colon-separated list of rights masks,
+one for each column of the directory.
+Each rights mask is specified by one or two hexadecimal digits.
+The number of mask arguments must be the same as the
+number of rights-mask columns in the directory entry.
+Otherwise the error message
+.I "invalid argument"
+will be given.
+(Use:
+.cW "dir -lc pathname"
+to see how many rights-mask columns there are in each directory entry.)
+.LP
+If the path name cannot be found in the directory server or insufficient
+rights are available for the change-mode operation,
+a suitable error message will be printed.
+.SH
+Example
+.LP
+Assuming there are three rights columns, the first for ``owner'', the second
+for ``group'' and the third for ``world'',
+.sC
+chm ff:2:0 /home/temp 
+.eC
+will set the masks so that the owner rights are not restricted (beyond
+the restrictions imposed by the rights in the capability), the group rights
+are all turned off except for the second bit (which can be on if it is present
+in the capability) and the world has no rights, regardless of the rights in
+the capability.
+.SH
+See Also
+.LP
+del(U),
+dir(U),
+get(U),
+mkd(U),
+put(U).

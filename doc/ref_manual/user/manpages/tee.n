@@ -1,0 +1,55 @@
+.\"	@(#)tee.n	1.4	94/04/05 16:12:09
+.\"
+.\" Copyright 1994 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+.aE
+.mT "tee" U
+divert
+.I stdin
+to a file
+.SH
+Synopsis
+.LP
+.sC L
+tee [-ai] file ...
+.eC
+.SH
+Description
+.LP
+.I Tee
+copies its standard input to its standard output.
+It also makes copies on all the files listed as arguments.
+.mH
+Options
+.LP
+.IP \fB\-a\fP
+Append to the files, rather than overwriting them.
+.IP \fB\-i\fP
+Ignore interrupts.
+.SH
+Examples
+.LP
+.sC
+cat file1 file2 | tee xxx
+.eC
+Save the concatenation of the contents of the two files
+.I file1
+and
+.I file2
+in
+.I xxx
+and also display it on the standard output.
+.sC
+pr file | tee x | lpr
+.eC
+Save the output of
+.I pr
+on
+.I x
+while also sending it to the program
+.I lpr .

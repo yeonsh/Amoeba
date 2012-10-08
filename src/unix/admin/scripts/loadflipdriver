@@ -1,0 +1,44 @@
+#! /bin/sh
+#	
+#	@(#)loadflipdriver	1.4	94/04/07 14:00:45
+#
+# Copyright 1994 Vrije Universiteit, The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+NAME=`basename $0`
+TMP=/var/tmp
+KARCH=`arch -k`
+BASEDIR=`dirname $0`
+
+# We demand that amdir is available to give us the Amoeba top directory.
+# We assume that amdir is in the same scripts directory as this script.
+AMDIR=`$BASEDIR/amdir`
+if [ X$AMDIR = X ]
+then
+	echo "$NAME: do not know where to find the Amoeba top directory"
+	exit 1
+fi
+
+# installflipdevice should be in the same directory as this script
+INSTALLFLIP=$BASEDIR/instflipdev
+if [ ! -x $INSTALLFLIP ]
+then
+	echo "$NAME: script $INSTALLFLIP not found"
+	exit 1
+fi
+
+FLDRIVER=amoeba.$KARCH.o
+FLDRIVERPATH=$AMDIR/vldrv/$FLDRIVER
+if [ ! -f $FLDRIVERPATH ]
+then
+	echo "$NAME: flip driver $FLDRIVERPATH not found"
+	exit 1
+fi
+cp $FLDRIVERPATH $TMP
+
+( cd $TMP; rm -f amoeba.$KARCH )
+modload $TMP/$FLDRIVER -sym -entry _vdflipinit -exec $INSTALLFLIP
+
+# Now because of routing we need to init the flip driver
+$AMDIR/bin.`arch`/flip_stat > /dev/null

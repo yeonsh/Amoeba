@@ -1,0 +1,26 @@
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+#	
+#	@(#)generic	1.2	94/04/05 17:05:50
+#
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+# Amake definitions included by all other files here.  Ultrix version.
+# This may override defaults in Amakelib that don't work right for us.
+
+# The script to compute file dependencies for Amake.
+# The default set in Amakelib would use ack_mkdep which we don't have.
+MKDEP = $PWD/mkdep;
+
+# The path to the Amake library.
+AMAKELIB = $SRC_ROOT/Amakelib + $SRC_ROOT/Amakelib/common;
+
+# Subpath in the Amake library for our compiler set.
+%if (%not defined(COMPILER_SET), {
+    COMPILER_SET = irix;
+});
+
+#  for people who need a read only text segment
+CFLAGS_READ_ONLY_TEXT = {};
+LDFLAGS_READ_ONLY_TEXT = {};

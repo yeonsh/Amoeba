@@ -1,0 +1,68 @@
+.\"	@(#)rm.n	1.4	96/02/16 11:07:10
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Minix
+	Document: generated from Minix manpage
+	Modified: Gregory J. Sharp, Nov 1995 - have pity on the English lang.
+.aE
+.mT "rm" U
+remove a file
+.SH
+Synopsis
+.LP
+.sC L
+rm [-fir] name ...
+.eC
+.SH
+Description
+.LP
+.kW "destroy object"
+.kW "remove object"
+.kW "destroy directory entry"
+.I Rm
+removes one or more directory entries.
+If an object has no write permission,
+.I rm
+asks for permission (type ``y'' or ``n'') unless
+.B \-f
+is specified.
+.LP
+Note that the underlying object, such as a Bullet file, is not destroyed.
+Only the directory entry is removed.
+The underlying object will be removed by the garbage collection system
+if there are no further references to the object.
+.mH
+Options
+.LP
+.IP \fB\-f\fP
+Forced remove:  no questions asked.
+.IP \fB\-i\fP
+Interactive remove:  ask before removing each entry.
+.IP \fB\-r\fP
+Recursively remove.
+If the entry refers to a directory,
+.I rm
+will recursively descend the directory graph and remove objects.
+The directory will also be removed once it is empty.
+Be careful when there are cycles in the directory hierarchy.
+.SH
+Examples
+.LP
+.sC
+rm file
+.eC
+Remove file.
+.sC
+rm -i *.c
+.eC
+Remove all objects ending in
+.I .c ,
+asking before deleting each.
+.SH
+See Also
+.LP
+del(U).

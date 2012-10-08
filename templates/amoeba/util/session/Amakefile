@@ -1,0 +1,40 @@
+#	
+#	@(#)Amakefile	1.5	96/02/16 15:42:08
+#
+# Copyright 1994 Vrije Universiteit and Stichting Mathematisch Centrum,
+# The Netherlands.
+# For full copyright and restrictions on use see the file COPYRIGHT in the
+# top level of the Amoeba distribution.
+
+CONF_ROOT = <CROOT>;
+SRC_ROOT = <SROOT>;
+ARCH = <ARCH>;
+
+%include $SRC_ROOT/util/session/Amake.srclist;
+%include $SRC_ROOT/lib/libam/soap/Amake.srclist;
+%include $SRC_ROOT/admin/soapsvr/Amake.srclist;
+%include $SRC_ROOT/lib/stubs/soap/Amake.srclist;
+
+INCLUDES = {
+	-I$SRC_ROOT/h,
+	-I$SRC_ROOT/h/class,
+	-I$SRC_ROOT/h/server,
+	-I$SRC_ROOT/h/posix,
+	-I$SRC_ROOT/h/machdep/arch/$ARCH,
+};
+
+SOURCES = {
+	$S_SESSION,
+	$L_COMMON_SOAPSVR,
+	$L_AM_SOAP_LIB,
+	$L_STUBS_SOAP_OWNDIR_DEP,
+};
+
+DEFINES = {
+	-DDEBUG,
+	-DOWNDIR,
+};
+
+%include $CONF_ROOT/toolset/amoeba.bin;
+%instance gcluster(session, $SOURCES, $LIB_AMOEBA, $LINT_AMOEBA);
+%instance gcluster(sess_setout, $U_SESS_SETOUT, $LIB_AMOEBA, $LINT_AMOEBA);

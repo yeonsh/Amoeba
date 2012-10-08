@@ -1,0 +1,74 @@
+.\"	@(#)std_restrict.n	1.4	96/02/16 11:08:31
+.\"
+.\" Copyright 1995 Vrije Universiteit, The Netherlands.
+.\" For full copyright and restrictions on use see the file COPYRIGHT in the
+.\" top level of the Amoeba distribution.
+.\"
+.aU
+	Software: Gregory J. Sharp
+	Document: Gregory J. Sharp, 16/02/90
+	Modified: Gregory J. Sharp, Nov 1995, style conformance
+.aE
+.mT "std_restrict" U
+produce a version of a capability with restricted rights
+.SH
+Synopsis
+.LP
+.sC L
+std_restrict original mask newcap
+.eC
+.SH
+Description
+.LP
+.kW "standard commands"
+.kW "restrict rights"
+.kW capability
+.I Std_restrict
+asks the server responsible for the capability
+.I original
+to produce a new version of the capability with the rights bits bitwise-anded
+with the
+.I mask .
+It cannot add rights.
+It can only remove them.
+The resultant capability is stored under the name
+.I newcap .
+The
+.I mask
+is interpreted as a hexadecimal number.
+.mH
+Diagnostics
+.LP
+Three types of error are possible:
+.IP 1.
+Errors while looking up the original capability in the directory server.
+.IP 2.
+Errors during the actual restrict operation itself.
+.IP 3.
+Errors while attempting to store the restricted capability
+in the directory server.
+.LP
+The error messages for the three different types are clear and include
+the explanation of the error status.
+.SH
+Example
+.LP
+.sC
+std_restrict /home/mine 1f /home/mine.public
+.eC
+will produce a capability for the same object as
+.I /home/mine
+but with only the rights in the bottom 5 bits switched on that were originally
+switched on in
+.I /home/mine .
+The capability will be stored in
+.I /home/mine.public .
+.SH
+See Also
+.LP
+rm(U),
+dir(U),
+std_copy(U),
+std_destroy(U),
+std_restrict(U),
+std_touch(U).
